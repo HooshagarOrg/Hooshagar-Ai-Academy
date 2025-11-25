@@ -25,17 +25,31 @@ export async function POST(request: Request) {
     const prompt = question || `
 این تصویر یک مسئله یا تمرین درسی است.
 
+**IMPORTANT OUTPUT FORMAT:**
+- Write all numbers, formulas, and calculations in ENGLISH (123, x=5, etc.)
+- Write all explanations and descriptions in PERSIAN
+- Use English digits (0-9) not Persian digits (۰-۹)
+- Use standard math notation: tan, sin, cos, √, ×, ÷, =
+
 **قوانین:**
-- جواب نهایی: فقط عدد یا فرمول ریاضی (مثل: √2/2 یا 0.707)
+- جواب نهایی: فقط عدد یا فرمول ریاضی با اعداد انگلیسی
 - توضیحات: به فارسی
-- فرمول‌ها: با نماد استاندارد (tan, sin, √, ×, ÷)
+- اعداد: همیشه انگلیسی (0-9)
 
 JSON format:
 {
-  "problem": "متن مسئله",
-  "solution": "عدد یا فرمول (نه توضیح فارسی)",
-  "steps": ["توضیح فارسی با فرمول‌های استاندارد"],
+  "problem": "متن مسئله با اعداد انگلیسی",
+  "solution": "x = 5 یا 0.707 (فقط فرمول/عدد انگلیسی)",
+  "steps": ["Step: 2x + 3 = 13 - توضیح فارسی"],
   "subject": "موضوع"
+}
+
+Example output:
+{
+  "problem": "Solve: 2x + 3 = 13",
+  "solution": "x = 5",
+  "steps": ["2x + 3 = 13 را ساده می‌کنیم", "2x = 10 پس x = 5"],
+  "subject": "ریاضی"
 }
 `
 

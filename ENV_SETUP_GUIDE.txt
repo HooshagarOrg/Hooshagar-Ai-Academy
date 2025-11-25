@@ -1,0 +1,104 @@
+# =====================================
+# 🚀 راهنمای تنظیم Environment Variables
+# =====================================
+
+مراحل زیر را دنبال کنید:
+
+## مرحله 1: ویرایش فایل .env.local
+
+در ترمینال یا File Explorer:
+1. فایل .env.local را باز کنید (اگر وجود ندارد از .env.local.example کپی کنید)
+2. خطوط زیر را اضافه یا بروز کنید:
+
+---
+
+# =====================================
+# 🧠 Google Gemini (Primary AI Provider - رایگان!)
+# =====================================
+# دریافت کلید: https://aistudio.google.com/app/apikey
+# مزیت: 1,500 درخواست/روز رایگان 🎁
+
+GOOGLE_API_KEY=AIzaSy... # 👈 کلید خود را جایگزین کنید
+
+# =====================================
+# 📡 Supabase (Database + Auth)
+# =====================================
+# اگر قبلاً ست کرده‌اید، همان مقادیر را نگه دارید
+# اگر نه، از Supabase Dashboard بگیرید:
+
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJI...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJI...
+
+# =====================================
+# ⚙️ App Configuration (پیشفرض - تغییر ندهید)
+# =====================================
+APP_ENV=development
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+AI_MODEL_DEFAULT=gemini-1.5-pro
+AI_MODEL_FAST=gemini-1.5-flash
+AI_MODEL_VISION=gemini-1.5-pro
+
+# =====================================
+# 🔄 OpenRouter (OPTIONAL - فقط برای fallback)
+# =====================================
+# اگر ندارید خالی بگذارید - نیاز فوری نیست!
+OPENROUTER_API_KEY=sk-or-v1-...
+
+---
+
+## مرحله 2: تست کلید Google
+
+بعد از ذخیره فایل .env.local، در ترمینال اجرا کنید:
+
+```powershell
+npm run test-google
+```
+
+اگر موفق بود، خروجی:
+✅ Google Gemini API is working!
+📥 Response: [پاسخ فارسی]
+💰 Cost: رایگان (تا 1,500 درخواست/روز)
+
+---
+
+## مرحله 3: بررسی تمام متغیرها
+
+```powershell
+npm run verify-env
+```
+
+باید ببینید:
+✅ GOOGLE_API_KEY
+✅ NEXT_PUBLIC_SUPABASE_URL
+✅ NEXT_PUBLIC_SUPABASE_ANON_KEY
+⚠️ OPENROUTER_API_KEY - Not set (مشکلی نیست)
+
+---
+
+## ❗ نکات مهم:
+
+1. فایل .env.local را هرگز commit نکنید (در .gitignore هست)
+2. Google API Key با AIzaSy شروع می‌شود
+3. برای MVP فقط Google کافی است - OpenRouter اختیاری
+4. بعد از تغییر .env.local، سرور را restart کنید
+
+---
+
+## 🆘 اگر مشکل داشتید:
+
+1. مطمئن شوید فایل دقیقاً .env.local نام دارد (نه .env.local.txt)
+2. هیچ فاصله قبل یا بعد از = نباشد
+3. کلید را بدون گیومه بنویسید
+4. سرور را restart کنید: Ctrl+C سپس npm run dev
+
+---
+
+## ✅ آماده هستید!
+
+وقتی npm run test-google کار کرد، می‌توانید ادامه دهید:
+- npm run dev → شروع سرور
+- http://localhost:3000 → باز کردن در مرورگر
+
+موفق باشید! 🚀
+

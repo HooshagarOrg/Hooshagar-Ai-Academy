@@ -171,9 +171,6 @@ export default function TestOCR() {
               <span className="font-semibold">{result.subject}</span>
             </div>
 
-            <div className="text-center text-gray-400 text-xs pt-2 border-t">
-              مدل: {result.model}
-            </div>
           </div>
         )}
       </div>

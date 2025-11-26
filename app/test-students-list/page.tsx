@@ -265,9 +265,6 @@ export default function TestStudentsList() {
                   </h3>
                 </div>
 
-                <p className="text-sm text-gray-500 text-center">
-                  مدل: {currentAnalysis.model}
-                </p>
               </div>
             </div>
           </div>

@@ -9,6 +9,7 @@ interface StudentWithXP {
   totalXp: number
   level: number
   levelTitle: string
+  streak: number // روزهای فعالیت متوالی
 }
 
 interface StudentDetail {
@@ -85,9 +86,15 @@ export default function TeacherTalentGardenPage() {
           (xpJson.leaderboard || []).map((x: any) => [x.studentId, { totalXp: x.totalXp, level: x.level }])
         )
 
+        // Sample streak data (simulated - in real app would come from API)
+        const sampleStreaks: Record<string, number> = {}
+        const streakValues = [15, 3, 45, 7, 0, 21, 12, 8, 30, 2]
+        
         // Merge data
-        const mergedStudents: StudentWithXP[] = (studentsJson.students || []).map((s: any) => {
+        const mergedStudents: StudentWithXP[] = (studentsJson.students || []).map((s: any, index: number) => {
           const xp = xpLookup.get(s.id)
+          // Assign streak from sample or generate random
+          const streak = sampleStreaks[s.id] ?? streakValues[index % streakValues.length]
           return {
             id: s.id,
             full_name: s.full_name,
@@ -95,6 +102,7 @@ export default function TeacherTalentGardenPage() {
             totalXp: xp?.totalXp || 0,
             level: xp?.level || 1,
             levelTitle: getLevelTitle(xp?.level || 1),
+            streak,
           }
         })
 
@@ -343,13 +351,14 @@ export default function TeacherTalentGardenPage() {
                   <th className="text-center px-4 py-3 font-medium">پایه</th>
                   <th className="text-center px-4 py-3 font-medium">سطح</th>
                   <th className="text-center px-4 py-3 font-medium">امتیاز</th>
+                  <th className="text-center px-4 py-3 font-medium">🔥 Streak</th>
                   <th className="text-center px-4 py-3 font-medium">عملیات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-slate-500">
+                    <td colSpan={7} className="text-center py-12 text-slate-500">
                       دانش‌آموزی یافت نشد
                     </td>
                   </tr>
@@ -390,6 +399,19 @@ export default function TeacherTalentGardenPage() {
                       <td className="px-4 py-3 text-center">
                         <span className="text-yellow-400 font-semibold">
                           {student.totalXp.toLocaleString('fa-IR')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-sm font-medium ${
+                          student.streak >= 30 ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-400 border border-yellow-500/50' :
+                          student.streak >= 14 ? 'bg-orange-500/20 text-orange-400' :
+                          student.streak >= 7 ? 'bg-red-500/20 text-red-400' :
+                          student.streak > 0 ? 'bg-white/10 text-white/70' :
+                          'bg-white/5 text-slate-500'
+                        }`}>
+                          {student.streak > 0 && <span className={student.streak >= 14 ? 'animate-pulse' : ''}>🔥</span>}
+                          {student.streak} روز
+                          {student.streak >= 30 && <span className="text-xs">👑</span>}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center">

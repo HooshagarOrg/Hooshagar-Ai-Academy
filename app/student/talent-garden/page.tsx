@@ -49,12 +49,30 @@ interface Profile {
   stats: { action: string; actionName: string; count: number; totalXp: number }[]
 }
 
+// Streak data (simulated - in real app would come from API)
+interface StreakData {
+  currentStreak: number
+  longestStreak: number
+  lastActiveDate: string
+  nextMilestone: number
+  xpReward: number
+}
+
 export default function StudentTalentGardenPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([])
   const [loading, setLoading] = useState(true)
   const [studentId, setStudentId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  
+  // Streak data (simulated)
+  const [streak] = useState<StreakData>({
+    currentStreak: 15,
+    longestStreak: 23,
+    lastActiveDate: new Date().toISOString(),
+    nextMilestone: 30,
+    xpReward: 200,
+  })
 
   // For testing: directly set hardcoded student ID
   useEffect(() => {
@@ -234,6 +252,40 @@ export default function StudentTalentGardenPage() {
                 {(profile?.badges?.length || 0) === 0 && (
                   <span className="text-white/50 text-sm">هنوز نشانی کسب نکردی! 🎯</span>
                 )}
+              </div>
+            </div>
+
+            {/* Streak Card */}
+            <div className="bg-gradient-to-br from-orange-500/30 to-red-500/30 backdrop-blur rounded-2xl p-4 border border-orange-500/50 min-w-[180px]">
+              <div className="text-center">
+                <div className="text-4xl mb-2 animate-pulse">🔥</div>
+                <p className="text-orange-400 font-bold text-2xl">{streak.currentStreak} روز</p>
+                <p className="text-white/70 text-sm mb-3">فعالیت متوالی</p>
+                
+                {/* Progress to next milestone */}
+                <div className="mb-2">
+                  <div className="flex justify-between text-xs text-white/60 mb-1">
+                    <span>{streak.currentStreak} روز</span>
+                    <span>{streak.nextMilestone} روز</span>
+                  </div>
+                  <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all"
+                      style={{ width: `${(streak.currentStreak / streak.nextMilestone) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <p className="text-orange-300 text-xs">
+                  🎁 جایزه {streak.nextMilestone} روز: +{streak.xpReward} XP
+                </p>
+                
+                {/* Streak milestones hint */}
+                <div className="mt-2 pt-2 border-t border-white/10">
+                  <p className="text-white/50 text-xs">
+                    رکورد: {streak.longestStreak} روز 🏆
+                  </p>
+                </div>
               </div>
             </div>
           </div>

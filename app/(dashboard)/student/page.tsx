@@ -24,6 +24,7 @@ import {
   Medal,
   GraduationCap,
   FileText,
+  Compass,
 } from 'lucide-react'
 
 // ============================================
@@ -139,12 +140,11 @@ export default function StudentDashboardPage() {
     },
     { 
       label: 'زمین بازی', 
-      href: '#', 
+      href: '/student/practice-playground', 
       icon: <Gamepad2 className="w-8 h-8" />, 
       color: 'from-green-500 to-emerald-600',
       emoji: '🎮',
-      description: 'به زودی...',
-      disabled: true
+      description: 'تمرین بازی‌گونه!'
     },
     { 
       label: 'باغ استعداد', 
@@ -153,6 +153,14 @@ export default function StudentDashboardPage() {
       color: 'from-amber-500 to-yellow-600',
       emoji: '🏆',
       description: 'امتیاز جمع کن!'
+    },
+    { 
+      label: 'قطب‌نمای آینده', 
+      href: '/student/future-compass', 
+      icon: <Compass className="w-8 h-8" />, 
+      color: 'from-indigo-500 to-purple-600',
+      emoji: '🧭',
+      description: 'آینده‌ات رو بساز!'
     },
   ]
 
@@ -518,4 +526,6 @@ export default function StudentDashboardPage() {
     </div>
   )
 }
+
+
 

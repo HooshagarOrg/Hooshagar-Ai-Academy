@@ -58,11 +58,38 @@ const mockExams = [
   { id: '2', title: 'کوییز علوم', time: '۱۴:۰۰', status: 'upcoming' },
 ]
 
-// هشدارها
+// هشدارها - دانش‌آموزان نیازمند توجه
 const mockAlerts = [
-  { id: '1', type: 'attendance', student: 'محمد رضایی', message: '۳ جلسه غیبت متوالی', severity: 'high' },
-  { id: '2', type: 'grade', student: 'امیر صادقی', message: 'افت ۳ نمره‌ای در ماه اخیر', severity: 'medium' },
-  { id: '3', type: 'behavior', student: 'علی محمدی', message: 'نیاز به جلسه مشاوره', severity: 'low' },
+  { 
+    id: '1', 
+    type: 'grade_drop', 
+    student: 'علی رضایی', 
+    message: 'نمره ریاضی از ۱۸ به ۱۰ کاهش یافته',
+    badgeText: 'افت نمره شدید',
+    badgeColor: 'bg-red-500/20 text-red-400 border-red-500/50',
+    borderColor: 'border-red-500/50 bg-red-500/10',
+    score: 10
+  },
+  { 
+    id: '2', 
+    type: 'absence', 
+    student: 'سارا احمدی', 
+    message: '۷ روز غیبت در این ماه',
+    badgeText: 'غیبت زیاد',
+    badgeColor: 'bg-orange-500/20 text-orange-400 border-orange-500/50',
+    borderColor: 'border-orange-500/50 bg-orange-500/10',
+    absenceDays: 7
+  },
+  { 
+    id: '3', 
+    type: 'behavior', 
+    student: 'محمد کریمی', 
+    message: '۴ مورد رفتار نامناسب ثبت شده',
+    badgeText: 'مشکل رفتاری',
+    badgeColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50',
+    borderColor: 'border-yellow-500/50 bg-yellow-500/10',
+    incidents: 4
+  },
 ]
 
 // ============================================
@@ -95,17 +122,17 @@ export default function TeacherDashboardPage() {
     }
   }
 
-  // شدت هشدار
-  const getAlertSeverity = (severity: string) => {
-    switch (severity) {
-      case 'high':
-        return 'border-red-500/50 bg-red-500/10'
-      case 'medium':
-        return 'border-yellow-500/50 bg-yellow-500/10'
-      case 'low':
-        return 'border-blue-500/50 bg-blue-500/10'
+  // آیکون هشدار
+  const getAlertIcon = (type: string) => {
+    switch (type) {
+      case 'grade_drop':
+        return <TrendingDown className="w-5 h-5 text-red-400" />
+      case 'absence':
+        return <XCircle className="w-5 h-5 text-orange-400" />
+      case 'behavior':
+        return <AlertTriangle className="w-5 h-5 text-yellow-400" />
       default:
-        return 'border-gray-500/50 bg-gray-500/10'
+        return <AlertTriangle className="w-5 h-5 text-gray-400" />
     }
   }
 
@@ -121,10 +148,10 @@ export default function TeacherDashboardPage() {
   const tools = [
     { label: 'ثبت حضور و غیاب', href: '#', icon: <UserCheck className="w-5 h-5" />, color: 'bg-green-500', enabled: false },
     { label: 'ثبت نمره', href: '#', icon: <PenTool className="w-5 h-5" />, color: 'bg-blue-500', enabled: false },
-    { label: 'هدایت رفتاری', href: '#', icon: <Heart className="w-5 h-5" />, color: 'bg-pink-500', enabled: false },
+    { label: 'هدایت رفتاری', href: '/teacher/behavior', icon: <Heart className="w-5 h-5" />, color: 'bg-pink-500', enabled: true },
     { label: 'دفتر کلاسی', href: '#', icon: <BookOpen className="w-5 h-5" />, color: 'bg-indigo-500', enabled: false },
-    { label: 'محتوای خلاق (AI)', href: '/test-story', icon: <Sparkles className="w-5 h-5" />, color: 'bg-purple-500', enabled: true },
-    { label: 'بانک سوالات', href: '#', icon: <HelpCircle className="w-5 h-5" />, color: 'bg-teal-500', enabled: false },
+    { label: 'محتوای خلاق (AI)', href: '/teacher/content-creator', icon: <Sparkles className="w-5 h-5" />, color: 'bg-purple-500', enabled: true },
+    { label: 'آزمون‌ساز تیزهوشان', href: '/teacher/exam-generator', icon: <HelpCircle className="w-5 h-5" />, color: 'bg-orange-500', enabled: true },
   ]
 
   // ابزارهای AI
@@ -372,11 +399,11 @@ export default function TeacherDashboardPage() {
             </div>
           </div>
 
-          {/* ========== هشدارها ========== */}
+          {/* ========== هشدارها - دانش‌آموزان نیازمند توجه ========== */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
             <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
               <AlertTriangle className="w-5 h-5 text-yellow-400" />
-              هشدارها
+              ⚠️ دانش‌آموزان نیازمند توجه
               {mockAlerts.length > 0 && (
                 <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                   {mockAlerts.length}
@@ -387,31 +414,38 @@ export default function TeacherDashboardPage() {
               {mockAlerts.map((alert) => (
                 <div
                   key={alert.id}
-                  className={`rounded-xl p-4 border ${getAlertSeverity(alert.severity)}`}
+                  className={`rounded-xl p-4 border-2 ${alert.borderColor} transition-all hover:scale-[1.02]`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5">
-                      {alert.type === 'attendance' && <XCircle className="w-5 h-5 text-red-400" />}
-                      {alert.type === 'grade' && <TrendingDown className="w-5 h-5 text-yellow-400" />}
-                      {alert.type === 'behavior' && <Heart className="w-5 h-5 text-blue-400" />}
+                      {getAlertIcon(alert.type)}
                     </div>
                     <div className="flex-1">
-                      <p className="text-white font-medium">{alert.student}</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-white font-bold">{alert.student}</p>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${alert.badgeColor}`}>
+                          {alert.badgeText}
+                        </span>
+                      </div>
                       <p className="text-white/60 text-sm">{alert.message}</p>
                     </div>
                     <Link
                       href="/test-students-list"
-                      className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all"
+                      className="flex items-center gap-1 px-3 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all text-white text-sm"
                     >
-                      <Eye className="w-4 h-4 text-white/70" />
+                      <Eye className="w-4 h-4" />
+                      مشاهده پروفایل
                     </Link>
                   </div>
                 </div>
               ))}
               {mockAlerts.length === 0 && (
-                <div className="text-center py-8 text-white/50">
-                  <CheckCircle2 className="w-12 h-12 mx-auto mb-2 text-green-400" />
-                  <p>هشداری وجود ندارد</p>
+                <div className="text-center py-8">
+                  <div className="bg-green-500/10 rounded-2xl p-6 border border-green-500/30">
+                    <CheckCircle2 className="w-16 h-16 mx-auto mb-3 text-green-400" />
+                    <p className="text-green-400 text-lg font-bold">🎉 همه دانش‌آموزان در وضعیت خوبی هستند!</p>
+                    <p className="text-white/50 text-sm mt-2">هیچ هشداری برای نمایش وجود ندارد</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -473,4 +507,6 @@ export default function TeacherDashboardPage() {
     </div>
   )
 }
+
+
 

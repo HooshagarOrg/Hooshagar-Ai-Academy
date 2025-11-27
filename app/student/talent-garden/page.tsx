@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useRouter } from 'next/navigation'
+
+// Hardcoded student ID for testing
+const STUDENT_ID = '855b70c4-f6c5-4208-a1ab-93122025c0d1'
 
 interface StudentXP {
   total: number
@@ -37,6 +38,7 @@ interface LeaderboardItem {
   totalXp: number
   level: number
   levelTitle: string
+  badges: Badge[]
 }
 
 interface Profile {
@@ -53,40 +55,13 @@ export default function StudentTalentGardenPage() {
   const [loading, setLoading] = useState(true)
   const [studentId, setStudentId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  
-  const supabase = createClientComponentClient()
-  const router = useRouter()
 
-  // Get logged-in student
+  // For testing: directly set hardcoded student ID
   useEffect(() => {
-    const getStudent = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        router.push('/login')
-        return
-      }
+    setStudentId(STUDENT_ID)
+  }, [])
 
-      // Get student record linked to this user
-      const { data: student, error } = await supabase
-        .from('students')
-        .select('id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (error || !student) {
-        setError('پروفایل دانش‌آموز یافت نشد')
-        setLoading(false)
-        return
-      }
-
-      setStudentId(student.id)
-    }
-
-    getStudent()
-  }, [supabase, router])
-
-  // Fetch profile and leaderboard
+  // Fetch profile and leaderboard when studentId is available
   useEffect(() => {
     if (!studentId) return
 
@@ -103,6 +78,8 @@ export default function StudentTalentGardenPage() {
 
         if (profileRes.ok && profileData.success) {
           setProfile(profileData)
+        } else {
+          setError(profileData.error || 'خطا در دریافت پروفایل')
         }
 
         if (leaderboardRes.ok && leaderboardData.success) {
@@ -110,6 +87,7 @@ export default function StudentTalentGardenPage() {
         }
       } catch (err) {
         console.error('Error fetching data:', err)
+        setError('خطا در برقراری ارتباط با سرور')
       } finally {
         setLoading(false)
       }
@@ -118,7 +96,7 @@ export default function StudentTalentGardenPage() {
     fetchData()
   }, [studentId])
 
-  // Format date
+  // Format date to relative time
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
     const now = new Date()
@@ -133,14 +111,14 @@ export default function StudentTalentGardenPage() {
     return `${days} روز پیش`
   }
 
-  // Get level color
+  // Get level color gradient
   const getLevelColor = (level: number) => {
-    if (level <= 1) return 'from-slate-400 to-slate-500'
-    if (level <= 2) return 'from-emerald-400 to-emerald-600'
-    if (level <= 3) return 'from-sky-400 to-sky-600'
-    if (level <= 4) return 'from-violet-400 to-violet-600'
-    if (level <= 5) return 'from-amber-400 to-amber-600'
-    return 'from-amber-400 to-orange-500'
+    if (level <= 1) return 'from-gray-400 to-gray-500'
+    if (level <= 2) return 'from-green-400 to-green-600'
+    if (level <= 3) return 'from-blue-400 to-blue-600'
+    if (level <= 4) return 'from-purple-400 to-purple-600'
+    if (level <= 5) return 'from-yellow-400 to-yellow-600'
+    return 'from-yellow-400 to-orange-500'
   }
 
   // Get action icon
@@ -157,27 +135,31 @@ export default function StudentTalentGardenPage() {
     return icons[action] || '⭐'
   }
 
+  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center" dir="rtl">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-300 text-lg">در حال بارگذاری...</p>
+          <div className="w-20 h-20 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-xl">در حال بارگذاری...</p>
         </div>
       </div>
     )
   }
 
+  // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center" dir="rtl">
-        <div className="text-center bg-red-500/20 border border-red-500/50 rounded-2xl p-8">
-          <p className="text-red-400 text-xl mb-4">❌ {error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-4" dir="rtl">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-red-500/50 max-w-md text-center">
+          <div className="text-5xl mb-4">❌</div>
+          <h2 className="text-xl font-bold text-white mb-2">خطا</h2>
+          <p className="text-white/70 mb-6">{error}</p>
           <button
-            onClick={() => router.push('/login')}
-            className="px-6 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-all"
           >
-            بازگشت به ورود
+            تلاش مجدد
           </button>
         </div>
       </div>
@@ -185,26 +167,26 @@ export default function StudentTalentGardenPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 p-4 md:p-8" dir="rtl">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400 mb-2">
-            🏆 باغ استعداد من
+          <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-orange-500 mb-2">
+            🏆 باغ استعداد
           </h1>
-          <p className="text-slate-400">امتیازات و پیشرفت تحصیلی</p>
+          <p className="text-purple-200 text-lg">امتیاز جمع کن، سطح بالا ببر، نشان بگیر!</p>
         </div>
 
         {/* Profile Card */}
-        <div className="bg-slate-800/50 backdrop-blur rounded-2xl p-6 mb-6 border border-slate-700">
+        <div className="bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-lg rounded-3xl p-6 mb-6 border border-white/20 shadow-2xl">
           <div className="flex flex-col md:flex-row items-center gap-6">
-            {/* Avatar & Level */}
+            {/* Avatar */}
             <div className="relative">
-              <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${getLevelColor(profile?.xp.level || 1)} flex items-center justify-center shadow-xl ring-4 ring-amber-400/30`}>
-                <span className="text-4xl">🎓</span>
+              <div className={`w-28 h-28 rounded-full bg-gradient-to-br ${getLevelColor(profile?.xp.level || 1)} flex items-center justify-center shadow-lg ring-4 ring-yellow-400/50`}>
+                <span className="text-5xl">🎓</span>
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-                سطح {profile?.xp.level || 1}
+              <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                Lv.{profile?.xp.level || 1}
               </div>
             </div>
 
@@ -213,100 +195,117 @@ export default function StudentTalentGardenPage() {
               <h2 className="text-2xl font-bold text-white mb-1">
                 {profile?.student.name || 'دانش‌آموز'}
               </h2>
-              <p className="text-amber-400 font-medium mb-1">
+              <p className="text-yellow-400 font-semibold text-lg mb-1">
                 {profile?.xp.levelTitle || 'تازه‌کار'}
               </p>
-              <p className="text-slate-400 text-sm mb-4">
+              <p className="text-white/60 text-sm mb-3">
                 پایه {profile?.student.grade || '-'} • رتبه #{profile?.xp.rank || '-'}
               </p>
-              
-              {/* XP Progress */}
+
+              {/* XP Progress Bar */}
               <div className="max-w-md">
-                <div className="flex justify-between text-sm text-slate-400 mb-2">
-                  <span>{profile?.xp.total || 0} امتیاز</span>
-                  <span>{profile?.xp.xpForNextLevel || 100} امتیاز تا سطح بعد</span>
+                <div className="flex justify-between text-sm text-white/70 mb-1">
+                  <span>{profile?.xp.total || 0} XP</span>
+                  <span>{profile?.xp.xpForNextLevel || 100} XP تا سطح بعد</span>
                 </div>
-                <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-700"
+                <div className="h-4 bg-white/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transition-all duration-700 ease-out"
                     style={{ width: `${profile?.xp.progressPercent || 0}%` }}
                   />
                 </div>
+                <p className="text-white/50 text-xs mt-1 text-left">
+                  {profile?.xp.progressPercent || 0}% پیشرفت
+                </p>
               </div>
-            </div>
 
-            {/* Quick Stats */}
-            <div className="flex gap-4 md:flex-col">
-              <div className="text-center bg-slate-700/50 rounded-xl p-3 min-w-[80px]">
-                <p className="text-2xl font-bold text-amber-400">{profile?.xp.total || 0}</p>
-                <p className="text-xs text-slate-400">امتیاز</p>
-              </div>
-              <div className="text-center bg-slate-700/50 rounded-xl p-3 min-w-[80px]">
-                <p className="text-2xl font-bold text-sky-400">#{profile?.xp.rank || '-'}</p>
-                <p className="text-xs text-slate-400">رتبه</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Badges */}
-          {profile?.badges && profile.badges.length > 0 && (
-            <div className="mt-6 pt-6 border-t border-slate-700">
-              <h3 className="text-sm text-slate-400 mb-3">نشان‌های کسب شده:</h3>
-              <div className="flex flex-wrap gap-2">
-                {profile.badges.map((badge, i) => (
-                  <div 
+              {/* Badges */}
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start mt-4">
+                {(profile?.badges || []).map((badge, i) => (
+                  <div
                     key={i}
-                    className="bg-slate-700/50 px-3 py-1.5 rounded-full text-sm flex items-center gap-1.5 text-white border border-slate-600"
+                    className="bg-white/20 px-3 py-1 rounded-full text-sm flex items-center gap-1 text-white hover:bg-white/30 transition-all cursor-default"
                     title={badge.description}
                   >
                     <span>{badge.icon}</span>
                     <span>{badge.name}</span>
                   </div>
                 ))}
+                {(profile?.badges?.length || 0) === 0 && (
+                  <span className="text-white/50 text-sm">هنوز نشانی کسب نکردی! 🎯</span>
+                )}
               </div>
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {[
+            { label: 'کل امتیاز', value: profile?.xp.total || 0, icon: '⭐', color: 'from-yellow-500 to-orange-500' },
+            { label: 'سطح فعلی', value: profile?.xp.level || 1, icon: '🏅', color: 'from-blue-500 to-purple-500' },
+            { label: 'رتبه', value: `#${profile?.xp.rank || '-'}`, icon: '🏆', color: 'from-green-500 to-teal-500' },
+            { label: 'تعداد فعالیت', value: profile?.stats?.reduce((a, s) => a + s.count, 0) || 0, icon: '📊', color: 'from-pink-500 to-rose-500' },
+          ].map((stat, i) => (
+            <div
+              key={i}
+              className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20 hover:scale-105 transition-transform"
+            >
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3 shadow-lg`}>
+                <span className="text-2xl">{stat.icon}</span>
+              </div>
+              <p className="text-white/60 text-sm">{stat.label}</p>
+              <p className="text-white text-2xl font-bold">{stat.value}</p>
+            </div>
+          ))}
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Leaderboard */}
-          <div className="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <span>🏆</span>
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {/* Leaderboard - Top 10 */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-2xl">🏆</span>
               برترین‌های مدرسه
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {leaderboard.length === 0 ? (
-                <p className="text-slate-500 text-center py-8">لیدربورد خالی است</p>
+                <p className="text-white/50 text-center py-4">هنوز کسی در لیدربورد نیست!</p>
               ) : (
                 leaderboard.map((item, i) => (
-                  <div 
+                  <div
                     key={item.studentId}
                     className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                      item.studentId === studentId 
-                        ? 'bg-amber-500/20 border border-amber-500/30' 
-                        : 'bg-slate-700/30 hover:bg-slate-700/50'
+                      item.studentId === studentId
+                        ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 border border-yellow-400/50'
+                        : 'bg-white/5 hover:bg-white/10'
                     }`}
                   >
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${
-                      i === 0 ? 'bg-amber-500 text-amber-900' :
-                      i === 1 ? 'bg-slate-300 text-slate-700' :
-                      i === 2 ? 'bg-orange-500 text-orange-900' :
-                      'bg-slate-600 text-slate-300'
+                    {/* Rank */}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                      i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-yellow-900' :
+                      i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700' :
+                      i === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-orange-900' :
+                      'bg-white/20 text-white'
                     }`}>
                       {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : item.rank}
                     </div>
+
+                    {/* Info */}
                     <div className="flex-1">
-                      <p className={`font-medium ${item.studentId === studentId ? 'text-amber-300' : 'text-white'}`}>
+                      <p className="text-white font-semibold">
                         {item.studentName}
-                        {item.studentId === studentId && <span className="text-xs mr-2">(شما)</span>}
+                        {item.studentId === studentId && (
+                          <span className="text-yellow-400 text-xs mr-2">(شما)</span>
+                        )}
                       </p>
-                      <p className="text-slate-500 text-xs">{item.levelTitle}</p>
+                      <p className="text-white/60 text-sm">{item.levelTitle}</p>
                     </div>
+
+                    {/* XP */}
                     <div className="text-left">
-                      <p className="text-amber-400 font-semibold text-sm">{item.totalXp}</p>
-                      <p className="text-slate-500 text-xs">Lv.{item.level}</p>
+                      <p className="text-yellow-400 font-bold">{item.totalXp} XP</p>
+                      <p className="text-white/60 text-xs">Lv.{item.level}</p>
                     </div>
                   </div>
                 ))
@@ -315,28 +314,32 @@ export default function StudentTalentGardenPage() {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <span>📋</span>
-              فعالیت‌های اخیر
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-2xl">📜</span>
+              فعالیت‌های اخیر من
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {(profile?.recentTransactions || []).length === 0 ? (
-                <p className="text-slate-500 text-center py-8">هنوز فعالیتی نداشتی!</p>
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-3">🚀</div>
+                  <p className="text-white/50">هنوز فعالیتی ثبت نشده!</p>
+                  <p className="text-white/30 text-sm mt-1">با استفاده از ابزارهای هوشگر امتیاز کسب کن</p>
+                </div>
               ) : (
                 (profile?.recentTransactions || []).map((tx) => (
-                  <div 
+                  <div
                     key={tx.id}
-                    className="flex items-center gap-3 p-3 bg-slate-700/30 rounded-xl hover:bg-slate-700/50 transition-all"
+                    className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-all"
                   >
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-                      <span>{getActionIcon(tx.actionType)}</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <span className="text-xl">{getActionIcon(tx.actionType)}</span>
                     </div>
                     <div className="flex-1">
-                      <p className="text-white text-sm font-medium">{tx.actionName}</p>
-                      <p className="text-slate-500 text-xs">{formatDate(tx.createdAt)}</p>
+                      <p className="text-white font-medium">{tx.actionName}</p>
+                      <p className="text-white/50 text-xs">{formatDate(tx.createdAt)}</p>
                     </div>
-                    <div className="text-emerald-400 font-semibold text-sm">+{tx.xpEarned}</div>
+                    <div className="text-green-400 font-bold">+{tx.xpEarned} XP</div>
                   </div>
                 ))
               )}
@@ -346,25 +349,29 @@ export default function StudentTalentGardenPage() {
 
         {/* Activity Stats */}
         {profile?.stats && profile.stats.length > 0 && (
-          <div className="mt-6 bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <span>📊</span>
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-2xl">📊</span>
               آمار فعالیت‌ها
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {profile.stats.map((stat, i) => (
-                <div key={i} className="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-all">
-                  <div className="text-2xl mb-2">{getActionIcon(stat.action)}</div>
-                  <p className="text-white text-sm font-medium">{stat.actionName}</p>
-                  <p className="text-amber-400 font-bold">{stat.count} بار</p>
-                  <p className="text-slate-500 text-xs">{stat.totalXp} امتیاز</p>
+                <div key={i} className="bg-white/5 rounded-xl p-4 text-center hover:bg-white/10 transition-all">
+                  <div className="text-3xl mb-2">{getActionIcon(stat.action)}</div>
+                  <p className="text-white font-semibold">{stat.actionName}</p>
+                  <p className="text-yellow-400">{stat.count} بار</p>
+                  <p className="text-white/50 text-sm">{stat.totalXp} XP</p>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* Footer */}
+        <div className="text-center mt-8 text-white/40 text-sm">
+          باغ استعداد - سیستم گیمیفیکیشن هوشگر
+        </div>
       </div>
     </div>
   )
 }
-

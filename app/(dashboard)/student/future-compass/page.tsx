@@ -34,7 +34,22 @@ import {
   Building,
   Brush,
   Globe,
+  Lock,
+  Shield,
+  Eye,
+  EyeOff,
+  AlertTriangle,
 } from 'lucide-react'
+import {
+  type UserRole,
+  type AnalysisAccessLevel,
+  getAnalysisAccessLevel,
+  canViewFullAnalysis,
+  canViewLimitedAnalysis,
+  cannotViewAnalysis,
+  ACCESS_DENIED_MESSAGES,
+  SENSITIVE_FIELDS_FOR_STUDENT,
+} from '@/lib/privacy'
 
 // ============================================
 // تایپ‌ها
@@ -318,6 +333,85 @@ function JobCard({ job }: JobCardProps) {
 }
 
 // ============================================
+// کامپوننت Privacy Notice
+// ============================================
+interface PrivacyNoticeProps {
+  accessLevel: AnalysisAccessLevel
+  userRole: UserRole
+}
+
+function PrivacyNotice({ accessLevel, userRole }: PrivacyNoticeProps) {
+  if (accessLevel === 'full') return null
+
+  return (
+    <div className={`rounded-xl p-4 mb-6 flex items-start gap-3 ${
+      accessLevel === 'none'
+        ? 'bg-red-500/20 border border-red-500/30'
+        : 'bg-yellow-500/20 border border-yellow-500/30'
+    }`}>
+      <div className={`p-2 rounded-lg ${
+        accessLevel === 'none' ? 'bg-red-500/30' : 'bg-yellow-500/30'
+      }`}>
+        {accessLevel === 'none' ? (
+          <EyeOff className="w-5 h-5 text-red-400" />
+        ) : (
+          <Shield className="w-5 h-5 text-yellow-400" />
+        )}
+      </div>
+      <div>
+        <h4 className={`font-bold mb-1 ${
+          accessLevel === 'none' ? 'text-red-400' : 'text-yellow-400'
+        }`}>
+          {accessLevel === 'none' ? 'دسترسی محدود' : 'نمایش محدود'}
+        </h4>
+        <p className="text-white/70 text-sm">
+          {ACCESS_DENIED_MESSAGES[accessLevel]}
+        </p>
+        {accessLevel === 'none' && userRole === 'student' && (
+          <p className="text-white/50 text-xs mt-2">
+            💡 نتایج کامل تحلیل فقط برای معلم و مشاور قابل مشاهده است.
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// کامپوننت Restricted Content
+// ============================================
+interface RestrictedContentProps {
+  children: React.ReactNode
+  accessLevel: AnalysisAccessLevel
+  requiredLevel: 'full' | 'limited'
+  fallbackMessage?: string
+}
+
+function RestrictedContent({ 
+  children, 
+  accessLevel, 
+  requiredLevel,
+  fallbackMessage 
+}: RestrictedContentProps) {
+  const hasAccess = requiredLevel === 'limited' 
+    ? accessLevel !== 'none'
+    : accessLevel === 'full'
+
+  if (!hasAccess) {
+    return (
+      <div className="bg-white/5 rounded-xl p-6 border border-white/10 text-center">
+        <Lock className="w-10 h-10 text-white/30 mx-auto mb-3" />
+        <p className="text-white/50 text-sm">
+          {fallbackMessage || 'این محتوا برای نقش شما قابل مشاهده نیست'}
+        </p>
+      </div>
+    )
+  }
+
+  return <>{children}</>
+}
+
+// ============================================
 // کامپوننت اصلی
 // ============================================
 export default function FutureCompassPage() {
@@ -327,6 +421,18 @@ export default function FutureCompassPage() {
   const [showResults, setShowResults] = useState(false)
   const [analyzeStep, setAnalyzeStep] = useState('')
   const [savedInterests, setSavedInterests] = useState(false)
+
+  // ============================================
+  // Privacy Check - نقش کاربر
+  // در نسخه واقعی از session/context می‌آید
+  // ============================================
+  const [userRole] = useState<UserRole>('student') // تغییر دهید برای تست
+  const accessLevel = getAnalysisAccessLevel(userRole)
+  
+  // بررسی دسترسی
+  const canViewFull = canViewFullAnalysis(userRole)
+  const canViewLimited = canViewLimitedAnalysis(userRole)
+  const cannotView = cannotViewAnalysis(userRole)
 
   // تغییر علاقه‌مندی
   const handleInterestChange = (id: string): void => {
@@ -557,7 +663,23 @@ export default function FutureCompassPage() {
         {/* ==================== نتایج تحلیل ==================== */}
         {showResults && (
           <div className="space-y-6">
-            {/* رشته‌های پیشنهادی */}
+            {/* Privacy Notice */}
+            <PrivacyNotice accessLevel={accessLevel} userRole={userRole} />
+
+            {/* نمایش سطح دسترسی فعلی (فقط برای معلم/ادمین) */}
+            {canViewFull && (
+              <div className="bg-blue-500/20 rounded-xl p-4 border border-blue-500/30 flex items-center gap-3">
+                <Eye className="w-5 h-5 text-blue-400" />
+                <div>
+                  <span className="text-blue-400 font-medium">حالت مشاهده کامل</span>
+                  <span className="text-white/50 text-sm mr-2">
+                    (نقش: {userRole === 'teacher' ? 'معلم' : userRole === 'counselor' ? 'مشاور' : 'مدیر'})
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* رشته‌های پیشنهادی - همه می‌بینند */}
             <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg">
@@ -576,7 +698,7 @@ export default function FutureCompassPage() {
               </div>
             </div>
 
-            {/* مشاغل آینده */}
+            {/* مشاغل آینده - برای دانش‌آموز بدون حقوق */}
             <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg">
@@ -590,12 +712,31 @@ export default function FutureCompassPage() {
 
               <div className="grid sm:grid-cols-2 gap-4">
                 {sampleJobs.map((job) => (
-                  <JobCard key={job.id} job={job} />
+                  <div key={job.id} className="bg-white/5 rounded-2xl p-5 border border-white/10 hover:border-blue-500/30 transition-all">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg">
+                        {job.icon}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-white font-bold mb-1">{job.name}</h3>
+                        <p className="text-white/60 text-sm mb-2">{job.reason}</p>
+                        {/* حقوق فقط برای معلم/مشاور/مدیر نمایش داده می‌شود */}
+                        {!cannotView && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-white/40 text-xs">درآمد:</span>
+                            <span className="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full text-xs font-medium">
+                              {job.salary}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* مهارت‌های مورد نیاز */}
+            {/* مهارت‌های مورد نیاز - همه می‌بینند */}
             <div className="bg-gradient-to-r from-emerald-500/20 to-green-500/20 backdrop-blur-lg rounded-2xl p-6 border border-emerald-500/30">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 text-white shadow-lg">
@@ -638,6 +779,68 @@ export default function FutureCompassPage() {
               </div>
             </div>
 
+            {/* ==================== بخش محرمانه - فقط معلم/مشاور ==================== */}
+            <RestrictedContent
+              accessLevel={accessLevel}
+              requiredLevel="full"
+              fallbackMessage="تحلیل تفصیلی فقط برای معلم و مشاور قابل مشاهده است"
+            >
+              <div className="bg-gradient-to-r from-red-500/20 to-orange-500/20 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 text-white shadow-lg">
+                    <Shield className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                      تحلیل تفصیلی (محرمانه)
+                      <Lock className="w-4 h-4 text-red-400" />
+                    </h2>
+                    <p className="text-white/60 text-sm">فقط قابل مشاهده برای معلم و مشاور</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* پروفایل روان‌شناختی */}
+                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <h3 className="text-white font-medium mb-2 flex items-center gap-2">
+                      <Brain className="w-4 h-4 text-purple-400" />
+                      پروفایل روان‌شناختی
+                    </h3>
+                    <p className="text-white/70 text-sm leading-relaxed">
+                      دانش‌آموز دارای هوش منطقی-ریاضی بالا و گرایش به تفکر تحلیلی است. 
+                      از نظر اجتماعی درون‌گرا با تمایل به کار فردی. نیاز به تشویق بیشتر در فعالیت‌های گروهی.
+                    </p>
+                  </div>
+
+                  {/* عوامل خطر */}
+                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <h3 className="text-white font-medium mb-2 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                      عوامل نیازمند توجه
+                    </h3>
+                    <ul className="text-white/70 text-sm space-y-1">
+                      <li>• کمبود اعتماد به نفس در ارائه‌های کلاسی</li>
+                      <li>• نیاز به تقویت مهارت‌های ارتباطی</li>
+                      <li>• گاهی استرس در موقعیت‌های رقابتی</li>
+                    </ul>
+                  </div>
+
+                  {/* پیشنهادات مداخله */}
+                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <h3 className="text-white font-medium mb-2 flex items-center gap-2">
+                      <Lightbulb className="w-4 h-4 text-green-400" />
+                      پیشنهادات مداخله
+                    </h3>
+                    <ul className="text-white/70 text-sm space-y-1">
+                      <li>• تشویق به شرکت در فعالیت‌های گروهی کوچک</li>
+                      <li>• ارائه فرصت‌های رهبری در پروژه‌های کلاسی</li>
+                      <li>• جلسه با مشاور برای تقویت اعتماد به نفس</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </RestrictedContent>
+
             {/* پیام انگیزشی */}
             <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-lg rounded-2xl p-6 border border-yellow-500/30 text-center">
               <div className="flex justify-center mb-4">
@@ -654,14 +857,16 @@ export default function FutureCompassPage() {
               </p>
             </div>
 
-            {/* دکمه دانلود */}
-            <button
-              onClick={handleDownload}
-              className="w-full flex items-center justify-center gap-3 py-4 bg-white/10 hover:bg-white/20 rounded-2xl text-white font-medium transition-all border border-white/20"
-            >
-              <Download className="w-5 h-5" />
-              دانلود گزارش کامل (PDF)
-            </button>
+            {/* دکمه دانلود - فقط برای معلم/مشاور/مدیر */}
+            {canViewFull && (
+              <button
+                onClick={handleDownload}
+                className="w-full flex items-center justify-center gap-3 py-4 bg-white/10 hover:bg-white/20 rounded-2xl text-white font-medium transition-all border border-white/20"
+              >
+                <Download className="w-5 h-5" />
+                دانلود گزارش کامل (PDF)
+              </button>
+            )}
           </div>
         )}
 

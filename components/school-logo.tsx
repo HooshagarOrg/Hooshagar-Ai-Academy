@@ -302,3 +302,4 @@ export default function SchoolLogo({
 export { LogoSkeleton, LogoFallback }
 export type { SchoolLogoProps, SchoolData }
 
+

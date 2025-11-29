@@ -570,3 +570,4 @@ COMMENT ON TABLE ai_model_test_results IS 'نتایج تست مدل‌ها';
 COMMENT ON FUNCTION get_ai_model_for_feature(TEXT) IS 'دریافت تنظیمات مدل برای یک قابلیت';
 COMMENT ON FUNCTION record_model_usage(TEXT, BOOLEAN, BOOLEAN, DECIMAL, INT) IS 'ثبت استفاده از مدل';
 
+

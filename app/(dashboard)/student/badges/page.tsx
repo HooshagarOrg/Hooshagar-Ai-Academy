@@ -709,3 +709,6 @@ export default function BadgesPage() {
   )
 }
 
+
+
+

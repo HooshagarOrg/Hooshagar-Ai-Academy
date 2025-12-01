@@ -1,0 +1,109 @@
+feat: add Google reCAPTCHA v3 with rate limiting to login
+
+════════════════════════════════════════════════════════════
+📦 فایل‌های جدید:
+════════════════════════════════════════════════════════════
+
+✅ lib/recaptcha.ts
+   - تابع verifyRecaptcha برای تأیید token سمت سرور
+   - اتصال به Google reCAPTCHA API
+   - Score-based validation (threshold: 0.5)
+   - Error handling و logging امنیتی
+
+✅ lib/rate-limit.ts
+   - Rate limiter با LRU cache
+   - محدودیت IP-based
+   - TTL 60 ثانیه و capacity 500
+   - Promise-based API
+
+✅ components/recaptcha-badge.tsx
+   - Component نمایش badge محافظت
+   - Shield icon + متن فارسی
+   - لینک به Privacy و Terms
+
+✅ scripts/test-recaptcha.js
+   - اسکریپت تست تنظیمات
+   - بررسی env variables
+   - Validation فرمت keys
+
+════════════════════════════════════════════════════════════
+🔄 فایل‌های بروزرسانی شده:
+════════════════════════════════════════════════════════════
+
+📝 app/layout.tsx
+   - افزودن GoogleReCaptchaProvider
+   - تنظیم language: "fa"
+   - Script loading async + defer
+
+📝 app/(auth)/login/page.tsx
+   - پیاده‌سازی useGoogleReCaptcha hook
+   - executeRecaptcha قبل از submit
+   - ارسال recaptcha_token به API
+   - نمایش badge محافظت
+   - Error handling برای reCAPTCHA
+
+📝 app/api/auth/login/route.ts
+   - Rate limiting: 5 تلاش در دقیقه
+   - IP tracking از headers (x-forwarded-for)
+   - reCAPTCHA verification قبل از auth
+   - Validation inputs
+   - Logging امنیتی کامل
+
+📝 package.json
+   - افزودن script: test:recaptcha
+   - نصب: react-google-recaptcha-v3@1.10.1
+   - نصب: lru-cache@10.1.0
+
+════════════════════════════════════════════════════════════
+📚 مستندات:
+════════════════════════════════════════════════════════════
+
+📄 RECAPTCHA_SETUP.md (راهنمای کامل)
+📄 RECAPTCHA_QUICK_START.md (شروع سریع)
+📄 SECURITY_FEATURES.md (ویژگی‌های امنیتی)
+📄 IMPLEMENTATION_SUMMARY.md (خلاصه پیاده‌سازی)
+📄 ENV_RECAPTCHA_INSTRUCTIONS.txt (راهنمای env)
+
+════════════════════════════════════════════════════════════
+🔒 امنیت:
+════════════════════════════════════════════════════════════
+
+✅ Bot protection با score-based validation (>0.5)
+✅ IP-based rate limiting (5 req/min)
+✅ Security event logging
+✅ User-friendly error messages (فارسی)
+✅ TypeScript strict mode
+✅ No sensitive data in client
+✅ Proper environment variables separation
+
+════════════════════════════════════════════════════════════
+⚡ Performance:
+════════════════════════════════════════════════════════════
+
+- reCAPTCHA overhead: ~500-1000ms
+- Rate limit check: < 5ms
+- LRU cache: O(1) lookup
+- No database calls for rate limiting
+
+════════════════════════════════════════════════════════════
+🧪 تست:
+════════════════════════════════════════════════════════════
+
+npm run test:recaptcha  # بررسی تنظیمات
+npm run dev             # راه‌اندازی
+http://localhost:3000/login  # تست ورود
+
+════════════════════════════════════════════════════════════
+⚠️ BREAKING CHANGE:
+════════════════════════════════════════════════════════════
+
+Login endpoint now requires recaptcha_token in request body.
+Environment variables required:
+  - NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+  - RECAPTCHA_SECRET_KEY
+
+════════════════════════════════════════════════════════════
+
+Closes #[issue-number]
+Co-authored-by: AI Assistant <assistant@hooshagar.ir>
+

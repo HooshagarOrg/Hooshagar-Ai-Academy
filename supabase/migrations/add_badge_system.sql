@@ -558,3 +558,4 @@ INSERT INTO badges (name, name_en, description, icon_url, icon_emoji, category, 
 ON CONFLICT DO NOTHING;
 
 
+

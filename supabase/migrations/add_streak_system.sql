@@ -525,3 +525,4 @@ INSERT INTO streak_milestones (days_required, name, name_en, description, xp_rew
   (365, 'یک سال اسطوره‌ای', 'Legendary Year', '365 روز فعالیت پیاپی!', 10000, 5000, 5, '🏅', 11)
 ON CONFLICT (days_required) DO NOTHING;
 
+

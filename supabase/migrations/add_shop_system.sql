@@ -428,3 +428,4 @@ INSERT INTO shop_items (name, name_en, description, type, price_coins, image_url
 ON CONFLICT DO NOTHING;
 
 
+

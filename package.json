@@ -18,7 +18,8 @@
     "test-google": "node scripts/test-google.js",
     "test-openrouter": "node scripts/test-openrouter.js",
     "verify-env": "node scripts/verify-env.js",
-    "generate-icons": "node scripts/generate-pwa-icons.js"
+    "generate-icons": "node scripts/generate-pwa-icons.js",
+    "test:recaptcha": "node scripts/test-recaptcha.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.940.0",
@@ -47,11 +48,13 @@
     "date-fns-jalali": "^3.6.0-1",
     "dotenv": "^17.2.3",
     "framer-motion": "^11.5.0",
+    "lru-cache": "^11.2.4",
     "lucide-react": "^0.446.0",
     "next": "^14.2.0",
     "react": "^18.3.0",
     "react-colorful": "^5.6.1",
     "react-dom": "^18.3.0",
+    "react-google-recaptcha-v3": "^1.11.0",
     "react-hook-form": "^7.66.1",
     "react-hot-toast": "^2.6.0",
     "recharts": "^3.5.0",

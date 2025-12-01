@@ -964,3 +964,4 @@ SELECT generate_exam_from_bank(
   '{"easy": 6, "medium": 10, "hard": 4}'::jsonb
 );
 
+

@@ -1,0 +1,55 @@
+=====================================
+🔒 دستورالعمل افزودن reCAPTCHA Keys
+=====================================
+
+لطفاً این دو خط را به فایل .env.local اضافه کنید:
+
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your_recaptcha_site_key_here
+RECAPTCHA_SECRET_KEY=your_recaptcha_secret_key_here
+
+=====================================
+نحوه دریافت Keys:
+=====================================
+
+1. مراجعه به: https://www.google.com/recaptcha/admin
+
+2. کلیک روی + (Create)
+
+3. تنظیمات:
+   - Label: Hooshagar
+   - reCAPTCHA type: انتخاب v3
+   - Domains: 
+     * localhost (برای توسعه)
+     * hooshagar.com (برای production)
+     * www.hooshagar.com
+
+4. Submit و دریافت keys
+
+5. کپی کردن:
+   - Site Key → NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+   - Secret Key → RECAPTCHA_SECRET_KEY
+
+=====================================
+پس از افزودن Keys:
+=====================================
+
+1. ذخیره فایل .env.local
+
+2. Restart سرور:
+   Ctrl+C
+   npm run dev
+
+3. تست ورود:
+   http://localhost:3000/login
+
+=====================================
+نکات امنیتی:
+=====================================
+
+⚠️ هرگز Secret Key را commit نکنید
+⚠️ هرگز Secret Key را در کد client قرار ندهید
+✅ فقط Site Key باید NEXT_PUBLIC_ داشته باشد
+✅ .env.local در .gitignore است
+
+=====================================
+

@@ -663,3 +663,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- INSERT INTO lottery_settings (school_id, is_enabled, registration_start, registration_end, lottery_time, target_grade, academic_year) VALUES
 -- ('SCHOOL_UUID', true, '2024-06-01 00:00:00+03:30', '2024-06-15 23:59:59+03:30', '2024-06-16 10:00:00+03:30', 2, '1404-1405');
 
+

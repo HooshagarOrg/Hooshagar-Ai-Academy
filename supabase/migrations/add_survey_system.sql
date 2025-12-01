@@ -600,3 +600,4 @@ BEGIN
   PERFORM calculate_survey_statistics(v_survey_id);
 END $$;
 
+

@@ -571,3 +571,5 @@ COMMENT ON FUNCTION get_ai_model_for_feature(TEXT) IS 'دریافت تنظیما
 COMMENT ON FUNCTION record_model_usage(TEXT, BOOLEAN, BOOLEAN, DECIMAL, INT) IS 'ثبت استفاده از مدل';
 
 
+
+

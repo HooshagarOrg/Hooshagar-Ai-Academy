@@ -290,3 +290,5 @@ COMMENT ON FUNCTION get_school_branding(UUID) IS 'دریافت تنظیمات ب
 COMMENT ON FUNCTION update_school_branding(UUID, JSONB) IS 'بروزرسانی تنظیمات برندینگ مدرسه';
 
 
+
+

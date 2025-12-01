@@ -495,3 +495,5 @@ INSERT INTO vaccination_schedule (vaccine_name, vaccine_name_en, recommended_age
   ('آنفلوانزا', 'Influenza', 72, 1, false, 'واکسن آنفلوانزا - اختیاری سالانه')
 ON CONFLICT DO NOTHING;
 
+
+

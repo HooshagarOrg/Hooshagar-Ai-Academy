@@ -1,43 +1,43 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
-  FileText,
-  Plus,
-  Trash2,
-  Edit,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  ClipboardList,
+  Settings,
+  BookOpen,
   Eye,
-  Save,
-  Send,
-  Printer,
-  Download,
-  ChevronLeft,
-  ChevronRight,
+  Shuffle,
+  Calculator,
+  Clock,
+  Target,
+  Award,
+  Loader2,
+  Plus,
+  Minus,
   CheckCircle2,
   Circle,
-  Clock,
-  BookOpen,
-  HelpCircle,
-  ToggleLeft,
-  Shuffle,
-  Minus,
-  GripVertical,
-  Copy,
-  Loader2,
-  Calendar,
-  Users,
-  Target,
-  AlertCircle,
+  Search,
+  Filter,
+  Sparkles,
+  GraduationCap,
+  Calendar
 } from 'lucide-react'
-import { toast } from 'sonner'
-
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Switch } from '@/components/ui/switch'
+import { Slider } from '@/components/ui/slider'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Progress } from '@/components/ui/progress'
 import {
   Select,
   SelectContent,
@@ -45,1397 +45,805 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import {
+  DifficultyLevel,
+  DIFFICULTY_LABELS,
+  DIFFICULTY_COLORS,
+  SUBJECTS,
+  GRADES,
+  DEFAULT_EXAM_CONFIG,
+  QuestionBankItem
+} from '@/lib/types/exam.types'
 
-// ============================================
-// تایپ‌ها
-// ============================================
+// ═══════════════════════════════════════
+// داده‌های نمونه بانک سوالات
+// ═══════════════════════════════════════
 
-interface MultipleChoiceQuestion {
-  id: string
-  type: 'multiple'
-  text: string
-  options: string[]
-  correctOption: number
-  score: number
-  difficulty: 'easy' | 'medium' | 'hard'
-}
-
-interface DescriptiveQuestion {
-  id: string
-  type: 'descriptive'
-  text: string
-  score: number
-  difficulty: 'easy' | 'medium' | 'hard'
-  keyAnswer?: string
-}
-
-interface TrueFalseQuestion {
-  id: string
-  type: 'trueFalse'
-  text: string
-  isTrue: boolean
-  score: number
-}
-
-interface MatchingQuestion {
-  id: string
-  type: 'matching'
-  columnA: string[]
-  columnB: string[]
-  answers: number[] // index of columnB for each columnA
-  score: number
-}
-
-type Question = MultipleChoiceQuestion | DescriptiveQuestion | TrueFalseQuestion | MatchingQuestion
-
-interface ExamData {
-  title: string
-  subject: string
-  grade: string
-  classId: string
-  date: string
-  startTime: string
-  duration: number
-  totalScore: number
-  questions: Question[]
-  settings: {
-    showScoreImmediately: boolean
-    allowReview: boolean
-    randomizeQuestions: boolean
-    randomizeOptions: boolean
-    negativeScore: number
-  }
-}
-
-type WizardStep = 'info' | 'questions' | 'settings' | 'preview'
-
-// ============================================
-// داده نمونه
-// ============================================
-
-const SUBJECTS = [
-  { id: 'math', name: 'ریاضی' },
-  { id: 'persian', name: 'فارسی' },
-  { id: 'science', name: 'علوم' },
-  { id: 'social', name: 'مطالعات اجتماعی' },
-  { id: 'quran', name: 'قرآن' },
-  { id: 'english', name: 'زبان انگلیسی' },
+const sampleQuestionBank: QuestionBankItem[] = [
+  // سوالات آسان
+  { id: 'q1', school_id: null, question_text: 'حاصل 5 + 3 کدام است؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 1', topic: 'جمع', difficulty: 'easy', options: [{ id: 'a', text: '7', is_correct: false }, { id: 'b', text: '8', is_correct: true }, { id: 'c', text: '9', is_correct: false }, { id: 'd', text: '10', is_correct: false }], correct_answer: 'b', correct_answers: null, points: 1, explanation: '5 + 3 = 8', hint: null, attachments: null, tags: ['جمع', 'ساده'], usage_count: 15, correct_rate: 95, avg_time_seconds: 30, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-01', updated_at: '2024-01-01' },
+  { id: 'q2', school_id: null, question_text: 'کدام عدد زوج است؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 1', topic: 'اعداد', difficulty: 'easy', options: [{ id: 'a', text: '13', is_correct: false }, { id: 'b', text: '27', is_correct: false }, { id: 'c', text: '36', is_correct: true }, { id: 'd', text: '49', is_correct: false }], correct_answer: 'c', correct_answers: null, points: 1, explanation: '36 بر 2 بخش‌پذیر است', hint: null, attachments: null, tags: ['زوج', 'اعداد'], usage_count: 20, correct_rate: 90, avg_time_seconds: 25, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-02', updated_at: '2024-01-02' },
+  { id: 'q3', school_id: null, question_text: 'حاصل 100 ÷ 4 برابر چند است؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 2', topic: 'تقسیم', difficulty: 'easy', options: [{ id: 'a', text: '20', is_correct: false }, { id: 'b', text: '25', is_correct: true }, { id: 'c', text: '30', is_correct: false }, { id: 'd', text: '35', is_correct: false }], correct_answer: 'b', correct_answers: null, points: 1, explanation: '100 ÷ 4 = 25', hint: null, attachments: null, tags: ['تقسیم'], usage_count: 18, correct_rate: 88, avg_time_seconds: 35, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-03', updated_at: '2024-01-03' },
+  { id: 'q4', school_id: null, question_text: 'مساحت مربع با ضلع 5 کدام است؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 4', topic: 'هندسه', difficulty: 'easy', options: [{ id: 'a', text: '10', is_correct: false }, { id: 'b', text: '20', is_correct: false }, { id: 'c', text: '25', is_correct: true }, { id: 'd', text: '30', is_correct: false }], correct_answer: 'c', correct_answers: null, points: 1, explanation: '5 × 5 = 25', hint: null, attachments: null, tags: ['مساحت', 'مربع'], usage_count: 22, correct_rate: 85, avg_time_seconds: 40, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-04', updated_at: '2024-01-04' },
+  { id: 'q5', school_id: null, question_text: 'عدد 7 اول است.', question_type: 'true_false', subject: 'math', grade_level: 6, chapter: 'فصل 1', topic: 'اعداد', difficulty: 'easy', options: null, correct_answer: 'true', correct_answers: null, points: 0.5, explanation: '7 فقط بر 1 و خودش بخش‌پذیر است', hint: null, attachments: null, tags: ['اول'], usage_count: 25, correct_rate: 92, avg_time_seconds: 20, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-05', updated_at: '2024-01-05' },
+  { id: 'q6', school_id: null, question_text: '1/2 + 1/4 برابر چند است؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 3', topic: 'کسر', difficulty: 'easy', options: [{ id: 'a', text: '2/6', is_correct: false }, { id: 'b', text: '3/4', is_correct: true }, { id: 'c', text: '1/6', is_correct: false }, { id: 'd', text: '2/4', is_correct: false }], correct_answer: 'b', correct_answers: null, points: 1, explanation: '2/4 + 1/4 = 3/4', hint: null, attachments: null, tags: ['کسر', 'جمع'], usage_count: 16, correct_rate: 78, avg_time_seconds: 50, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-06', updated_at: '2024-01-06' },
+  // سوالات متوسط
+  { id: 'q7', school_id: null, question_text: 'اگر x + 5 = 12 باشد، x برابر چند است؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 5', topic: 'معادله', difficulty: 'medium', options: [{ id: 'a', text: '5', is_correct: false }, { id: 'b', text: '7', is_correct: true }, { id: 'c', text: '12', is_correct: false }, { id: 'd', text: '17', is_correct: false }], correct_answer: 'b', correct_answers: null, points: 2, explanation: 'x = 12 - 5 = 7', hint: 'از هر دو طرف 5 کم کنید', attachments: null, tags: ['معادله'], usage_count: 12, correct_rate: 72, avg_time_seconds: 60, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-07', updated_at: '2024-01-07' },
+  { id: 'q8', school_id: null, question_text: 'محیط مستطیل با طول 8 و عرض 5 چقدر است؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 4', topic: 'هندسه', difficulty: 'medium', options: [{ id: 'a', text: '13', is_correct: false }, { id: 'b', text: '26', is_correct: true }, { id: 'c', text: '40', is_correct: false }, { id: 'd', text: '52', is_correct: false }], correct_answer: 'b', correct_answers: null, points: 2, explanation: '2 × (8 + 5) = 26', hint: 'محیط = 2 × (طول + عرض)', attachments: null, tags: ['محیط', 'مستطیل'], usage_count: 14, correct_rate: 68, avg_time_seconds: 55, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-08', updated_at: '2024-01-08' },
+  { id: 'q9', school_id: null, question_text: 'ک.م.م اعداد 4 و 6 چیست؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 2', topic: 'بخش‌پذیری', difficulty: 'medium', options: [{ id: 'a', text: '2', is_correct: false }, { id: 'b', text: '12', is_correct: true }, { id: 'c', text: '24', is_correct: false }, { id: 'd', text: '6', is_correct: false }], correct_answer: 'b', correct_answers: null, points: 2, explanation: 'کوچکترین مضرب مشترک 4 و 6 برابر 12 است', hint: null, attachments: null, tags: ['ک.م.م'], usage_count: 10, correct_rate: 65, avg_time_seconds: 70, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-09', updated_at: '2024-01-09' },
+  { id: 'q10', school_id: null, question_text: 'قیمت یک کالا 20% افزایش یافت. اگر قیمت جدید 120 تومان باشد، قیمت اولیه چند بود؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 6', topic: 'درصد', difficulty: 'medium', options: [{ id: 'a', text: '96', is_correct: false }, { id: 'b', text: '100', is_correct: true }, { id: 'c', text: '110', is_correct: false }, { id: 'd', text: '140', is_correct: false }], correct_answer: 'b', correct_answers: null, points: 2, explanation: '120 ÷ 1.2 = 100', hint: 'قیمت جدید = قیمت اولیه × 1.2', attachments: null, tags: ['درصد'], usage_count: 8, correct_rate: 58, avg_time_seconds: 90, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-10', updated_at: '2024-01-10' },
+  { id: 'q11', school_id: null, question_text: 'نسبت 15 به 25 کدام است؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 3', topic: 'نسبت', difficulty: 'medium', options: [{ id: 'a', text: '3/5', is_correct: true }, { id: 'b', text: '2/5', is_correct: false }, { id: 'c', text: '5/3', is_correct: false }, { id: 'd', text: '4/5', is_correct: false }], correct_answer: 'a', correct_answers: null, points: 2, explanation: '15/25 = 3/5', hint: 'ساده کنید', attachments: null, tags: ['نسبت'], usage_count: 11, correct_rate: 62, avg_time_seconds: 65, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-11', updated_at: '2024-01-11' },
+  { id: 'q12', school_id: null, question_text: 'مجموع زوایای داخلی مثلث چند درجه است؟', question_type: 'short_answer', subject: 'math', grade_level: 6, chapter: 'فصل 4', topic: 'هندسه', difficulty: 'medium', options: null, correct_answer: '180', correct_answers: ['180', '۱۸۰'], points: 1.5, explanation: 'مجموع زوایای داخلی هر مثلث 180 درجه است', hint: null, attachments: null, tags: ['مثلث', 'زاویه'], usage_count: 20, correct_rate: 75, avg_time_seconds: 45, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-12', updated_at: '2024-01-12' },
+  // سوالات سخت
+  { id: 'q13', school_id: null, question_text: 'در یک کلاس 30 نفره، 18 نفر فوتبال و 15 نفر والیبال دوست دارند. اگر 5 نفر هیچکدام را دوست نداشته باشند، چند نفر هر دو را دوست دارند؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 7', topic: 'مجموعه', difficulty: 'hard', options: [{ id: 'a', text: '6', is_correct: false }, { id: 'b', text: '8', is_correct: true }, { id: 'c', text: '10', is_correct: false }, { id: 'd', text: '12', is_correct: false }], correct_answer: 'b', correct_answers: null, points: 3, explanation: '18 + 15 - x = 25 → x = 8', hint: 'از اصل شمول و عدم شمول استفاده کنید', attachments: null, tags: ['مجموعه', 'اشتراک'], usage_count: 5, correct_rate: 42, avg_time_seconds: 120, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-13', updated_at: '2024-01-13' },
+  { id: 'q14', school_id: null, question_text: 'اگر قیمت کالایی 25% کاهش و سپس 20% افزایش یابد، قیمت نهایی چند درصد قیمت اولیه است؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 6', topic: 'درصد', difficulty: 'hard', options: [{ id: 'a', text: '90%', is_correct: true }, { id: 'b', text: '95%', is_correct: false }, { id: 'c', text: '100%', is_correct: false }, { id: 'd', text: '105%', is_correct: false }], correct_answer: 'a', correct_answers: null, points: 3, explanation: '0.75 × 1.2 = 0.9 = 90%', hint: null, attachments: null, tags: ['درصد', 'پیشرفته'], usage_count: 4, correct_rate: 35, avg_time_seconds: 150, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-14', updated_at: '2024-01-14' },
+  { id: 'q15', school_id: null, question_text: 'حاصل عبارت 2³ × 3² برابر چند است؟', question_type: 'multiple_choice', subject: 'math', grade_level: 6, chapter: 'فصل 2', topic: 'توان', difficulty: 'hard', options: [{ id: 'a', text: '36', is_correct: false }, { id: 'b', text: '54', is_correct: false }, { id: 'c', text: '72', is_correct: true }, { id: 'd', text: '108', is_correct: false }], correct_answer: 'c', correct_answers: null, points: 3, explanation: '8 × 9 = 72', hint: 'ابتدا توان‌ها را محاسبه کنید', attachments: null, tags: ['توان'], usage_count: 6, correct_rate: 48, avg_time_seconds: 100, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-15', updated_at: '2024-01-15' },
+  { id: 'q16', school_id: null, question_text: 'مفهوم کسر را با یک مثال توضیح دهید.', question_type: 'essay', subject: 'math', grade_level: 6, chapter: 'فصل 3', topic: 'کسر', difficulty: 'hard', options: null, correct_answer: null, correct_answers: null, points: 4, explanation: 'کسر نشان‌دهنده بخشی از یک کل است', hint: null, attachments: null, tags: ['کسر', 'تشریحی'], usage_count: 3, correct_rate: null, avg_time_seconds: 300, is_verified: true, is_active: true, created_by: null, created_at: '2024-01-16', updated_at: '2024-01-16' },
 ]
 
-const GRADES = [
-  { id: '1', name: 'اول' },
-  { id: '2', name: 'دوم' },
-  { id: '3', name: 'سوم' },
-  { id: '4', name: 'چهارم' },
-  { id: '5', name: 'پنجم' },
-  { id: '6', name: 'ششم' },
-]
+// ═══════════════════════════════════════
+// کامپوننت Stepper
+// ═══════════════════════════════════════
 
-const CLASSES = [
-  { id: '1', name: 'ششم الف', grade: '6' },
-  { id: '2', name: 'ششم ب', grade: '6' },
-  { id: '3', name: 'پنجم الف', grade: '5' },
-  { id: '4', name: 'پنجم ب', grade: '5' },
-]
+interface StepperProps {
+  currentStep: number
+  steps: { title: string; icon: React.ReactNode }[]
+}
 
-const SAMPLE_QUESTIONS: Question[] = [
-  {
-    id: '1',
-    type: 'multiple',
-    text: 'حاصل عبارت 24 × 5 چقدر است؟',
-    options: ['100', '120', '125', '115'],
-    correctOption: 1,
-    score: 1,
-    difficulty: 'easy',
-  },
-  {
-    id: '2',
-    type: 'multiple',
-    text: 'کدام عدد بر 3 و 5 بخش‌پذیر است؟',
-    options: ['20', '30', '25', '35'],
-    correctOption: 1,
-    score: 1,
-    difficulty: 'medium',
-  },
-  {
-    id: '3',
-    type: 'multiple',
-    text: 'مساحت مربعی با ضلع 7 سانتی‌متر چقدر است؟',
-    options: ['14 سانتی‌متر مربع', '28 سانتی‌متر مربع', '49 سانتی‌متر مربع', '56 سانتی‌متر مربع'],
-    correctOption: 2,
-    score: 1,
-    difficulty: 'easy',
-  },
-  {
-    id: '4',
-    type: 'descriptive',
-    text: 'مفهوم کسر را با ذکر یک مثال توضیح دهید.',
-    score: 3,
-    difficulty: 'medium',
-    keyAnswer: 'کسر نشان‌دهنده بخشی از یک کل است. مثال: اگر یک پیتزا را به 4 قسمت مساوی تقسیم کنیم و 1 قسمت را بخوریم، 1/4 پیتزا خورده‌ایم.',
-  },
-  {
-    id: '5',
-    type: 'trueFalse',
-    text: 'هر عدد زوج بر 2 بخش‌پذیر است.',
-    isTrue: true,
-    score: 0.5,
-  },
-]
+function Stepper({ currentStep, steps }: StepperProps) {
+  return (
+    <div className="flex items-center justify-center mb-8">
+      {steps.map((step, index) => (
+        <div key={index} className="flex items-center">
+          <div
+            className={cn(
+              "flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all",
+              index < currentStep
+                ? "bg-green-500 border-green-500 text-white"
+                : index === currentStep
+                ? "bg-blue-500 border-blue-500 text-white"
+                : "border-gray-300 dark:border-gray-600 text-gray-400"
+            )}
+          >
+            {index < currentStep ? (
+              <Check className="w-6 h-6" />
+            ) : (
+              step.icon
+            )}
+          </div>
+          {index < steps.length - 1 && (
+            <div
+              className={cn(
+                "w-16 h-1 mx-2 rounded transition-all",
+                index < currentStep
+                  ? "bg-green-500"
+                  : "bg-gray-300 dark:bg-gray-600"
+              )}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
 
-// ============================================
+// ═══════════════════════════════════════
 // کامپوننت اصلی
-// ============================================
+// ═══════════════════════════════════════
 
 export default function CreateExamPage() {
-  // Wizard Step
-  const [currentStep, setCurrentStep] = useState<WizardStep>('info')
-  const steps: { id: WizardStep; label: string; icon: React.ReactNode }[] = [
-    { id: 'info', label: 'اطلاعات پایه', icon: <FileText className="w-5 h-5" /> },
-    { id: 'questions', label: 'سوالات', icon: <HelpCircle className="w-5 h-5" /> },
-    { id: 'settings', label: 'تنظیمات', icon: <ToggleLeft className="w-5 h-5" /> },
-    { id: 'preview', label: 'پیش‌نمایش', icon: <Eye className="w-5 h-5" /> },
+  const router = useRouter()
+  const [currentStep, setCurrentStep] = useState(0)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+
+  // Step 1: Basic Info
+  const [examTitle, setExamTitle] = useState('')
+  const [examDescription, setExamDescription] = useState('')
+  const [subject, setSubject] = useState('')
+  const [gradeLevel, setGradeLevel] = useState('')
+  const [examDate, setExamDate] = useState('')
+  const [duration, setDuration] = useState(60)
+
+  // Step 1: Difficulty Distribution
+  const [easyCount, setEasyCount] = useState(6)
+  const [mediumCount, setMediumCount] = useState(10)
+  const [hardCount, setHardCount] = useState(4)
+
+  // Step 2: Selected Questions
+  const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterDifficulty, setFilterDifficulty] = useState<DifficultyLevel | 'all'>('all')
+
+  // Step 3: Config
+  const [config, setConfig] = useState(DEFAULT_EXAM_CONFIG)
+
+  const steps = [
+    { title: 'مشخصات', icon: <ClipboardList className="w-5 h-5" /> },
+    { title: 'انتخاب سوالات', icon: <BookOpen className="w-5 h-5" /> },
+    { title: 'بررسی نهایی', icon: <Eye className="w-5 h-5" /> }
   ]
 
-  // Exam Data
-  const [examData, setExamData] = useState<ExamData>({
-    title: '',
-    subject: '',
-    grade: '',
-    classId: '',
-    date: '',
-    startTime: '08:00',
-    duration: 60,
-    totalScore: 20,
-    questions: SAMPLE_QUESTIONS,
-    settings: {
-      showScoreImmediately: false,
-      allowReview: true,
-      randomizeQuestions: false,
-      randomizeOptions: false,
-      negativeScore: 0,
-    },
-  })
+  const totalQuestions = easyCount + mediumCount + hardCount
 
-  // Question Tab
-  const [activeQuestionTab, setActiveQuestionTab] = useState('multiple')
-
-  // New Question States
-  const [newMultiple, setNewMultiple] = useState<Omit<MultipleChoiceQuestion, 'id'>>({
-    type: 'multiple',
-    text: '',
-    options: ['', '', '', ''],
-    correctOption: 0,
-    score: 1,
-    difficulty: 'medium',
-  })
-
-  const [newDescriptive, setNewDescriptive] = useState<Omit<DescriptiveQuestion, 'id'>>({
-    type: 'descriptive',
-    text: '',
-    score: 2,
-    difficulty: 'medium',
-    keyAnswer: '',
-  })
-
-  const [newTrueFalse, setNewTrueFalse] = useState<Omit<TrueFalseQuestion, 'id'>>({
-    type: 'trueFalse',
-    text: '',
-    isTrue: true,
-    score: 0.5,
-  })
-
-  const [newMatching, setNewMatching] = useState<Omit<MatchingQuestion, 'id'>>({
-    type: 'matching',
-    columnA: ['', '', '', '', ''],
-    columnB: ['', '', '', '', ''],
-    answers: [0, 1, 2, 3, 4],
-    score: 2,
-  })
-
-  // UI States
-  const [isSaving, setIsSaving] = useState(false)
-  const [isPublishing, setIsPublishing] = useState(false)
-  const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
-
-  // ============================================
-  // محاسبات
-  // ============================================
-
-  const multipleCount = examData.questions.filter((q) => q.type === 'multiple').length
-  const descriptiveCount = examData.questions.filter((q) => q.type === 'descriptive').length
-  const trueFalseCount = examData.questions.filter((q) => q.type === 'trueFalse').length
-  const matchingCount = examData.questions.filter((q) => q.type === 'matching').length
-
-  const totalQuestionScore = examData.questions.reduce((sum, q) => sum + q.score, 0)
-  const estimatedTime = Math.ceil(
-    multipleCount * 1 + descriptiveCount * 5 + trueFalseCount * 0.5 + matchingCount * 3
-  )
-
-  // ============================================
-  // Handlers
-  // ============================================
-
-  const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9)
-
-  const addMultipleQuestion = () => {
-    if (!newMultiple.text.trim()) {
-      toast.error('متن سوال را وارد کنید')
-      return
-    }
-    if (newMultiple.options.some((o) => !o.trim())) {
-      toast.error('همه گزینه‌ها را پر کنید')
-      return
-    }
-
-    const question: MultipleChoiceQuestion = {
-      ...newMultiple,
-      id: generateId(),
-    }
-
-    setExamData((prev) => ({
-      ...prev,
-      questions: [...prev.questions, question],
-    }))
-
-    setNewMultiple({
-      type: 'multiple',
-      text: '',
-      options: ['', '', '', ''],
-      correctOption: 0,
-      score: 1,
-      difficulty: 'medium',
+  // Filter questions
+  const filteredQuestions = useMemo(() => {
+    return sampleQuestionBank.filter(q => {
+      if (subject && q.subject !== subject) return false
+      if (gradeLevel && q.grade_level !== parseInt(gradeLevel)) return false
+      if (filterDifficulty !== 'all' && q.difficulty !== filterDifficulty) return false
+      if (searchQuery && !q.question_text.toLowerCase().includes(searchQuery.toLowerCase())) return false
+      return true
     })
+  }, [subject, gradeLevel, filterDifficulty, searchQuery])
 
-    toast.success('سوال تستی اضافه شد')
+  // Group by difficulty
+  const questionsByDifficulty = useMemo(() => {
+    const easy = filteredQuestions.filter(q => q.difficulty === 'easy')
+    const medium = filteredQuestions.filter(q => q.difficulty === 'medium')
+    const hard = filteredQuestions.filter(q => q.difficulty === 'hard')
+    return { easy, medium, hard }
+  }, [filteredQuestions])
+
+  // Selected questions by difficulty
+  const selectedByDifficulty = useMemo(() => {
+    const selected = Array.from(selectedQuestions)
+    return {
+      easy: selected.filter(id => sampleQuestionBank.find(q => q.id === id)?.difficulty === 'easy').length,
+      medium: selected.filter(id => sampleQuestionBank.find(q => q.id === id)?.difficulty === 'medium').length,
+      hard: selected.filter(id => sampleQuestionBank.find(q => q.id === id)?.difficulty === 'hard').length
+    }
+  }, [selectedQuestions])
+
+  // Calculate total points
+  const totalPoints = useMemo(() => {
+    return Array.from(selectedQuestions).reduce((sum, id) => {
+      const q = sampleQuestionBank.find(q => q.id === id)
+      return sum + (q?.points || 0)
+    }, 0)
+  }, [selectedQuestions])
+
+  const handleAutoGenerate = async () => {
+    setIsGenerating(true)
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    // Auto-select questions based on distribution
+    const newSelected = new Set<string>()
+    
+    // Select easy questions
+    questionsByDifficulty.easy.slice(0, easyCount).forEach(q => newSelected.add(q.id))
+    // Select medium questions
+    questionsByDifficulty.medium.slice(0, mediumCount).forEach(q => newSelected.add(q.id))
+    // Select hard questions
+    questionsByDifficulty.hard.slice(0, hardCount).forEach(q => newSelected.add(q.id))
+
+    setSelectedQuestions(newSelected)
+    setIsGenerating(false)
   }
 
-  const addDescriptiveQuestion = () => {
-    if (!newDescriptive.text.trim()) {
-      toast.error('متن سوال را وارد کنید')
-      return
+  const toggleQuestion = (id: string) => {
+    const newSet = new Set(selectedQuestions)
+    if (newSet.has(id)) {
+      newSet.delete(id)
+    } else {
+      newSet.add(id)
     }
-
-    const question: DescriptiveQuestion = {
-      ...newDescriptive,
-      id: generateId(),
-    }
-
-    setExamData((prev) => ({
-      ...prev,
-      questions: [...prev.questions, question],
-    }))
-
-    setNewDescriptive({
-      type: 'descriptive',
-      text: '',
-      score: 2,
-      difficulty: 'medium',
-      keyAnswer: '',
-    })
-
-    toast.success('سوال تشریحی اضافه شد')
+    setSelectedQuestions(newSet)
   }
 
-  const addTrueFalseQuestion = () => {
-    if (!newTrueFalse.text.trim()) {
-      toast.error('متن گزاره را وارد کنید')
-      return
-    }
-
-    const question: TrueFalseQuestion = {
-      ...newTrueFalse,
-      id: generateId(),
-    }
-
-    setExamData((prev) => ({
-      ...prev,
-      questions: [...prev.questions, question],
-    }))
-
-    setNewTrueFalse({
-      type: 'trueFalse',
-      text: '',
-      isTrue: true,
-      score: 0.5,
-    })
-
-    toast.success('گزاره صحیح/غلط اضافه شد')
+  const handleCreate = async () => {
+    setIsCreating(true)
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    router.push('/teacher/exams')
   }
 
-  const addMatchingQuestion = () => {
-    if (newMatching.columnA.some((a) => !a.trim()) || newMatching.columnB.some((b) => !b.trim())) {
-      toast.error('همه آیتم‌های ستون‌ها را پر کنید')
-      return
-    }
-
-    const question: MatchingQuestion = {
-      ...newMatching,
-      id: generateId(),
-    }
-
-    setExamData((prev) => ({
-      ...prev,
-      questions: [...prev.questions, question],
-    }))
-
-    setNewMatching({
-      type: 'matching',
-      columnA: ['', '', '', '', ''],
-      columnB: ['', '', '', '', ''],
-      answers: [0, 1, 2, 3, 4],
-      score: 2,
-    })
-
-    toast.success('سوال جورکردنی اضافه شد')
-  }
-
-  const deleteQuestion = (id: string) => {
-    setExamData((prev) => ({
-      ...prev,
-      questions: prev.questions.filter((q) => q.id !== id),
-    }))
-    toast.success('سوال حذف شد')
-  }
-
-  const duplicateQuestion = (question: Question) => {
-    const newQuestion = { ...question, id: generateId() }
-    setExamData((prev) => ({
-      ...prev,
-      questions: [...prev.questions, newQuestion],
-    }))
-    toast.success('سوال کپی شد')
-  }
-
-  const handleSaveDraft = async () => {
-    if (!examData.title.trim()) {
-      toast.error('عنوان آزمون را وارد کنید')
-      return
-    }
-
-    setIsSaving(true)
-    try {
-      // TODO: API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      toast.success('پیش‌نویس ذخیره شد')
-    } catch (error) {
-      toast.error('خطا در ذخیره')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handlePublish = async () => {
-    if (!examData.title || !examData.subject || !examData.grade || !examData.classId) {
-      toast.error('اطلاعات پایه را کامل کنید')
-      setCurrentStep('info')
-      return
-    }
-
-    if (examData.questions.length === 0) {
-      toast.error('حداقل یک سوال اضافه کنید')
-      setCurrentStep('questions')
-      return
-    }
-
-    setIsPublishing(true)
-    try {
-      // TODO: API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      toast.success('آزمون با موفقیت منتشر شد')
-    } catch (error) {
-      toast.error('خطا در انتشار')
-    } finally {
-      setIsPublishing(false)
-    }
-  }
-
-  const handlePrint = () => {
-    window.print()
-  }
-
-  const goToNextStep = () => {
-    const currentIndex = steps.findIndex((s) => s.id === currentStep)
-    if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1].id)
-    }
-  }
-
-  const goToPrevStep = () => {
-    const currentIndex = steps.findIndex((s) => s.id === currentStep)
-    if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1].id)
-    }
-  }
-
-  // ============================================
-  // Render
-  // ============================================
+  const canProceedStep1 = examTitle && subject && gradeLevel && examDate && totalQuestions > 0
+  const canProceedStep2 = selectedQuestions.size >= totalQuestions
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6" dir="rtl">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/teacher" className="hover:text-blue-600">داشبورد</Link>
-          <ChevronLeft className="w-4 h-4" />
-          <Link href="/teacher/exams" className="hover:text-blue-600">آزمون‌ها</Link>
-          <ChevronLeft className="w-4 h-4" />
-          <span className="text-gray-800 font-medium">ایجاد آزمون</span>
-        </nav>
-
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-6 lg:p-8" dir="rtl">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-              <FileText className="w-8 h-8 text-blue-600" />
-              ایجاد آزمون جدید
-            </h1>
-            <p className="text-gray-600 mt-1">آزمون خود را طراحی و منتشر کنید</p>
-          </div>
-
-          {/* Summary Box */}
-          <div className="bg-white rounded-xl shadow-lg p-4 min-w-[280px]">
-            <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
-              <Target className="w-5 h-5 text-purple-600" />
-              خلاصه آزمون
-            </h3>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">تستی:</span>
-                <span className="font-bold">{multipleCount}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">تشریحی:</span>
-                <span className="font-bold">{descriptiveCount}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">صحیح/غلط:</span>
-                <span className="font-bold">{trueFalseCount}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">جورکردنی:</span>
-                <span className="font-bold">{matchingCount}</span>
-              </div>
-              <Separator className="col-span-2 my-1" />
-              <div className="flex justify-between text-blue-600">
-                <span>مجموع نمرات:</span>
-                <span className="font-bold">{totalQuestionScore}</span>
-              </div>
-              <div className="flex justify-between text-purple-600">
-                <span>زمان تخمینی:</span>
-                <span className="font-bold">{estimatedTime} دقیقه</span>
-              </div>
+        <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/teacher"
+              className="p-2 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+                <GraduationCap className="w-7 h-7 text-blue-500" />
+                ایجاد امتحان جدید
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                با استفاده از بانک سوالات، امتحان خود را بسازید
+              </p>
             </div>
           </div>
+        </header>
+
+        {/* Stepper */}
+        <div className="mb-6">
+          <Stepper currentStep={currentStep} steps={steps} />
+          <p className="text-center text-gray-600 dark:text-gray-400 font-medium">
+            {steps[currentStep].title}
+          </p>
         </div>
 
-        {/* Wizard Steps */}
-        <div className="bg-white rounded-xl shadow-lg p-4">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center flex-1">
-                <button
-                  onClick={() => setCurrentStep(step.id)}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-lg transition-all',
-                    currentStep === step.id
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-500 hover:bg-gray-100'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'w-8 h-8 rounded-full flex items-center justify-center',
-                      currentStep === step.id
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-600'
-                    )}
-                  >
-                    {step.icon}
-                  </div>
-                  <span className="font-medium hidden md:inline">{step.label}</span>
-                </button>
-                {index < steps.length - 1 && (
-                  <div className="flex-1 h-1 bg-gray-200 mx-2 rounded">
-                    <div
-                      className={cn(
-                        'h-full bg-blue-600 rounded transition-all',
-                        steps.findIndex((s) => s.id === currentStep) > index ? 'w-full' : 'w-0'
-                      )}
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 min-h-[500px]">
-          {/* Step 1: Info */}
-          {currentStep === 'info' && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <FileText className="w-6 h-6 text-blue-600" />
-                اطلاعات پایه آزمون
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label>عنوان آزمون *</Label>
-                  <Input
-                    value={examData.title}
-                    onChange={(e) => setExamData({ ...examData, title: e.target.value })}
-                    placeholder="مثال: آزمون میان‌ترم ریاضی"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>درس *</Label>
-                  <Select
-                    value={examData.subject}
-                    onValueChange={(v) => setExamData({ ...examData, subject: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="انتخاب درس..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SUBJECTS.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>پایه تحصیلی *</Label>
-                  <Select
-                    value={examData.grade}
-                    onValueChange={(v) => setExamData({ ...examData, grade: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="انتخاب پایه..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GRADES.map((g) => (
-                        <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>کلاس *</Label>
-                  <Select
-                    value={examData.classId}
-                    onValueChange={(v) => setExamData({ ...examData, classId: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="انتخاب کلاس..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CLASSES.filter((c) => !examData.grade || c.grade === examData.grade).map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>تاریخ برگزاری</Label>
-                  <Input
-                    type="date"
-                    value={examData.date}
-                    onChange={(e) => setExamData({ ...examData, date: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>ساعت شروع</Label>
-                  <Input
-                    type="time"
-                    value={examData.startTime}
-                    onChange={(e) => setExamData({ ...examData, startTime: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>مدت آزمون (دقیقه)</Label>
-                  <Input
-                    type="number"
-                    min={10}
-                    max={180}
-                    value={examData.duration}
-                    onChange={(e) => setExamData({ ...examData, duration: parseInt(e.target.value) || 60 })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>نمره کل آزمون</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={examData.totalScore}
-                    onChange={(e) => setExamData({ ...examData, totalScore: parseInt(e.target.value) || 20 })}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Questions */}
-          {currentStep === 'questions' && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <HelpCircle className="w-6 h-6 text-blue-600" />
-                سوالات آزمون
-              </h2>
-
-              <Tabs value={activeQuestionTab} onValueChange={setActiveQuestionTab}>
-                <TabsList className="grid grid-cols-4 w-full">
-                  <TabsTrigger value="multiple" className="gap-2">
-                    تستی
-                    <Badge variant="secondary">{multipleCount}</Badge>
-                  </TabsTrigger>
-                  <TabsTrigger value="descriptive" className="gap-2">
-                    تشریحی
-                    <Badge variant="secondary">{descriptiveCount}</Badge>
-                  </TabsTrigger>
-                  <TabsTrigger value="trueFalse" className="gap-2">
-                    صحیح/غلط
-                    <Badge variant="secondary">{trueFalseCount}</Badge>
-                  </TabsTrigger>
-                  <TabsTrigger value="matching" className="gap-2">
-                    جورکردنی
-                    <Badge variant="secondary">{matchingCount}</Badge>
-                  </TabsTrigger>
-                </TabsList>
-
-                {/* Tab: Multiple Choice */}
-                <TabsContent value="multiple" className="space-y-6 mt-6">
-                  {/* New Question Form */}
-                  <div className="bg-blue-50 rounded-xl p-6 space-y-4">
-                    <h3 className="font-bold text-blue-800">افزودن سوال تستی جدید</h3>
-
-                    <div className="space-y-2">
-                      <Label>متن سوال</Label>
-                      <Textarea
-                        value={newMultiple.text}
-                        onChange={(e) => setNewMultiple({ ...newMultiple, text: e.target.value })}
-                        placeholder="متن سوال را وارد کنید..."
-                        className="bg-white"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      {newMultiple.options.map((option, index) => (
-                        <div key={index} className="space-y-1">
-                          <Label className="text-sm">گزینه {index + 1}</Label>
-                          <div className="flex gap-2">
-                            <Input
-                              value={option}
-                              onChange={(e) => {
-                                const newOptions = [...newMultiple.options]
-                                newOptions[index] = e.target.value
-                                setNewMultiple({ ...newMultiple, options: newOptions })
-                              }}
-                              className="bg-white"
-                              placeholder={`گزینه ${index + 1}`}
-                            />
-                            <Button
-                              type="button"
-                              variant={newMultiple.correctOption === index ? 'default' : 'outline'}
-                              size="icon"
-                              onClick={() => setNewMultiple({ ...newMultiple, correctOption: index })}
-                              className={newMultiple.correctOption === index ? 'bg-green-600' : ''}
-                            >
-                              {newMultiple.correctOption === index ? (
-                                <CheckCircle2 className="w-4 h-4" />
-                              ) : (
-                                <Circle className="w-4 h-4" />
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex gap-4">
-                      <div className="space-y-1">
-                        <Label>نمره</Label>
-                        <Input
-                          type="number"
-                          min={0.25}
-                          max={10}
-                          step={0.25}
-                          value={newMultiple.score}
-                          onChange={(e) => setNewMultiple({ ...newMultiple, score: parseFloat(e.target.value) || 1 })}
-                          className="w-24 bg-white"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>سطح سختی</Label>
-                        <Select
-                          value={newMultiple.difficulty}
-                          onValueChange={(v) => setNewMultiple({ ...newMultiple, difficulty: v as 'easy' | 'medium' | 'hard' })}
-                        >
-                          <SelectTrigger className="w-32 bg-white">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="easy">آسان</SelectItem>
-                            <SelectItem value="medium">متوسط</SelectItem>
-                            <SelectItem value="hard">سخت</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex-1" />
-                      <Button onClick={addMultipleQuestion} className="self-end gap-2">
-                        <Plus className="w-4 h-4" />
-                        افزودن سوال
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Questions List */}
-                  <div className="space-y-3">
-                    {examData.questions
-                      .filter((q): q is MultipleChoiceQuestion => q.type === 'multiple')
-                      .map((question, index) => (
-                        <div key={question.id} className="bg-white border rounded-xl p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-sm">
-                                  {index + 1}
-                                </span>
-                                <Badge variant="outline">
-                                  {question.difficulty === 'easy' ? 'آسان' : question.difficulty === 'medium' ? 'متوسط' : 'سخت'}
-                                </Badge>
-                                <Badge>{question.score} نمره</Badge>
-                              </div>
-                              <p className="text-gray-800 mb-3">{question.text}</p>
-                              <div className="grid grid-cols-2 gap-2">
-                                {question.options.map((opt, i) => (
-                                  <div
-                                    key={i}
-                                    className={cn(
-                                      'p-2 rounded text-sm',
-                                      question.correctOption === i
-                                        ? 'bg-green-100 text-green-800 font-medium'
-                                        : 'bg-gray-50 text-gray-600'
-                                    )}
-                                  >
-                                    {i + 1}) {opt}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => duplicateQuestion(question)}>
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => deleteQuestion(question.id)}>
-                                <Trash2 className="w-4 h-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </TabsContent>
-
-                {/* Tab: Descriptive */}
-                <TabsContent value="descriptive" className="space-y-6 mt-6">
-                  <div className="bg-green-50 rounded-xl p-6 space-y-4">
-                    <h3 className="font-bold text-green-800">افزودن سوال تشریحی جدید</h3>
-
-                    <div className="space-y-2">
-                      <Label>متن سوال</Label>
-                      <Textarea
-                        value={newDescriptive.text}
-                        onChange={(e) => setNewDescriptive({ ...newDescriptive, text: e.target.value })}
-                        placeholder="متن سوال را وارد کنید..."
-                        className="bg-white min-h-[100px]"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>پاسخ کلیدی (اختیاری)</Label>
-                      <Textarea
-                        value={newDescriptive.keyAnswer}
-                        onChange={(e) => setNewDescriptive({ ...newDescriptive, keyAnswer: e.target.value })}
-                        placeholder="پاسخ صحیح برای راهنمای تصحیح..."
-                        className="bg-white"
-                      />
-                    </div>
-
-                    <div className="flex gap-4">
-                      <div className="space-y-1">
-                        <Label>نمره</Label>
-                        <Input
-                          type="number"
-                          min={0.5}
-                          max={20}
-                          step={0.5}
-                          value={newDescriptive.score}
-                          onChange={(e) => setNewDescriptive({ ...newDescriptive, score: parseFloat(e.target.value) || 2 })}
-                          className="w-24 bg-white"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>سطح سختی</Label>
-                        <Select
-                          value={newDescriptive.difficulty}
-                          onValueChange={(v) => setNewDescriptive({ ...newDescriptive, difficulty: v as 'easy' | 'medium' | 'hard' })}
-                        >
-                          <SelectTrigger className="w-32 bg-white">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="easy">آسان</SelectItem>
-                            <SelectItem value="medium">متوسط</SelectItem>
-                            <SelectItem value="hard">سخت</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex-1" />
-                      <Button onClick={addDescriptiveQuestion} className="self-end gap-2 bg-green-600 hover:bg-green-700">
-                        <Plus className="w-4 h-4" />
-                        افزودن سوال
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Questions List */}
-                  <div className="space-y-3">
-                    {examData.questions
-                      .filter((q): q is DescriptiveQuestion => q.type === 'descriptive')
-                      .map((question, index) => (
-                        <div key={question.id} className="bg-white border rounded-xl p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="w-8 h-8 bg-green-100 text-green-700 rounded-full flex items-center justify-center font-bold text-sm">
-                                  {index + 1}
-                                </span>
-                                <Badge variant="outline">
-                                  {question.difficulty === 'easy' ? 'آسان' : question.difficulty === 'medium' ? 'متوسط' : 'سخت'}
-                                </Badge>
-                                <Badge>{question.score} نمره</Badge>
-                              </div>
-                              <p className="text-gray-800 mb-2">{question.text}</p>
-                              {question.keyAnswer && (
-                                <div className="bg-green-50 p-2 rounded text-sm text-green-700">
-                                  <strong>کلید:</strong> {question.keyAnswer}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => duplicateQuestion(question)}>
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => deleteQuestion(question.id)}>
-                                <Trash2 className="w-4 h-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </TabsContent>
-
-                {/* Tab: True/False */}
-                <TabsContent value="trueFalse" className="space-y-6 mt-6">
-                  <div className="bg-orange-50 rounded-xl p-6 space-y-4">
-                    <h3 className="font-bold text-orange-800">افزودن گزاره صحیح/غلط</h3>
-
-                    <div className="space-y-2">
-                      <Label>متن گزاره</Label>
-                      <Textarea
-                        value={newTrueFalse.text}
-                        onChange={(e) => setNewTrueFalse({ ...newTrueFalse, text: e.target.value })}
-                        placeholder="گزاره‌ای که باید صحیح یا غلط بودنش مشخص شود..."
-                        className="bg-white"
-                      />
-                    </div>
-
-                    <div className="flex gap-4 items-end">
-                      <div className="space-y-2">
-                        <Label>پاسخ صحیح</Label>
-                        <RadioGroup
-                          value={newTrueFalse.isTrue ? 'true' : 'false'}
-                          onValueChange={(v) => setNewTrueFalse({ ...newTrueFalse, isTrue: v === 'true' })}
-                          className="flex gap-4"
-                        >
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="true" id="tf-true" />
-                            <Label htmlFor="tf-true" className="text-green-600">صحیح</Label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="false" id="tf-false" />
-                            <Label htmlFor="tf-false" className="text-red-600">غلط</Label>
-                          </div>
-                        </RadioGroup>
-                      </div>
-                      <div className="space-y-1">
-                        <Label>نمره</Label>
-                        <Input
-                          type="number"
-                          min={0.25}
-                          max={5}
-                          step={0.25}
-                          value={newTrueFalse.score}
-                          onChange={(e) => setNewTrueFalse({ ...newTrueFalse, score: parseFloat(e.target.value) || 0.5 })}
-                          className="w-24 bg-white"
-                        />
-                      </div>
-                      <div className="flex-1" />
-                      <Button onClick={addTrueFalseQuestion} className="gap-2 bg-orange-600 hover:bg-orange-700">
-                        <Plus className="w-4 h-4" />
-                        افزودن گزاره
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Questions List */}
-                  <div className="space-y-3">
-                    {examData.questions
-                      .filter((q): q is TrueFalseQuestion => q.type === 'trueFalse')
-                      .map((question, index) => (
-                        <div key={question.id} className="bg-white border rounded-xl p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="w-8 h-8 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center font-bold text-sm">
-                                  {index + 1}
-                                </span>
-                                <Badge className={question.isTrue ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
-                                  {question.isTrue ? 'صحیح' : 'غلط'}
-                                </Badge>
-                                <Badge>{question.score} نمره</Badge>
-                              </div>
-                              <p className="text-gray-800">{question.text}</p>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => duplicateQuestion(question)}>
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => deleteQuestion(question.id)}>
-                                <Trash2 className="w-4 h-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </TabsContent>
-
-                {/* Tab: Matching */}
-                <TabsContent value="matching" className="space-y-6 mt-6">
-                  <div className="bg-purple-50 rounded-xl p-6 space-y-4">
-                    <h3 className="font-bold text-purple-800">افزودن سوال جورکردنی</h3>
-
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <Label className="font-bold">ستون الف</Label>
-                        {newMatching.columnA.map((item, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <span className="w-6 h-6 bg-purple-200 text-purple-800 rounded text-sm flex items-center justify-center font-bold">
-                              {index + 1}
-                            </span>
-                            <Input
-                              value={item}
-                              onChange={(e) => {
-                                const newColumnA = [...newMatching.columnA]
-                                newColumnA[index] = e.target.value
-                                setNewMatching({ ...newMatching, columnA: newColumnA })
-                              }}
-                              className="bg-white"
-                              placeholder={`آیتم ${index + 1}`}
-                            />
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="space-y-3">
-                        <Label className="font-bold">ستون ب</Label>
-                        {newMatching.columnB.map((item, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <span className="w-6 h-6 bg-purple-200 text-purple-800 rounded text-sm flex items-center justify-center font-bold">
-                              {String.fromCharCode(65 + index)}
-                            </span>
-                            <Input
-                              value={item}
-                              onChange={(e) => {
-                                const newColumnB = [...newMatching.columnB]
-                                newColumnB[index] = e.target.value
-                                setNewMatching({ ...newMatching, columnB: newColumnB })
-                              }}
-                              className="bg-white"
-                              placeholder={`آیتم ${String.fromCharCode(65 + index)}`}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4 items-end">
-                      <div className="space-y-1">
-                        <Label>نمره کل</Label>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={10}
-                          value={newMatching.score}
-                          onChange={(e) => setNewMatching({ ...newMatching, score: parseFloat(e.target.value) || 2 })}
-                          className="w-24 bg-white"
-                        />
-                      </div>
-                      <div className="flex-1" />
-                      <Button onClick={addMatchingQuestion} className="gap-2 bg-purple-600 hover:bg-purple-700">
-                        <Plus className="w-4 h-4" />
-                        افزودن سوال
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Questions List */}
-                  <div className="space-y-3">
-                    {examData.questions
-                      .filter((q): q is MatchingQuestion => q.type === 'matching')
-                      .map((question, index) => (
-                        <div key={question.id} className="bg-white border rounded-xl p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-3">
-                                <span className="w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-bold text-sm">
-                                  {index + 1}
-                                </span>
-                                <Badge>{question.score} نمره</Badge>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  {question.columnA.map((item, i) => (
-                                    <div key={i} className="flex items-center gap-2 text-sm">
-                                      <span className="w-5 h-5 bg-purple-100 rounded text-xs flex items-center justify-center font-bold">
-                                        {i + 1}
-                                      </span>
-                                      {item}
-                                    </div>
-                                  ))}
-                                </div>
-                                <div className="space-y-1">
-                                  {question.columnB.map((item, i) => (
-                                    <div key={i} className="flex items-center gap-2 text-sm">
-                                      <span className="w-5 h-5 bg-purple-100 rounded text-xs flex items-center justify-center font-bold">
-                                        {String.fromCharCode(65 + i)}
-                                      </span>
-                                      {item}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => duplicateQuestion(question)}>
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => deleteQuestion(question.id)}>
-                                <Trash2 className="w-4 h-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
-
-          {/* Step 3: Settings */}
-          {currentStep === 'settings' && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <ToggleLeft className="w-6 h-6 text-blue-600" />
-                تنظیمات پیشرفته
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4 bg-gray-50 rounded-xl p-6">
-                  <h3 className="font-semibold text-gray-700">نمایش نتیجه</h3>
-
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      id="showScore"
-                      checked={examData.settings.showScoreImmediately}
-                      onCheckedChange={(checked) =>
-                        setExamData({
-                          ...examData,
-                          settings: { ...examData.settings, showScoreImmediately: checked as boolean },
-                        })
-                      }
-                    />
-                    <Label htmlFor="showScore">نمایش نمره بلافاصله بعد از آزمون</Label>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      id="allowReview"
-                      checked={examData.settings.allowReview}
-                      onCheckedChange={(checked) =>
-                        setExamData({
-                          ...examData,
-                          settings: { ...examData.settings, allowReview: checked as boolean },
-                        })
-                      }
-                    />
-                    <Label htmlFor="allowReview">امکان بازنگری پاسخ‌ها</Label>
-                  </div>
-                </div>
-
-                <div className="space-y-4 bg-gray-50 rounded-xl p-6">
-                  <h3 className="font-semibold text-gray-700">ترتیب سوالات</h3>
-
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      id="randomQuestions"
-                      checked={examData.settings.randomizeQuestions}
-                      onCheckedChange={(checked) =>
-                        setExamData({
-                          ...examData,
-                          settings: { ...examData.settings, randomizeQuestions: checked as boolean },
-                        })
-                      }
-                    />
-                    <Label htmlFor="randomQuestions" className="flex items-center gap-2">
-                      <Shuffle className="w-4 h-4" />
-                      ترتیب تصادفی سوالات
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      id="randomOptions"
-                      checked={examData.settings.randomizeOptions}
-                      onCheckedChange={(checked) =>
-                        setExamData({
-                          ...examData,
-                          settings: { ...examData.settings, randomizeOptions: checked as boolean },
-                        })
-                      }
-                    />
-                    <Label htmlFor="randomOptions" className="flex items-center gap-2">
-                      <Shuffle className="w-4 h-4" />
-                      ترتیب تصادفی گزینه‌ها
-                    </Label>
-                  </div>
-                </div>
-
-                <div className="space-y-4 bg-gray-50 rounded-xl p-6">
-                  <h3 className="font-semibold text-gray-700">نمره‌دهی</h3>
-
+        {/* Step Content */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            {/* Step 1: Basic Info */}
+            {currentStep === 0 && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="negativeScore" className="flex items-center gap-2">
-                      <Minus className="w-4 h-4 text-red-500" />
-                      نمره منفی برای هر پاسخ اشتباه
-                    </Label>
+                    <Label>عنوان امتحان *</Label>
                     <Input
-                      id="negativeScore"
-                      type="number"
-                      min={0}
-                      max={1}
-                      step={0.25}
-                      value={examData.settings.negativeScore}
-                      onChange={(e) =>
-                        setExamData({
-                          ...examData,
-                          settings: { ...examData.settings, negativeScore: parseFloat(e.target.value) || 0 },
-                        })
-                      }
-                      className="w-32"
+                      value={examTitle}
+                      onChange={(e) => setExamTitle(e.target.value)}
+                      placeholder="مثال: امتحان میان‌ترم ریاضی"
                     />
-                    <p className="text-xs text-gray-500">0 یعنی بدون نمره منفی</p>
                   </div>
+                  <div className="space-y-2">
+                    <Label>تاریخ برگزاری *</Label>
+                    <Input
+                      type="date"
+                      value={examDate}
+                      onChange={(e) => setExamDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>درس *</Label>
+                    <Select value={subject} onValueChange={setSubject}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="انتخاب درس..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SUBJECTS.map(s => (
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>پایه تحصیلی *</Label>
+                    <Select value={gradeLevel} onValueChange={setGradeLevel}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="انتخاب پایه..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GRADES.map(g => (
+                          <SelectItem key={g.id} value={String(g.id)}>{g.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>توضیحات (اختیاری)</Label>
+                  <Textarea
+                    value={examDescription}
+                    onChange={(e) => setExamDescription(e.target.value)}
+                    placeholder="توضیحات امتحان..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>مدت زمان (دقیقه): {duration}</Label>
+                  <Slider
+                    value={[duration]}
+                    onValueChange={(v) => setDuration(v[0])}
+                    min={15}
+                    max={180}
+                    step={5}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>15 دقیقه</span>
+                    <span>180 دقیقه</span>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                    <Target className="w-5 h-5 text-blue-500" />
+                    توزیع سطح دشواری
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-green-700 dark:text-green-400">آسان</span>
+                        <span className="text-green-600 font-bold">{easyCount} سوال</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => setEasyCount(Math.max(0, easyCount - 1))}
+                          className="h-8 w-8"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </Button>
+                        <Input
+                          type="number"
+                          value={easyCount}
+                          onChange={(e) => setEasyCount(Math.max(0, parseInt(e.target.value) || 0))}
+                          className="text-center h-8"
+                          min={0}
+                        />
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => setEasyCount(easyCount + 1)}
+                          className="h-8 w-8"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-yellow-700 dark:text-yellow-400">متوسط</span>
+                        <span className="text-yellow-600 font-bold">{mediumCount} سوال</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => setMediumCount(Math.max(0, mediumCount - 1))}
+                          className="h-8 w-8"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </Button>
+                        <Input
+                          type="number"
+                          value={mediumCount}
+                          onChange={(e) => setMediumCount(Math.max(0, parseInt(e.target.value) || 0))}
+                          className="text-center h-8"
+                          min={0}
+                        />
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => setMediumCount(mediumCount + 1)}
+                          className="h-8 w-8"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-red-700 dark:text-red-400">سخت</span>
+                        <span className="text-red-600 font-bold">{hardCount} سوال</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => setHardCount(Math.max(0, hardCount - 1))}
+                          className="h-8 w-8"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </Button>
+                        <Input
+                          type="number"
+                          value={hardCount}
+                          onChange={(e) => setHardCount(Math.max(0, parseInt(e.target.value) || 0))}
+                          className="text-center h-8"
+                          min={0}
+                        />
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => setHardCount(hardCount + 1)}
+                          className="h-8 w-8"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-center mt-4 font-bold">
+                    مجموع: {totalQuestions} سوال
+                  </p>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Step 4: Preview */}
-          {currentStep === 'preview' && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <Eye className="w-6 h-6 text-blue-600" />
-                پیش‌نمایش آزمون
-              </h2>
+            {/* Step 2: Select Questions */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                {/* Auto Generate Button */}
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <Button
+                    onClick={handleAutoGenerate}
+                    disabled={isGenerating}
+                    className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                    تولید خودکار
+                  </Button>
 
-              {/* Exam Header Preview */}
-              <div className="bg-gray-50 rounded-xl p-6 border-2 border-dashed">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">{examData.title || 'عنوان آزمون'}</h2>
-                  <p className="text-gray-600 mt-1">
-                    {SUBJECTS.find((s) => s.id === examData.subject)?.name || 'درس'} -{' '}
-                    {GRADES.find((g) => g.id === examData.grade)?.name || 'پایه'}
-                  </p>
-                  <div className="flex items-center justify-center gap-6 mt-3 text-sm text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {examData.duration} دقیقه
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Target className="w-4 h-4" />
-                      {totalQuestionScore} نمره
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <HelpCircle className="w-4 h-4" />
-                      {examData.questions.length} سوال
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Input
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="جستجو..."
+                        className="pr-10 w-48"
+                      />
+                    </div>
+                    <Select value={filterDifficulty} onValueChange={(v) => setFilterDifficulty(v as DifficultyLevel | 'all')}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">همه سطوح</SelectItem>
+                        <SelectItem value="easy">آسان</SelectItem>
+                        <SelectItem value="medium">متوسط</SelectItem>
+                        <SelectItem value="hard">سخت</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
-                <Separator className="my-6" />
+                {/* Progress */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
+                    <p className="text-sm text-green-600">آسان</p>
+                    <p className="font-bold text-green-700">{selectedByDifficulty.easy} / {easyCount}</p>
+                  </div>
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 text-center">
+                    <p className="text-sm text-yellow-600">متوسط</p>
+                    <p className="font-bold text-yellow-700">{selectedByDifficulty.medium} / {mediumCount}</p>
+                  </div>
+                  <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 text-center">
+                    <p className="text-sm text-red-600">سخت</p>
+                    <p className="font-bold text-red-700">{selectedByDifficulty.hard} / {hardCount}</p>
+                  </div>
+                </div>
+
+                <Progress value={(selectedQuestions.size / totalQuestions) * 100} className="h-2" />
+                <p className="text-center text-sm text-gray-500">
+                  {selectedQuestions.size} از {totalQuestions} سوال انتخاب شده
+                </p>
+
+                {/* Questions Tabs */}
+                <Tabs defaultValue="easy">
+                  <TabsList className="grid grid-cols-3 w-full">
+                    <TabsTrigger value="easy" className="gap-2">
+                      آسان
+                      <Badge variant="secondary" className="text-xs">
+                        {questionsByDifficulty.easy.length}
+                      </Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="medium" className="gap-2">
+                      متوسط
+                      <Badge variant="secondary" className="text-xs">
+                        {questionsByDifficulty.medium.length}
+                      </Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="hard" className="gap-2">
+                      سخت
+                      <Badge variant="secondary" className="text-xs">
+                        {questionsByDifficulty.hard.length}
+                      </Badge>
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {(['easy', 'medium', 'hard'] as DifficultyLevel[]).map(diff => (
+                    <TabsContent key={diff} value={diff} className="mt-4">
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                        {questionsByDifficulty[diff].map((q, index) => (
+                          <div
+                            key={q.id}
+                            onClick={() => toggleQuestion(q.id)}
+                            className={cn(
+                              "p-4 rounded-xl border-2 cursor-pointer transition-all",
+                              selectedQuestions.has(q.id)
+                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                            )}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={cn(
+                                "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
+                                selectedQuestions.has(q.id)
+                                  ? "bg-blue-500 text-white"
+                                  : "border-2 border-gray-300"
+                              )}>
+                                {selectedQuestions.has(q.id) ? (
+                                  <CheckCircle2 className="w-4 h-4" />
+                                ) : (
+                                  <Circle className="w-4 h-4" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium line-clamp-2">{q.question_text}</p>
+                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                  <Badge className={DIFFICULTY_COLORS[q.difficulty]}>
+                                    {DIFFICULTY_LABELS[q.difficulty]}
+                                  </Badge>
+                                  <Badge variant="outline">{q.points} نمره</Badge>
+                                  {q.topic && (
+                                    <Badge variant="secondary">{q.topic}</Badge>
+                                  )}
+                                  <span className="text-xs text-gray-400">
+                                    استفاده: {q.usage_count} بار
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </div>
+            )}
+
+            {/* Step 3: Review */}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Summary Card */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <ClipboardList className="w-5 h-5 text-blue-500" />
+                        خلاصه امتحان
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">عنوان:</span>
+                        <span className="font-medium">{examTitle}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">درس:</span>
+                        <span className="font-medium">{SUBJECTS.find(s => s.id === subject)?.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">پایه:</span>
+                        <span className="font-medium">{GRADES.find(g => g.id === parseInt(gradeLevel))?.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">تاریخ:</span>
+                        <span className="font-medium">{examDate}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">مدت:</span>
+                        <span className="font-medium">{duration} دقیقه</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">تعداد سوالات:</span>
+                        <span className="font-bold text-blue-600">{selectedQuestions.size} سوال</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">نمره کل:</span>
+                        <span className="font-bold text-green-600">{totalPoints} نمره</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">نمره قبولی:</span>
+                        <span className="font-bold">{Math.round(totalPoints * config.passing_score / 100)} ({config.passing_score}%)</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Distribution Card */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Target className="w-5 h-5 text-purple-500" />
+                        توزیع سوالات
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-green-600">آسان</span>
+                          <span className="font-bold">{selectedByDifficulty.easy} ({Math.round(selectedByDifficulty.easy / selectedQuestions.size * 100)}%)</span>
+                        </div>
+                        <Progress value={selectedByDifficulty.easy / selectedQuestions.size * 100} className="h-2 [&>div]:bg-green-500" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-yellow-600">متوسط</span>
+                          <span className="font-bold">{selectedByDifficulty.medium} ({Math.round(selectedByDifficulty.medium / selectedQuestions.size * 100)}%)</span>
+                        </div>
+                        <Progress value={selectedByDifficulty.medium / selectedQuestions.size * 100} className="h-2 [&>div]:bg-yellow-500" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-red-600">سخت</span>
+                          <span className="font-bold">{selectedByDifficulty.hard} ({Math.round(selectedByDifficulty.hard / selectedQuestions.size * 100)}%)</span>
+                        </div>
+                        <Progress value={selectedByDifficulty.hard / selectedQuestions.size * 100} className="h-2 [&>div]:bg-red-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Config */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="w-5 h-5 text-orange-500" />
+                      تنظیمات امتحان
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Shuffle className="w-4 h-4 text-gray-500" />
+                          <span>ترتیب سوالات تصادفی</span>
+                        </div>
+                        <Switch
+                          checked={config.shuffle_questions}
+                          onCheckedChange={(v) => setConfig({ ...config, shuffle_questions: v })}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Shuffle className="w-4 h-4 text-gray-500" />
+                          <span>ترتیب گزینه‌ها تصادفی</span>
+                        </div>
+                        <Switch
+                          checked={config.shuffle_options}
+                          onCheckedChange={(v) => setConfig({ ...config, shuffle_options: v })}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Award className="w-4 h-4 text-gray-500" />
+                          <span>نمایش نمره فوری</span>
+                        </div>
+                        <Switch
+                          checked={config.show_score_immediately}
+                          onCheckedChange={(v) => setConfig({ ...config, show_score_immediately: v })}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Eye className="w-4 h-4 text-gray-500" />
+                          <span>امکان بازبینی</span>
+                        </div>
+                        <Switch
+                          checked={config.allow_review}
+                          onCheckedChange={(v) => setConfig({ ...config, allow_review: v })}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Calculator className="w-4 h-4 text-gray-500" />
+                          <span>استفاده از ماشین حساب</span>
+                        </div>
+                        <Switch
+                          checked={config.calculator_allowed}
+                          onCheckedChange={(v) => setConfig({ ...config, calculator_allowed: v })}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Minus className="w-4 h-4 text-gray-500" />
+                          <span>نمره منفی</span>
+                        </div>
+                        <Switch
+                          checked={config.negative_marking}
+                          onCheckedChange={(v) => setConfig({ ...config, negative_marking: v })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      <Label>نمره قبولی: {config.passing_score}%</Label>
+                      <Slider
+                        value={[config.passing_score]}
+                        onValueChange={(v) => setConfig({ ...config, passing_score: v[0] })}
+                        min={0}
+                        max={100}
+                        step={5}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Questions Preview */}
-                <div className="space-y-6">
-                  {examData.questions.map((question, index) => (
-                    <div key={question.id} className="bg-white rounded-lg p-4 shadow-sm">
-                      <div className="flex items-start gap-3">
-                        <span className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
-                          {index + 1}
-                        </span>
-                        <div className="flex-1">
-                          {question.type === 'multiple' && (
-                            <>
-                              <p className="font-medium mb-3">{question.text}</p>
-                              <div className="grid grid-cols-2 gap-2">
-                                {question.options.map((opt, i) => (
-                                  <div key={i} className="p-2 bg-gray-50 rounded text-sm">
-                                    {i + 1}) {opt}
-                                  </div>
-                                ))}
-                              </div>
-                            </>
-                          )}
-                          {question.type === 'descriptive' && (
-                            <>
-                              <p className="font-medium mb-3">{question.text}</p>
-                              <div className="h-24 border-2 border-dashed border-gray-200 rounded flex items-center justify-center text-gray-400">
-                                فضای پاسخ تشریحی
-                              </div>
-                            </>
-                          )}
-                          {question.type === 'trueFalse' && (
-                            <>
-                              <p className="font-medium mb-3">{question.text}</p>
-                              <div className="flex gap-4">
-                                <label className="flex items-center gap-2">
-                                  <input type="radio" name={`tf-${question.id}`} disabled />
-                                  صحیح
-                                </label>
-                                <label className="flex items-center gap-2">
-                                  <input type="radio" name={`tf-${question.id}`} disabled />
-                                  غلط
-                                </label>
-                              </div>
-                            </>
-                          )}
-                          {question.type === 'matching' && (
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <p className="font-medium text-sm text-gray-600">ستون الف</p>
-                                {question.columnA.map((item, i) => (
-                                  <div key={i} className="p-2 bg-gray-50 rounded text-sm">
-                                    {i + 1}. {item}
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="space-y-2">
-                                <p className="font-medium text-sm text-gray-600">ستون ب</p>
-                                {question.columnB.map((item, i) => (
-                                  <div key={i} className="p-2 bg-gray-50 rounded text-sm">
-                                    {String.fromCharCode(65 + i)}. {item}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          <div className="mt-2 text-xs text-gray-400">({question.score} نمره)</div>
-                        </div>
-                      </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-green-500" />
+                      پیش‌نمایش سوالات
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                      {Array.from(selectedQuestions).map((id, index) => {
+                        const q = sampleQuestionBank.find(q => q.id === id)
+                        if (!q) return null
+                        return (
+                          <div
+                            key={id}
+                            className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center gap-3"
+                          >
+                            <span className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm">
+                              {index + 1}
+                            </span>
+                            <span className="flex-1 line-clamp-1">{q.question_text}</span>
+                            <Badge className={DIFFICULTY_COLORS[q.difficulty]}>
+                              {DIFFICULTY_LABELS[q.difficulty]}
+                            </Badge>
+                            <Badge variant="outline">{q.points} نمره</Badge>
+                          </div>
+                        )
+                      })}
                     </div>
-                  ))}
-                </div>
+                  </CardContent>
+                </Card>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Navigation & Actions */}
-        <div className="bg-white rounded-xl shadow-lg p-4 flex items-center justify-between">
-          <div className="flex gap-2">
+        {/* Navigation Buttons */}
+        <div className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+            disabled={currentStep === 0}
+            className="gap-2"
+          >
+            <ArrowRight className="w-4 h-4" />
+            قبلی
+          </Button>
+
+          {currentStep < steps.length - 1 ? (
             <Button
-              variant="outline"
-              onClick={goToPrevStep}
-              disabled={currentStep === 'info'}
+              onClick={() => setCurrentStep(currentStep + 1)}
+              disabled={
+                (currentStep === 0 && !canProceedStep1) ||
+                (currentStep === 1 && !canProceedStep2)
+              }
               className="gap-2"
             >
-              <ChevronRight className="w-4 h-4" />
-              مرحله قبل
+              بعدی
+              <ArrowLeft className="w-4 h-4" />
             </Button>
+          ) : (
             <Button
-              onClick={goToNextStep}
-              disabled={currentStep === 'preview'}
-              className="gap-2"
-            >
-              مرحله بعد
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-          </div>
-
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving} className="gap-2">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              ذخیره پیش‌نویس
-            </Button>
-            <Button variant="outline" onClick={handlePrint} className="gap-2">
-              <Printer className="w-4 h-4" />
-              چاپ
-            </Button>
-            <Button variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              دانلود PDF
-            </Button>
-            <Button
-              onClick={handlePublish}
-              disabled={isPublishing}
+              onClick={handleCreate}
+              disabled={isCreating}
               className="gap-2 bg-green-600 hover:bg-green-700"
             >
-              {isPublishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              انتشار آزمون
+              {isCreating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4" />
+              )}
+              ایجاد امتحان
             </Button>
-          </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
-
-
-
-

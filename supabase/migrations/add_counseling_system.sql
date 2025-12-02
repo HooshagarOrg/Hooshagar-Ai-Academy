@@ -345,3 +345,5 @@ CREATE TRIGGER update_counseling_records_updated_at
 -- INSERT INTO counseling_records (student_id, school_id, counselor_id, issue_categories, priority_level, summary, initial_assessment)
 -- VALUES (...);
 
+
+

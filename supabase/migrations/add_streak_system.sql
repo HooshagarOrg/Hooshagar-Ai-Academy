@@ -526,3 +526,5 @@ INSERT INTO streak_milestones (days_required, name, name_en, description, xp_rew
 ON CONFLICT (days_required) DO NOTHING;
 
 
+
+

@@ -363,3 +363,5 @@ CREATE TRIGGER update_stem_assessments_updated_at
   BEFORE UPDATE ON stem_assessments
   FOR EACH ROW EXECUTE FUNCTION update_specialty_updated_at();
 
+
+

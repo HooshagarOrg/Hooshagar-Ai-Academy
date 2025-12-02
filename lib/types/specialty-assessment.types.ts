@@ -550,3 +550,5 @@ export function calculateAverageScore(scores: (number | null | undefined)[]): nu
   return Math.round((validScores.reduce((a, b) => a + b, 0) / validScores.length) * 10) / 10
 }
 
+
+

@@ -386,16 +386,6 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// ============================================
-// Config: Disable body parser for file uploads
-// ============================================
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
-
 
 
 

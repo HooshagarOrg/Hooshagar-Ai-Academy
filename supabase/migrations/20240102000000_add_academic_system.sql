@@ -639,3 +639,7 @@ INSERT INTO academic_years (
 )
 ON CONFLICT (year_name) DO NOTHING;
 
+
+
+
+

@@ -321,3 +321,7 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
   )
 }
 
+
+
+
+

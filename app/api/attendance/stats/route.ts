@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase-server'
+import { createServerClient } from '@/lib/supabase/server'
 
 // GET: دریافت آمار حضور و غیاب
 export async function GET(request: Request) {
@@ -184,6 +184,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+
 
 
 

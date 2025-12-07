@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-// import { createServerClient } from '@/lib/supabase-server'
+// import { createServerClient } from '@/lib/supabase/server'
 import { AVAILABLE_MODELS, DEFAULT_FEATURE_CONFIGS } from '@/lib/ai-model-manager'
 
 /**
@@ -208,6 +208,7 @@ export async function POST(request: Request) {
     )
   }
 }
+
 
 
 

@@ -1,0 +1,13 @@
+.next
+node_modules
+out
+build
+dist
+coverage
+*.log
+.env*
+!.env.example
+public
+.git
+.husky
+

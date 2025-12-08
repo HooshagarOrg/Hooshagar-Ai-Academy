@@ -8,6 +8,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callAI } from '@/lib/ai/universal-provider-v2';
 import { createClient } from '@/lib/supabase/server';
+import { checkUserRateLimit, RATE_LIMITS } from '@/lib/rate-limit-user';
+import { log } from '@/lib/logger';
+import * as Sentry from '@sentry/nextjs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,6 +41,38 @@ export async function POST(request: NextRequest) {
         { error: 'پارامتر feature الزامی است' },
         { status: 400 }
       );
+    }
+    
+    // ✅ چک Rate Limit per User
+    const rateLimitConfig = RATE_LIMITS[feature as keyof typeof RATE_LIMITS] || RATE_LIMITS.ai_universal;
+    const rateLimit = await checkUserRateLimit({
+      userId: user.id,
+      feature,
+      maxRequests: rateLimitConfig.maxRequests,
+      windowMs: rateLimitConfig.windowMs
+    });
+    
+    if (!rateLimit.allowed) {
+      log.warn('User rate limit exceeded', {
+        userId: user.id,
+        feature,
+        current: rateLimit.current,
+        max: rateLimitConfig.maxRequests
+      });
+      
+      return NextResponse.json({
+        error: 'محدودیت استفاده رسیده است. لطفاً بعداً تلاش کنید.',
+        remaining: rateLimit.remaining,
+        resetAt: rateLimit.resetAt,
+        limit: rateLimitConfig.maxRequests
+      }, { 
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+          'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+          'X-RateLimit-Reset': rateLimit.resetAt.getTime().toString()
+        }
+      });
     }
     
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -77,7 +112,18 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error: any) {
-    console.error('AI API error:', error);
+    log.error('AI API error', error, {
+      endpoint: '/api/ai/universal',
+      feature: body?.feature
+    });
+    
+    // ✅ گزارش به Sentry
+    Sentry.captureException(error, {
+      tags: {
+        endpoint: '/api/ai/universal',
+        feature: body?.feature || 'unknown'
+      }
+    });
     
     // خطاهای مشخص
     if (error.message?.includes('همه Tier ها ناموفق')) {
@@ -144,7 +190,7 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error: any) {
-    console.error('AI features list error:', error);
+    log.error('AI features list error', error);
     
     return NextResponse.json(
       { 

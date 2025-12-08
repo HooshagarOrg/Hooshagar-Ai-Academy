@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { verifyRecaptcha } from '@/lib/recaptcha'
 import rateLimit from '@/lib/rate-limit'
+import { log } from '@/lib/logger'
 
 // Rate limiter: 5 تلاش در دقیقه
 const limiter = rateLimit({
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
     try {
       await limiter.check(5, userIP)
     } catch {
-      console.warn('⚠️ Rate limit exceeded for IP:', userIP)
+      log.warn('Rate limit exceeded', { userIP })
       return NextResponse.json(
         { 
           success: false, 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     // 3. reCAPTCHA Verification
     // ==========================================
     if (!recaptcha_token) {
-      console.warn('⚠️ No reCAPTCHA token provided')
+      log.warn('No reCAPTCHA token provided', { email })
       return NextResponse.json(
         { 
           success: false, 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     const recaptchaResult = await verifyRecaptcha(recaptcha_token, 0.5)
     
     if (!recaptchaResult.success) {
-      console.warn('❌ reCAPTCHA verification failed:', recaptchaResult.error)
+      log.warn('reCAPTCHA verification failed', { error: recaptchaResult.error, email })
       return NextResponse.json(
         { 
           success: false, 
@@ -72,8 +73,7 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    console.log('✅ reCAPTCHA verified with score:', recaptchaResult.score)
-    console.log('📧 Login attempt:', email)
+    log.info('reCAPTCHA verified', { score: recaptchaResult.score, email })
     
     const cookieStore = cookies()
     
@@ -109,14 +109,14 @@ export async function POST(request: NextRequest) {
     })
     
     if (error) {
-      console.error('❌ Login error:', error.message)
+      log.error('Login failed', error, { email })
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 400 }
       )
     }
     
-    console.log('✅ Login successful!')
+    log.info('Login successful', { userId: data.user.id, email })
     
     return NextResponse.json({ 
       success: true,
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (err: any) {
-    console.error('💥 API error:', err)
+    log.error('API error in login', err)
     return NextResponse.json(
       { success: false, error: err.message || 'خطای سرور' },
       { status: 500 }

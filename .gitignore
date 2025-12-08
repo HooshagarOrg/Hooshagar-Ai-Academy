@@ -65,3 +65,18 @@ temp/
 # AI cost tracking (sensitive data)
 cost-tracking.json
 
+# API Keys & Secrets (backup/additional protection)
+*.key
+*.secret
+secrets/
+private/
+
+# Logs (extended)
+pnpm-debug.log*
+lerna-debug.log*
+
+# Database backups
+*.sql.gz
+*.dump
+backups/
+

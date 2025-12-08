@@ -7,7 +7,5 @@ coverage
 *.log
 .env*
 !.env.example
+.github
 public
-.git
-.husky
-

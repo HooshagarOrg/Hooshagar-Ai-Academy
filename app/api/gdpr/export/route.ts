@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import logger from '@/lib/logger';
-import * as Sentry from '@sentry/nextjs';
-
-export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,10 +11,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    logger.info({ userId: user.id }, 'GDPR export request initiated');
-    
     // ثبت درخواست
-    const { data: gdprRequest, error: requestError } = await supabase
+    const { data: gdprRequest } = await supabase
       .from('gdpr_requests')
       .insert({
         user_id: user.id,
@@ -26,8 +21,6 @@ export async function POST(request: NextRequest) {
       })
       .select()
       .single();
-    
-    if (requestError) throw requestError;
     
     // Export داده‌ها
     const { data, error } = await supabase
@@ -43,30 +36,21 @@ export async function POST(request: NextRequest) {
         response_data: data,
         processed_at: new Date().toISOString()
       })
-      .eq('id', gdprRequest.id);
+      .eq('id', gdprRequest?.id);
     
-    logger.info({ userId: user.id, requestId: gdprRequest.id }, 'GDPR data export completed');
+    logger.info({ userId: user.id }, 'GDPR data export completed');
     
     return NextResponse.json({
       success: true,
       data: data,
-      requestId: gdprRequest.id,
-      message: 'داده‌های شما با موفقیت استخراج شد'
+      requestId: gdprRequest?.id
     });
     
   } catch (error: any) {
-    logger.error({ error: error.message, stack: error.stack }, 'GDPR export failed');
-    Sentry.captureException(error, {
-      tags: { endpoint: '/api/gdpr/export' }
-    });
-    
+    logger.error({ error: error.message }, 'GDPR export failed');
     return NextResponse.json(
-      { 
-        error: 'خطا در استخراج داده‌ها',
-        details: error.message 
-      },
+      { error: error.message },
       { status: 500 }
     );
   }
 }
-

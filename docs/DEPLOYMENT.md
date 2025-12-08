@@ -1,149 +1,57 @@
-# Deployment Guide - Hooshagar Platform
-
-**Version:** 1.0.0  
-**Target Platform:** Vercel + Supabase  
-**Last Updated:** December 2024
-
----
+# Deployment Guide
 
 ## Prerequisites
 
 ### Required Services
-- ✅ Vercel Account ([vercel.com](https://vercel.com))
-- ✅ Supabase Project ([supabase.com](https://supabase.com))
+- ✅ Vercel Account
+- ✅ Supabase Project
 - ✅ GitHub Repository
-- ✅ Sentry Account ([sentry.io](https://sentry.io)) - for error tracking
-- ✅ Domain (optional, Vercel provides free subdomain)
+- ✅ Domain (optional)
 
 ### Required API Keys
-See `.env.example` for complete list of environment variables.
-
----
-
-## Pre-Deployment Checklist
-
-- [ ] All tests passing (`npm run test`)
-- [ ] Build successful (`npm run build`)
-- [ ] No TypeScript errors (`npm run type-check`)
-- [ ] No ESLint errors (`npm run lint`)
-- [ ] All migrations applied to Supabase
-- [ ] RLS policies tested
-- [ ] Environment variables documented
-- [ ] Security headers configured
-- [ ] Rate limiting tested
-- [ ] Error tracking configured (Sentry)
+See `.env.example` for complete list
 
 ---
 
 ## Deployment Steps
 
 ### 1. Prepare Repository
-
 ```bash
 # Ensure all changes are committed
 git status
 
-# Run final checks
-npm run type-check
-npm run lint
-npm run test
-npm run build
-
 # Push to GitHub
-git push origin main
+git push origin master
 ```
 
-### 2. Setup Supabase
+### 2. Connect Vercel
 
-#### A. Create Project
-1. Go to [supabase.com](https://supabase.com)
-2. Click "New Project"
-3. Fill in:
-   - Name: `hooshagar`
-   - Database Password: (generate strong password)
-   - Region: `Southeast Asia (Singapore)` or closest to your users
-
-#### B. Apply Migrations
-```bash
-# Link to Supabase project
-npx supabase link --project-ref your-project-ref
-
-# Push migrations
-npx supabase db push
-```
-
-#### C. Enable Point-in-Time Recovery (PITR)
-1. Dashboard → Settings → Database
-2. Enable "Point in Time Recovery"
-3. Configure retention period (7 days recommended)
-
-#### D. Configure Cron Jobs
-1. Dashboard → Database → Cron Jobs
-2. Add daily backup job:
-```sql
-SELECT cron.schedule(
-  'daily-backup',
-  '0 2 * * *',  -- 2 AM daily
-  $$
-  SELECT start_backup_log('daily');
-  $$
-);
-```
-
-### 3. Setup Sentry
-
-1. Go to [sentry.io](https://sentry.io)
-2. Create Organization: `hooshagar`
-3. Create Project: `hooshagar-platform`
-4. Select Platform: `Next.js`
-5. Copy DSN: `https://...@sentry.io/...`
-6. Save DSN for Vercel environment variables
-
-### 4. Deploy to Vercel
-
-#### A. Connect Repository
 1. Go to [vercel.com](https://vercel.com)
 2. Click "New Project"
 3. Import Git Repository
 4. Select `hooshagar` repository
-5. Configure:
-   - Framework Preset: `Next.js`
-   - Root Directory: `./`
-   - Build Command: `npm run build`
-   - Output Directory: `.next`
 
-#### B. Configure Environment Variables
+### 3. Configure Environment Variables
 
 In Vercel Dashboard → Settings → Environment Variables:
 
-**Required Variables:**
+**Required:**
 ```env
-# Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-
-# OpenRouter AI
 OPENROUTER_API_KEY=sk-or-v1-...
-
-# Kavenegar SMS
 KAVENEGAR_API_KEY=...
 KAVENEGAR_SENDER=...
-
-# Arvan Cloud Storage
 ARVAN_ACCESS_KEY=...
 ARVAN_SECRET_KEY=...
 ARVAN_ENDPOINT=https://s3.ir-thr-at1.arvanstorage.ir
 ARVAN_BUCKET_NAME=hooshagar
-
-# Sentry
-NEXT_PUBLIC_SENTRY_DSN=https://...@sentry.io/...
-
-# reCAPTCHA
+NEXT_PUBLIC_SENTRY_DSN=https://...
 RECAPTCHA_SECRET_KEY=...
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=...
 ```
 
-**Optional Variables (Gemini Multi-Key):**
+**Optional:**
 ```env
 GEMINI_PROXY_URL=https://...workers.dev
 GEMINI_API_KEY_1=AIzaSy...
@@ -152,64 +60,47 @@ GEMINI_API_KEY_2=AIzaSy...
 GEMINI_API_KEY_10=AIzaSy...
 ```
 
-**Environment Scope:**
-- Production: ✅
-- Preview: ✅ (use test keys)
-- Development: ⬜ (use `.env.local`)
+### 4. Deploy
 
-#### C. Deploy
-1. Click "Deploy" button
-2. Wait for build to complete (~5 minutes)
-3. Vercel will automatically:
-   - Install dependencies
-   - Run build
-   - Deploy to edge network
-   - Generate SSL certificate
+Click "Deploy" button
+
+Vercel will:
+1. Install dependencies
+2. Run build
+3. Deploy to production
 
 ### 5. Post-Deployment
 
-#### A. Verify Deployment
-```bash
-# Check health endpoint
-curl https://hooshagar.vercel.app/api/health
+#### A. Supabase Configuration
 
-# Expected response:
-# {"status":"healthy","services":{"database":"up","api":"up"}}
+1. **Enable Point-in-Time Recovery:**
+   - Dashboard → Settings → Database
+   - Enable PITR
+
+2. **Setup Cron Jobs:**
+   - Dashboard → Database → Cron Jobs
+   - Add daily backup job
+
+3. **Apply Migrations:**
+```bash
+npx supabase db push
 ```
 
-#### B. Test Critical Features
-- [ ] User login/registration
-- [ ] Student CRUD operations
-- [ ] AI features (OCR, Analyzer, etc.)
-- [ ] File uploads (Arvan Storage)
-- [ ] SMS sending (Kavenegar)
-- [ ] Error tracking (Sentry)
+#### B. Sentry Configuration
 
-#### C. Configure Custom Domain (Optional)
-1. Vercel Dashboard → Settings → Domains
-2. Add custom domain: `hooshagar.com`
-3. Add DNS records (Vercel provides instructions):
-   ```
-   A     @     76.76.21.21
-   CNAME www   cname.vercel-dns.com
-   ```
-4. Wait for DNS propagation (5-60 minutes)
-5. SSL certificate auto-generated by Vercel
+1. Go to [sentry.io](https://sentry.io)
+2. Create project: `hooshagar-platform`
+3. Copy DSN to `NEXT_PUBLIC_SENTRY_DSN`
 
-#### D. Setup Monitoring
+#### C. Domain Setup (Optional)
 
-**Sentry Dashboard:**
-- Monitor errors: https://sentry.io/organizations/hooshagar
-- Configure alerts:
-  - Email on critical errors
-  - Slack integration (optional)
+1. Vercel Dashboard → Domains
+2. Add custom domain
+3. Configure DNS records
 
-**Vercel Analytics:**
-- View metrics: https://vercel.com/dashboard/analytics
-- Monitor:
-  - Response times
-  - Error rates
-  - Deployment frequency
+#### D. SSL Certificate
+
+Automatic via Vercel (Let's Encrypt)
 
 ---
 
@@ -224,67 +115,45 @@ Expected response:
 ```json
 {
   "status": "healthy",
-  "timestamp": "2025-01-15T10:00:00Z",
   "services": {
     "database": "up",
     "api": "up"
-  },
-  "responseTime": "45ms",
-  "version": "1.0.0"
+  }
 }
 ```
 
-### Uptime Monitoring
-Setup external monitoring:
-- [UptimeRobot](https://uptimerobot.com) (free)
-- [Pingdom](https://www.pingdom.com)
-- [StatusCake](https://www.statuscake.com)
+### Sentry Dashboard
 
-Monitor endpoints:
-- `https://hooshagar.com/api/health` (every 5 minutes)
+Monitor errors at: https://sentry.io/organizations/hooshagar
 
----
+### Vercel Analytics
 
-## Backup & Recovery
-
-### Automated Backups
-Supabase PITR creates continuous backups automatically.
-
-### Manual Backup
-```bash
-# Export full database
-npx supabase db dump -f backup-$(date +%Y%m%d).sql
-
-# Upload to secure storage
-# (Arvan, AWS S3, etc.)
-```
-
-### Restore from Backup
-```bash
-# From PITR (last 7 days)
-# Supabase Dashboard → Database → Point in Time Recovery
-
-# From manual backup
-psql -h db.xxx.supabase.co -U postgres -f backup-20241208.sql
-```
+View at: https://vercel.com/dashboard/analytics
 
 ---
 
 ## Rollback
 
-If deployment fails or has critical bugs:
+If deployment fails:
 
-### Immediate Rollback
 1. Vercel Dashboard → Deployments
 2. Find previous working deployment
-3. Click ⋯ → "Promote to Production"
-4. Deployment switches instantly (< 1 minute)
+3. Click "Promote to Production"
 
-### Database Rollback
+---
+
+## Backup & Recovery
+
+### Manual Backup
 ```bash
-# Restore to specific timestamp
-# Supabase Dashboard → Database → PITR
-# Select date/time → Restore
+# Export from Supabase
+npx supabase db dump -f backup.sql
+```
+
+### Restore
+```bash
+# Import to Supabase
+psql -h db.xxx.supabase.co -U postgres -f backup.sql
 ```
 
 ---
@@ -292,144 +161,32 @@ If deployment fails or has critical bugs:
 ## Troubleshooting
 
 ### Build Fails
-
-**Error:** Module not found
 ```bash
-# Check tsconfig.json paths
-# Verify all imports use @/ alias
-# Run locally: npm run build
-```
-
-**Error:** Environment variable missing
-```bash
-# Verify all required vars in Vercel dashboard
-# Check .env.example for complete list
+# Check logs in Vercel
+# Common issues:
+# 1. Missing environment variables
+# 2. TypeScript errors
+# 3. ESLint errors
 ```
 
 ### Database Connection Issues
-
-**Error:** Connection refused
 ```bash
 # Verify Supabase URL and Keys
-# Check RLS policies (might be blocking)
-# Test with Supabase Dashboard SQL Editor
+# Check RLS policies
+# Verify migrations applied
 ```
 
-### API Errors (500)
-
-**Check Sentry:**
-1. Go to https://sentry.io
-2. View recent errors
-3. Check stack trace
-4. Verify API keys
-
-**Check Vercel Logs:**
-1. Vercel Dashboard → Deployments → Latest
-2. Click "View Function Logs"
-3. Search for errors
-
-### Slow Response Times
-
-**Check:**
-- Database query performance (Supabase Dashboard → Logs)
-- AI API response times (Sentry Performance)
-- Rate limiting hitting limits
-- Edge function cold starts
-
-**Solutions:**
-- Add database indexes
-- Implement caching (Redis/Upstash)
-- Optimize AI prompts
-- Use Vercel Edge Functions for static content
-
----
-
-## Performance Optimization
-
-### Database
-- Add indexes to frequently queried columns
-- Use `select()` with specific columns (not `*`)
-- Enable connection pooling (Supabase default)
-
-### API
-- Implement response caching
-- Use Edge Functions for static responses
-- Compress responses (gzip)
-
-### AI
-- Cache AI responses (24 hours)
-- Use Tier A/B (free) for 90% of requests
-- Monitor budget daily
-
-### Frontend
-- Use Next.js Image optimization
-- Implement code splitting
-- Enable Vercel Analytics
-
----
-
-## Security Checklist
-
-- [x] Security headers configured (CSP, HSTS, etc.)
-- [x] RLS policies on all tables
-- [x] Rate limiting enabled
-- [x] API keys in environment variables (not code)
-- [x] Sensitive data redacted in logs
-- [x] Error tracking without PII
-- [x] GDPR compliance endpoints
-- [x] Audit logging enabled
-- [ ] Regular security audits
-- [ ] Dependency updates (monthly)
-
----
-
-## Maintenance Schedule
-
-### Daily
-- Monitor error rates (Sentry)
-- Check health endpoint
-- Review AI budget usage
-
-### Weekly
-- Review audit logs
-- Check rate limit hits
-- Update dependencies (`npm audit`)
-
-### Monthly
-- Database backup verification
-- Performance review
-- Security audit (`npm audit fix`)
-- Update documentation
+### API Errors
+```bash
+# Check Sentry for detailed errors
+# Verify API keys
+# Check rate limits
+```
 
 ---
 
 ## Support
 
-- **Documentation:** https://docs.hooshagar.com
-- **GitHub Issues:** https://github.com/hooshagar/platform/issues
-- **Email:** support@hooshagar.com
-- **Telegram:** @hooshagar_support
-- **Emergency:** emergency@hooshagar.com
-
----
-
-## Emergency Contacts
-
-- **Technical Lead:** [Name] - [Phone]
-- **DevOps:** [Name] - [Phone]
-- **Database Admin:** [Name] - [Phone]
-- **Vercel Support:** https://vercel.com/support
-- **Supabase Support:** https://supabase.com/support
-
----
-
-## Changelog
-
-### Version 1.0.0 (December 2024)
-- Initial deployment guide
-- Vercel + Supabase setup
-- Security configuration
-- Monitoring setup
-- Backup strategy
-- Troubleshooting guide
-
+- GitHub Issues: https://github.com/pedpeddy60/HooshaGar-Academy-Curser-Test/issues
+- Sentry: https://sentry.io
+- Vercel Support: https://vercel.com/support

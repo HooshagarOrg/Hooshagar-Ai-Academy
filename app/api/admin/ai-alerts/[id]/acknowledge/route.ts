@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
 /**
- * GET /api/admin/ai-models
- * دریافت لیست مدل‌ها و آمار آنها
+ * POST /api/admin/ai-alerts/[id]/acknowledge
+ * تأیید یک هشدار
  */
-export async function GET(request: NextRequest) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const supabase = await createClient();
     
@@ -25,23 +28,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
-    // دریافت مدل‌ها
-    const { data: models, error } = await supabase
-      .from('ai_model_settings')
-      .select('*')
-      .order('feature_name');
+    // تأیید هشدار
+    const { data, error } = await supabase
+      .from('ai_alerts')
+      .update({
+        acknowledged: true,
+        acknowledged_by: user.id,
+        acknowledged_at: new Date().toISOString()
+      })
+      .eq('id', params.id)
+      .select()
+      .single();
     
     if (error) {
       throw error;
     }
     
-    return NextResponse.json({ success: true, models });
+    return NextResponse.json({ success: true, alert: data });
     
   } catch (error: any) {
-    console.error('Error fetching AI models:', error);
+    console.error('Error acknowledging alert:', error);
     return NextResponse.json(
       { error: error.message },
       { status: 500 }
     );
   }
 }
+

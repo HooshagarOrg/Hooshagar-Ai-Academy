@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
 /**
- * GET /api/admin/ai-models
- * دریافت لیست مدل‌ها و آمار آنها
+ * GET /api/admin/ai-alerts
+ * دریافت لیست هشدارهای AI
  */
 export async function GET(request: NextRequest) {
   try {
@@ -25,23 +25,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
-    // دریافت مدل‌ها
-    const { data: models, error } = await supabase
-      .from('ai_model_settings')
+    // دریافت هشدارها (فقط 50 تای اخیر)
+    const { data: alerts, error } = await supabase
+      .from('ai_alerts')
       .select('*')
-      .order('feature_name');
+      .order('created_at', { ascending: false })
+      .limit(50);
     
     if (error) {
       throw error;
     }
     
-    return NextResponse.json({ success: true, models });
+    return NextResponse.json({ success: true, alerts });
     
   } catch (error: any) {
-    console.error('Error fetching AI models:', error);
+    console.error('Error fetching AI alerts:', error);
     return NextResponse.json(
       { error: error.message },
       { status: 500 }
     );
   }
 }
+

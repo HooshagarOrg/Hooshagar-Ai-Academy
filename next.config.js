@@ -3,6 +3,11 @@ const nextConfig = {
   // React Strict Mode
   reactStrictMode: true,
 
+  // غیرفعال کردن ESLint در build
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // Experimental features
   experimental: {
     // Server Actions

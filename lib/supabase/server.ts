@@ -1,53 +1,28 @@
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { createServerClient as createSupabaseServerClient, type CookieOptions } from '@supabase/ssr'
 import type { Database } from '@/types/database.types'
 
-/**
- * Supabase Server Client برای استفاده در Server Components و API Routes
- * این کلاینت از cookies استفاده می‌کند و برای سمت سرور مناسب است
- */
-export async function createServerClient() {
+export async function createClient() {
   const cookieStore = await cookies()
 
-  return createSupabaseServerClient<Database>(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+        getAll() {
+          return cookieStore.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
+        setAll(cookiesToSet) {
           try {
-            cookieStore.set({ name, value, ...options })
-          } catch (error) {
-            // خطا در Server Components نادیده گرفته می‌شود
-            // فقط در Middleware مهم است
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch (error) {
-            // خطا در Server Components نادیده گرفته می‌شود
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Server Component می‌تونه ignore کنه
           }
         },
       },
     }
   )
 }
-
-/**
- * Supabase Admin Client با Service Role Key
- * فقط در API Routes استفاده شود - دسترسی کامل به دیتابیس
- */
-export function createAdminClient() {
-  return createSupabaseServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {},
-    }
-  )
-}
-

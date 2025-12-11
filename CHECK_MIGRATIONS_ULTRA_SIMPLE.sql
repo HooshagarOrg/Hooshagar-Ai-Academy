@@ -34,3 +34,4 @@ SELECT
     ELSE '❌ اجرا نشده'
   END as status;
 
+

@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import { Toaster } from 'sonner'
-import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3'
+// TEMPORARY: Disabled reCAPTCHA due to React 18 compatibility issue
+// import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3'
 
 // فونت فارسی Vazirmatn
 const vazirmatn = localFont({
@@ -32,18 +33,9 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <GoogleReCaptchaProvider
-          reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
-          language="fa"
-          scriptProps={{
-            async: true,
-            defer: true,
-            appendTo: 'head',
-          }}
-        >
-          {children}
-          <Toaster position="top-center" richColors />
-        </GoogleReCaptchaProvider>
+        {/* TEMPORARY: Removed GoogleReCaptchaProvider wrapper */}
+        {children}
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   )

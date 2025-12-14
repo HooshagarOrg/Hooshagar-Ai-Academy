@@ -79,24 +79,10 @@ export default function RegisterPage() {
         throw authError
       }
 
-      // 2. ایجاد رکورد در جدول profiles (اگر trigger نباشد)
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email: data.email,
-            full_name: data.full_name,
-            role: data.role,
-          })
+      // ✅ Profile خودکار توسط trigger database ساخته می‌شود (migration 049)
+      // نیازی به insert دستی نیست
 
-        if (profileError) {
-          console.warn('خطا در ایجاد پروفایل:', profileError)
-          // ممکن است trigger از قبل این کار را انجام داده باشد
-        }
-      }
-
-      // 3. نمایش پیغام موفقیت
+      // نمایش پیغام موفقیت
       setSuccess('ثبت‌نام موفق! لطفاً ایمیل خود را چک کنید و لینک تأیید را کلیک کنید.')
     } catch (err: any) {
       console.error('خطای ثبت‌نام:', err)

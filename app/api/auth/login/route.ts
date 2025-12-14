@@ -47,33 +47,33 @@ export async function POST(request: NextRequest) {
     }
     
     // ==========================================
-    // 3. reCAPTCHA Verification
+    // 3. reCAPTCHA Verification (Temporarily Disabled)
     // ==========================================
-    if (!recaptcha_token) {
-      log.warn('No reCAPTCHA token provided', { email })
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'خطا در تأیید reCAPTCHA. لطفاً صفحه را رفرش کنید.' 
-        },
-        { status: 400 }
-      )
-    }
+    // if (!recaptcha_token) {
+    //   log.warn('No reCAPTCHA token provided', { email })
+    //   return NextResponse.json(
+    //     { 
+    //       success: false, 
+    //       error: 'خطا در تأیید reCAPTCHA. لطفاً صفحه را رفرش کنید.' 
+    //     },
+    //     { status: 400 }
+    //   )
+    // }
     
-    const recaptchaResult = await verifyRecaptcha(recaptcha_token, 0.5)
+    // const recaptchaResult = await verifyRecaptcha(recaptcha_token, 0.5)
     
-    if (!recaptchaResult.success) {
-      log.warn('reCAPTCHA verification failed', { error: recaptchaResult.error, email })
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'خطا در تأیید reCAPTCHA. لطفاً دوباره تلاش کنید.' 
-        },
-        { status: 400 }
-      )
-    }
+    // if (!recaptchaResult.success) {
+    //   log.warn('reCAPTCHA verification failed', { error: recaptchaResult.error, email })
+    //   return NextResponse.json(
+    //     { 
+    //       success: false, 
+    //       error: 'خطا در تأیید reCAPTCHA. لطفاً دوباره تلاش کنید.' 
+    //     },
+    //     { status: 400 }
+    //   )
+    // }
     
-    log.info('reCAPTCHA verified', { score: recaptchaResult.score, email })
+    // log.info('reCAPTCHA verified', { score: recaptchaResult.score, email })
     
     const cookieStore = cookies()
     

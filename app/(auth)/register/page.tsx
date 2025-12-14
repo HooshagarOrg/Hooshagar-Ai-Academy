@@ -79,10 +79,10 @@ export default function RegisterPage() {
         throw authError
       }
 
-      // 2. ایجاد رکورد در جدول users (اگر trigger نباشد)
+      // 2. ایجاد رکورد در جدول profiles (اگر trigger نباشد)
       if (authData.user) {
         const { error: profileError } = await supabase
-          .from('users')
+          .from('profiles')
           .insert({
             id: authData.user.id,
             email: data.email,

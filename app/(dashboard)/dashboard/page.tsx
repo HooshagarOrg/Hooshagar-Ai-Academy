@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase'
 import {
   Users,
   BookOpen,
@@ -11,11 +12,9 @@ import {
   Calendar,
   FileText,
   Settings,
-  School,
   BarChart3,
   Heart,
   Shield,
-  GraduationCap,
   DollarSign,
   Star,
   Palette,
@@ -33,16 +32,11 @@ import {
   UserCheck,
   Building2,
   Activity,
-  Clipboard,
   PenTool,
   ChevronLeft,
+  Loader2,
+  LogOut,
 } from 'lucide-react'
-
-// ============================================
-// نقش کاربر را اینجا تغییر بده برای تست
-// ============================================
-const userRole = 'teacher' as UserRole
-const userName = 'معلم تست'
 
 // Types
 type UserRole =
@@ -412,14 +406,72 @@ const getRoleDisplayName = (role: UserRole): string => {
 }
 
 export default function DashboardPage() {
-  const config = roleConfigs[userRole]
+  const [userRole, setUserRole] = useState<UserRole | null>(null)
+  const [userName, setUserName] = useState<string>('کاربر')
+  const [isLoading, setIsLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
 
+  // Fetch user profile
+  useEffect(() => {
+    async function fetchUserProfile() {
+      try {
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session) {
+          window.location.href = '/login'
+          return
+        }
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role, full_name')
+          .eq('id', session.user.id)
+          .single()
+
+        if (error || !profile) {
+          console.error('خطا در دریافت پروفایل:', error)
+          window.location.href = '/login?error=profile_not_found'
+          return
+        }
+
+        setUserRole(profile.role as UserRole)
+        setUserName(profile.full_name || 'کاربر')
+      } catch (err) {
+        console.error('خطا:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchUserProfile()
+  }, [])
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error('خطا در خروج:', error)
+        alert('خطا در خروج از حساب کاربری')
+        return
+      }
+      
+      // استفاده از window.location.href به جای router.push
+      window.location.href = '/login'
+    } catch (error) {
+      console.error('خطا در خروج:', error)
+      alert('خطا در خروج از حساب کاربری')
+    }
+  }
+
   // Update time every minute
-  useState(() => {
+  useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000)
     return () => clearInterval(timer)
-  })
+  }, [])
 
   // Format date in Persian
   const formatPersianDate = () => {
@@ -430,6 +482,20 @@ export default function DashboardPage() {
       day: 'numeric',
     }).format(currentTime)
   }
+
+  // Loading state
+  if (isLoading || !userRole) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 flex items-center justify-center" dir="rtl">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg">در حال بارگذاری...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const config = roleConfigs[userRole]
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${config.gradient} p-4 md:p-6 lg:p-8`} dir="rtl">
@@ -461,6 +527,13 @@ export default function DashboardPage() {
               >
                 <Settings className="w-5 h-5 text-white" />
               </Link>
+              <button
+                onClick={handleLogout}
+                className="p-3 bg-red-500/20 rounded-xl hover:bg-red-500/30 transition-all group"
+                title="خروج"
+              >
+                <LogOut className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+              </button>
             </div>
           </div>
         </header>

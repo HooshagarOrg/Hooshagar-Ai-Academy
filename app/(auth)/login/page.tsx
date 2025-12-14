@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
+// import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { toast } from 'sonner'
-import { Shield } from 'lucide-react'
+// import { Shield } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,15 +22,15 @@ import {
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { executeRecaptcha } = useGoogleReCaptcha()
+  // const { executeRecaptcha } = useGoogleReCaptcha()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
-    if (!executeRecaptcha) {
-      toast.error('reCAPTCHA هنوز بارگذاری نشده است. لطفاً کمی صبر کنید.')
-      return
-    }
+    // if (!executeRecaptcha) {
+    //   toast.error('reCAPTCHA هنوز بارگذاری نشده است. لطفاً کمی صبر کنید.')
+    //   return
+    // }
     
     setIsLoading(true)
 
@@ -40,7 +40,7 @@ export default function LoginPage() {
     
     try {
       // دریافت token از reCAPTCHA
-      const recaptchaToken = await executeRecaptcha('login')
+      // const recaptchaToken = await executeRecaptcha('login')
       
       // ارسال به API
       const response = await fetch('/api/auth/login', {
@@ -49,7 +49,7 @@ export default function LoginPage() {
         body: JSON.stringify({
           email,
           password,
-          recaptcha_token: recaptchaToken,
+          // recaptcha_token: recaptchaToken,
         }),
       })
       
@@ -118,10 +118,10 @@ export default function LoginPage() {
           </Button>
 
           {/* reCAPTCHA Notice */}
-          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          {/* <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Shield className="w-3 h-3" />
             <span>این سایت توسط Google reCAPTCHA محافظت می‌شود</span>
-          </div>
+          </div> */}
 
           <p className="text-sm text-muted-foreground text-center">
             حساب کاربری ندارید؟{' '}

@@ -19,8 +19,13 @@ BEGIN
 
   -- اگر نبود، بسازیم
   IF v_school_id IS NULL THEN
-    INSERT INTO schools (name, type, city, province, metadata)
-    VALUES ('مدرسه تستی هوشاگر', 'primary', 'تهران', 'تهران', '{"test": true}')
+    INSERT INTO schools (name, address, subscription_status, metadata)
+    VALUES (
+      'مدرسه تستی هوشاگر', 
+      'تهران، میدان ونک', 
+      'active',
+      '{"test": true, "type": "primary", "city": "تهران", "province": "تهران"}'::jsonb
+    )
     RETURNING id INTO v_school_id;
     RAISE NOTICE 'مدرسه تستی ساخته شد: %', v_school_id;
   ELSE

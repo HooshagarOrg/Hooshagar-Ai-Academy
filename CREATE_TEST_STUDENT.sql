@@ -134,20 +134,6 @@ SET
   level = EXCLUDED.level,
   garden_state = EXCLUDED.garden_state;
 
--- مرحله 4: ساخت XP history
--- ──────────────────────────────────────────────────────────────────
-
-INSERT INTO xp_history (student_id, action_type, xp_amount, description, metadata)
-SELECT 
-  s.id,
-  'test_data',
-  500,
-  'امتیاز اولیه تستی',
-  '{"auto_generated": true}'::jsonb
-FROM students s
-WHERE s.is_active = true
-ON CONFLICT DO NOTHING;
-
 -- ✅ نتیجه
 -- ──────────────────────────────────────────────────────────────────
 
@@ -164,12 +150,6 @@ SELECT
   COUNT(*) AS count
 FROM talent_garden
 
-UNION ALL
-
-SELECT 
-  'تعداد xp_history ساخته شده:' AS status,
-  COUNT(*) AS count
-FROM xp_history;
 
 -- نمایش Top 5 Leaderboard
 SELECT 

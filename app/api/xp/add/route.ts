@@ -1,281 +1,93 @@
-import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { z } from 'zod'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-// Rate limiting
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
-const RATE_LIMIT = 10
-const RATE_LIMIT_WINDOW = 60 * 1000
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const record = rateLimitMap.get(ip)
-  
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW })
-    return true
-  }
-  
-  if (record.count >= RATE_LIMIT) {
-    return false
-  }
-  
-  record.count++
-  return true
-}
-
-// XP amounts for different actions
-const XP_AMOUNTS: Record<string, number> = {
-  'ocr': 10,
-  'study_buddy': 15,
-  'story': 20,
-  'daily_login': 5,
-  'analysis': 25,
-  'quiz_complete': 30,
-  'homework_submit': 20,
-}
+/**
+ * POST /api/xp/add
+ * افزودن XP به دانش‌آموز
+ */
 
 const addXpSchema = z.object({
-  studentId: z.string().uuid('شناسه دانش‌آموز نامعتبر است'),
-  actionType: z.enum(['ocr', 'study_buddy', 'story', 'daily_login', 'analysis', 'quiz_complete', 'homework_submit'], {
-    errorMap: () => ({ message: 'نوع فعالیت نامعتبر است' })
-  }),
-  xpAmount: z.number().int().min(1).max(100).optional(),
-  metadata: z.record(z.any()).optional().default({}),
+  student_id: z.string().uuid(),
+  action_type: z.string().min(1),
+  xp_amount: z.number().int().min(1).max(1000),
+  metadata: z.record(z.any()).optional(),
 })
 
-// Calculate level from XP
-function calculateLevel(xp: number): number {
-  if (xp < 100) return 1
-  if (xp < 300) return 2
-  if (xp < 600) return 3
-  if (xp < 1000) return 4
-  return 5 + Math.floor((xp - 1000) / 500)
-}
-
-// Calculate XP needed for next level
-function xpForNextLevel(currentXp: number): number {
-  const level = calculateLevel(currentXp)
-  if (level === 1) return 100 - currentXp
-  if (level === 2) return 300 - currentXp
-  if (level === 3) return 600 - currentXp
-  if (level === 4) return 1000 - currentXp
-  const nextLevelXp = 1000 + (level - 4) * 500
-  return nextLevelXp - currentXp
-}
-
-// Get Persian message for action
-function getActionMessage(actionType: string, xp: number): string {
-  const messages: Record<string, string> = {
-    'ocr': `🎯 حل مسئله: +${xp} امتیاز`,
-    'study_buddy': `📚 پرسش از دستیار: +${xp} امتیاز`,
-    'story': `✨ ساخت داستان: +${xp} امتیاز`,
-    'daily_login': `🌟 ورود روزانه: +${xp} امتیاز`,
-    'analysis': `📊 تحلیل هوشمند: +${xp} امتیاز`,
-    'quiz_complete': `🏆 تکمیل آزمون: +${xp} امتیاز`,
-    'homework_submit': `📝 ارسال تکلیف: +${xp} امتیاز`,
-  }
-  return messages[actionType] || `+${xp} امتیاز`
-}
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const ip = request.headers.get('x-forwarded-for') || 'anonymous'
-    if (!checkRateLimit(ip)) {
-      return NextResponse.json(
-        { error: 'درخواست‌های زیاد. لطفاً کمی صبر کنید.' },
-        { status: 429 }
-      )
-    }
-
     const body = await request.json()
-    const result = addXpSchema.safeParse(body)
-    
-    if (!result.success) {
+    const validation = addXpSchema.safeParse(body)
+
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'داده‌های نامعتبر', details: result.error.issues },
+        {
+          error: 'داده‌های نامعتبر',
+          details: validation.error.issues,
+        },
         { status: 400 }
       )
     }
 
-    const { studentId, actionType, xpAmount, metadata } = result.data
-    
-    // Use default XP for action type if not provided
-    const finalXp = xpAmount || XP_AMOUNTS[actionType] || 10
+    const { student_id, action_type, xp_amount, metadata } = validation.data
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createClient(cookies())
 
-    // Check if student exists
-    const { data: student, error: studentError } = await supabase
-      .from('students')
-      .select('id, full_name')
-      .eq('id', studentId)
+    // احراز هویت
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'لطفاً ابتدا وارد شوید' }, { status: 401 })
+    }
+
+    // بررسی نقش کاربر (فقط teacher و admin می‌توانند XP اضافه کنند)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
       .single()
 
-    if (studentError || !student) {
+    if (!profile || !['teacher', 'admin'].includes(profile.role)) {
       return NextResponse.json(
-        { error: 'دانش‌آموز یافت نشد' },
-        { status: 404 }
+        { error: 'شما مجاز به افزودن XP نیستید' },
+        { status: 403 }
       )
     }
 
-    // Get or create student_xp record
-    let { data: existingXp, error: xpError } = await supabase
-      .from('student_xp')
-      .select('*')
-      .eq('student_id', studentId)
+    // اضافه کردن XP با استفاده از function
+    const { data: result, error: xpError } = await supabase.rpc('add_xp', {
+      p_student_id: student_id,
+      p_action_type: action_type,
+      p_xp_amount: xp_amount,
+      p_metadata: metadata || {},
+    })
+
+    if (xpError) {
+      console.error('خطا در افزودن XP:', xpError)
+      return NextResponse.json(
+        { error: 'خطا در افزودن امتیاز' },
+        { status: 500 }
+      )
+    }
+
+    // دریافت اطلاعات به‌روز شده
+    const { data: updatedProfile } = await supabase
+      .from('talent_garden')
+      .select('total_xp, current_level, talents')
+      .eq('student_id', student_id)
       .single()
 
-    if (xpError && xpError.code !== 'PGRST116') {
-      console.error('Error fetching XP:', xpError)
-    }
-
-    const oldLevel = existingXp?.level || 1
-    const oldXp = existingXp?.total_xp || 0
-    const newXp = oldXp + finalXp
-    const newLevel = calculateLevel(newXp)
-    const levelUp = newLevel > oldLevel
-
-    if (!existingXp) {
-      // Create new record
-      const { error: insertError } = await supabase
-        .from('student_xp')
-        .insert({
-          student_id: studentId,
-          total_xp: finalXp,
-          level: calculateLevel(finalXp),
-          badges: [],
-          achievements: {},
-        })
-
-      if (insertError) {
-        console.error('Error creating XP record:', insertError)
-        return NextResponse.json(
-          { error: 'خطا در ثبت امتیاز' },
-          { status: 500 }
-        )
-      }
-    } else {
-      // Update existing record
-      const { error: updateError } = await supabase
-        .from('student_xp')
-        .update({
-          total_xp: newXp,
-          level: newLevel,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('student_id', studentId)
-
-      if (updateError) {
-        console.error('Error updating XP:', updateError)
-        return NextResponse.json(
-          { error: 'خطا در بروزرسانی امتیاز' },
-          { status: 500 }
-        )
-      }
-    }
-
-    // Record transaction
-    const { error: transactionError } = await supabase
-      .from('xp_transactions')
-      .insert({
-        student_id: studentId,
-        action_type: actionType,
-        xp_earned: finalXp,
-        metadata: {
-          ...metadata,
-          student_name: student.full_name,
-          timestamp: new Date().toISOString(),
-        },
-      })
-
-    if (transactionError) {
-      console.error('Error recording transaction:', transactionError)
-    }
-
-    // Prepare response
-    const response: {
-      success: boolean
-      totalXp: number
-      level: number
-      levelUp: boolean
-      xpEarned: number
-      xpForNextLevel: number
-      message: string
-      levelUpMessage?: string
-    } = {
+    return NextResponse.json({
       success: true,
-      totalXp: newXp,
-      level: newLevel,
-      levelUp,
-      xpEarned: finalXp,
-      xpForNextLevel: xpForNextLevel(newXp),
-      message: getActionMessage(actionType, finalXp),
-    }
-
-    if (levelUp) {
-      response.levelUpMessage = `🎉 تبریک! به سطح ${newLevel} رسیدی!`
-    }
-
-    return NextResponse.json(response)
-
-  } catch (error: any) {
-    console.error('XP Add Error:', error)
-    return NextResponse.json(
-      { error: 'خطای غیرمنتظره', details: error.message },
-      { status: 500 }
-    )
+      message: `${xp_amount} امتیاز افزوده شد!`,
+      data: updatedProfile,
+    })
+  } catch (error) {
+    console.error('خطای سرور:', error)
+    return NextResponse.json({ error: 'خطای داخلی سرور' }, { status: 500 })
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

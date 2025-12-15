@@ -97,6 +97,7 @@ const roleConfigs: Record<UserRole, RoleConfig> = {
       { label: 'لیست دانش‌آموزان', href: '/test-students-list', icon: <Users className="w-5 h-5" />, color: 'bg-blue-500', enabled: true },
       { label: 'تحلیل هوشمند', href: '/test-students-list', icon: <Brain className="w-5 h-5" />, color: 'bg-purple-500', enabled: true },
       { label: 'باغ استعداد', href: '/teacher/talent-garden', icon: <Trophy className="w-5 h-5" />, color: 'bg-yellow-500', enabled: true },
+      { label: 'جدول افتخارات', href: '/leaderboard', icon: <Award className="w-5 h-5" />, color: 'bg-amber-500', enabled: true },
       { label: 'حل‌کننده مسئله', href: '/test-ocr', icon: <Lightbulb className="w-5 h-5" />, color: 'bg-green-500', enabled: true },
       { label: 'داستان‌ساز', href: '/test-story', icon: <Sparkles className="w-5 h-5" />, color: 'bg-pink-500', enabled: true },
       { label: 'دفتر کلاسی', href: '#', icon: <BookOpen className="w-5 h-5" />, color: 'bg-indigo-500', enabled: false },
@@ -139,6 +140,7 @@ const roleConfigs: Record<UserRole, RoleConfig> = {
     ],
     links: [
       { label: 'باغ استعداد', href: '/student/talent-garden', icon: <Trophy className="w-5 h-5" />, color: 'bg-yellow-500', enabled: true },
+      { label: 'جدول افتخارات', href: '/leaderboard', icon: <Award className="w-5 h-5" />, color: 'bg-amber-500', enabled: true },
       { label: 'دستیار مطالعه', href: '/test-study-buddy', icon: <Brain className="w-5 h-5" />, color: 'bg-purple-500', enabled: true },
       { label: 'حل مسئله', href: '/test-ocr', icon: <Lightbulb className="w-5 h-5" />, color: 'bg-green-500', enabled: true },
       { label: 'داستان‌ساز', href: '/test-story', icon: <Sparkles className="w-5 h-5" />, color: 'bg-pink-500', enabled: true },

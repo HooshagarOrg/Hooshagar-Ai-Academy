@@ -16,3 +16,5 @@ SELECT id, email, full_name, role
 FROM profiles 
 WHERE email = 'teststudent@hooshagar.com';
 
+
+

@@ -7,8 +7,8 @@ interface LeaderboardEntry {
   rank: number
   student_id: string
   student_name: string
-  total_xp: number
-  current_level: number
+  xp_points: number
+  level: number
   grade: number
 }
 
@@ -126,7 +126,7 @@ export default function LeaderboardPage() {
                       {entry.student_name}
                     </h3>
                     <p className="text-sm text-blue-200">
-                      پایه {entry.grade} • سطح {entry.current_level}
+                      پایه {entry.grade} • سطح {entry.level}
                     </p>
                   </div>
                 </div>
@@ -136,7 +136,7 @@ export default function LeaderboardPage() {
                   <div className="flex items-center gap-2">
                     <Star className="w-5 h-5 text-yellow-400" />
                     <span className="text-2xl font-black text-white">
-                      {entry.total_xp.toLocaleString()}
+                      {entry.xp_points.toLocaleString()}
                     </span>
                   </div>
                   <p className="text-xs text-blue-200">امتیاز کل</p>
@@ -150,7 +150,7 @@ export default function LeaderboardPage() {
                     <div
                       className={`h-full ${getRankBadgeColor(entry.rank)} transition-all duration-1000`}
                       style={{
-                        width: `${Math.min((entry.total_xp / (leaderboard[0]?.total_xp || 1)) * 100, 100)}%`,
+                        width: `${Math.min((entry.xp_points / (leaderboard[0]?.xp_points || 1)) * 100, 100)}%`,
                       }}
                     />
                   </div>

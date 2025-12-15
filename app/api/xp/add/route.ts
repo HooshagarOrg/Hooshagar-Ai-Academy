@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     // دریافت اطلاعات به‌روز شده
     const { data: updatedProfile } = await supabase
       .from('talent_garden')
-      .select('total_xp, current_level, talents')
+      .select('xp_points, level, garden_state')
       .eq('student_id', student_id)
       .single()
 

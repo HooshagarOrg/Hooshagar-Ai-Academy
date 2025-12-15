@@ -102,7 +102,7 @@ AND NOT EXISTS (
 WITH student_list AS (
   SELECT id, full_name FROM students WHERE is_active = true
 )
-INSERT INTO talent_garden (student_id, total_xp, current_level, talents)
+INSERT INTO talent_garden (student_id, xp_points, level, garden_state)
 SELECT 
   s.id,
   CASE 
@@ -118,17 +118,21 @@ SELECT
     ELSE (3 + (RANDOM() * 5)::INT)
   END,
   jsonb_build_object(
-    'قهرمان ریاضی', (50 + RANDOM() * 450)::INT,
-    'دانشمند علوم', (50 + RANDOM() * 450)::INT,
-    'نویسنده خلاق', (50 + RANDOM() * 450)::INT,
-    'هنرمند', (50 + RANDOM() * 450)::INT
+    'plants', jsonb_build_array(
+      jsonb_build_object('name', 'قهرمان ریاضی', 'level', (RANDOM() * 5)::INT),
+      jsonb_build_object('name', 'دانشمند علوم', 'level', (RANDOM() * 5)::INT),
+      jsonb_build_object('name', 'نویسنده خلاق', 'level', (RANDOM() * 5)::INT),
+      jsonb_build_object('name', 'هنرمند', 'level', (RANDOM() * 5)::INT)
+    ),
+    'achievements', jsonb_build_array(),
+    'unlocked_items', jsonb_build_array()
   )
 FROM student_list s
 ON CONFLICT (student_id) DO UPDATE
 SET 
-  total_xp = EXCLUDED.total_xp,
-  current_level = EXCLUDED.current_level,
-  talents = EXCLUDED.talents;
+  xp_points = EXCLUDED.xp_points,
+  level = EXCLUDED.level,
+  garden_state = EXCLUDED.garden_state;
 
 -- مرحله 4: ساخت XP history
 -- ──────────────────────────────────────────────────────────────────
@@ -169,11 +173,11 @@ FROM xp_history;
 
 -- نمایش Top 5 Leaderboard
 SELECT 
-  ROW_NUMBER() OVER (ORDER BY tg.total_xp DESC) AS rank,
+  ROW_NUMBER() OVER (ORDER BY tg.xp_points DESC) AS rank,
   s.full_name,
-  tg.total_xp,
-  tg.current_level
+  tg.xp_points,
+  tg.level
 FROM talent_garden tg
 JOIN students s ON s.id = tg.student_id
-ORDER BY tg.total_xp DESC
+ORDER BY tg.xp_points DESC
 LIMIT 5;

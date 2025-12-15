@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     // دریافت اطلاعات از talent_garden
     const { data: profile, error: profileError } = await supabase
       .from('talent_garden')
-      .select('student_id, total_xp, current_level, talents')
+      .select('student_id, xp_points, level, garden_state')
       .eq('student_id', studentId)
       .single()
 
@@ -46,9 +46,9 @@ export async function GET(request: NextRequest) {
           .from('talent_garden')
           .insert({
             student_id: studentId,
-            total_xp: 0,
-            current_level: 1,
-            talents: {},
+            xp_points: 0,
+            level: 1,
+            garden_state: { plants: [], achievements: [], unlocked_items: [] },
           })
           .select()
           .single()
@@ -65,9 +65,9 @@ export async function GET(request: NextRequest) {
           success: true,
           data: {
             student_id: newProfile.student_id,
-            total_xp: 0,
-            current_level: 1,
-            talents: {},
+            xp_points: 0,
+            level: 1,
+            garden_state: { plants: [], achievements: [], unlocked_items: [] },
             xp_for_next_level: 100,
           },
         })
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
 
     // محاسبه XP مورد نیاز برای سطح بعدی
     const { data: nextLevelData } = await supabase.rpc('xp_for_next_level', {
-      current_level: profile.current_level,
+      current_level: profile.level,
     })
 
     const xpForNextLevel = nextLevelData || 100
@@ -90,9 +90,9 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         student_id: profile.student_id,
-        total_xp: profile.total_xp,
-        current_level: profile.current_level,
-        talents: profile.talents || {},
+        xp_points: profile.xp_points,
+        level: profile.level,
+        garden_state: profile.garden_state || { plants: [], achievements: [], unlocked_items: [] },
         xp_for_next_level: xpForNextLevel,
       },
     })

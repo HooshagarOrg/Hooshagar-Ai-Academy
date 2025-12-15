@@ -148,8 +148,7 @@ UNION ALL
 SELECT 
   'تعداد talent_garden ساخته شده:' AS status,
   COUNT(*) AS count
-FROM talent_garden
-
+FROM talent_garden;
 
 -- نمایش Top 5 Leaderboard
 SELECT 

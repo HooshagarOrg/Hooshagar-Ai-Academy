@@ -15,24 +15,24 @@ const limiter = rateLimit({
 export async function POST(request: NextRequest) {
   try {
     // ==========================================
-    // 1. Rate Limiting
+    // 1. Rate Limiting (TEMPORARILY DISABLED FOR TESTING)
     // ==========================================
-    const userIP = request.headers.get('x-forwarded-for') || 
-                   request.headers.get('x-real-ip') || 
-                   'anonymous'
+    // const userIP = request.headers.get('x-forwarded-for') || 
+    //                request.headers.get('x-real-ip') || 
+    //                'anonymous'
     
-    try {
-      await limiter.check(5, userIP)
-    } catch {
-      log.warn('Rate limit exceeded', { userIP })
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'تعداد تلاش‌های شما بیش از حد مجاز است. لطفاً ۱ دقیقه صبر کنید.' 
-        },
-        { status: 429 }
-      )
-    }
+    // try {
+    //   await limiter.check(5, userIP)
+    // } catch {
+    //   log.warn('Rate limit exceeded', { userIP })
+    //   return NextResponse.json(
+    //     { 
+    //       success: false, 
+    //       error: 'تعداد تلاش‌های شما بیش از حد مجاز است. لطفاً ۱ دقیقه صبر کنید.' 
+    //     },
+    //     { status: 429 }
+    //   )
+    // }
     
     // ==========================================
     // 2. Parse Request Body

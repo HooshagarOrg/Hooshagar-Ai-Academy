@@ -45,19 +45,15 @@ BEGIN
       school_id, 
       name, 
       grade, 
-      section, 
-      academic_year, 
-      teacher_name,
-      total_capacity
+      academic_year,
+      metadata
     )
     VALUES (
       v_school_id, 
       'کلاس 5-1', 
       5, 
-      '1', 
       '1403-1404',
-      'معلم تستی',
-      30
+      '{"section": "1", "teacher_name": "معلم تستی", "total_capacity": 30, "test": true}'::jsonb
     )
     RETURNING id INTO v_class_id;
     RAISE NOTICE 'کلاس تستی ساخته شد: %', v_class_id;

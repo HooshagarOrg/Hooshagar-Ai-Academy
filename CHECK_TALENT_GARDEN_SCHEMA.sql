@@ -12,3 +12,5 @@ WHERE table_schema = 'public'
   AND table_name = 'talent_garden'
 ORDER BY ordinal_position;
 
+
+

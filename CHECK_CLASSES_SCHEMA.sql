@@ -12,3 +12,5 @@ WHERE table_schema = 'public'
   AND table_name = 'classes'
 ORDER BY ordinal_position;
 
+
+

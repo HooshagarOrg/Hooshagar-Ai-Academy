@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-
-// Hardcoded student ID for testing
-const STUDENT_ID = '855b70c4-f6c5-4208-a1ab-93122025c0d1'
+import { createClient } from '@/lib/supabase/client'
 
 interface StudentXP {
   total: number
@@ -74,9 +72,35 @@ export default function StudentTalentGardenPage() {
     xpReward: 200,
   })
 
-  // For testing: directly set hardcoded student ID
+  // Get student ID from current user
   useEffect(() => {
-    setStudentId(STUDENT_ID)
+    const fetchCurrentStudent = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        setError('لطفاً ابتدا وارد شوید')
+        setLoading(false)
+        return
+      }
+
+      // Get student record for this user
+      const { data: student, error: studentError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+
+      if (studentError || !student) {
+        setError('دانش‌آموز یافت نشد')
+        setLoading(false)
+        return
+      }
+
+      setStudentId(student.id)
+    }
+
+    fetchCurrentStudent()
   }, [])
 
   // Fetch profile and leaderboard when studentId is available
@@ -321,7 +345,7 @@ export default function StudentTalentGardenPage() {
               برترین‌های مدرسه
             </h3>
             <div className="space-y-3">
-              {leaderboard.length === 0 ? (
+              {!leaderboard || leaderboard.length === 0 ? (
                 <p className="text-white/50 text-center py-4">هنوز کسی در لیدربورد نیست!</p>
               ) : (
                 leaderboard.map((item, i) => (

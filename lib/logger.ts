@@ -10,9 +10,12 @@
 
 import pino from 'pino';
 
+// در Development از console استفاده کن (Pino worker thread با Next.js مشکل دارد)
+const isDev = process.env.NODE_ENV !== 'production';
+
 // Logger برای Production با Secret Redaction
-const logger = pino({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+const logger = isDev ? null : pino({
+  level: 'info',
   browser: {
     asObject: true
   },
@@ -40,18 +43,7 @@ const logger = pino({
       'RECAPTCHA_SECRET_KEY',
     ],
     censor: '***REDACTED***'
-  },
-  // Format زیبا برای Development
-  transport: process.env.NODE_ENV !== 'production' 
-    ? {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'HH:MM:ss',
-          ignore: 'pid,hostname',
-        }
-      }
-    : undefined,
+  }
 });
 
 export default logger;
@@ -61,23 +53,77 @@ export default logger;
  */
 export const log = {
   info: (message: string, data?: Record<string, any>) => {
-    logger.info(data || {}, message);
+    if (isDev) {
+      console.log(`ℹ️ ${message}`, data || '');
+    } else {
+      logger?.info(data || {}, message);
+    }
   },
   
   error: (message: string, error?: Error | unknown, data?: Record<string, any>) => {
     const errorData = error instanceof Error 
       ? { error: error.message, stack: error.stack, ...data }
       : { error: String(error), ...data };
-    logger.error(errorData, message);
+    
+    if (isDev) {
+      console.error(`❌ ${message}`, errorData);
+    } else {
+      logger?.error(errorData, message);
+    }
   },
   
   warn: (message: string, data?: Record<string, any>) => {
-    logger.warn(data || {}, message);
+    if (isDev) {
+      console.warn(`⚠️ ${message}`, data || '');
+    } else {
+      logger?.warn(data || {}, message);
+    }
   },
   
   debug: (message: string, data?: Record<string, any>) => {
-    logger.debug(data || {}, message);
+    if (isDev) {
+      console.debug(`🔍 ${message}`, data || '');
+    } else {
+      logger?.debug(data || {}, message);
+    }
   },
+};
+
+// Export های مستقیم برای راحتی استفاده
+export const logInfo = (message: string, data?: Record<string, any>) => {
+  if (isDev) {
+    console.log(`ℹ️ ${message}`, data || '');
+  } else {
+    logger?.info(data || {}, message);
+  }
+};
+
+export const logError = (message: string, error?: Error | unknown, data?: Record<string, any>) => {
+  const errorData = error instanceof Error 
+    ? { error: error.message, stack: error.stack, ...data }
+    : { error: String(error), ...data };
+  
+  if (isDev) {
+    console.error(`❌ ${message}`, errorData);
+  } else {
+    logger?.error(errorData, message);
+  }
+};
+
+export const logWarn = (message: string, data?: Record<string, any>) => {
+  if (isDev) {
+    console.warn(`⚠️ ${message}`, data || '');
+  } else {
+    logger?.warn(data || {}, message);
+  }
+};
+
+export const logDebug = (message: string, data?: Record<string, any>) => {
+  if (isDev) {
+    console.debug(`🔍 ${message}`, data || '');
+  } else {
+    logger?.debug(data || {}, message);
+  }
 };
 
 

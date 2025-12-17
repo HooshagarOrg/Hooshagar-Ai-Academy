@@ -85,15 +85,31 @@ export default function XPDashboardPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">💎 داشبورد امتیازات</h1>
-        <Button onClick={loadStudentAndXP} variant="outline" size="sm">
-          <RefreshCw className="w-4 h-4 ml-2" />
-          بروزرسانی
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <div className="container mx-auto p-6 space-y-6">
+        {/* Header حرفه‌ای */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-8 shadow-2xl">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-black text-white flex items-center gap-3 mb-2">
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                  💎
+                </div>
+                داشبورد امتیازات
+              </h1>
+              <p className="text-white/90 text-lg">پیشرفت خود را دنبال کن!</p>
+            </div>
+            <Button 
+              onClick={loadStudentAndXP} 
+              className="bg-white text-purple-600 hover:bg-white/90 font-bold shadow-lg"
+              size="lg"
+            >
+              <RefreshCw className="w-5 h-5 ml-2" />
+              بروزرسانی
+            </Button>
+          </div>
+        </div>
 
       {/* Grid Layout */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -109,46 +125,53 @@ export default function XPDashboardPage() {
         <XPHistory studentId={studentId} limit={10} />
       </div>
 
-      {/* Info Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">🎯 چطوری XP جمع کنم؟</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>• ✅ حل تکالیف</p>
-            <p>• 📝 شرکت در آزمون‌ها</p>
-            <p>• 📚 حضور در کلاس</p>
-            <p>• 🏆 دریافت نشان‌ها</p>
-          </CardContent>
-        </Card>
+        {/* Info Cards با انیمیشن */}
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-green-400 to-emerald-600 text-white transform hover:scale-105 transition-transform duration-300">
+            <CardHeader>
+              <CardTitle className="text-xl font-black flex items-center gap-2">
+                🎯 راه‌های کسب XP
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-base font-medium">
+              <p className="flex items-center gap-2">✅ حل تکالیف</p>
+              <p className="flex items-center gap-2">📝 شرکت در آزمون‌ها</p>
+              <p className="flex items-center gap-2">📚 حضور در کلاس</p>
+              <p className="flex items-center gap-2">🏆 دریافت نشان‌ها</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">⭐ مزایای XP</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>• 🔓 باز کردن نشان‌ها</p>
-            <p>• 📊 بالا رفتن رتبه</p>
-            <p>• 🎁 دریافت جوایز</p>
-            <p>• 💪 افزایش سطح</p>
-          </CardContent>
-        </Card>
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-400 to-red-600 text-white transform hover:scale-105 transition-transform duration-300">
+            <CardHeader>
+              <CardTitle className="text-xl font-black flex items-center gap-2">
+                ⭐ مزایای XP
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-base font-medium">
+              <p className="flex items-center gap-2">🔓 باز کردن نشان‌ها</p>
+              <p className="flex items-center gap-2">📊 بالا رفتن رتبه</p>
+              <p className="flex items-center gap-2">🎁 دریافت جوایز</p>
+              <p className="flex items-center gap-2">💪 افزایش سطح</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">🏆 سطح شما</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>سطح فعلی: <strong>{xpData.level}</strong></p>
-            <p>
-              {xpData.level < 5 && '🌱 تازه‌کار'}
-              {xpData.level >= 5 && xpData.level < 10 && '⭐ درحال پیشرفت'}
-              {xpData.level >= 10 && xpData.level < 20 && '🔥 ماهر'}
-              {xpData.level >= 20 && '👑 استاد'}
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white transform hover:scale-105 transition-transform duration-300">
+            <CardHeader>
+              <CardTitle className="text-xl font-black flex items-center gap-2">
+                🏆 سطح شما
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-5xl font-black">{xpData.level}</p>
+              <p className="text-2xl font-bold">
+                {xpData.level < 5 && '🌱 تازه‌کار'}
+                {xpData.level >= 5 && xpData.level < 10 && '⭐ درحال پیشرفت'}
+                {xpData.level >= 10 && xpData.level < 20 && '🔥 ماهر'}
+                {xpData.level >= 20 && '👑 استاد'}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

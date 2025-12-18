@@ -73,3 +73,5 @@ export default function XPCard({ totalXp, level, xpToNextLevel, percentage }: XP
   )
 }
 
+
+

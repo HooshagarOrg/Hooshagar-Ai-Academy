@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase'
-import { User, Mail, Lock, Users, GraduationCap, CheckCircle2, Sparkles } from 'lucide-react'
+import { User, Mail, Lock, Users, GraduationCap, CheckCircle2, Sparkles, ArrowRight, Shield } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,14 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 
 const registerSchema = z.object({
   full_name: z.string().min(2, 'نام باید حداقل ۲ کاراکتر باشد').max(100),
@@ -98,39 +90,46 @@ export default function RegisterPage() {
     }
   }
 
-  const roleIcons = {
-    teacher: Users,
-    parent: User,
-    student: GraduationCap,
-  }
-
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 -z-10" />
-      <div className="absolute inset-0 bg-grid-slate-200/50 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] -z-10" />
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-blob" />
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-200 rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-green-200 rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
+      </div>
 
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 backdrop-blur">
-        <CardHeader className="text-center space-y-4 pb-6">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-md">
+        {/* Logo & Title */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-xl rounded-3xl mb-4 shadow-2xl border border-white/20">
             <GraduationCap className="w-10 h-10 text-white" />
           </div>
+          <h1 className="text-4xl font-black text-white mb-2 drop-shadow-lg">
+            هوشاگر
+          </h1>
+          <p className="text-white/80 text-lg font-medium">
+            عضویت در پلتفرم هوشمند
+          </p>
+        </div>
 
-          <div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-l from-green-600 to-blue-600 bg-clip-text text-transparent">
-              ثبت‌نام در هوشاگر
-            </CardTitle>
-            <CardDescription className="text-base mt-2">
-              حساب کاربری خود را ایجاد کنید
-            </CardDescription>
+        {/* Register Card */}
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              ثبت‌نام حساب جدید
+            </h2>
+            <p className="text-gray-600">
+              اطلاعات خود را برای شروع وارد کنید
+            </p>
           </div>
-        </CardHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Error Alert */}
             {error && (
-              <div className="bg-red-50 border-2 border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm flex items-start gap-2">
+              <div className="bg-red-50 border-2 border-red-200 text-red-800 px-4 py-3 rounded-xl text-sm flex items-start gap-2 animate-in slide-in-from-top">
                 <span className="text-xl">⚠️</span>
                 <span>{error}</span>
               </div>
@@ -138,7 +137,7 @@ export default function RegisterPage() {
 
             {/* Success Alert */}
             {success && (
-              <div className="bg-green-50 border-2 border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm flex items-start gap-2">
+              <div className="bg-green-50 border-2 border-green-200 text-green-800 px-4 py-3 rounded-xl text-sm flex items-start gap-2 animate-in slide-in-from-top">
                 <CheckCircle2 className="w-5 h-5 mt-0.5" />
                 <span>{success}</span>
               </div>
@@ -146,17 +145,17 @@ export default function RegisterPage() {
 
             {/* Full Name */}
             <div className="space-y-2">
-              <Label htmlFor="full_name" className="text-sm font-medium">
+              <Label htmlFor="full_name" className="text-sm font-semibold text-gray-700">
                 نام و نام خانوادگی
               </Label>
               <div className="relative">
-                <User className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                <User className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   id="full_name"
                   type="text"
                   placeholder="علی احمدی"
                   disabled={isLoading}
-                  className="pr-10 h-11 border-2 focus:border-green-500 transition-colors"
+                  className="pr-12 h-12 bg-gray-50 border-2 border-gray-200 focus:border-teal-500 focus:bg-white rounded-xl transition-all text-right"
                   {...register('full_name')}
                 />
               </div>
@@ -167,17 +166,17 @@ export default function RegisterPage() {
 
             {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
+              <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
                 ایمیل
               </Label>
               <div className="relative">
-                <Mail className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Mail className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="example@school.com"
                   disabled={isLoading}
-                  className="pr-10 h-11 border-2 focus:border-green-500 transition-colors"
+                  className="pr-12 h-12 bg-gray-50 border-2 border-gray-200 focus:border-teal-500 focus:bg-white rounded-xl transition-all text-right"
                   {...register('email')}
                 />
               </div>
@@ -188,17 +187,17 @@ export default function RegisterPage() {
 
             {/* Password */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
+              <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
                 رمز عبور
               </Label>
               <div className="relative">
-                <Lock className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Lock className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="حداقل ۶ کاراکتر"
                   disabled={isLoading}
-                  className="pr-10 h-11 border-2 focus:border-green-500 transition-colors"
+                  className="pr-12 h-12 bg-gray-50 border-2 border-gray-200 focus:border-teal-500 focus:bg-white rounded-xl transition-all text-right"
                   {...register('password')}
                 />
               </div>
@@ -209,8 +208,8 @@ export default function RegisterPage() {
 
             {/* Role Selection */}
             <div className="space-y-2">
-              <Label htmlFor="role" className="text-sm font-medium">
-                نقش
+              <Label htmlFor="role" className="text-sm font-semibold text-gray-700">
+                نقش شما
               </Label>
               <Select
                 value={selectedRole}
@@ -220,26 +219,26 @@ export default function RegisterPage() {
                 }}
                 disabled={isLoading}
               >
-                <SelectTrigger className="h-11 border-2">
+                <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-teal-500 rounded-xl bg-gray-50">
                   <SelectValue placeholder="نقش خود را انتخاب کنید" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="teacher">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      <span>معلم</span>
+                    <div className="flex items-center gap-3 py-1">
+                      <Users className="w-5 h-5 text-blue-600" />
+                      <span className="font-medium">معلم</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="parent">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      <span>والد</span>
+                    <div className="flex items-center gap-3 py-1">
+                      <User className="w-5 h-5 text-purple-600" />
+                      <span className="font-medium">والد</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="student">
-                    <div className="flex items-center gap-2">
-                      <GraduationCap className="w-4 h-4" />
-                      <span>دانش‌آموز</span>
+                    <div className="flex items-center gap-3 py-1">
+                      <GraduationCap className="w-5 h-5 text-teal-600" />
+                      <span className="font-medium">دانش‌آموز</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -248,45 +247,70 @@ export default function RegisterPage() {
                 <p className="text-sm text-red-600">{errors.role.message}</p>
               )}
             </div>
-          </CardContent>
 
-          <CardFooter className="flex flex-col gap-4 pt-2">
+            {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-l from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-medium shadow-lg shadow-green-500/30"
               disabled={isLoading}
+              className="w-full h-12 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/50 transition-all duration-300 transform hover:scale-[1.02]"
             >
               {isLoading ? (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4 animate-spin" />
-                  در حال ثبت‌نام...
-                </>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 animate-spin" />
+                  <span>در حال ثبت‌نام...</span>
+                </div>
               ) : (
-                'ثبت‌نام'
+                <div className="flex items-center gap-2">
+                  <span>ثبت‌نام</span>
+                  <ArrowRight className="w-5 h-5" />
+                </div>
               )}
             </Button>
+          </form>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">یا</span>
-              </div>
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
             </div>
+            <div className="relative flex justify-center">
+              <span className="px-4 text-sm text-gray-500 bg-white">یا</span>
+            </div>
+          </div>
 
-            <p className="text-sm text-center text-muted-foreground">
+          {/* Login Link */}
+          <div className="text-center">
+            <p className="text-gray-600">
               قبلاً ثبت‌نام کرده‌اید؟{' '}
               <Link
                 href="/login"
-                className="text-green-600 hover:text-green-700 font-bold hover:underline"
+                className="text-teal-600 hover:text-teal-700 font-bold hover:underline"
               >
                 وارد شوید
               </Link>
             </p>
-          </CardFooter>
-        </form>
-      </Card>
+          </div>
+
+          {/* Security Badge */}
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+              <Shield className="w-4 h-4" />
+              <span>اتصال امن با رمزنگاری SSL</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-6">
+          <p className="text-white/70 text-sm">
+            © 2024 هوشاگر. تمامی حقوق محفوظ است.
+          </p>
+        </div>
+      </div>
+
+      {/* Floating Elements */}
+      <div className="absolute top-10 right-10 w-20 h-20 bg-white/10 rounded-full blur-2xl animate-pulse" />
+      <div className="absolute bottom-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse animation-delay-2000" />
     </div>
   )
 }

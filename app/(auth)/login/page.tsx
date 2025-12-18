@@ -4,19 +4,11 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Mail, Lock, Sparkles, GraduationCap } from 'lucide-react'
+import { Mail, Lock, Sparkles, GraduationCap, ArrowRight, Shield } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -40,7 +32,7 @@ export default function LoginPage() {
       const data = await response.json()
       
       if (response.ok && data.success) {
-        toast.success('✅ خوش آمدید!')
+        toast.success('✨ خوش آمدید!')
         window.location.replace('/dashboard')
       } else {
         toast.error(data.error || 'ایمیل یا رمز عبور اشتباه است')
@@ -54,37 +46,49 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4">
-      {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 -z-10" />
-      <div className="absolute inset-0 bg-grid-slate-200/50 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] -z-10" />
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-blob" />
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-200 rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-200 rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
+      </div>
 
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 backdrop-blur">
-        <CardHeader className="text-center space-y-4 pb-8">
-          {/* Logo */}
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-md">
+        {/* Logo & Title */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-xl rounded-3xl mb-4 shadow-2xl border border-white/20">
             <GraduationCap className="w-10 h-10 text-white" />
           </div>
+          <h1 className="text-4xl font-black text-white mb-2 drop-shadow-lg">
+            هوشاگر
+          </h1>
+          <p className="text-white/80 text-lg font-medium">
+            پلتفرم هوشمند مدیریت مدارس
+          </p>
+        </div>
 
-          <div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-l from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              ورود به هوشاگر
-            </CardTitle>
-            <CardDescription className="text-base mt-2">
-              پلتفرم هوشمند مدیریت مدارس
-            </CardDescription>
+        {/* Login Card */}
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              ورود به حساب کاربری
+            </h2>
+            <p className="text-gray-600">
+              لطفاً اطلاعات خود را وارد کنید
+            </p>
           </div>
-        </CardHeader>
 
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-5">
-            {/* Email Input */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
+              <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
                 ایمیل
               </Label>
               <div className="relative">
-                <Mail className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Mail className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   id="email"
                   name="email"
@@ -92,18 +96,26 @@ export default function LoginPage() {
                   placeholder="example@school.com"
                   required
                   disabled={isLoading}
-                  className="pr-10 h-11 border-2 focus:border-purple-500 transition-colors"
+                  className="pr-12 h-12 bg-gray-50 border-2 border-gray-200 focus:border-purple-500 focus:bg-white rounded-xl transition-all text-right"
                 />
               </div>
             </div>
 
-            {/* Password Input */}
+            {/* Password */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
-                رمز عبور
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
+                  رمز عبور
+                </Label>
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  فراموشی رمز؟
+                </Link>
+              </div>
               <div className="relative">
-                <Lock className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Lock className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   id="password"
                   name="password"
@@ -111,55 +123,56 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   required
                   disabled={isLoading}
-                  className="pr-10 h-11 border-2 focus:border-purple-500 transition-colors"
+                  className="pr-12 h-12 bg-gray-50 border-2 border-gray-200 focus:border-purple-500 focus:bg-white rounded-xl transition-all text-right"
                 />
               </div>
             </div>
 
-            {/* Remember & Forgot */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="rounded border-gray-300" />
-                <span className="text-muted-foreground">مرا به خاطر بسپار</span>
+            {/* Remember Me */}
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="remember"
+                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              />
+              <label htmlFor="remember" className="mr-2 text-sm text-gray-700">
+                مرا به خاطر بسپار
               </label>
-              <Link
-                href="/forgot-password"
-                className="text-purple-600 hover:text-purple-700 font-medium"
-              >
-                فراموشی رمز عبور
-              </Link>
             </div>
-          </CardContent>
 
-          <CardFooter className="flex flex-col gap-4 pt-2">
-            {/* Login Button */}
+            {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-l from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium shadow-lg shadow-purple-500/30"
               disabled={isLoading}
+              className="w-full h-12 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-bold rounded-xl shadow-lg shadow-purple-500/50 transition-all duration-300 transform hover:scale-[1.02]"
             >
               {isLoading ? (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4 animate-spin" />
-                  در حال ورود...
-                </>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 animate-spin" />
+                  <span>در حال ورود...</span>
+                </div>
               ) : (
-                'ورود به سیستم'
+                <div className="flex items-center gap-2">
+                  <span>ورود به سیستم</span>
+                  <ArrowRight className="w-5 h-5" />
+                </div>
               )}
             </Button>
+          </form>
 
-            {/* Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">یا</span>
-              </div>
+          {/* Divider */}
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
             </div>
+            <div className="relative flex justify-center">
+              <span className="px-4 text-sm text-gray-500 bg-white">یا</span>
+            </div>
+          </div>
 
-            {/* Register Link */}
-            <p className="text-sm text-center text-muted-foreground">
+          {/* Register Link */}
+          <div className="text-center">
+            <p className="text-gray-600">
               حساب کاربری ندارید؟{' '}
               <Link
                 href="/register"
@@ -168,9 +181,28 @@ export default function LoginPage() {
                 ثبت‌نام کنید
               </Link>
             </p>
-          </CardFooter>
-        </form>
-      </Card>
+          </div>
+
+          {/* Security Badge */}
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+              <Shield className="w-4 h-4" />
+              <span>اتصال امن با رمزنگاری SSL</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-6">
+          <p className="text-white/70 text-sm">
+            © 2024 هوشاگر. تمامی حقوق محفوظ است.
+          </p>
+        </div>
+      </div>
+
+      {/* Floating Elements */}
+      <div className="absolute top-10 right-10 w-20 h-20 bg-white/10 rounded-full blur-2xl animate-pulse" />
+      <div className="absolute bottom-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse animation-delay-2000" />
     </div>
   )
 }

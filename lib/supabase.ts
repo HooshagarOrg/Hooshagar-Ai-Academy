@@ -1,5 +1,4 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import type { Database } from '@/types/database.types'
 
 // برای Client Components (login/register pages)
@@ -12,6 +11,7 @@ export function createClient() {
 
 // برای Server Components و API Routes
 export async function getServerSession() {
+  const { cookies } = await import('next/headers')
   const cookieStore = await cookies()
   
   const supabase = createServerClient<Database>(

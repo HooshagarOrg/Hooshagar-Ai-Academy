@@ -1,13 +1,12 @@
 {
-  "name": "هوشاگر - سیستم هوشمند مدیریت مدارس",
+  "name": "هوشاگر - سیستم مدیریت مدارس هوشمند",
   "short_name": "هوشاگر",
-  "description": "سیستم جامع مدیریت مدارس با هوش مصنوعی و گیمیفیکیشن",
-  "start_url": "/dashboard",
+  "description": "سیستم جامع مدیریت مدارس با هوش مصنوعی",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
-  "scope": "/",
   "dir": "rtl",
   "lang": "fa",
   "icons": [
@@ -15,106 +14,89 @@
       "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/icons/icon-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/icons/icon-128x128.png",
       "sizes": "128x128",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/icons/icon-144x144.png",
       "sizes": "144x144",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/icons/icon-152x152.png",
       "sizes": "152x152",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/icons/icon-384x384.png",
       "sizes": "384x384",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     }
   ],
+  "categories": ["education", "productivity", "business"],
   "screenshots": [
     {
-      "src": "/screenshots/dashboard.png",
+      "src": "/screenshots/desktop-1.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide"
     },
     {
-      "src": "/screenshots/mobile.png",
+      "src": "/screenshots/mobile-1.png",
       "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow"
     }
   ],
-  "categories": ["education", "productivity"],
   "shortcuts": [
     {
       "name": "داشبورد",
-      "short_name": "Dashboard",
-      "description": "دسترسی سریع به داشبورد",
+      "short_name": "داشبورد",
+      "description": "مشاهده داشبورد اصلی",
       "url": "/dashboard",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
-      "name": "اعلانات",
-      "short_name": "Notifications",
-      "description": "مشاهده اعلانات",
-      "url": "/notifications",
+      "name": "حضور و غیاب",
+      "short_name": "حضور",
+      "description": "ثبت حضور و غیاب",
+      "url": "/dashboard/attendance",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
-      "name": "جدول افتخارات",
-      "short_name": "Leaderboard",
-      "description": "مشاهده رتبه‌بندی",
-      "url": "/leaderboard",
+      "name": "دانش‌آموزان",
+      "short_name": "دانش‌آموزان",
+      "description": "مدیریت دانش‌آموزان",
+      "url": "/dashboard/students",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     }
   ],
-  "share_target": {
-    "action": "/share",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url",
-      "files": [
-        {
-          "name": "file",
-          "accept": ["image/*", "application/pdf"]
-        }
-      ]
-    }
-  },
-  "prefer_related_applications": false,
   "related_applications": [],
-  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7"
+  "prefer_related_applications": false
 }

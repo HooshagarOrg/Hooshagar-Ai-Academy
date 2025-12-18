@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import NotificationBell from '@/components/NotificationBell'
 import {
   Users,
   BookOpen,
@@ -518,7 +517,12 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <NotificationBell />
+              <button className="relative p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
+                <Bell className="w-5 h-5 text-white" />
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  3
+                </span>
+              </button>
               <Link
                 href="/test-session"
                 className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all"

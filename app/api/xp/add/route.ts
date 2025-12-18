@@ -1,121 +1,109 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from '@/lib/supabase'
-import { logError, logInfo } from '@/lib/logger'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { z } from 'zod'
 
 /**
  * POST /api/xp/add
- * اضافه کردن XP به دانش‌آموز
- * 
- * Body:
- * {
- *   studentId: string
- *   amount: number
- *   source: string (homework, attendance, quiz, etc)
- *   description: string
- * }
+ * افزودن XP به دانش‌آموز
  */
-export async function POST(req: NextRequest): Promise<NextResponse> {
+
+const addXpSchema = z.object({
+  student_id: z.string().uuid(),
+  action_type: z.string().min(1),
+  xp_amount: z.number().int().min(1).max(1000),
+  metadata: z.record(z.any()).optional(),
+})
+
+export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession()
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: 'احراز هویت نشده' },
-        { status: 401 }
-      )
-    }
+    const body = await request.json()
+    const validation = addXpSchema.safeParse(body)
 
-    const body = await req.json()
-    const { studentId, amount, action_type, metadata } = body
-
-    // Validation
-    if (!studentId || !amount || !action_type) {
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'فیلدهای studentId, amount و action_type الزامی هستند' },
+        {
+          error: 'داده‌های نامعتبر',
+          details: validation.error.issues,
+        },
         { status: 400 }
       )
     }
 
-    if (typeof amount !== 'number' || amount <= 0) {
-      return NextResponse.json(
-        { error: 'مقدار XP باید عدد مثبت باشد' },
-        { status: 400 }
-      )
+    const { student_id, action_type, xp_amount, metadata } = validation.data
+
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
+          },
+        },
+      }
+    )
+
+    // احراز هویت
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'لطفاً ابتدا وارد شوید' }, { status: 401 })
     }
 
-    const supabase = session.supabase
-
-    // 1. اضافه کردن transaction
-    const { data: transaction, error: txError } = await supabase
-      .from('xp_transactions')
-      .insert({
-        student_id: studentId,
-        xp_earned: amount,
-        action_type,
-        metadata: metadata || {}
-      })
-      .select()
+    // بررسی نقش کاربر (فقط teacher و admin می‌توانند XP اضافه کنند)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
       .single()
 
-    if (txError) {
-      console.error('❌ Failed to create XP transaction:', txError)
+    if (!profile || !['teacher', 'admin'].includes(profile.role)) {
       return NextResponse.json(
-        { error: 'ثبت تراکنش XP ناموفق بود' },
-        { status: 500 }
+        { error: 'شما مجاز به افزودن XP نیستید' },
+        { status: 403 }
       )
     }
 
-    // 2. بروزرسانی موجودی کل
-    const { data: currentXp } = await supabase
-      .from('student_xp')
-      .select('total_xp, level')
-      .eq('student_id', studentId)
-      .single()
-
-    const newTotalXp = (currentXp?.total_xp || 0) + amount
-    const newLevel = Math.floor(newTotalXp / 100) + 1
-
-    const { error: updateError } = await supabase
-      .from('student_xp')
-      .upsert({
-        student_id: studentId,
-        total_xp: newTotalXp,
-        level: newLevel,
-        updated_at: new Date().toISOString()
-      })
-
-    if (updateError) {
-      console.error('❌ Failed to update XP balance:', updateError)
-      return NextResponse.json(
-        { error: 'بروزرسانی موجودی XP ناموفق بود' },
-        { status: 500 }
-      )
-    }
-
-    logInfo('XP added successfully', {
-      studentId,
-      amount,
-      action_type,
-      newTotalXp,
-      newLevel
+    // اضافه کردن XP با استفاده از function
+    const { data: result, error: xpError } = await supabase.rpc('add_xp', {
+      p_student_id: student_id,
+      p_action_type: action_type,
+      p_xp_amount: xp_amount,
+      p_metadata: metadata || {},
     })
 
-    const xpToNextLevel = newLevel * 100
+    if (xpError) {
+      console.error('خطا در افزودن XP:', xpError)
+      return NextResponse.json(
+        { error: 'خطا در افزودن امتیاز' },
+        { status: 500 }
+      )
+    }
+
+    // دریافت اطلاعات به‌روز شده
+    const { data: updatedProfile } = await supabase
+      .from('talent_garden')
+      .select('xp_points, level, garden_state')
+      .eq('student_id', student_id)
+      .single()
 
     return NextResponse.json({
       success: true,
-      transaction,
-      newBalance: {
-        total_xp: newTotalXp,
-        level: newLevel,
-        xp_to_next_level: xpToNextLevel
-      }
+      message: `${xp_amount} امتیاز افزوده شد!`,
+      data: updatedProfile,
     })
   } catch (error) {
-    logError('XP add POST error', error)
-    return NextResponse.json(
-      { error: 'خطای داخلی سرور' },
-      { status: 500 }
-    )
+    console.error('خطای سرور:', error)
+    return NextResponse.json({ error: 'خطای داخلی سرور' }, { status: 500 })
   }
 }

@@ -1,485 +1,297 @@
-// =====================================================
-// هوشاگر - Service Worker
-// نسخه: 1.0
-// =====================================================
+// Service Worker برای PWA هوشاگر
+// نسخه: 1.0.0
 
-const CACHE_VERSION = 'v1'
-const CACHE_NAME = `hooshagar-${CACHE_VERSION}`
-const RUNTIME_CACHE = `hooshagar-runtime-${CACHE_VERSION}`
-const IMAGE_CACHE = `hooshagar-images-${CACHE_VERSION}`
+const CACHE_NAME = 'hooshagar-v1';
+const RUNTIME_CACHE = 'hooshagar-runtime';
+const IMAGE_CACHE = 'hooshagar-images';
 
-// فایل‌های استاتیک برای cache اولیه
-const STATIC_ASSETS = [
+// فایل‌های استاتیک برای cache کردن
+const PRECACHE_URLS = [
   '/',
-  '/login',
   '/dashboard',
+  '/login',
   '/offline',
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
-]
+];
 
-// مسیرهای API که باید cache شوند
-const API_CACHE_PATHS = [
-  '/api/profile',
-  '/api/schools',
-  '/api/notifications',
-]
-
-// حداکثر سن cache (7 روز)
-const MAX_CACHE_AGE = 7 * 24 * 60 * 60 * 1000
-
-// =====================================================
-// رویداد نصب (Install)
-// =====================================================
-
+// Install Event - Pre-caching
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing Service Worker...')
+  console.log('[SW] Installing Service Worker...');
   
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Caching static assets...')
-        return cache.addAll(STATIC_ASSETS)
-      })
-      .then(() => {
-        console.log('[SW] Static assets cached successfully')
-        return self.skipWaiting()
-      })
-      .catch((error) => {
-        console.error('[SW] Failed to cache static assets:', error)
-      })
-  )
-})
-
-// =====================================================
-// رویداد فعال‌سازی (Activate)
-// =====================================================
-
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating Service Worker...')
-  
-  event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            // حذف cache های قدیمی
-            if (
-              cacheName !== CACHE_NAME &&
-              cacheName !== RUNTIME_CACHE &&
-              cacheName !== IMAGE_CACHE &&
-              cacheName.startsWith('hooshagar-')
-            ) {
-              console.log('[SW] Deleting old cache:', cacheName)
-              return caches.delete(cacheName)
-            }
-          })
-        )
-      })
-      .then(() => {
-        console.log('[SW] Service Worker activated')
-        return self.clients.claim()
-      })
-  )
-})
-
-// =====================================================
-// رویداد Fetch
-// =====================================================
-
-self.addEventListener('fetch', (event) => {
-  const { request } = event
-  const url = new URL(request.url)
-
-  // فقط برای درخواست‌های همان origin
-  if (url.origin !== location.origin) {
-    return
-  }
-
-  // نادیده گرفتن درخواست‌های خاص
-  if (
-    url.pathname.startsWith('/_next/') ||
-    url.pathname.startsWith('/api/auth/') ||
-    url.pathname.includes('hot-update') ||
-    request.method !== 'GET'
-  ) {
-    return
-  }
-
-  // استراتژی برای API
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirstStrategy(request))
-    return
-  }
-
-  // استراتژی برای تصاویر
-  if (
-    url.pathname.startsWith('/icons/') ||
-    url.pathname.startsWith('/images/') ||
-    request.destination === 'image'
-  ) {
-    event.respondWith(cacheFirstStrategy(request, IMAGE_CACHE))
-    return
-  }
-
-  // استراتژی برای صفحات HTML
-  if (request.mode === 'navigate') {
-    event.respondWith(networkFirstWithFallback(request))
-    return
-  }
-
-  // استراتژی پیش‌فرض: Stale While Revalidate
-  event.respondWith(staleWhileRevalidate(request))
-})
-
-// =====================================================
-// استراتژی‌های Cache
-// =====================================================
-
-/**
- * Network First: اول شبکه، اگر نبود از cache
- */
-async function networkFirstStrategy(request) {
-  try {
-    const networkResponse = await fetch(request)
-    
-    // cache کردن پاسخ موفق
-    if (networkResponse.ok) {
-      const cache = await caches.open(RUNTIME_CACHE)
-      cache.put(request, networkResponse.clone())
-    }
-    
-    return networkResponse
-  } catch (error) {
-    console.log('[SW] Network failed, trying cache:', request.url)
-    const cachedResponse = await caches.match(request)
-    
-    if (cachedResponse) {
-      return cachedResponse
-    }
-    
-    // اگر API است، JSON خالی برگردان
-    return new Response(
-      JSON.stringify({ error: 'آفلاین', offline: true }),
-      {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    )
-  }
-}
-
-/**
- * Cache First: اول cache، اگر نبود از شبکه
- */
-async function cacheFirstStrategy(request, cacheName = RUNTIME_CACHE) {
-  const cachedResponse = await caches.match(request)
-  
-  if (cachedResponse) {
-    return cachedResponse
-  }
-  
-  try {
-    const networkResponse = await fetch(request)
-    
-    if (networkResponse.ok) {
-      const cache = await caches.open(cacheName)
-      cache.put(request, networkResponse.clone())
-    }
-    
-    return networkResponse
-  } catch (error) {
-    console.log('[SW] Failed to fetch:', request.url)
-    return new Response('Resource not available', { status: 404 })
-  }
-}
-
-/**
- * Network First با Fallback به صفحه آفلاین
- */
-async function networkFirstWithFallback(request) {
-  try {
-    const networkResponse = await fetch(request)
-    
-    // cache کردن صفحه برای استفاده آفلاین
-    if (networkResponse.ok) {
-      const cache = await caches.open(RUNTIME_CACHE)
-      cache.put(request, networkResponse.clone())
-    }
-    
-    return networkResponse
-  } catch (error) {
-    console.log('[SW] Navigation failed, trying cache:', request.url)
-    
-    // تلاش برای پیدا کردن از cache
-    const cachedResponse = await caches.match(request)
-    if (cachedResponse) {
-      return cachedResponse
-    }
-    
-    // نمایش صفحه آفلاین
-    const offlinePage = await caches.match('/offline')
-    if (offlinePage) {
-      return offlinePage
-    }
-    
-    // اگر صفحه آفلاین هم نبود
-    return new Response(
-      '<html dir="rtl"><body style="font-family:sans-serif;text-align:center;padding:50px;"><h1>اتصال اینترنت قطع است</h1><p>لطفاً اتصال خود را بررسی کنید.</p></body></html>',
-      {
-        status: 503,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-      }
-    )
-  }
-}
-
-/**
- * Stale While Revalidate: از cache استفاده کن و در پس‌زمینه بروزرسانی کن
- */
-async function staleWhileRevalidate(request) {
-  const cachedResponse = await caches.match(request)
-  
-  // بروزرسانی در پس‌زمینه
-  const fetchPromise = fetch(request)
-    .then((networkResponse) => {
-      if (networkResponse.ok) {
-        caches.open(RUNTIME_CACHE).then((cache) => {
-          cache.put(request, networkResponse.clone())
-        })
-      }
-      return networkResponse
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[SW] Pre-caching app shell');
+      return cache.addAll(PRECACHE_URLS);
     })
-    .catch(() => null)
+  );
   
-  // اگر cache داریم، فوراً برگردان
-  if (cachedResponse) {
-    return cachedResponse
+  // فعال‌سازی فوری
+  self.skipWaiting();
+});
+
+// Activate Event - Clean up old caches
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating Service Worker...');
+  
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((cacheName) => {
+            return cacheName !== CACHE_NAME && 
+                   cacheName !== RUNTIME_CACHE && 
+                   cacheName !== IMAGE_CACHE;
+          })
+          .map((cacheName) => {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+      );
+    })
+  );
+  
+  // کنترل فوری همه clients
+  return self.clients.claim();
+});
+
+// Fetch Event - Caching strategies
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+  
+  // فقط درخواست‌های HTTP/HTTPS
+  if (!url.protocol.startsWith('http')) {
+    return;
   }
   
-  // وگرنه منتظر شبکه بمان
-  return fetchPromise || new Response('Resource not available', { status: 404 })
-}
-
-// =====================================================
-// مدیریت پیام‌ها از Client
-// =====================================================
-
-self.addEventListener('message', (event) => {
-  const { type, payload } = event.data || {}
-
-  switch (type) {
-    case 'SKIP_WAITING':
-      self.skipWaiting()
-      break
-
-    case 'CLEAN_CACHE':
-      cleanOldCache()
-      break
-
-    case 'CACHE_URLS':
-      if (payload && payload.urls) {
-        cacheUrls(payload.urls)
-      }
-      break
-
-    case 'GET_CACHE_SIZE':
-      getCacheSize().then((size) => {
-        event.ports[0].postMessage({ size })
+  // استراتژی‌های مختلف بر اساس نوع درخواست
+  
+  // 1. Navigation requests - Network First
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // کپی response در cache
+          const responseClone = response.clone();
+          caches.open(RUNTIME_CACHE).then((cache) => {
+            cache.put(request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          // اگر آفلاین هستیم، صفحه offline را نمایش بده
+          return caches.match('/offline').then((response) => {
+            return response || new Response('Offline', { status: 503 });
+          });
+        })
+    );
+    return;
+  }
+  
+  // 2. API requests - Network First with cache fallback
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // فقط GET requests را cache کن
+          if (request.method === 'GET' && response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // اگر آفلاین، از cache استفاده کن
+          return caches.match(request).then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            // اگر cache هم نداریم، خطا برگردان
+            return new Response(
+              JSON.stringify({ error: 'شما آفلاین هستید' }),
+              {
+                status: 503,
+                headers: { 'Content-Type': 'application/json' },
+              }
+            );
+          });
+        })
+    );
+    return;
+  }
+  
+  // 3. Images - Cache First
+  if (request.destination === 'image') {
+    event.respondWith(
+      caches.open(IMAGE_CACHE).then((cache) => {
+        return cache.match(request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          
+          return fetch(request).then((response) => {
+            // فقط تصاویر موفق را cache کن
+            if (response.status === 200) {
+              cache.put(request, response.clone());
+            }
+            return response;
+          });
+        });
       })
-      break
-
-    default:
-      console.log('[SW] Unknown message type:', type)
-  }
-})
-
-/**
- * پاکسازی cache های قدیمی
- */
-async function cleanOldCache() {
-  console.log('[SW] Cleaning old cache...')
-  
-  const cache = await caches.open(RUNTIME_CACHE)
-  const requests = await cache.keys()
-  const now = Date.now()
-  
-  for (const request of requests) {
-    const response = await cache.match(request)
-    if (response) {
-      const dateHeader = response.headers.get('date')
-      const cacheDate = dateHeader ? new Date(dateHeader).getTime() : 0
-      
-      if (now - cacheDate > MAX_CACHE_AGE) {
-        console.log('[SW] Deleting old cache entry:', request.url)
-        await cache.delete(request)
-      }
-    }
+    );
+    return;
   }
   
-  console.log('[SW] Cache cleaned')
-}
-
-/**
- * cache کردن URL های مشخص
- */
-async function cacheUrls(urls) {
-  const cache = await caches.open(RUNTIME_CACHE)
-  
-  for (const url of urls) {
-    try {
-      const response = await fetch(url)
-      if (response.ok) {
-        await cache.put(url, response)
-        console.log('[SW] Cached:', url)
-      }
-    } catch (error) {
-      console.error('[SW] Failed to cache:', url)
-    }
+  // 4. Static assets - Cache First with network fallback
+  if (
+    url.pathname.startsWith('/_next/static/') ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname.endsWith('.woff2')
+  ) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        
+        return fetch(request).then((response) => {
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        });
+      })
+    );
+    return;
   }
-}
-
-/**
- * محاسبه حجم cache
- */
-async function getCacheSize() {
-  let totalSize = 0
-  const cacheNames = await caches.keys()
   
-  for (const name of cacheNames) {
-    const cache = await caches.open(name)
-    const requests = await cache.keys()
+  // 5. Default - Network First
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        return response;
+      })
+      .catch(() => {
+        return caches.match(request);
+      })
+  );
+});
+
+// Background Sync - برای ارسال دوباره درخواست‌های ناموفق
+self.addEventListener('sync', (event) => {
+  console.log('[SW] Background sync:', event.tag);
+  
+  if (event.tag === 'sync-notifications') {
+    event.waitUntil(syncNotifications());
+  }
+});
+
+async function syncNotifications() {
+  try {
+    const response = await fetch('/api/notifications?unreadOnly=true');
+    const data = await response.json();
     
-    for (const request of requests) {
-      const response = await cache.match(request)
-      if (response) {
-        const blob = await response.clone().blob()
-        totalSize += blob.size
-      }
+    // نمایش notification اگر اعلان جدید داریم
+    if (data.unreadCount > 0) {
+      self.registration.showNotification('هوشاگر', {
+        body: `شما ${data.unreadCount} اعلان جدید دارید`,
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-96x96.png',
+        tag: 'notification-sync',
+        requireInteraction: false,
+      });
     }
+  } catch (error) {
+    console.error('[SW] Sync failed:', error);
   }
-  
-  return totalSize
 }
 
-// =====================================================
-// Push Notifications
-// =====================================================
-
+// Push Notification
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received')
+  console.log('[SW] Push notification received');
   
-  let data = {
-    title: 'هوشاگر',
-    body: 'پیام جدید دارید',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
-    tag: 'hooshagar-notification',
-  }
+  let data = { title: 'هوشاگر', body: 'اعلان جدید' };
   
   if (event.data) {
     try {
-      data = { ...data, ...event.data.json() }
+      data = event.data.json();
     } catch (e) {
-      data.body = event.data.text()
+      data.body = event.data.text();
     }
   }
   
   const options = {
     body: data.body,
-    icon: data.icon,
-    badge: data.badge,
-    tag: data.tag,
-    vibrate: [100, 50, 100],
-    data: {
-      url: data.url || '/dashboard',
-      dateOfArrival: Date.now(),
-    },
-    actions: data.actions || [
-      { action: 'open', title: 'مشاهده' },
-      { action: 'close', title: 'بستن' },
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-96x96.png',
+    vibrate: [200, 100, 200],
+    tag: data.tag || 'notification',
+    data: data.data || {},
+    actions: [
+      {
+        action: 'open',
+        title: 'مشاهده',
+      },
+      {
+        action: 'close',
+        title: 'بستن',
+      },
     ],
-    dir: 'rtl',
-    lang: 'fa',
-  }
+  };
   
   event.waitUntil(
     self.registration.showNotification(data.title, options)
-  )
-})
+  );
+});
 
+// Notification Click
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked:', event.action)
+  console.log('[SW] Notification clicked:', event.action);
   
-  event.notification.close()
+  event.notification.close();
   
-  if (event.action === 'close') {
-    return
-  }
-  
-  const urlToOpen = event.notification.data?.url || '/dashboard'
-  
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
-        // اگر تب باز است، فوکوس کن
-        for (const client of clientList) {
-          if (client.url.includes(self.location.origin) && 'focus' in client) {
-            client.navigate(urlToOpen)
-            return client.focus()
+  if (event.action === 'open' || !event.action) {
+    // باز کردن برنامه
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        // اگر پنجره‌ای باز است، focus کن
+        for (let client of clientList) {
+          if (client.url.includes('/dashboard') && 'focus' in client) {
+            return client.focus();
           }
         }
-        
-        // وگرنه تب جدید باز کن
+        // اگر پنجره‌ای باز نیست، پنجره جدید باز کن
         if (clients.openWindow) {
-          return clients.openWindow(urlToOpen)
+          return clients.openWindow('/notifications');
         }
       })
-  )
-})
+    );
+  }
+});
 
-// =====================================================
-// Background Sync
-// =====================================================
-
-self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync:', event.tag)
+// Message از Client
+self.addEventListener('message', (event) => {
+  console.log('[SW] Message received:', event.data);
   
-  if (event.tag === 'sync-messages') {
-    event.waitUntil(syncMessages())
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
   
-  if (event.tag === 'sync-offline-data') {
-    event.waitUntil(syncOfflineData())
+  if (event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => caches.delete(cacheName))
+        );
+      })
+    );
   }
-})
+});
 
-async function syncMessages() {
-  console.log('[SW] Syncing messages...')
-  // منطق همگام‌سازی پیام‌ها
-}
-
-async function syncOfflineData() {
-  console.log('[SW] Syncing offline data...')
-  // منطق همگام‌سازی داده‌های آفلاین
-}
-
-// =====================================================
-// Periodic Background Sync
-// =====================================================
-
-self.addEventListener('periodicsync', (event) => {
-  console.log('[SW] Periodic sync:', event.tag)
-  
-  if (event.tag === 'update-content') {
-    event.waitUntil(updateContent())
-  }
-})
-
-async function updateContent() {
-  console.log('[SW] Updating content in background...')
-  // بروزرسانی محتوا در پس‌زمینه
-}
-
-console.log('[SW] Service Worker loaded')
+console.log('[SW] Service Worker loaded successfully!');

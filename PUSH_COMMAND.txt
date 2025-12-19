@@ -1,0 +1,93 @@
+==============================================
+📤 دستورات Push برای GitHub
+==============================================
+
+⚠️ مهم: قبل از push، Personal Access Token بگیرید:
+https://github.com/settings/tokens
+
+دکمه "Generate new token (classic)" را بزنید
+✅ انتخاب کنید: repo (Full control of private repositories)
+✅ کپی کنید token را
+
+==============================================
+🚀 دستور Push (کپی و اجرا کنید):
+==============================================
+
+در PowerShell یا CMD:
+
+cd D:\hooshagar-project
+
+git push https://YOUR_TOKEN_HERE@github.com/pedpeddy60/HooshaGar-Academy-Curser-Test.git master
+
+
+⬇️ TOKEN خود را جایگزین "YOUR_TOKEN_HERE" کنید
+
+
+==============================================
+📋 مثال:
+==============================================
+
+git push https://ghp_aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0@github.com/pedpeddy60/HooshaGar-Academy-Curser-Test.git master
+
+
+==============================================
+✅ بعد از Push موفق:
+==============================================
+
+1. به https://github.com/pedpeddy60/HooshaGar-Academy-Curser-Test بروید
+2. آخرین commit را ببینید
+3. حالا می‌توانید در Vercel deploy کنید
+
+
+==============================================
+🔄 Deploy در Vercel:
+==============================================
+
+1. به https://vercel.com/dashboard بروید
+2. کلیک: "New Project"
+3. Import از GitHub: HooshaGar-Academy-Curser-Test
+4. Environment Variables را اضافه کنید (از env.example)
+5. کلیک: "Deploy"
+
+
+==============================================
+📊 بررسی وضعیت:
+==============================================
+
+# دیدن تغییرات:
+git status
+
+# دیدن commits:
+git log --oneline -10
+
+# دیدن remote URL:
+git remote -v
+
+
+==============================================
+🐛 عیب‌یابی:
+==============================================
+
+❌ Error: "Authentication failed"
+✅ راه حل: Token جدید بگیرید
+
+❌ Error: "Permission denied"
+✅ راه حل: در token، "repo" را انتخاب کنید
+
+❌ Error: "Could not read Username"
+✅ راه حل: از دستور کامل با token استفاده کنید
+
+
+==============================================
+📝 Commits اخیر:
+==============================================
+
+c9db7cb - docs: Add comprehensive setup guide for AI system
+841b51d - docs: Add complete AI system documentation
+9094a9b - feat: complete 8-feature AI system with 10 Gemini keys
+
+
+==============================================
+✨ آماده برای Push!
+==============================================
+

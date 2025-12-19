@@ -61,3 +61,5 @@ ORDER BY created_at DESC;
 -- 3. دوباره وارد شوید (Login)
 -- 4. حالا می‌توانید به /admin/ai-system دسترسی داشته باشید
 
+
+

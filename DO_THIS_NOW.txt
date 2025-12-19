@@ -1,0 +1,109 @@
+==============================================
+⚡ انجام دهید الان - راهنمای سریع
+==============================================
+
+📋 مستند کامل: SETUP_STEP_BY_STEP.md
+
+==============================================
+🔴 مرحله 1: اجرای Migration (5 دقیقه)
+==============================================
+
+1. به https://supabase.com بروید
+2. پروژه hooshagar را باز کنید
+3. SQL Editor را کلیک کنید
+4. فایل را باز کنید:
+   D:\hooshagar-project\supabase\migrations\044_ai_6_tier_system.sql
+5. تمام محتوا را کپی کنید (Ctrl+A, Ctrl+C)
+6. در SQL Editor پیست کنید (Ctrl+V)
+7. دکمه "Run" را بزنید
+
+✅ اگر موفق: "Success. No rows returned"
+
+
+==============================================
+🟡 مرحله 2: کلیدهای Gemini (10 دقیقه)
+==============================================
+
+آیا 10 کلید Gemini دارید؟
+
+❌ خیر:
+   1. به https://aistudio.google.com/app/apikey بروید
+   2. "Create API Key" را 10 بار کلیک کنید
+   3. هر کلید را در Notepad ذخیره کنید
+
+✅ بله:
+   فایل .env.local را باز کنید و چک کنید:
+   
+   GOOGLE_API_KEY_1=AIzaSy...
+   GOOGLE_API_KEY_2=AIzaSy...
+   ...
+   GOOGLE_API_KEY_10=AIzaSy...
+
+
+==============================================
+🟢 مرحله 3: اجرای اسکریپت (2 دقیقه)
+==============================================
+
+در Terminal:
+
+cd D:\hooshagar-project
+npx tsx scripts/setup-gemini-keys.ts
+
+باید ببینید:
+✅ 10 کلید خوانده شد
+✅ کلیدها با موفقیت بروزرسانی شدند
+✅ ظرفیت: 150 درخواست در دقیقه
+
+
+==============================================
+🔵 مرحله 4: تست (2 دقیقه)
+==============================================
+
+1. مرورگر: http://localhost:3000/admin-direct
+2. باید صفحه بالا بیاید ✅
+
+یا در Supabase SQL Editor:
+
+SELECT array_length(gemini_api_keys, 1) as count
+FROM ai_general_settings;
+
+باید ببینید: count = 10
+
+
+==============================================
+🟣 مرحله 5: Push (5 دقیقه)
+==============================================
+
+1. Token بگیرید:
+   https://github.com/settings/tokens
+   → "Generate new token (classic)"
+   → انتخاب کنید: repo
+   → کپی کنید Token
+
+2. Push کنید:
+
+cd D:\hooshagar-project
+
+git push https://YOUR_TOKEN@github.com/pedpeddy60/HooshaGar-Academy-Curser-Test.git master
+
+
+جایگزین کنید: YOUR_TOKEN
+
+
+==============================================
+✅ تمام!
+==============================================
+
+حالا سیستم AI کاملاً فعال است!
+
+📚 مستندات:
+- SETUP_STEP_BY_STEP.md (جزئیات کامل)
+- COMPLETE_AI_SYSTEM.md (قابلیت‌های AI)
+- VERCEL_DEPLOYMENT.md (Deploy در Production)
+
+
+==============================================
+💡 نکته: اگر مشکلی داشتید، SETUP_STEP_BY_STEP.md
+را مطالعه کنید - همه راه‌حل‌ها آنجاست!
+==============================================
+

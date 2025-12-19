@@ -11,6 +11,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { log } from '@/lib/logger';
+import { loadGeminiApiKeys, recordKeyUsage } from '@/lib/ai/gemini-keys';
 
 interface AIRequest {
   feature: string;
@@ -354,7 +355,8 @@ async function callGeminiProxy(params: {
   }
   
   // Round-robin load balancing
-  const apiKey = params.apiKeys[currentGeminiKeyIndex];
+  const keyIndex = currentGeminiKeyIndex;
+  const apiKey = params.apiKeys[keyIndex];
   currentGeminiKeyIndex = (currentGeminiKeyIndex + 1) % params.apiKeys.length;
   
   const messages: any[] = [];
@@ -388,10 +390,12 @@ async function callGeminiProxy(params: {
   
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
+    recordKeyUsage(keyIndex, false); // ثبت خطا
     throw new Error(`Gemini Proxy ${response.status}: ${error.error || 'Unknown error'}`);
   }
   
   const data = await response.json();
+  recordKeyUsage(keyIndex, true); // ثبت موفقیت
   return data.choices[0].message.content;
 }
 

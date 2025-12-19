@@ -47,8 +47,8 @@ npx tsx scripts/setup-gemini-keys.ts
 SELECT 
   feature_name,
   feature_title,
-  tier_a_enabled,
-  tier_b_enabled
+  tier_a_model,
+  tier_b_model
 FROM ai_model_settings
 ORDER BY feature_name;
 ```

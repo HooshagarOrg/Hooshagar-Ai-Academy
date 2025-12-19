@@ -1,0 +1,121 @@
+═══════════════════════════════════════════════════
+🚀 دستور PUSH - الان اجرا کنید!
+═══════════════════════════════════════════════════
+
+✅ 7 کامیت آماده برای Push هستند!
+
+═══════════════════════════════════════════════════
+📋 گام 1: دریافت Token
+═══════════════════════════════════════════════════
+
+به این آدرس بروید:
+👉 https://github.com/settings/tokens
+
+مراحل:
+1. کلیک: "Generate new token (classic)"
+2. نام: Hooshagar Deploy
+3. ✅ انتخاب: repo (Full control of private repositories)
+4. Expiration: 90 days یا No expiration
+5. کلیک: "Generate token"
+6. ⚠️ Token را کپی کنید (فقط یک بار نمایش می‌دهد!)
+
+═══════════════════════════════════════════════════
+🎯 گام 2: اجرای دستور Push
+═══════════════════════════════════════════════════
+
+در PowerShell:
+
+git push https://YOUR_TOKEN@github.com/pedpeddy60/HooshaGar-Academy-Curser-Test.git master
+
+
+⚠️ YOUR_TOKEN را با Token واقعی جایگزین کنید!
+
+
+═══════════════════════════════════════════════════
+📝 مثال:
+═══════════════════════════════════════════════════
+
+اگر Token شما این است:
+ghp_aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2
+
+دستور می‌شود:
+
+git push https://ghp_aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2@github.com/pedpeddy60/HooshaGar-Academy-Curser-Test.git master
+
+
+═══════════════════════════════════════════════════
+✅ نتیجه موفق:
+═══════════════════════════════════════════════════
+
+باید ببینید:
+
+Enumerating objects: 45, done.
+Counting objects: 100% (45/45), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (30/30), done.
+Writing objects: 100% (35/35), 15.23 KiB | 2.17 MiB/s, done.
+Total 35 (delta 20), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (20/20), completed with 5 local objects.
+To https://github.com/pedpeddy60/HooshaGar-Academy-Curser-Test.git
+   b07ec13..e066fca  master -> master
+
+
+✅ موفق! 7 کامیت جدید Push شد!
+
+
+═══════════════════════════════════════════════════
+❌ اگر خطا داد:
+═══════════════════════════════════════════════════
+
+خطا 1: "Authentication failed"
+راه حل: Token اشتباه است. دوباره بگیرید.
+
+خطا 2: "Permission denied"
+راه حل: در Token باید "repo" را انتخاب کرده باشید.
+
+خطا 3: "Could not resolve host"
+راه حل: اتصال اینترنت را چک کنید.
+
+
+═══════════════════════════════════════════════════
+🎯 بعد از Push موفق:
+═══════════════════════════════════════════════════
+
+1. ✅ بررسی GitHub:
+   https://github.com/pedpeddy60/HooshaGar-Academy-Curser-Test
+   
+   باید ببینید:
+   - آخرین commit: e066fca
+   - زمان: چند دقیقه پیش
+   - فایل‌های جدید (CORRECT_TEST_QUERY.sql, ...)
+
+2. ✅ تست سیستم:
+   فایل: TEST_NOW.md
+   مدت: 5 دقیقه
+
+3. ✅ Deploy به Vercel:
+   فایل: VERCEL_DEPLOYMENT.md
+   مدت: 15 دقیقه
+
+
+═══════════════════════════════════════════════════
+💡 نکته امنیتی:
+═══════════════════════════════════════════════════
+
+⚠️ Token را در فایل‌های پروژه ذخیره نکنید!
+⚠️ Token را commit نکنید!
+✅ Token را در Notepad ذخیره کنید (خارج از پروژه)
+✅ می‌توانید Token را چند بار استفاده کنید
+
+
+═══════════════════════════════════════════════════
+🎉 آماده اید!
+═══════════════════════════════════════════════════
+
+فقط یک دستور → Push موفق → تمام! 🚀
+
+
+نویسنده: Cursor AI Agent
+تاریخ: 19 دسامبر 2024
+═══════════════════════════════════════════════════
+

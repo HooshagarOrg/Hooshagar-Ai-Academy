@@ -1,21 +1,26 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key"
-  },
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
   "regions": ["iad1"],
-  "functions": {
-    "app/api/**/*": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
+    "OPENROUTER_API_KEY": "@openrouter_api_key",
+    "GOOGLE_API_KEY_1": "@google_api_key_1",
+    "GOOGLE_API_KEY_2": "@google_api_key_2",
+    "GOOGLE_API_KEY_3": "@google_api_key_3",
+    "GOOGLE_API_KEY_4": "@google_api_key_4",
+    "GOOGLE_API_KEY_5": "@google_api_key_5",
+    "GOOGLE_API_KEY_6": "@google_api_key_6",
+    "GOOGLE_API_KEY_7": "@google_api_key_7",
+    "GOOGLE_API_KEY_8": "@google_api_key_8",
+    "GOOGLE_API_KEY_9": "@google_api_key_9",
+    "GOOGLE_API_KEY_10": "@google_api_key_10",
+    "GEMINI_PROXY_URL": "@gemini_proxy_url"
   },
   "headers": [
     {
@@ -32,23 +37,19 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
-        }
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
         },
         {
-          "key": "Service-Worker-Allowed",
-          "value": "/"
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/login",
+      "permanent": false
+    }
   ]
 }
-
-

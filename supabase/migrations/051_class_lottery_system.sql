@@ -2,39 +2,30 @@
 -- سیستم ثبت‌نام کلاس با قرعه‌کشی - هوشاگر
 -- ═══════════════════════════════════════
 
--- جدول کلاس‌های درسی
-CREATE TABLE IF NOT EXISTS classes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-  
-  -- مشخصات کلاس
-  name TEXT NOT NULL, -- مثلاً "ششم الف"
-  grade INTEGER NOT NULL, -- پایه تحصیلی (1-12)
-  section TEXT, -- بخش (الف، ب، ج، ...)
-  
-  -- معلم
-  teacher_id UUID REFERENCES profiles(id),
-  teacher_name TEXT NOT NULL,
-  
-  -- ظرفیت
-  total_capacity INTEGER NOT NULL DEFAULT 25,
-  admin_reserved INTEGER NOT NULL DEFAULT 0, -- سهمیه مدیر
-  available_capacity INTEGER GENERATED ALWAYS AS (total_capacity - admin_reserved) STORED,
-  current_count INTEGER DEFAULT 0, -- تعداد فعلی دانش‌آموزان
-  
-  -- سال تحصیلی
-  academic_year TEXT NOT NULL, -- مثلاً "1403-1404"
-  
-  -- وضعیت
-  is_active BOOLEAN DEFAULT true,
-  
-  -- توضیحات
-  description TEXT,
-  room_number TEXT, -- شماره کلاس
-  
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+-- اضافه کردن ستون‌های جدید به جدول classes اگر وجود ندارند
+ALTER TABLE classes 
+ADD COLUMN IF NOT EXISTS section TEXT,
+ADD COLUMN IF NOT EXISTS teacher_name TEXT,
+ADD COLUMN IF NOT EXISTS total_capacity INTEGER DEFAULT 25,
+ADD COLUMN IF NOT EXISTS admin_reserved INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS current_count INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS description TEXT,
+ADD COLUMN IF NOT EXISTS room_number TEXT;
+
+-- اضافه کردن ستون محاسباتی available_capacity
+-- نکته: GENERATED ALWAYS نمی‌تواند با IF NOT EXISTS استفاده شود
+-- پس ابتدا چک می‌کنیم وجود دارد یا نه
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'classes' AND column_name = 'available_capacity'
+  ) THEN
+    ALTER TABLE classes 
+    ADD COLUMN available_capacity INTEGER GENERATED ALWAYS AS (total_capacity - admin_reserved) STORED;
+  END IF;
+END $$;
 
 -- جدول تنظیمات قرعه‌کشی
 CREATE TABLE IF NOT EXISTS lottery_settings (
@@ -437,7 +428,7 @@ BEGIN
   WHERE c.school_id = v_setting.school_id
   AND c.grade = v_setting.target_grade
   AND c.academic_year = v_setting.academic_year
-  AND c.is_active = true;
+  AND COALESCE(c.is_active, true) = true;
   
   -- شافل کردن ثبت‌نام‌ها برای عدالت
   FOR v_registration IN 

@@ -351,7 +351,6 @@ BEGIN
     LEFT JOIN classes c ON c.id = s.class_id
     WHERE s.school_id = p_school_id
     AND s.grade = p_from_grade
-    AND s.is_active = true
   LOOP
     -- دریافت آمار عملکرد
     v_performance := get_student_performance_summary(

@@ -14,6 +14,7 @@ import {
   BookOpen,
   MessageSquare,
   Sliders,
+  History,
 } from 'lucide-react'
 
 // آیتم‌های منوی admin
@@ -32,6 +33,11 @@ const adminNavItems = [
     title: 'مدیریت کاربران',
     href: '/admin/users',
     icon: Users,
+  },
+  {
+    title: 'مدیریت انتقال دانش‌آموز',
+    href: '/admin/progression',
+    icon: History,
   },
   {
     title: 'مدیریت اعتبار AI',
@@ -109,6 +115,11 @@ const studentNavItems = [
     title: 'باغ استعداد',
     href: '/student/talent-garden',
     icon: GraduationCap,
+  },
+  {
+    title: 'تاریخچه تحصیلی',
+    href: '/student/academic-history',
+    icon: History,
   },
   {
     title: 'دستیار مطالعه',

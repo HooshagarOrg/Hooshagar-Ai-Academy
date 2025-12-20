@@ -122,3 +122,4 @@ AND column_name IN ('is_active', 'section', 'teacher_name', 'total_capacity');
 
 **حالا Migration 051 اصلاح شده را اجرا کنید!** 🚀
 
+

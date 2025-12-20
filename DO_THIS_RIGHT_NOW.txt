@@ -120,3 +120,4 @@ WHERE table_name IN ('students', 'classes', 'schools', 'profiles');
 
 ✨ موفق باشید! ✨
 
+

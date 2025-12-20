@@ -1,284 +1,281 @@
-# 📋 خلاصه پیاده‌سازی: Google reCAPTCHA v3 + Rate Limiting
+# 📋 خلاصه پیاده‌سازی - فاز 5 تکمیلی
 
-## ✅ کارهای انجام شده
-
-### 1. فایل‌های جدید
-
-| فایل | توضیحات | وضعیت |
-|------|---------|-------|
-| `lib/recaptcha.ts` | تابع verification سمت سرور | ✅ ساخته شد |
-| `lib/rate-limit.ts` | Rate limiting با LRU cache | ✅ ساخته شد |
-| `components/recaptcha-badge.tsx` | Component نمایش badge | ✅ ساخته شد |
-| `scripts/test-recaptcha.js` | اسکریپت تست تنظیمات | ✅ ساخته شد |
-| `RECAPTCHA_SETUP.md` | راهنمای کامل نصب | ✅ ساخته شد |
-| `RECAPTCHA_QUICK_START.md` | راهنمای سریع | ✅ ساخته شد |
-| `SECURITY_FEATURES.md` | مستندات امنیتی | ✅ ساخته شد |
-| `ENV_RECAPTCHA_INSTRUCTIONS.txt` | دستورالعمل env | ✅ ساخته شد |
-
-### 2. فایل‌های بروزرسانی شده
-
-| فایل | تغییرات | وضعیت |
-|------|---------|-------|
-| `app/layout.tsx` | افزودن GoogleReCaptchaProvider | ✅ بروزرسانی شد |
-| `app/(auth)/login/page.tsx` | پیاده‌سازی reCAPTCHA client-side | ✅ بروزرسانی شد |
-| `app/api/auth/login/route.ts` | Verification + Rate Limiting | ✅ بروزرسانی شد |
-| `package.json` | افزودن script test:recaptcha | ✅ بروزرسانی شد |
-
-### 3. پکیج‌های نصب شده
-
-```bash
-✅ react-google-recaptcha-v3@1.10.1
-✅ lru-cache@10.1.0
-```
-
-## 🔍 جزئیات تغییرات
-
-### `lib/recaptcha.ts`
-
-```typescript
-✅ verifyRecaptcha(token, minimumScore = 0.5)
-   - اتصال به Google API
-   - بررسی score (0.0 - 1.0)
-   - Error handling کامل
-   - Logging امنیتی
-
-✅ requireRecaptcha(request, minimumScore)
-   - Middleware helper برای API routes
-   - Parse JSON body
-   - Extract token
-   - Return validation result
-```
-
-### `lib/rate-limit.ts`
-
-```typescript
-✅ rateLimit({ interval, uniqueTokenPerInterval })
-   - LRU Cache برای ذخیره IP ها
-   - TTL برای پاک شدن خودکار
-   - check(limit, token) method
-   - Promise-based API
-
-📊 تنظیمات پیشفرض:
-   - Interval: 60 ثانیه
-   - Cache size: 500 IP
-   - Limit: 5 تلاش در دقیقه
-```
-
-### `app/layout.tsx`
-
-```typescript
-✅ Import GoogleReCaptchaProvider
-✅ Wrap children با Provider
-✅ Config:
-   - reCaptchaKey: از env
-   - language: "fa"
-   - scriptProps: async, defer, appendTo head
-```
-
-### `app/(auth)/login/page.tsx`
-
-```typescript
-✅ Import useGoogleReCaptcha
-✅ Import Shield icon
-✅ executeRecaptcha قبل از submit
-✅ ارسال token به API
-✅ نمایش Badge "محافظت با reCAPTCHA"
-✅ Error handling برای missing reCAPTCHA
-```
-
-### `app/api/auth/login/route.ts`
-
-```typescript
-✅ Import verifyRecaptcha و rateLimit
-✅ Rate limiter با 5 req/min
-✅ Parse request body (email, password, recaptcha_token)
-✅ Validation inputs
-✅ reCAPTCHA verification
-✅ IP tracking از headers
-✅ Logging امنیتی
-✅ Error responses مناسب
-```
-
-## 🔒 ویژگی‌های امنیتی
-
-### 1. reCAPTCHA v3
-- ✅ محافظت خودکار بدون interaction
-- ✅ Score-based validation (0.5 threshold)
-- ✅ شناسایی bot ها
-- ✅ Monitoring در Google Console
-
-### 2. Rate Limiting
-- ✅ 5 تلاش در دقیقه
-- ✅ IP-based tracking
-- ✅ LRU cache با TTL
-- ✅ پیام خطای کاربرپسند
-
-### 3. Input Validation
-- ✅ بررسی وجود تمام فیلدها
-- ✅ Email و password validation
-- ✅ reCAPTCHA token validation
-- ✅ Error messages فارسی
-
-### 4. Logging
-- ✅ Log موفقیت reCAPTCHA + score
-- ✅ Log تلاش‌های ناموفق
-- ✅ Log rate limit exceeded
-- ✅ IP tracking برای مانیتورینگ
-
-## 📊 Flow کامل ورود
-
-```
-1. کاربر وارد /login می‌شود
-   ↓
-2. reCAPTCHA script بارگذاری می‌شود (GoogleReCaptchaProvider)
-   ↓
-3. کاربر email/password وارد می‌کند
-   ↓
-4. کلیک روی "ورود"
-   ↓
-5. executeRecaptcha('login') → دریافت token
-   ↓
-6. POST /api/auth/login با { email, password, recaptcha_token }
-   ↓
-7. سرور: Rate Limiting Check
-   ❌ اگر > 5 req/min → 429 Too Many Requests
-   ✅ اگر OK → ادامه
-   ↓
-8. سرور: reCAPTCHA Verification
-   ❌ اگر score < 0.5 → 400 Bad Request
-   ✅ اگر OK → ادامه
-   ↓
-9. سرور: Supabase Authentication
-   ❌ اگر خطا → 400 Invalid Credentials
-   ✅ اگر OK → 200 Success
-   ↓
-10. کلاینت: Redirect به /dashboard
-```
-
-## 🧪 تست
-
-### دستورات:
-
-```bash
-# تست تنظیمات reCAPTCHA
-npm run test:recaptcha
-
-# راه‌اندازی سرور
-npm run dev
-
-# باز کردن صفحه ورود
-http://localhost:3000/login
-```
-
-### Checklist تست:
-
-- [ ] Badge "محافظت با reCAPTCHA" نمایش داده می‌شود
-- [ ] ورود موفق بدون interaction انجام می‌شود
-- [ ] Console نمایش می‌دهد: "✅ reCAPTCHA verified with score: 0.X"
-- [ ] با 6 تلاش پی در پی، خطای Rate Limit نمایش داده می‌شود
-- [ ] با token نادرست، خطای reCAPTCHA نمایش داده می‌شود
-
-## 📝 کارهای باقی‌مانده (برای کاربر)
-
-### مرحله 1: دریافت Keys
-
-```
-1. مراجعه به: https://www.google.com/recaptcha/admin
-2. ایجاد سایت جدید
-3. انتخاب reCAPTCHA v3
-4. افزودن domain: localhost
-5. دریافت Site Key و Secret Key
-```
-
-### مرحله 2: تنظیم Environment Variables
-
-افزودن به `.env.local`:
-
-```bash
-NEXT_PUBLIC_RECAPTCHA_SITE_KEY=6Lc...xyz
-RECAPTCHA_SECRET_KEY=6Lc...abc
-```
-
-### مرحله 3: تست
-
-```bash
-npm run test:recaptcha
-npm run dev
-```
-
-## 📚 مستندات
-
-| سند | محتوا |
-|-----|-------|
-| `RECAPTCHA_QUICK_START.md` | شروع سریع 5 دقیقه‌ای |
-| `RECAPTCHA_SETUP.md` | راهنمای کامل گام به گام |
-| `SECURITY_FEATURES.md` | تمام ویژگی‌های امنیتی |
-| `ENV_RECAPTCHA_INSTRUCTIONS.txt` | دستورالعمل env variables |
-
-## 🎯 نتیجه
-
-✅ **reCAPTCHA v3** به صورت کامل پیاده‌سازی شد
-✅ **Rate Limiting** برای Login API فعال است
-✅ **Type Safety** کامل با TypeScript
-✅ **Error Handling** جامع
-✅ **Logging** برای مانیتورینگ
-✅ **مستندات** کامل فارسی
-✅ **تست Script** برای بررسی تنظیمات
-
-## ⚡ Performance
-
-- reCAPTCHA: < 1 ثانیه
-- Rate Limit Check: < 5ms
-- Verification API Call: 200-500ms
-- کل overhead: ~500-1000ms
-
-## 🔄 Maintenance
-
-### بررسی داشبورد reCAPTCHA:
-- هفتگی: بررسی آمار و نمرات
-- ماهانه: تنظیم threshold اگر لازم باشد
-- سالانه: بررسی و تمدید domain ها
-
-### Logging:
-- بررسی روزانه logs برای تلاش‌های مشکوک
-- Setup alerts برای تعداد بالای failures
-- Archive logs قدیمی‌تر از 30 روز
+تاریخ: دی ماه 1403
+نسخه: 1.0
 
 ---
 
-## ✅ Commit Message
+## ✅ **موارد پیاده‌سازی شده:**
 
-```bash
-git add .
-git commit -m "feat: add Google reCAPTCHA v3 with rate limiting to login
+### 1️⃣ **صفحه شرایط استفاده و حریم خصوصی**
+📁 `app/(legal)/terms/page.tsx`
 
-- Implement reCAPTCHA v3 verification (lib/recaptcha.ts)
-- Add LRU-based rate limiting (lib/rate-limit.ts)
-- Update login page with reCAPTCHA integration
-- Add rate limiting to login API (5 req/min)
-- Create comprehensive documentation (Persian)
-- Add test script for reCAPTCHA config
-- Install react-google-recaptcha-v3 and lru-cache
+**ویژگی‌ها:**
+- ✅ UI/UX مدرن با کارت‌های جداگانه برای هر بخش
+- ✅ آیکون‌های مناسب برای هر بخش
+- ✅ طراحی Responsive
+- ✅ لینک بازگشت به صفحه ورود
+- ✅ تأکید بر نکات مهم قانونی
 
-Security:
-- Bot protection with score-based validation (>0.5)
-- IP-based rate limiting
-- Security event logging
-- Error handling with user-friendly messages
+**محتوای صفحه:**
+1. ماهیت خدمات
+2. صحت اطلاعات
+3. حفظ حریم خصوصی و داده‌ها
+4. مسئولیت کاربر
+5. محدودیت مسئولیت
+6. مالکیت معنوی
+7. تغییرات
+8. قوانین حاکم
 
-BREAKING CHANGE: Login now requires reCAPTCHA token"
+---
+
+### 2️⃣ **چک‌باکس قبول قوانین در صفحات ورود و ثبت‌نام**
+
+**فایل‌های تغییر یافته:**
+- `app/(auth)/login/page.tsx`
+- `app/(auth)/register/page.tsx`
+
+**ویژگی‌ها:**
+- ✅ چک‌باکس اجباری قبل از ورود/ثبت‌نام
+- ✅ لینک به صفحه شرایط استفاده (باز شدن در تب جدید)
+- ✅ دکمه Submit غیرفعال تا زمان قبول قوانین
+- ✅ طراحی زیبا با پس‌زمینه آبی
+
+---
+
+### 3️⃣ **تاریخ شمسی در تمام صفحات**
+
+**فایل‌های جدید:**
+- `lib/shamsi-date.ts` - الگوریتم تبدیل میلادی به شمسی
+- `components/PersianDate.tsx` - کامپوننت نمایش تاریخ
+- `app/(dashboard)/layout.tsx` - Layout برای داشبورد
+
+**ویژگی‌ها:**
+- ✅ نمایش تاریخ شمسی کامل (روز هفته + تاریخ)
+- ✅ نمایش ساعت فعلی
+- ✅ بروزرسانی خودکار هر دقیقه
+- ✅ نمایش در تمام صفحات داشبورد
+- ✅ نمایش در صفحات ورود/ثبت‌نام
+
+**مثال خروجی:**
+```
+📅 یکشنبه، 29 آذر 1403 • 14:25
 ```
 
 ---
 
-**همه چیز آماده است! فقط Google reCAPTCHA Keys را اضافه کنید 🚀**
+### 4️⃣ **ورود با شماره موبایل + OTP کاوه‌نگار**
 
-تاریخ: آذر 1403
-نسخه: 1.0.0
+**فایل‌های جدید:**
+- `lib/kavenegar.ts` - کتابخانه ارتباط با API کاوه‌نگار
+- `app/api/auth/otp/send/route.ts` - ارسال کد OTP
+- `app/api/auth/otp/verify/route.ts` - تأیید کد OTP
+- `components/OTPLogin.tsx` - کامپوننت ورود با OTP
+- `supabase/migrations/070_otp_authentication.sql` - جدول ذخیره OTP
 
+**ویژگی‌ها:**
+- ✅ ارسال کد 6 رقمی به شماره موبایل
+- ✅ اعتبارسنجی شماره موبایل ایرانی
+- ✅ نرمال‌سازی شماره تلفن
+- ✅ انقضای کد بعد از 5 دقیقه
+- ✅ شمارش معکوس زمان باقیمانده
+- ✅ امکان ارسال مجدد کد
+- ✅ UI دو مرحله‌ای (شماره → کد)
+- ✅ تب‌های انتخاب روش ورود (ایمیل/پیامک)
 
+**جدول Database:**
+```sql
+otp_codes (
+  id UUID PRIMARY KEY,
+  phone TEXT NOT NULL,
+  code TEXT NOT NULL,
+  user_id UUID REFERENCES auth.users,
+  expires_at TIMESTAMPTZ NOT NULL,
+  verified BOOLEAN DEFAULT FALSE,
+  verified_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)
+```
 
+**توابع کمکی:**
+- `sendOTP(phone, code)` - ارسال پیامک
+- `generateOTP()` - تولید کد 6 رقمی
+- `isValidIranianMobileNumber(phone)` - اعتبارسنجی
+- `normalizePhoneNumber(phone)` - نرمال‌سازی
 
+---
 
+### 5️⃣ **تاریخچه تحصیلی در منوی دانش‌آموز**
 
+**فایل تغییر یافته:**
+- `components/sidebar-nav.tsx`
 
+**تغییرات:**
+- ✅ افزودن آیتم "تاریخچه تحصیلی" به منوی دانش‌آموز
+- ✅ افزودن آیتم "مدیریت انتقال دانش‌آموز" به منوی ادمین
+- ✅ آیکون History برای هر دو مورد
+
+---
+
+## 🔧 **تنظیمات مورد نیاز:**
+
+### 1. متغیرهای محیطی (.env.local)
+
+```env
+# کاوه‌نگار API
+KAVENEGAR_API_KEY=your-api-key-here
+```
+
+### 2. اجرای Migration
+
+```bash
+# در Supabase Dashboard → SQL Editor
+# اجرای فایل:
+supabase/migrations/070_otp_authentication.sql
+```
+
+### 3. افزودن ستون phone به profiles
+
+Migration به صورت خودکار این کار را انجام می‌دهد:
+
+```sql
+ALTER TABLE profiles ADD COLUMN phone TEXT UNIQUE;
+CREATE INDEX idx_profiles_phone ON profiles(phone);
+```
+
+---
+
+## 📱 **نحوه استفاده از OTP:**
+
+### برای کاربران:
+
+1. **صفحه ورود** → کلیک روی تب "ورود با پیامک"
+2. وارد کردن شماره موبایل (مثال: `09123456789`)
+3. کلیک "ارسال کد تأیید"
+4. دریافت پیامک با کد 6 رقمی
+5. وارد کردن کد
+6. ورود خودکار به سیستم
+
+### برای توسعه‌دهندگان:
+
+```typescript
+// ارسال OTP
+const response = await fetch('/api/auth/otp/send', {
+  method: 'POST',
+  body: JSON.stringify({ phone: '09123456789' })
+})
+
+// تأیید OTP
+const response = await fetch('/api/auth/otp/verify', {
+  method: 'POST',
+  body: JSON.stringify({ 
+    phone: '09123456789',
+    code: '123456'
+  })
+})
+```
+
+---
+
+## 🚀 **دستورات Git:**
+
+```bash
+# تمام تغییرات کامیت شده است
+git log --oneline -1
+# 88496e1 feat: Complete Phase 5 enhancements
+
+# برای Push:
+git push origin master
+```
+
+---
+
+## ⚠️ **نکات مهم:**
+
+### 1. کاوه‌نگار Template
+
+در پنل کاوه‌نگار باید یک Template با نام `verify` ایجاد کنید:
+
+```
+کد تأیید شما: {token}
+اعتبار: 5 دقیقه
+هوشاگر
+```
+
+### 2. محدودیت‌های امنیتی
+
+- ✅ RLS فعال روی جدول `otp_codes`
+- ✅ هیچ کاربری نمی‌تواند مستقیماً OTP بخواند
+- ✅ کدها بعد از 24 ساعت پاک می‌شوند
+- ✅ هر کد فقط یک بار قابل استفاده است
+
+### 3. Rate Limiting
+
+⚠️ **توصیه می‌شود:**
+- محدودیت 3 درخواست OTP در 10 دقیقه برای هر شماره
+- محدودیت 5 تلاش اشتباه برای تأیید کد
+
+این موارد در نسخه‌های بعدی اضافه خواهد شد.
+
+---
+
+## 🐛 **مشکلات باقیمانده:**
+
+### 1. مشکل access_denied در صفحه دانش‌آموز
+
+**علت:** مشکل احراز هویت یا RBAC در middleware
+
+**راه حل موقت:**
+1. بررسی role کاربر در Supabase
+2. پاک کردن cache مرورگر
+3. Log out و Log in مجدد
+
+### 2. منوی تاریخچه تحصیلی نمایش داده نمی‌شود
+
+**علت:** Dev server نیاز به restart دارد
+
+**راه حل:**
+```bash
+# در ترمینال:
+Ctrl+C
+npm run dev
+```
+
+---
+
+## 📊 **آمار تغییرات:**
+
+```
+11 files changed
+1152 insertions(+)
+574 deletions(-)
+
+فایل‌های جدید: 8
+فایل‌های تغییر یافته: 3
+```
+
+---
+
+## ✨ **نتیجه:**
+
+✅ **تمام درخواست‌های کاربر پیاده‌سازی شد:**
+
+1. ✅ صفحه شرایط استفاده و حریم خصوصی
+2. ✅ چک‌باکس قبول قوانین در ورود/ثبت‌نام
+3. ✅ تاریخ شمسی در همه صفحات
+4. ✅ ورود با شماره موبایل + OTP کاوه‌نگار
+5. ✅ تاریخچه تحصیلی در منوی دانش‌آموز
+
+---
+
+## 📞 **پشتیبانی:**
+
+برای مشکلات یا سوالات:
+- ایمیل: info@hooshagar.ir
+- تلگرام: @hooshagar_support
+
+---
+
+**تاریخ تکمیل:** دی 1403
+**نسخه:** 1.0
+**وضعیت:** ✅ آماده تست و دیپلوی

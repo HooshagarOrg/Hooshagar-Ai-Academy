@@ -9,9 +9,13 @@ import { Mail, Lock, Sparkles, GraduationCap, ArrowRight, Shield } from 'lucide-
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import PersianDate from '@/components/PersianDate'
+import OTPLogin from '@/components/OTPLogin'
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [loginMethod, setLoginMethod] = useState<'email' | 'otp'>('email')
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -47,6 +51,11 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4">
+      {/* Persian Date - Top Right */}
+      <div className="absolute top-4 right-4 z-50">
+        <PersianDate className="text-white/90 backdrop-blur-sm bg-white/10 px-4 py-2 rounded-lg" showIcon={true} />
+      </div>
+      
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500">
         <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-blob" />
@@ -80,28 +89,57 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Login Method Tabs */}
+          <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-6">
+            <button
+              type="button"
+              onClick={() => setLoginMethod('email')}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                loginMethod === 'email'
+                  ? 'bg-white text-purple-600 shadow-md'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Mail className="w-4 h-4 inline-block ml-2" />
+              ورود با ایمیل
+            </button>
+            <button
+              type="button"
+              onClick={() => setLoginMethod('otp')}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                loginMethod === 'otp'
+                  ? 'bg-white text-purple-600 shadow-md'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Lock className="w-4 h-4 inline-block ml-2" />
+              ورود با پیامک
+            </button>
+          </div>
+
+          {loginMethod === 'email' ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
-            <div className="space-y-2">
+          <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
                 ایمیل
               </Label>
               <div className="relative">
                 <Mail className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="example@school.com"
-                  required
-                  disabled={isLoading}
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="example@school.com"
+              required
+              disabled={isLoading}
                   className="pr-12 h-12 bg-gray-50 border-2 border-gray-200 focus:border-purple-500 focus:bg-white rounded-xl transition-all text-right"
-                />
+            />
               </div>
-            </div>
+          </div>
 
             {/* Password */}
-            <div className="space-y-2">
+          <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
                   رمز عبور
@@ -115,16 +153,16 @@ export default function LoginPage() {
               </div>
               <div className="relative">
                 <Lock className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  disabled={isLoading}
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              required
+              disabled={isLoading}
                   className="pr-12 h-12 bg-gray-50 border-2 border-gray-200 focus:border-purple-500 focus:bg-white rounded-xl transition-all text-right"
-                />
-              </div>
+            />
+          </div>
             </div>
 
             {/* Remember Me */}
@@ -139,11 +177,33 @@ export default function LoginPage() {
               </label>
             </div>
 
+            {/* Terms Acceptance */}
+            <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="w-5 h-5 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+              />
+              <label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed">
+                با ورود،{' '}
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
+                >
+                  شرایط استفاده و حریم خصوصی
+                </Link>
+                {' '}را می‌پذیرم.
+              </label>
+            </div>
+
             {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-12 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-bold rounded-xl shadow-lg shadow-purple-500/50 transition-all duration-300 transform hover:scale-[1.02]"
+          <Button
+            type="submit"
+              disabled={isLoading || !acceptedTerms}
+              className="w-full h-12 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-bold rounded-xl shadow-lg shadow-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -156,8 +216,11 @@ export default function LoginPage() {
                   <ArrowRight className="w-5 h-5" />
                 </div>
               )}
-            </Button>
+          </Button>
           </form>
+          ) : (
+            <OTPLogin onSuccess={() => router.push('/dashboard')} />
+          )}
 
           {/* Divider */}
           <div className="relative my-8">
@@ -172,14 +235,14 @@ export default function LoginPage() {
           {/* Register Link */}
           <div className="text-center">
             <p className="text-gray-600">
-              حساب کاربری ندارید؟{' '}
-              <Link
-                href="/register"
+            حساب کاربری ندارید؟{' '}
+            <Link
+              href="/register"
                 className="text-purple-600 hover:text-purple-700 font-bold hover:underline"
-              >
-                ثبت‌نام کنید
-              </Link>
-            </p>
+            >
+              ثبت‌نام کنید
+            </Link>
+          </p>
           </div>
 
           {/* Security Badge */}

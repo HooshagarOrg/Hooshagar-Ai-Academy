@@ -38,6 +38,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [selectedRole, setSelectedRole] = useState<string>('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   const {
     register,
@@ -247,11 +248,33 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Terms Acceptance */}
+            <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <input
+                type="checkbox"
+                id="terms-register"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="w-5 h-5 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+              />
+              <label htmlFor="terms-register" className="text-sm text-gray-700 leading-relaxed">
+                با ثبت‌نام،{' '}
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
+                >
+                  شرایط استفاده و حریم خصوصی
+                </Link>
+                {' '}را می‌پذیرم.
+              </label>
+            </div>
+
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full h-12 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/50 transition-all duration-300 transform hover:scale-[1.02]"
+              disabled={isLoading || !acceptedTerms}
+              className="w-full h-12 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/50 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">

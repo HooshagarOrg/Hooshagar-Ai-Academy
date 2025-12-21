@@ -58,6 +58,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return <>{children}</>
   }
 
+  // اگر role هنوز تعیین نشده، loading نشان بده
+  if (!role) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600">در حال بارگذاری...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
       {/* Top Bar */}

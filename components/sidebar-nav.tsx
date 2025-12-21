@@ -147,6 +147,17 @@ export function SidebarNav({ role }: SidebarNavProps) {
     student: studentNavItems,
   }[role]
 
+  // اگر navItems undefined بود، یعنی role نامعتبر است
+  if (!navItems || !Array.isArray(navItems)) {
+    return (
+      <nav className="space-y-1" dir="rtl">
+        <div className="text-sm text-gray-500 p-3">
+          در حال بارگذاری منو...
+        </div>
+      </nav>
+    )
+  }
+
   return (
     <nav className="space-y-1" dir="rtl">
       {navItems.map((item) => {

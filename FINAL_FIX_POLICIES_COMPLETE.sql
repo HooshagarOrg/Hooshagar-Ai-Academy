@@ -76,8 +76,6 @@ BEGIN
 END $$;
 
 -- بخش 4: ایجاد مجدد همه policies
-RAISE NOTICE '=== شروع ایجاد policies جدید ===';
-
 -- sms_templates (3 policies)
 CREATE POLICY "معلمان و ادمین می‌توانند الگوهای پیامک را ببینند"
 ON sms_templates FOR SELECT

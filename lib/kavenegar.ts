@@ -54,23 +54,23 @@ export async function sendOTP(phoneNumber: string, code: string): Promise<{ succ
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        receptor: formattedPhone,
-        token: code,
-        template: template,
+      receptor: formattedPhone,
+      token: code,
+      template: template,
       }),
     })
 
     if (!response.ok) {
       const error: KavenegarError = await response.json()
       console.error('Kavenegar API error:', error)
-      return { 
-        success: false, 
+      return {
+        success: false,
         message: `خطا در ارسال پیامک: ${error.return?.message || 'خطای ناشناخته'}` 
       }
     }
 
     const data: KavenegarResponse = await response.json()
-    
+
     if (data.return.status === 200) {
       return {
         success: true,

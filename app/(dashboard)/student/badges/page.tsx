@@ -130,8 +130,8 @@ export default function StudentBadgesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} className="h-64 bg-white/10 rounded-2xl animate-pulse" />
-            ))}
-          </div>
+          ))}
+        </div>
         </div>
       </div>
     )
@@ -145,7 +145,7 @@ export default function StudentBadgesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+      {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4">
             🏆 نشان‌های من
@@ -177,9 +177,9 @@ export default function StudentBadgesPage() {
                   onClick={() => handleUnlockBadge(badge.id)}
                 />
               ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Badge‌های دریافت شده */}
         {badges.length > 0 && (
@@ -187,7 +187,7 @@ export default function StudentBadgesPage() {
             <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
               <span className="text-4xl">✅</span>
               دریافت شده
-            </h2>
+              </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {badges.map(studentBadge => (
                 <BadgeCard
@@ -198,8 +198,8 @@ export default function StudentBadgesPage() {
                 />
               ))}
             </div>
-          </div>
-        )}
+                </div>
+              )}
 
         {/* Badge‌های قفل شده */}
         {lockedBadges.length > 0 && (
@@ -218,7 +218,7 @@ export default function StudentBadgesPage() {
                 />
               ))}
             </div>
-          </div>
+                  </div>
         )}
 
         {/* Empty State */}
@@ -230,10 +230,10 @@ export default function StudentBadgesPage() {
             </h2>
             <p className="text-xl text-white/70">
               با کسب امتیاز، نشان‌های خود را دریافت کن!
-            </p>
-          </div>
-        )}
-      </div>
+                    </p>
+                  </div>
+                  )}
+                </div>
     </div>
   )
 }

@@ -143,3 +143,4 @@ Access denied: student tried to access /admin/ai-system
 
 4. تمام tabs مرورگر localhost:3000 را ببندید و دوباره باز کنید
 
+

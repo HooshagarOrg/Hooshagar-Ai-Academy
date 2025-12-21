@@ -266,3 +266,5 @@ ${subjectsMap[targetExam].join('، ')}
 
 
 
+
+

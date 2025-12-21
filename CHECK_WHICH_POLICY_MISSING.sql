@@ -4,13 +4,7 @@
 SELECT 
     tablename,
     policyname,
-    CASE polcmd 
-        WHEN 'r' THEN 'SELECT'
-        WHEN 'a' THEN 'INSERT'
-        WHEN 'w' THEN 'UPDATE'
-        WHEN 'd' THEN 'DELETE'
-        WHEN '*' THEN 'ALL'
-    END as command_type
+    cmd as command_type
 FROM pg_policies 
 WHERE tablename IN (
     'sms_templates', 

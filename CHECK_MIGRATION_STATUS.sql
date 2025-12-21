@@ -53,18 +53,18 @@ WHERE tablename IN (
 -- 5. بررسی تاریخ آخرین تغییر جداول
 SELECT 
     schemaname,
-    tablename,
+    relname as tablename,
     last_vacuum,
     last_autovacuum,
     last_analyze,
     last_autoanalyze
 FROM pg_stat_user_tables
-WHERE tablename IN (
+WHERE relname IN (
     'sms_templates', 
     'sms_logs', 
     'school_sms_settings', 
     'financial_reports', 
     'daily_financial_stats'
 )
-ORDER BY tablename;
+ORDER BY relname;
 

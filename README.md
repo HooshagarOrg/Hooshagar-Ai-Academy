@@ -593,13 +593,13 @@ Student & {
 | **SMS Kavenegar** | ~$3 | ~$3 | - |
 | **جمع** | **~$90/ماه** | **~$40/ماه** | **50% کاهش** |
 
-### بهینه‌سازی هزینه
+### استراتژی کاهش هزینه فوری
 
-1. ✅ **Google Gemini API به عنوان پیشفرض** (1,500 درخواست/روز رایگان)
-2. ✅ **OpenRouter فقط برای fallback** یا زمانی که Google fail شد
+1. ✅ **Google Gemini API را به عنوان پیشفرض ست کنید** (1,500 درخواست/روز رایگان)
+2. ✅ **OpenRouter فقط برای Claude/Kimi** یا زمانی که Google fail شد یا rate limit خورد
 3. ✅ **Caching با Redis**: پاسخ‌های AI را 24 ساعت نگهداری کنید
-4. ✅ **Rate limiting**: جلوگیری از abuse (5 req/min)
-5. ✅ **استراتژی `maxRetries: 0`** برای Gemini
+4. ✅ **Rate limiting**: جلوگیری از abuse و اسپم (5 req/min)
+5. ✅ **استراتژی `maxRetries: 0` برای Gemini** تا به fallback نرود
 
 ---
 

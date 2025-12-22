@@ -54,9 +54,6 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-12 text-sm text-muted-foreground">
-          <p>استراتژی Gemini First 🚀 | کاهش 80% هزینه AI</p>
-        </div>
       </div>
     </main>
   )

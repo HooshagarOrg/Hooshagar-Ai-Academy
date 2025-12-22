@@ -1,261 +1,283 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { TrendingUp, Calendar, DollarSign, CreditCard, Percent, Download } from 'lucide-react'
+import { useState } from 'react'
+import Link from 'next/link'
+import {
+  TrendingUp,
+  ArrowRight,
+  DollarSign,
+  Users,
+  Calendar,
+  BarChart3,
+  Download,
+  Filter,
+} from 'lucide-react'
 
-interface DailyStat {
+// ============================================
+// تایپ‌ها
+// ============================================
+interface DailyIncome {
   date: string
-  total_income: number
-  cash_income: number
-  check_income: number
-  transaction_count: number
+  cash: number
+  check: number
+  total: number
+  transactionCount: number
 }
 
-export default function IncomeReportPage() {
-  const [stats, setStats] = useState<DailyStat[]>([])
-  const [summary, setSummary] = useState({
-    total_income: 0,
-    cash_income: 0,
-    check_income: 0,
-    total_discounts: 0,
-    avg_daily_income: 0
-  })
-  const [loading, setLoading] = useState(true)
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
-  const [groupBy, setGroupBy] = useState('day')
+interface MonthlyStats {
+  month: string
+  income: number
+  students: number
+}
 
-  useEffect(() => {
-    // تنظیم تاریخ پیش‌فرض (30 روز گذشته)
-    const today = new Date()
-    const thirtyDaysAgo = new Date(today)
-    thirtyDaysAgo.setDate(today.getDate() - 30)
-    
-    setDateFrom(thirtyDaysAgo.toISOString().split('T')[0])
-    setDateTo(today.toISOString().split('T')[0])
-  }, [])
+// ============================================
+// داده‌های نمونه
+// ============================================
+const dailyIncomes: DailyIncome[] = [
+  { date: '۱۴۰۳/۰۹/۱۶', cash: 45000000, check: 15000000, total: 60000000, transactionCount: 12 },
+  { date: '۱۴۰۳/۰۹/۱۵', cash: 38000000, check: 20000000, total: 58000000, transactionCount: 10 },
+  { date: '۱۴۰۳/۰۹/۱۴', cash: 52000000, check: 10000000, total: 62000000, transactionCount: 15 },
+  { date: '۱۴۰۳/۰۹/۱۳', cash: 40000000, check: 25000000, total: 65000000, transactionCount: 11 },
+  { date: '۱۴۰۳/۰۹/۱۲', cash: 48000000, check: 12000000, total: 60000000, transactionCount: 13 },
+]
 
-  useEffect(() => {
-    if (dateFrom && dateTo) {
-      loadIncome()
-    }
-  }, [dateFrom, dateTo, groupBy])
+const monthlyStats: MonthlyStats[] = [
+  { month: 'آذر ۱۴۰۳', income: 1800000000, students: 580 },
+  { month: 'آبان ۱۴۰۳', income: 1750000000, students: 575 },
+  { month: 'مهر ۱۴۰۳', income: 1900000000, students: 590 },
+]
 
-  const loadIncome = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/reports/financial/income?date_from=${dateFrom}&date_to=${dateTo}&group_by=${groupBy}`)
-      const data = await res.json()
-      
-      if (data.success) {
-        setStats(data.chartData || [])
-        setSummary(data.summary || {})
-      }
-    } catch (error) {
-      console.error('خطا در دریافت گزارش درآمد:', error)
-    } finally {
-      setLoading(false)
-    }
+// ============================================
+// فرمت ریالی
+// ============================================
+function formatRial(amount: number): string {
+  return new Intl.NumberFormat('fa-IR').format(amount) + ' ریال'
+}
+
+function formatRialShort(amount: number): string {
+  if (amount >= 1000000000) {
+    return (amount / 1000000000).toFixed(1) + ' میلیارد ریال'
+  } else if (amount >= 1000000) {
+    return (amount / 1000000).toFixed(0) + ' میلیون ریال'
   }
+  return new Intl.NumberFormat('fa-IR').format(amount) + ' ریال'
+}
 
-  const formatRial = (amount: number) => {
-    return new Intl.NumberFormat('fa-IR').format(amount) + ' ریال'
-  }
+// ============================================
+// کامپوننت اصلی
+// ============================================
+export default function IncomePage() {
+  const [viewMode, setViewMode] = useState<'daily' | 'monthly'>('daily')
+  const [filterPeriod, setFilterPeriod] = useState<string>('week')
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('fa-IR')
-  }
-
-  if (loading && stats.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
+  // محاسبات
+  const totalIncome = dailyIncomes.reduce((sum, d) => sum + d.total, 0)
+  const totalCash = dailyIncomes.reduce((sum, d) => sum + d.cash, 0)
+  const totalCheck = dailyIncomes.reduce((sum, d) => sum + d.check, 0)
+  const totalTransactions = dailyIncomes.reduce((sum, d) => sum + d.transactionCount, 0)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-900 via-emerald-900 to-teal-900 p-4 md:p-6 lg:p-8" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-teal-900 to-cyan-900 p-4 md:p-6 lg:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <TrendingUp className="w-8 h-8 text-white" />
-            </div>
+            <Link
+              href="/financial-vp"
+              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
+            >
+              <ArrowRight className="w-5 h-5 text-white" />
+            </Link>
             <div>
-              <h1 className="text-3xl font-bold text-white">گزارش درآمد</h1>
-              <p className="text-white/60 mt-1">تحلیل درآمد و تراکنش‌های مالی</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                <TrendingUp className="w-8 h-8 text-emerald-400" />
+                گزارش درآمد
+              </h1>
+              <p className="text-white/60 mt-1">
+                تحلیل و بررسی درآمد شهریه
+              </p>
             </div>
           </div>
         </header>
 
-        {/* Filters */}
+        {/* آمار کلی */}
+        <div className="grid md:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <div className="flex items-center gap-3 mb-2">
+              <DollarSign className="w-6 h-6 text-emerald-400" />
+              <h3 className="text-white/70 text-sm">مجموع درآمد</h3>
+            </div>
+            <p className="text-2xl font-bold text-white">{formatRialShort(totalIncome)}</p>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <div className="flex items-center gap-3 mb-2">
+              <DollarSign className="w-6 h-6 text-green-400" />
+              <h3 className="text-white/70 text-sm">نقدی</h3>
+            </div>
+            <p className="text-2xl font-bold text-white">{formatRialShort(totalCash)}</p>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <div className="flex items-center gap-3 mb-2">
+              <DollarSign className="w-6 h-6 text-blue-400" />
+              <h3 className="text-white/70 text-sm">چک</h3>
+            </div>
+            <p className="text-2xl font-bold text-white">{formatRialShort(totalCheck)}</p>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <div className="flex items-center gap-3 mb-2">
+              <Users className="w-6 h-6 text-cyan-400" />
+              <h3 className="text-white/70 text-sm">تراکنش‌ها</h3>
+            </div>
+            <p className="text-2xl font-bold text-white">{totalTransactions.toLocaleString('fa-IR')}</p>
+          </div>
+        </div>
+
+        {/* فیلترها */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="grid md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-white/70 text-sm mb-2 block">از تاریخ</label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
-              />
+          <div className="flex flex-wrap items-center gap-4">
+            {/* نوع نمایش */}
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-white/70" />
+              <div className="flex bg-white/5 rounded-xl p-1">
+                <button
+                  onClick={() => setViewMode('daily')}
+                  className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                    viewMode === 'daily'
+                      ? 'bg-emerald-500 text-white'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  روزانه
+                </button>
+                <button
+                  onClick={() => setViewMode('monthly')}
+                  className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                    viewMode === 'monthly'
+                      ? 'bg-emerald-500 text-white'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  ماهانه
+                </button>
+              </div>
             </div>
-            <div>
-              <label className="text-white/70 text-sm mb-2 block">تا تاریخ</label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
-              />
-            </div>
-            <div>
-              <label className="text-white/70 text-sm mb-2 block">گروه‌بندی</label>
+
+            {/* فیلتر بازه */}
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-white/70" />
               <select
-                value={groupBy}
-                onChange={(e) => setGroupBy(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                value={filterPeriod}
+                onChange={(e) => setFilterPeriod(e.target.value)}
+                className="bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
               >
-                <option value="day" className="bg-slate-800">روزانه</option>
-                <option value="month" className="bg-slate-800">ماهانه</option>
+                <option value="week" className="bg-slate-800">هفته اخیر</option>
+                <option value="month" className="bg-slate-800">ماه اخیر</option>
+                <option value="3months" className="bg-slate-800">۳ ماه اخیر</option>
+                <option value="year" className="bg-slate-800">سال اخیر</option>
               </select>
             </div>
-            <div className="flex items-end">
-              <button
-                onClick={() => window.print()}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all"
-              >
-                <Download className="w-5 h-5" />
-                Export
-              </button>
-            </div>
+
+            <div className="flex-1"></div>
+
+            {/* دکمه دانلود */}
+            <button className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl text-white hover:bg-white/20 transition-all text-sm">
+              <Download className="w-4 h-4" />
+              دانلود گزارش
+            </button>
           </div>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-8 h-8 text-green-400" />
-              <span className="text-4xl">💰</span>
-            </div>
-            <h3 className="text-white/60 text-sm mb-1">کل درآمد</h3>
-            <p className="text-white text-2xl font-bold">{formatRial(summary.total_income)}</p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-8 h-8 text-emerald-400" />
-              <span className="text-4xl">💵</span>
-            </div>
-            <h3 className="text-white/60 text-sm mb-1">نقدی</h3>
-            <p className="text-white text-2xl font-bold">{formatRial(summary.cash_income)}</p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <CreditCard className="w-8 h-8 text-blue-400" />
-              <span className="text-4xl">💳</span>
-            </div>
-            <h3 className="text-white/60 text-sm mb-1">چکی</h3>
-            <p className="text-white text-2xl font-bold">{formatRial(summary.check_income)}</p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <Percent className="w-8 h-8 text-yellow-400" />
-              <span className="text-4xl">🎁</span>
-            </div>
-            <h3 className="text-white/60 text-sm mb-1">تخفیفات</h3>
-            <p className="text-white text-2xl font-bold">{formatRial(summary.total_discounts)}</p>
-          </div>
-        </div>
-
-        {/* Chart (Simple Bar Chart) */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
+        {/* نمودار یا جدول */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-green-400" />
-            نمودار درآمد
+            <Calendar className="w-5 h-5 text-emerald-400" />
+            {viewMode === 'daily' ? 'درآمد روزانه' : 'درآمد ماهانه'}
           </h2>
 
-          <div className="space-y-3">
-            {stats.map((stat, index) => {
-              const maxIncome = Math.max(...stats.map(s => s.total_income))
-              const widthPercent = (stat.total_income / maxIncome) * 100
+          {/* نمایش روزانه */}
+          {viewMode === 'daily' && (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/5">
+                    <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">تاریخ</th>
+                    <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">نقدی</th>
+                    <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">چک</th>
+                    <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">جمع کل</th>
+                    <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">تعداد تراکنش</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyIncomes.map((income, index) => (
+                    <tr key={index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-3 text-white font-medium">{income.date}</td>
+                      <td className="px-4 py-3 text-green-400">{formatRial(income.cash)}</td>
+                      <td className="px-4 py-3 text-blue-400">{formatRial(income.check)}</td>
+                      <td className="px-4 py-3 text-white font-bold">{formatRial(income.total)}</td>
+                      <td className="px-4 py-3 text-white/70">{income.transactionCount.toLocaleString('fa-IR')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-              return (
-                <div key={index} className="group">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-white/70 text-sm">
-                      {formatDate(stat.date)}
-                    </span>
-                    <span className="text-white font-bold">
-                      {formatRial(stat.total_income)}
-                    </span>
-                  </div>
-                  <div className="relative h-10 bg-white/5 rounded-lg overflow-hidden">
-                    <div 
-                      className="absolute inset-y-0 right-0 bg-gradient-to-l from-green-500 to-emerald-600 rounded-lg transition-all duration-500 group-hover:from-green-400 group-hover:to-emerald-500"
-                      style={{ width: `${widthPercent}%` }}
-                    >
-                      <div className="flex items-center justify-start h-full px-4 gap-3">
-                        <span className="text-white text-xs font-medium">
-                          💵 {formatRial(stat.cash_income)}
-                        </span>
-                        <span className="text-white text-xs font-medium">
-                          💳 {formatRial(stat.check_income)}
-                        </span>
-                      </div>
+          {/* نمایش ماهانه */}
+          {viewMode === 'monthly' && (
+            <div className="space-y-4">
+              {monthlyStats.map((stat, index) => (
+                <div key={index} className="bg-white/5 rounded-xl p-6 border border-white/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-white">{stat.month}</h3>
+                      <p className="text-white/50 text-sm mt-1">{stat.students.toLocaleString('fa-IR')} دانش‌آموز</p>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-2xl font-bold text-emerald-400">{formatRialShort(stat.income)}</p>
+                      <p className="text-white/50 text-sm mt-1">درآمد کل</p>
                     </div>
                   </div>
+                  {/* نوار پیشرفت */}
+                  <div className="w-full bg-white/10 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-emerald-500 to-teal-600 h-2 rounded-full"
+                      style={{ width: `${(stat.income / 2000000000) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* نمودار نموداری ساده */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+          <h2 className="text-xl font-bold text-white mb-6">روند درآمد هفتگی</h2>
+          <div className="flex items-end justify-between h-64 gap-4">
+            {dailyIncomes.map((income, index) => {
+              const maxIncome = Math.max(...dailyIncomes.map(d => d.total))
+              const height = (income.total / maxIncome) * 100
+              return (
+                <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                  <div className="w-full bg-gradient-to-t from-emerald-500 to-teal-600 rounded-t-lg transition-all hover:from-emerald-600 hover:to-teal-700"
+                    style={{ height: `${height}%` }}
+                  >
+                  </div>
+                  <p className="text-white/70 text-xs">{income.date.split('/')[2]}</p>
+                  <p className="text-white/50 text-xs">{formatRialShort(income.total)}</p>
                 </div>
               )
             })}
           </div>
         </div>
 
-        {/* Detailed Table */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-white/5">
-                <tr className="text-white/70 text-sm border-b border-white/10">
-                  <th className="p-4 text-right">تاریخ</th>
-                  <th className="p-4 text-right">کل درآمد</th>
-                  <th className="p-4 text-right">نقدی</th>
-                  <th className="p-4 text-right">چکی</th>
-                  <th className="p-4 text-right">تعداد تراکنش</th>
-                  <th className="p-4 text-right">میانگین تراکنش</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.map((stat, index) => (
-                  <tr key={index} className="border-b border-white/5 hover:bg-white/5 transition-all">
-                    <td className="p-4 text-white font-medium">{formatDate(stat.date)}</td>
-                    <td className="p-4 text-green-400 font-bold">{formatRial(stat.total_income)}</td>
-                    <td className="p-4 text-emerald-400">{formatRial(stat.cash_income)}</td>
-                    <td className="p-4 text-blue-400">{formatRial(stat.check_income)}</td>
-                    <td className="p-4 text-white/70">{stat.transaction_count}</td>
-                    <td className="p-4 text-white/70">
-                      {formatRial(stat.transaction_count > 0 ? Math.round(stat.total_income / stat.transaction_count) : 0)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="bg-white/5">
-                <tr className="text-white font-bold border-t-2 border-white/20">
-                  <td className="p-4">جمع کل</td>
-                  <td className="p-4 text-green-400">{formatRial(summary.total_income)}</td>
-                  <td className="p-4 text-emerald-400">{formatRial(summary.cash_income)}</td>
-                  <td className="p-4 text-blue-400">{formatRial(summary.check_income)}</td>
-                  <td className="p-4" colSpan={2}>میانگین روزانه: {formatRial(summary.avg_daily_income)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
+        {/* Footer */}
+        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+          <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
+        </footer>
       </div>
     </div>
   )

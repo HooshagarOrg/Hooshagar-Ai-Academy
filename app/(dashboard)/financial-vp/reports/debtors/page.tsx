@@ -1,275 +1,317 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { 
-  AlertCircle,
-  Send,
-  Download,
-  TrendingDown,
-  Users,
+import { useState } from 'react'
+import Link from 'next/link'
+import {
   DollarSign,
-  FileText,
-  Search,
-  Filter as FilterIcon
+  ArrowRight,
+  Users,
+  AlertTriangle,
+  Filter,
+  Download,
+  MessageSquare,
+  CheckCircle2,
+  Loader2,
 } from 'lucide-react'
 
+// ============================================
+// تایپ‌ها
+// ============================================
 interface Debtor {
-  student_id: string
-  student_name: string
-  class_name: string
-  parent_name: string
-  parent_phone: string
-  total_tuition: number
-  discount_amount: number
-  paid_amount: number
-  remaining_amount: number
+  id: string
+  studentName: string
+  className: string
+  parentName: string
+  parentPhone: string
+  totalTuition: number
+  paid: number
+  remaining: number
+  daysOverdue: number
 }
 
-export default function DebtorsReportPage() {
-  const [debtors, setDebtors] = useState<Debtor[]>([])
-  const [summary, setSummary] = useState({
-    total_debtors: 0,
-    total_debt: 0,
-    avg_debt: 0
+// ============================================
+// داده‌های نمونه
+// ============================================
+const debtors: Debtor[] = [
+  {
+    id: '1',
+    studentName: 'علی محمدی',
+    className: 'چهارم الف',
+    parentName: 'محمد محمدی',
+    parentPhone: '09123456789',
+    totalTuition: 50000000,
+    paid: 30000000,
+    remaining: 20000000,
+    daysOverdue: 45,
+  },
+  {
+    id: '2',
+    studentName: 'محمد احمدی',
+    className: 'چهارم ب',
+    parentName: 'احمد احمدی',
+    parentPhone: '09121234567',
+    totalTuition: 50000000,
+    paid: 20000000,
+    remaining: 30000000,
+    daysOverdue: 60,
+  },
+  {
+    id: '3',
+    studentName: 'زهرا کریمی',
+    className: 'پنجم الف',
+    parentName: 'حسین کریمی',
+    parentPhone: '09129876543',
+    totalTuition: 55000000,
+    paid: 40000000,
+    remaining: 15000000,
+    daysOverdue: 30,
+  },
+  {
+    id: '4',
+    studentName: 'فاطمه رضایی',
+    className: 'پنجم ب',
+    parentName: 'رضا رضایی',
+    parentPhone: '09122345678',
+    totalTuition: 55000000,
+    paid: 35000000,
+    remaining: 20000000,
+    daysOverdue: 50,
+  },
+]
+
+// ============================================
+// فرمت ریالی
+// ============================================
+function formatRial(amount: number): string {
+  return new Intl.NumberFormat('fa-IR').format(amount) + ' ریال'
+}
+
+// ============================================
+// کامپوننت اصلی
+// ============================================
+export default function DebtorsPage() {
+  const [filterClass, setFilterClass] = useState<string>('all')
+  const [filterDays, setFilterDays] = useState<string>('all')
+  const [selectedDebtors, setSelectedDebtors] = useState<Set<string>>(new Set())
+  const [isSendingSMS, setIsSendingSMS] = useState(false)
+  const [smsSent, setSmsSent] = useState(false)
+
+  // محاسبات
+  const totalDebt = debtors.reduce((sum, d) => sum + d.remaining, 0)
+  const totalDebtors = debtors.length
+
+  // فیلتر
+  const filteredDebtors = debtors.filter(d => {
+    if (filterClass !== 'all' && !d.className.includes(filterClass)) return false
+    if (filterDays === '30' && d.daysOverdue < 30) return false
+    if (filterDays === '60' && d.daysOverdue < 60) return false
+    return true
   })
-  const [loading, setLoading] = useState(true)
-  const [minDebt, setMinDebt] = useState(0)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedDebtors, setSelectedDebtors] = useState<string[]>([])
-  const [showSMSModal, setShowSMSModal] = useState(false)
-  const [smsMessage, setSmsMessage] = useState('والد گرامی {parent_name}، بدهی شهریه فرزندتان {student_name} ({class_name}) به مبلغ {amount} ریال می‌باشد. لطفاً در اسرع وقت پرداخت فرمایید. مدرسه هوشاگر')
 
-  useEffect(() => {
-    loadDebtors()
-  }, [minDebt])
-
-  const loadDebtors = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/reports/financial/debtors?min_debt=${minDebt}`)
-      const data = await res.json()
-      
-      if (data.success) {
-        setDebtors(data.debtors || [])
-        setSummary(data.summary || { total_debtors: 0, total_debt: 0, avg_debt: 0 })
-      }
-    } catch (error) {
-      console.error('خطا در دریافت بدهکاران:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSendSMS = async () => {
-    const recipients = selectedDebtors.map(studentId => {
-      const debtor = debtors.find(d => d.student_id === studentId)
-      return {
-        phone: debtor?.parent_phone,
-        name: debtor?.parent_name,
-        student_id: studentId
-      }
-    })
-
-    try {
-      const res = await fetch('/api/sms/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          recipients,
-          message: smsMessage
-        })
-      })
-
-      const data = await res.json()
-      
-      if (data.success) {
-        alert(`✅ ${data.sent} پیامک ارسال شد`)
-        setShowSMSModal(false)
-        setSelectedDebtors([])
-      } else {
-        alert(`❌ خطا: ${data.error}`)
-      }
-    } catch (error) {
-      console.error('خطا در ارسال پیامک:', error)
-      alert('❌ خطا در ارسال پیامک')
-    }
-  }
-
+  // انتخاب همه
   const handleSelectAll = () => {
-    if (selectedDebtors.length === filteredDebtors.length) {
-      setSelectedDebtors([])
+    if (selectedDebtors.size === filteredDebtors.length) {
+      setSelectedDebtors(new Set())
     } else {
-      setSelectedDebtors(filteredDebtors.map(d => d.student_id))
+      setSelectedDebtors(new Set(filteredDebtors.map(d => d.id)))
     }
   }
 
-  const filteredDebtors = debtors.filter(d => 
-    d.student_name.includes(searchQuery) || 
-    d.parent_name.includes(searchQuery) ||
-    d.class_name.includes(searchQuery)
-  )
-
-  const formatRial = (amount: number) => {
-    return new Intl.NumberFormat('fa-IR').format(amount) + ' ریال'
+  // انتخاب یکی
+  const handleToggleSelect = (id: string) => {
+    const newSelected = new Set(selectedDebtors)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedDebtors(newSelected)
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
+  // ارسال پیامک گروهی
+  const handleSendBulkSMS = async () => {
+    setIsSendingSMS(true)
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    setIsSendingSMS(false)
+    setSmsSent(true)
+    setTimeout(() => {
+      setSmsSent(false)
+      setSelectedDebtors(new Set())
+    }, 2000)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 p-4 md:p-6 lg:p-8" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-amber-900 p-4 md:p-6 lg:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <AlertCircle className="w-8 h-8 text-white" />
-            </div>
+            <Link
+              href="/financial-vp"
+              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
+            >
+              <ArrowRight className="w-5 h-5 text-white" />
+            </Link>
             <div>
-              <h1 className="text-3xl font-bold text-white">گزارش بدهکاران</h1>
-              <p className="text-white/60 mt-1">لیست دانش‌آموزان با بدهی شهریه</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                <AlertTriangle className="w-8 h-8 text-red-400" />
+                گزارش بدهکاران
+              </h1>
+              <p className="text-white/60 mt-1">
+                مدیریت و پیگیری بدهی‌های شهریه
+              </p>
             </div>
           </div>
         </header>
 
-        {/* Summary Cards */}
-        <div className="grid md:grid-cols-3 gap-4 mb-6">
+        {/* آمار کلی */}
+        <div className="grid md:grid-cols-3 gap-6 mb-6">
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="w-8 h-8 text-red-400" />
-              <span className="text-4xl">👥</span>
+            <div className="flex items-center gap-3 mb-2">
+              <Users className="w-6 h-6 text-red-400" />
+              <h3 className="text-white/70">تعداد بدهکاران</h3>
             </div>
-            <h3 className="text-white/60 text-sm mb-1">تعداد بدهکاران</h3>
-            <p className="text-white text-3xl font-bold">{summary.total_debtors}</p>
+            <p className="text-3xl font-bold text-white">{totalDebtors.toLocaleString('fa-IR')}</p>
           </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <TrendingDown className="w-8 h-8 text-orange-400" />
-              <span className="text-4xl">💰</span>
+            <div className="flex items-center gap-3 mb-2">
+              <DollarSign className="w-6 h-6 text-orange-400" />
+              <h3 className="text-white/70">مجموع بدهی</h3>
             </div>
-            <h3 className="text-white/60 text-sm mb-1">مجموع بدهی</h3>
-            <p className="text-white text-2xl font-bold">{formatRial(summary.total_debt)}</p>
+            <p className="text-3xl font-bold text-white">{formatRial(totalDebt)}</p>
           </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-8 h-8 text-yellow-400" />
-              <span className="text-4xl">📊</span>
+            <div className="flex items-center gap-3 mb-2">
+              <CheckCircle2 className="w-6 h-6 text-green-400" />
+              <h3 className="text-white/70">انتخاب شده</h3>
             </div>
-            <h3 className="text-white/60 text-sm mb-1">میانگین بدهی</h3>
-            <p className="text-white text-2xl font-bold">{formatRial(summary.avg_debt)}</p>
+            <p className="text-3xl font-bold text-white">{selectedDebtors.size.toLocaleString('fa-IR')}</p>
           </div>
         </div>
 
-        {/* Filters & Actions */}
+        {/* فیلترها و اقدامات */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row gap-4 items-end">
-            {/* فیلتر حداقل بدهی */}
-            <div className="flex-1">
-              <label className="text-white/70 text-sm mb-2 block">حداقل بدهی (ریال)</label>
-              <input
-                type="number"
-                value={minDebt}
-                onChange={(e) => setMinDebt(parseInt(e.target.value) || 0)}
-                placeholder="0"
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-              />
+          <div className="flex flex-wrap items-center gap-4">
+            {/* فیلتر پایه */}
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-white/70" />
+              <select
+                value={filterClass}
+                onChange={(e) => setFilterClass(e.target.value)}
+                className="bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50"
+              >
+                <option value="all" className="bg-slate-800">همه پایه‌ها</option>
+                <option value="چهارم" className="bg-slate-800">چهارم</option>
+                <option value="پنجم" className="bg-slate-800">پنجم</option>
+                <option value="ششم" className="bg-slate-800">ششم</option>
+              </select>
             </div>
 
-            {/* جستجو */}
-            <div className="flex-1">
-              <label className="text-white/70 text-sm mb-2 block">جستجو</label>
-              <div className="relative">
-                <Search className="absolute right-3 top-2.5 w-5 h-5 text-white/40" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="نام دانش‌آموز یا والد..."
-                  className="w-full bg-white/10 border border-white/20 rounded-xl pr-10 pl-4 py-2 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                />
-              </div>
-            </div>
+            {/* فیلتر تعداد روز */}
+            <select
+              value={filterDays}
+              onChange={(e) => setFilterDays(e.target.value)}
+              className="bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50"
+            >
+              <option value="all" className="bg-slate-800">همه بدهکاران</option>
+              <option value="30" className="bg-slate-800">بیش از ۳۰ روز</option>
+              <option value="60" className="bg-slate-800">بیش از ۶۰ روز</option>
+            </select>
+
+            <div className="flex-1"></div>
 
             {/* دکمه‌های اقدام */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowSMSModal(true)}
-                disabled={selectedDebtors.length === 0}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all ${
-                  selectedDebtors.length > 0
-                    ? 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white'
-                    : 'bg-white/10 text-white/50 cursor-not-allowed'
-                }`}
-              >
-                <Send className="w-5 h-5" />
-                ارسال پیامک ({selectedDebtors.length})
-              </button>
+            <button className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl text-white hover:bg-white/20 transition-all text-sm">
+              <Download className="w-4 h-4" />
+              دانلود اکسل
+            </button>
 
-              <button
-                onClick={() => window.print()}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl text-white hover:bg-white/20 transition-all"
-              >
-                <Download className="w-5 h-5" />
-                Export
-              </button>
-            </div>
+            <button
+              onClick={handleSendBulkSMS}
+              disabled={selectedDebtors.size === 0 || isSendingSMS}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-medium transition-all ${
+                selectedDebtors.size === 0 || isSendingSMS
+                  ? 'bg-white/20 text-white/50 cursor-not-allowed'
+                  : smsSent
+                    ? 'bg-green-500'
+                    : 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700'
+              }`}
+            >
+              {isSendingSMS ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  در حال ارسال...
+                </>
+              ) : smsSent ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  ارسال شد!
+                </>
+              ) : (
+                <>
+                  <MessageSquare className="w-4 h-4" />
+                  ارسال پیامک گروهی ({selectedDebtors.size})
+                </>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* Table */}
+        {/* جدول بدهکاران */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white/5">
-                <tr className="text-white/70 text-sm border-b border-white/10">
-                  <th className="p-4 text-right">
+              <thead>
+                <tr className="border-b border-white/10 bg-white/5">
+                  <th className="px-4 py-3 text-right">
                     <input
                       type="checkbox"
-                      checked={selectedDebtors.length === filteredDebtors.length && filteredDebtors.length > 0}
+                      checked={selectedDebtors.size === filteredDebtors.length && filteredDebtors.length > 0}
                       onChange={handleSelectAll}
-                      className="w-5 h-5"
+                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-red-500 focus:ring-red-500/50"
                     />
                   </th>
-                  <th className="p-4 text-right">دانش‌آموز</th>
-                  <th className="p-4 text-right">کلاس</th>
-                  <th className="p-4 text-right">والد</th>
-                  <th className="p-4 text-right">تلفن</th>
-                  <th className="p-4 text-right">شهریه کل</th>
-                  <th className="p-4 text-right">پرداخت شده</th>
-                  <th className="p-4 text-right">بدهی</th>
+                  <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">نام دانش‌آموز</th>
+                  <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">پایه</th>
+                  <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">نام ولی</th>
+                  <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">شماره تماس</th>
+                  <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">شهریه کل</th>
+                  <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">پرداخت شده</th>
+                  <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">باقی‌مانده</th>
+                  <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">روز تاخیر</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredDebtors.map(debtor => (
-                  <tr key={debtor.student_id} className="border-b border-white/5 hover:bg-white/5 transition-all">
-                    <td className="p-4">
+                {filteredDebtors.map((debtor) => (
+                  <tr key={debtor.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                    <td className="px-4 py-3">
                       <input
                         type="checkbox"
-                        checked={selectedDebtors.includes(debtor.student_id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedDebtors([...selectedDebtors, debtor.student_id])
-                          } else {
-                            setSelectedDebtors(selectedDebtors.filter(id => id !== debtor.student_id))
-                          }
-                        }}
-                        className="w-5 h-5"
+                        checked={selectedDebtors.has(debtor.id)}
+                        onChange={() => handleToggleSelect(debtor.id)}
+                        className="w-4 h-4 rounded border-white/20 bg-white/10 text-red-500 focus:ring-red-500/50"
                       />
                     </td>
-                    <td className="p-4 text-white font-medium">{debtor.student_name}</td>
-                    <td className="p-4 text-white/70">{debtor.class_name}</td>
-                    <td className="p-4 text-white/70">{debtor.parent_name}</td>
-                    <td className="p-4 text-white/70 font-mono text-sm">{debtor.parent_phone}</td>
-                    <td className="p-4 text-white/70">{formatRial(debtor.total_tuition)}</td>
-                    <td className="p-4 text-green-400">{formatRial(debtor.paid_amount)}</td>
-                    <td className="p-4 text-red-400 font-bold">{formatRial(debtor.remaining_amount)}</td>
+                    <td className="px-4 py-3 text-white font-medium">{debtor.studentName}</td>
+                    <td className="px-4 py-3 text-white/70">{debtor.className}</td>
+                    <td className="px-4 py-3 text-white/70">{debtor.parentName}</td>
+                    <td className="px-4 py-3 text-white/70 font-mono">{debtor.parentPhone}</td>
+                    <td className="px-4 py-3 text-white/70">{formatRial(debtor.totalTuition)}</td>
+                    <td className="px-4 py-3 text-green-400">{formatRial(debtor.paid)}</td>
+                    <td className="px-4 py-3 text-red-400 font-bold">{formatRial(debtor.remaining)}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded-lg text-xs ${
+                        debtor.daysOverdue >= 60
+                          ? 'bg-red-500/20 text-red-400'
+                          : debtor.daysOverdue >= 30
+                            ? 'bg-orange-500/20 text-orange-400'
+                            : 'bg-yellow-500/20 text-yellow-400'
+                      }`}>
+                        {debtor.daysOverdue.toLocaleString('fa-IR')} روز
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -277,48 +319,10 @@ export default function DebtorsReportPage() {
           </div>
         </div>
 
-        {/* SMS Modal */}
-        {showSMSModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 max-w-2xl w-full border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-4">ارسال پیامک به بدهکاران</h2>
-              
-              <div className="bg-white/5 rounded-xl p-4 mb-4">
-                <p className="text-white/70 text-sm mb-2">تعداد گیرندگان:</p>
-                <p className="text-white text-2xl font-bold">{selectedDebtors.length} نفر</p>
-              </div>
-
-              <div className="mb-4">
-                <label className="text-white/70 text-sm mb-2 block">متن پیامک</label>
-                <textarea
-                  value={smsMessage}
-                  onChange={(e) => setSmsMessage(e.target.value)}
-                  rows={6}
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none"
-                />
-                <p className="text-white/50 text-xs mt-1">
-                  متغیرها: {'{parent_name}'}, {'{student_name}'}, {'{class_name}'}, {'{amount}'}
-                </p>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleSendSMS}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 rounded-xl text-white font-bold transition-all"
-                >
-                  <Send className="w-5 h-5" />
-                  ارسال پیامک
-                </button>
-                <button
-                  onClick={() => setShowSMSModal(false)}
-                  className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-white font-bold transition-all"
-                >
-                  انصراف
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Footer */}
+        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+          <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
+        </footer>
       </div>
     </div>
   )

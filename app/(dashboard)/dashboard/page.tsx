@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-client'
 import {
   Users,
   BookOpen,

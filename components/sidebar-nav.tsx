@@ -14,7 +14,6 @@ import {
   BookOpen,
   MessageSquare,
   Sliders,
-  History,
 } from 'lucide-react'
 
 // آیتم‌های منوی admin
@@ -33,11 +32,6 @@ const adminNavItems = [
     title: 'مدیریت کاربران',
     href: '/admin/users',
     icon: Users,
-  },
-  {
-    title: 'مدیریت انتقال دانش‌آموز',
-    href: '/admin/progression',
-    icon: History,
   },
   {
     title: 'مدیریت اعتبار AI',
@@ -117,11 +111,6 @@ const studentNavItems = [
     icon: GraduationCap,
   },
   {
-    title: 'تاریخچه تحصیلی',
-    href: '/student/academic-history',
-    icon: History,
-  },
-  {
     title: 'دستیار مطالعه',
     href: '/student/study-buddy',
     icon: BookOpen,
@@ -146,17 +135,6 @@ export function SidebarNav({ role }: SidebarNavProps) {
     parent: parentNavItems,
     student: studentNavItems,
   }[role]
-
-  // اگر navItems undefined بود، یعنی role نامعتبر است
-  if (!navItems || !Array.isArray(navItems)) {
-    return (
-      <nav className="space-y-1" dir="rtl">
-        <div className="text-sm text-gray-500 p-3">
-          در حال بارگذاری منو...
-        </div>
-      </nav>
-    )
-  }
 
   return (
     <nav className="space-y-1" dir="rtl">

@@ -3,23 +3,35 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+// import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { toast } from 'sonner'
-import { Mail, Lock, Sparkles, GraduationCap, ArrowRight, Shield } from 'lucide-react'
+// import { Shield } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import PersianDate from '@/components/PersianDate'
-import OTPLogin from '@/components/OTPLogin'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [acceptedTerms, setAcceptedTerms] = useState(false)
-  const [loginMethod, setLoginMethod] = useState<'email' | 'otp'>('email')
   const router = useRouter()
+  // const { executeRecaptcha } = useGoogleReCaptcha()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    // if (!executeRecaptcha) {
+    //   toast.error('reCAPTCHA هنوز بارگذاری نشده است. لطفاً کمی صبر کنید.')
+    //   return
+    // }
+    
     setIsLoading(true)
 
     const formData = new FormData(e.currentTarget)
@@ -27,105 +39,51 @@ export default function LoginPage() {
     const password = formData.get('password') as string
     
     try {
+      // دریافت token از reCAPTCHA
+      // const recaptchaToken = await executeRecaptcha('login')
+      
+      // ارسال به API
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          // recaptcha_token: recaptchaToken,
+        }),
       })
       
       const data = await response.json()
       
       if (response.ok && data.success) {
-        toast.success('✨ خوش آمدید!')
+        toast.success('✅ ورود موفق!')
+        // Full page reload to ensure cookies are sent
         window.location.replace('/dashboard')
       } else {
-        toast.error(data.error || 'ایمیل یا رمز عبور اشتباه است')
+        toast.error(data.error || 'خطا در ورود')
         setIsLoading(false)
       }
     } catch (error) {
       console.error('Login error:', error)
-      toast.error('خطای اتصال به سرور')
+      toast.error('خطای غیرمنتظره')
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4">
-      {/* Persian Date - Top Right */}
-      <div className="absolute top-4 right-4 z-50">
-        <PersianDate className="text-white/90 backdrop-blur-sm bg-white/10 px-4 py-2 rounded-lg" showIcon={true} />
-      </div>
-      
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500">
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-blob" />
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-200 rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-200 rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>ورود به سیستم</CardTitle>
+        <CardDescription>
+          برای دسترسی به پنل خود وارد شوید
+        </CardDescription>
+      </CardHeader>
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-md">
-        {/* Logo & Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-xl rounded-3xl mb-4 shadow-2xl border border-white/20">
-            <GraduationCap className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl font-black text-white mb-2 drop-shadow-lg">
-            هوشاگر
-          </h1>
-          <p className="text-white/80 text-lg font-medium">
-            پلتفرم هوشمند مدیریت مدارس
-          </p>
-        </div>
-
-        {/* Login Card */}
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              ورود به حساب کاربری
-            </h2>
-            <p className="text-gray-600">
-              لطفاً اطلاعات خود را وارد کنید
-            </p>
-          </div>
-
-          {/* Login Method Tabs */}
-          <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-6">
-            <button
-              type="button"
-              onClick={() => setLoginMethod('email')}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                loginMethod === 'email'
-                  ? 'bg-white text-purple-600 shadow-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Mail className="w-4 h-4 inline-block ml-2" />
-              ورود با ایمیل
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginMethod('otp')}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                loginMethod === 'otp'
-                  ? 'bg-white text-purple-600 shadow-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Lock className="w-4 h-4 inline-block ml-2" />
-              ورود با پیامک
-            </button>
-          </div>
-
-          {loginMethod === 'email' ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email */}
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
+          {/* ایمیل */}
           <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
-                ایمیل
-              </Label>
-              <div className="relative">
-                <Mail className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Label htmlFor="email">ایمیل</Label>
             <Input
               id="email"
               name="email"
@@ -133,26 +91,12 @@ export default function LoginPage() {
               placeholder="example@school.com"
               required
               disabled={isLoading}
-                  className="pr-12 h-12 bg-gray-50 border-2 border-gray-200 focus:border-purple-500 focus:bg-white rounded-xl transition-all text-right"
             />
-              </div>
           </div>
 
-            {/* Password */}
+          {/* رمز عبور */}
           <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
-                  رمز عبور
-                </Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
-                >
-                  فراموشی رمز؟
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Label htmlFor="password">رمز عبور</Label>
             <Input
               id="password"
               name="password"
@@ -160,111 +104,36 @@ export default function LoginPage() {
               placeholder="••••••••"
               required
               disabled={isLoading}
-                  className="pr-12 h-12 bg-gray-50 border-2 border-gray-200 focus:border-purple-500 focus:bg-white rounded-xl transition-all text-right"
             />
           </div>
-            </div>
+        </CardContent>
 
-            {/* Remember Me */}
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="remember"
-                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-              />
-              <label htmlFor="remember" className="mr-2 text-sm text-gray-700">
-                مرا به خاطر بسپار
-              </label>
-            </div>
-
-            {/* Terms Acceptance */}
-            <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
-              <input
-                type="checkbox"
-                id="terms"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="w-5 h-5 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
-              />
-              <label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed">
-                با ورود،{' '}
-                <Link
-                  href="/terms"
-                  target="_blank"
-                  className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
-                >
-                  شرایط استفاده و حریم خصوصی
-                </Link>
-                {' '}را می‌پذیرم.
-              </label>
-            </div>
-
-            {/* Submit Button */}
+        <CardFooter className="flex flex-col gap-4">
           <Button
             type="submit"
-              disabled={isLoading || !acceptedTerms}
-              className="w-full h-12 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-bold rounded-xl shadow-lg shadow-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 animate-spin" />
-                  <span>در حال ورود...</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span>ورود به سیستم</span>
-                  <ArrowRight className="w-5 h-5" />
-                </div>
-              )}
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading ? 'در حال ورود...' : 'ورود'}
           </Button>
-          </form>
-          ) : (
-            <OTPLogin onSuccess={() => router.push('/dashboard')} />
-          )}
 
-          {/* Divider */}
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="px-4 text-sm text-gray-500 bg-white">یا</span>
-            </div>
-          </div>
+          {/* reCAPTCHA Notice */}
+          {/* <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <Shield className="w-3 h-3" />
+            <span>این سایت توسط Google reCAPTCHA محافظت می‌شود</span>
+          </div> */}
 
-          {/* Register Link */}
-          <div className="text-center">
-            <p className="text-gray-600">
+          <p className="text-sm text-muted-foreground text-center">
             حساب کاربری ندارید؟{' '}
             <Link
               href="/register"
-                className="text-purple-600 hover:text-purple-700 font-bold hover:underline"
+              className="text-primary hover:underline font-medium"
             >
               ثبت‌نام کنید
             </Link>
           </p>
-          </div>
-
-          {/* Security Badge */}
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-              <Shield className="w-4 h-4" />
-              <span>اتصال امن با رمزنگاری SSL</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-6">
-          <p className="text-white/70 text-sm">
-            © 2024 هوشاگر. تمامی حقوق محفوظ است.
-          </p>
-        </div>
-      </div>
-
-      {/* Floating Elements */}
-      <div className="absolute top-10 right-10 w-20 h-20 bg-white/10 rounded-full blur-2xl animate-pulse" />
-      <div className="absolute bottom-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse animation-delay-2000" />
-    </div>
+        </CardFooter>
+      </form>
+    </Card>
   )
 }

@@ -10,16 +10,13 @@ CREATE TABLE IF NOT EXISTS otp_codes (
   expires_at TIMESTAMPTZ NOT NULL,
   verified BOOLEAN DEFAULT FALSE,
   verified_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  -- Index for faster lookups
+  INDEX idx_otp_phone ON otp_codes(phone),
+  INDEX idx_otp_code ON otp_codes(code),
+  INDEX idx_otp_expires ON otp_codes(expires_at)
 );
-
--- ============================================
--- Indexes برای جستجوی سریع‌تر
--- ============================================
-
-CREATE INDEX IF NOT EXISTS idx_otp_phone ON otp_codes(phone);
-CREATE INDEX IF NOT EXISTS idx_otp_code ON otp_codes(code);
-CREATE INDEX IF NOT EXISTS idx_otp_expires ON otp_codes(expires_at);
 
 -- ============================================
 -- RLS Policies

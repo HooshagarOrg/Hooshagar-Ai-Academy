@@ -1,0 +1,314 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import {
+  Compass,
+  ArrowRight,
+  Brain,
+  TrendingUp,
+  Target,
+  Award,
+  Star,
+  Lightbulb,
+  Users,
+  Briefcase,
+  GraduationCap,
+  Loader2,
+  Sparkles,
+} from 'lucide-react'
+
+// ============================================
+// کامپوننت اصلی
+// ============================================
+export default function AIGuidancePage() {
+  const [currentGrade] = useState(9) // مثال: پایه 9
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [guidance, setGuidance] = useState<any>(null)
+
+  const handleAnalyze = async () => {
+    setIsAnalyzing(true)
+    // TODO: فراخوانی API واقعی
+    await new Promise(resolve => setTimeout(resolve, 2500))
+    
+    setGuidance({
+      talents: [
+        { name: 'حل مسئله ریاضی', score: 92, icon: '🧮' },
+        { name: 'تفکر منطقی', score: 88, icon: '🧩' },
+        { name: 'خلاقیت', score: 85, icon: '🎨' },
+        { name: 'کار تیمی', score: 78, icon: '👥' },
+      ],
+      personality_traits: [
+        { trait: 'تحلیل‌گر', percentage: 85 },
+        { trait: 'خلاق', percentage: 75 },
+        { trait: 'سیستماتیک', percentage: 80 },
+        { trait: 'مستقل', percentage: 70 },
+      ],
+      recommended_fields: [
+        { 
+          name: 'ریاضی و فیزیک', 
+          match: 92, 
+          reason: 'توانایی قوی در حل مسئله و تفکر منطقی',
+          careers: ['مهندسی کامپیوتر', 'مهندسی برق', 'علوم داده']
+        },
+        { 
+          name: 'علوم تجربی', 
+          match: 78, 
+          reason: 'علاقه به علوم و تحقیق',
+          careers: ['پزشکی', 'داروسازی', 'زیست‌شناسی']
+        },
+      ],
+      career_paths: [
+        {
+          title: 'مهندس نرم‌افزار',
+          match: 95,
+          salary_range: '50-200 میلیون تومان',
+          demand: 'بسیار بالا',
+          description: 'طراحی و توسعه نرم‌افزارها و اپلیکیشن‌ها',
+        },
+        {
+          title: 'دانشمند داده',
+          match: 88,
+          salary_range: '60-250 میلیون تومان',
+          demand: 'بالا',
+          description: 'تحلیل داده‌های بزرگ با یادگیری ماشین',
+        },
+        {
+          title: 'مهندس هوش مصنوعی',
+          match: 90,
+          salary_range: '70-300 میلیون تومان',
+          demand: 'بسیار بالا',
+          description: 'توسعه سیستم‌های هوشمند و یادگیری عمیق',
+        },
+      ],
+      universities: [
+        { name: 'دانشگاه شریف', rank: 1, match: 90 },
+        { name: 'دانشگاه تهران', rank: 2, match: 88 },
+        { name: 'دانشگاه صنعتی امیرکبیر', rank: 3, match: 85 },
+      ],
+    })
+    
+    setIsAnalyzing(false)
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-cyan-900 via-blue-900 to-indigo-900 p-4 md:p-6 lg:p-8" dir="rtl">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/student"
+              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
+            >
+              <ArrowRight className="w-5 h-5 text-white" />
+            </Link>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                <Compass className="w-8 h-8 text-cyan-400" />
+                قطب‌نمای آینده
+              </h1>
+              <p className="text-white/60 mt-1">
+                با هوش مصنوعی مسیر آینده‌ات رو پیدا کن!
+              </p>
+            </div>
+          </div>
+        </header>
+
+        {/* دکمه تحلیل */}
+        <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-lg rounded-2xl p-8 mb-6 border border-cyan-500/30 text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-cyan-500/20 mb-4">
+            <Brain className="w-10 h-10 text-cyan-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-3">
+            تحلیل جامع استعداد و آینده شغلی
+          </h2>
+          <p className="text-white/70 mb-6 max-w-2xl mx-auto leading-relaxed">
+            بر اساس عملکرد تحصیلی، فعالیت‌های فوق‌برنامه، علایق و شخصیت شما، 
+            هوش مصنوعی بهترین مسیر تحصیلی و شغلی را پیشنهاد می‌دهد.
+          </p>
+          <button
+            onClick={handleAnalyze}
+            disabled={isAnalyzing}
+            className={`inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold transition-all ${
+              isAnalyzing
+                ? 'bg-white/20 text-white/50 cursor-not-allowed'
+                : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white'
+            }`}
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                در حال تحلیل...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                شروع تحلیل هوشمند
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* نتایج */}
+        {guidance && (
+          <div className="space-y-6">
+            {/* استعدادها */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Star className="w-6 h-6 text-yellow-400" />
+                استعدادهای شما
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {guidance.talents.map((talent: any, i: number) => (
+                  <div key={i} className="bg-white/5 rounded-xl p-4 text-center">
+                    <div className="text-4xl mb-2">{talent.icon}</div>
+                    <p className="text-white font-bold mb-2">{talent.name}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-white/10 rounded-full h-2">
+                        <div 
+                          className="bg-yellow-500 h-2 rounded-full"
+                          style={{ width: `${talent.score}%` }}
+                        />
+                      </div>
+                      <span className="text-yellow-400 font-bold text-sm">{talent.score}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* خصوصیات شخصیتی */}
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  <Users className="w-6 h-6 text-purple-400" />
+                  ویژگی‌های شخصیتی
+                </h3>
+                <div className="space-y-3">
+                  {guidance.personality_traits.map((trait: any, i: number) => (
+                    <div key={i} className="bg-white/5 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white font-bold">{trait.trait}</span>
+                        <span className="text-purple-400 font-bold">{trait.percentage}%</span>
+                      </div>
+                      <div className="bg-white/10 rounded-full h-2">
+                        <div 
+                          className="bg-purple-500 h-2 rounded-full"
+                          style={{ width: `${trait.percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* رشته‌های پیشنهادی */}
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  <GraduationCap className="w-6 h-6 text-green-400" />
+                  رشته‌های مناسب
+                </h3>
+                <div className="space-y-3">
+                  {guidance.recommended_fields.map((field: any, i: number) => (
+                    <div key={i} className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white font-bold">{field.name}</span>
+                        <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-lg text-sm font-bold">
+                          {field.match}% تطابق
+                        </span>
+                      </div>
+                      <p className="text-white/70 text-sm mb-3">{field.reason}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {field.careers.map((career: string, j: number) => (
+                          <span key={j} className="px-2 py-1 bg-white/10 text-white/80 rounded-lg text-xs">
+                            {career}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* مسیرهای شغلی */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Briefcase className="w-6 h-6 text-blue-400" />
+                مسیرهای شغلی پیشنهادی
+              </h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                {guidance.career_paths.map((career: any, i: number) => (
+                  <div key={i} className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-xl p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <Briefcase className="w-8 h-8 text-blue-400" />
+                      <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-xs font-bold">
+                        {career.match}% تطابق
+                      </span>
+                    </div>
+                    <h4 className="text-white font-bold text-lg mb-2">{career.title}</h4>
+                    <p className="text-white/70 text-sm mb-3">{career.description}</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-green-400" />
+                        <span className="text-green-400 text-sm font-bold">{career.salary_range}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4 text-orange-400" />
+                        <span className="text-orange-400 text-sm">تقاضا: {career.demand}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* دانشگاه‌های پیشنهادی */}
+            <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Award className="w-6 h-6 text-purple-400" />
+                دانشگاه‌های پیشنهادی
+              </h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                {guidance.universities.map((uni: any, i: number) => (
+                  <div key={i} className="bg-white/5 rounded-xl p-4 text-center">
+                    <div className="text-4xl mb-2">🎓</div>
+                    <p className="text-white font-bold mb-1">{uni.name}</p>
+                    <p className="text-white/60 text-sm mb-2">رتبه {uni.rank}</p>
+                    <div className="flex items-center justify-center gap-2">
+                      <Star className="w-4 h-4 text-yellow-400" />
+                      <span className="text-yellow-400 font-bold">{uni.match}% تطابق</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* توصیه نهایی */}
+            <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <Lightbulb className="w-8 h-8 text-cyan-400 flex-shrink-0" />
+                <div>
+                  <h4 className="text-cyan-300 font-bold text-lg mb-2">💡 توصیه هوش مصنوعی</h4>
+                  <p className="text-cyan-200/80 leading-relaxed">
+                    با توجه به استعدادهای شما در ریاضی و تفکر منطقی، رشته <strong>ریاضی و فیزیک</strong> بهترین 
+                    انتخاب برای شماست. این رشته به شما امکان می‌دهد در زمینه‌های پر تقاضا مانند مهندسی کامپیوتر و 
+                    هوش مصنوعی فعالیت کنید. با ادامه تمرین در ریاضیات و برنامه‌نویسی، می‌توانید به یکی از 
+                    دانشگاه‌های برتر راه پیدا کنید.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+          <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
+        </footer>
+      </div>
+    </div>
+  )
+}
+

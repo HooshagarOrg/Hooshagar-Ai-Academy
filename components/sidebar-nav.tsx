@@ -14,6 +14,10 @@ import {
   BookOpen,
   MessageSquare,
   Sliders,
+  Target,
+  Award,
+  Shield,
+  ArrowUpCircle,
 } from 'lucide-react'
 
 // آیتم‌های منوی admin
@@ -41,7 +45,12 @@ const adminNavItems = [
   {
     title: 'انتقال دانش‌آموزان',
     href: '/admin/progression',
-    icon: Users,
+    icon: ArrowUpCircle,
+  },
+  {
+    title: 'ممیزی قرعه‌کشی',
+    href: '/admin/lottery/audit',
+    icon: Shield,
   },
   {
     title: 'مدیریت اعتبار AI',
@@ -119,6 +128,21 @@ const studentNavItems = [
     title: 'باغ استعداد',
     href: '/student/talent-garden',
     icon: GraduationCap,
+  },
+  {
+    title: 'قطب‌نمای آینده',
+    href: '/student/ai-guidance',
+    icon: Brain,
+  },
+  {
+    title: 'انتخاب رشته',
+    href: '/student/field-selection',
+    icon: Target,
+  },
+  {
+    title: 'برنامه‌ریزی کنکور',
+    href: '/student/konkur',
+    icon: Award,
   },
   {
     title: 'دستیار مطالعه',

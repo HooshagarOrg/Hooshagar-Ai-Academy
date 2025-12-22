@@ -18,6 +18,8 @@ import {
   Calendar,
   Hash,
   AlertCircle,
+  Printer,
+  X,
 } from 'lucide-react'
 
 // ============================================
@@ -85,6 +87,7 @@ export default function PaymentsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [selectedReceipt, setSelectedReceipt] = useState<Transaction | null>(null)
 
   // فرم‌ها
   const [cashForm, setCashForm] = useState({ amount: '', date: '', receiptNo: '' })
@@ -146,6 +149,10 @@ export default function PaymentsPage() {
       case 'pending': return 'bg-yellow-500/20 text-yellow-400'
       case 'bounced': return 'bg-red-500/20 text-red-400'
     }
+  }
+
+  const handlePrint = () => {
+    window.print()
   }
 
   return (
@@ -468,6 +475,15 @@ export default function PaymentsPage() {
                     {transaction.details && (
                       <p className="text-white/40 text-xs mt-2">{transaction.details}</p>
                     )}
+                    {(transaction.type === 'cash' || transaction.type === 'check') && transaction.status === 'completed' && (
+                      <button
+                        onClick={() => setSelectedReceipt(transaction)}
+                        className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-xs font-medium transition-all"
+                      >
+                        <Printer className="w-3 h-3" />
+                        چاپ رسید
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -480,6 +496,143 @@ export default function PaymentsPage() {
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
         </footer>
       </div>
+
+      {/* ==================== Modal رسید چاپی ==================== */}
+      {selectedReceipt && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 print:bg-white">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto print:shadow-none print:max-w-full">
+            {/* دکمه‌های عملیات - فقط روی صفحه نمایش */}
+            <div className="flex items-center justify-between p-6 border-b print:hidden">
+              <h2 className="text-xl font-bold text-gray-800">رسید پرداخت</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={handlePrint}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-all"
+                >
+                  <Printer className="w-4 h-4" />
+                  چاپ
+                </button>
+                <button
+                  onClick={() => setSelectedReceipt(null)}
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-all"
+                >
+                  <X className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
+            </div>
+
+            {/* محتوای رسید - قابل چاپ */}
+            <div className="p-8 print:p-12" dir="rtl">
+              {/* Header رسید */}
+              <div className="text-center mb-8 pb-6 border-b-2 border-gray-200">
+                <div className="text-4xl mb-3">🎓</div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  دبستان آزمایشی هوشگر
+                </h1>
+                <p className="text-gray-600 text-sm">
+                  سیستم هوشمند مدیریت مدارس
+                </p>
+              </div>
+
+              {/* عنوان رسید */}
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-2">
+                  رسید {selectedReceipt.type === 'cash' ? 'پرداخت نقدی' : 'پرداخت چک'}
+                </h2>
+                <p className="text-gray-600 text-sm">
+                  شماره رسید: <span className="font-bold">{selectedReceipt.documentNo}</span>
+                </p>
+              </div>
+
+              {/* اطلاعات دانش‌آموز */}
+              <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                <h3 className="text-sm font-bold text-gray-700 mb-4">اطلاعات دانش‌آموز:</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">نام و نام خانوادگی:</p>
+                    <p className="font-bold text-gray-900">{selectedStudent.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">پایه تحصیلی:</p>
+                    <p className="font-bold text-gray-900">{selectedStudent.className}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* جزئیات پرداخت */}
+              <div className="border-2 border-gray-200 rounded-xl p-6 mb-6">
+                <h3 className="text-sm font-bold text-gray-700 mb-4">جزئیات پرداخت:</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-gray-600">نوع پرداخت:</span>
+                    <span className="font-bold text-gray-900">
+                      {selectedReceipt.type === 'cash' ? '💵 نقدی' : '📄 چک'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-gray-600">مبلغ:</span>
+                    <span className="font-bold text-lg text-emerald-600">
+                      {formatRial(selectedReceipt.amount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-gray-600">تاریخ:</span>
+                    <span className="font-bold text-gray-900">{selectedReceipt.date}</span>
+                  </div>
+                  {selectedReceipt.details && (
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-gray-600">توضیحات:</span>
+                      <span className="font-bold text-gray-900">{selectedReceipt.details}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* وضعیت مالی */}
+              <div className="bg-blue-50 rounded-xl p-6 mb-8">
+                <h3 className="text-sm font-bold text-blue-900 mb-4">وضعیت مالی:</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <p className="text-xs text-blue-700 mb-1">شهریه کل</p>
+                    <p className="font-bold text-blue-900 text-sm">{formatRial(selectedStudent.totalTuition)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-green-700 mb-1">پرداخت شده</p>
+                    <p className="font-bold text-green-900 text-sm">{formatRial(selectedStudent.paid)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-orange-700 mb-1">باقی‌مانده</p>
+                    <p className="font-bold text-orange-900 text-sm">{formatRial(remaining)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* امضا و مهر */}
+              <div className="grid grid-cols-2 gap-8 mt-12 pt-8 border-t-2 border-dashed border-gray-300">
+                <div className="text-center">
+                  <div className="h-20 mb-2"></div>
+                  <div className="border-t-2 border-gray-400 pt-2">
+                    <p className="text-sm text-gray-700 font-bold">امضای معاون مالی</p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="h-20 mb-2 flex items-center justify-center">
+                    <div className="w-24 h-24 border-2 border-dashed border-gray-400 rounded-full flex items-center justify-center text-xs text-gray-400">
+                      مهر مدرسه
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer رسید */}
+              <div className="mt-8 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
+                <p>این رسید توسط سیستم هوشگر صادر شده و دارای اعتبار قانونی می‌باشد.</p>
+                <p className="mt-1">تاریخ صدور: {new Date().toLocaleDateString('fa-IR')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -90,3 +90,61 @@
   @apply bg-primary;
 }
 
+/* ============================================ */
+/* CSS مخصوص چاپ رسید */
+/* ============================================ */
+@media print {
+  /* مخفی کردن همه چیز به جز modal رسید */
+  body > :not(.print\:bg-white) {
+    display: none !important;
+  }
+  
+  /* نمایش فقط محتوای رسید */
+  .print\:bg-white {
+    position: static !important;
+    background: white !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  /* حذف پس‌زمینه modal */
+  .print\:bg-white::before {
+    display: none !important;
+  }
+  
+  /* مخفی کردن دکمه‌های عملیات */
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  /* تنظیمات صفحه */
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+  
+  /* بهینه‌سازی برای چاپ */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* جلوگیری از شکستن در وسط المان‌ها */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  
+  /* فونت مناسب برای چاپ */
+  body {
+    font-size: 12pt;
+    line-height: 1.6;
+  }
+  
+  /* لینک‌ها */
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+}
+

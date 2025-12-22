@@ -34,6 +34,16 @@ const adminNavItems = [
     icon: Users,
   },
   {
+    title: 'قرعه‌کشی کلاس',
+    href: '/admin/lottery',
+    icon: GraduationCap,
+  },
+  {
+    title: 'انتقال دانش‌آموزان',
+    href: '/admin/progression',
+    icon: Users,
+  },
+  {
     title: 'مدیریت اعتبار AI',
     href: '/admin/ai-credits',
     icon: Zap,

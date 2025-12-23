@@ -4,14 +4,22 @@
 
 // نقش‌های کاربری
 export type UserRole = 
-  | 'admin' 
-  | 'principal' 
-  | 'assistant'
-  | 'financial_vp'
-  | 'teacher' 
-  | 'counselor' 
-  | 'parent' 
-  | 'student';
+  | 'admin'             // مدیر سیستم
+  | 'principal'         // مدیر مدرسه
+  | 'assistant'         // معاون آموزش
+  | 'educational_vp'    // معاون پرورشی
+  | 'disciplinary_vp'   // معاون انضباطی
+  | 'evaluation_vp'     // معاون ارزیابی
+  | 'financial_vp'      // معاون مالی
+  | 'healthcare'        // بهداشت
+  | 'counselor'         // مشاور
+  | 'teacher'           // معلم
+  | 'secretary'         // منشی
+  | 'librarian'         // کتابدار
+  | 'security'          // نگهبان
+  | 'maintenance'       // خدمات
+  | 'parent'            // والد
+  | 'student';          // دانش‌آموز
 
 // نوع رابطه
 export type RelationType = 

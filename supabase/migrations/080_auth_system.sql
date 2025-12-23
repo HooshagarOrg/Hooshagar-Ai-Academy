@@ -16,7 +16,24 @@ CREATE TABLE IF NOT EXISTS activation_codes (
   student_id UUID REFERENCES students(id),
   
   -- نقش هدف
-  target_role VARCHAR(50) NOT NULL CHECK (target_role IN ('admin', 'principal', 'assistant', 'financial_vp', 'teacher', 'counselor', 'parent', 'student')),
+  target_role VARCHAR(50) NOT NULL CHECK (target_role IN (
+    'admin', 
+    'principal', 
+    'assistant', 
+    'educational_vp',
+    'disciplinary_vp',
+    'evaluation_vp',
+    'financial_vp', 
+    'healthcare',
+    'counselor',
+    'teacher', 
+    'secretary',
+    'librarian',
+    'security',
+    'maintenance',
+    'parent', 
+    'student'
+  )),
   relation_type VARCHAR(20) CHECK (relation_type IN ('father', 'mother', 'guardian', 'student', 'staff')),
   
   -- اطلاعات کاربر هدف

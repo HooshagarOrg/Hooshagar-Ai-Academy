@@ -2,6 +2,10 @@ target_name,target_role,relation_type,target_phone,target_email,student_national
 محمد محمدی,parent,father,09121234567,mohammad@email.com,1234567890,علی محمدی,3,سوم الف
 فاطمه احمدی,parent,mother,09129876543,fatemeh@email.com,1234567890,علی محمدی,3,سوم الف
 سارا رضایی,parent,mother,09123456789,sara@email.com,0987654321,زهرا رضایی,5,پنجم ب
-حسن کریمی,teacher,,09122222222,hasan@email.com,,,,
-مریم صالحی,counselor,,09123333333,maryam@email.com,,,,
+حسن کریمی,teacher,staff,09122222222,hasan@email.com,,,,
+مریم صالحی,counselor,staff,09123333333,maryam@email.com,,,,
+علی احمدی,disciplinary_vp,staff,09124444444,ali@email.com,,,,
+زهرا محمدی,evaluation_vp,staff,09125555555,zahra@email.com,,,,
+رضا رضایی,educational_vp,staff,09126666666,reza@email.com,,,,
+فاطمه کریمی,healthcare,staff,09127777777,fatemeh.k@email.com,,,,
 

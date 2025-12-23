@@ -111,9 +111,17 @@ export default function ActivatePage() {
       teacher: 'معلم',
       admin: 'مدیر سیستم',
       principal: 'مدیر مدرسه',
-      assistant: 'معاون',
-      counselor: 'مشاور',
+      assistant: 'معاون آموزش',
+      educational_vp: 'معاون پرورشی',
+      disciplinary_vp: 'معاون انضباطی',
+      evaluation_vp: 'معاون ارزیابی',
       financial_vp: 'معاون مالی',
+      healthcare: 'بهداشت',
+      counselor: 'مشاور',
+      secretary: 'منشی',
+      librarian: 'کتابدار',
+      security: 'نگهبان',
+      maintenance: 'خدمات',
     }
     return roles[role] || role
   }

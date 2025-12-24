@@ -28,6 +28,8 @@ import {
   Search,
   AlertCircle,
   Wrench,
+  Bell,
+  Send,
 } from 'lucide-react'
 
 // آیتم‌های منوی admin
@@ -61,6 +63,11 @@ const adminNavItems = [
     title: 'ممیزی قرعه‌کشی',
     href: '/admin/lottery/audit',
     icon: Shield,
+  },
+  {
+    title: 'ارسال پیام گروهی',
+    href: '/admin/broadcast',
+    icon: Send,
   },
   {
     title: 'مدیریت اعتبار AI',
@@ -124,6 +131,11 @@ const parentNavItems = [
     title: 'گزارشات',
     href: '/parent/reports',
     icon: BarChart3,
+  },
+  {
+    title: 'تنظیمات اطلاع‌رسانی',
+    href: '/parent/notifications',
+    icon: Bell,
   },
 ]
 

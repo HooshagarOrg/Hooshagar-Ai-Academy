@@ -68,6 +68,8 @@ export function NotificationBell() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    console.log('🔔 Setting up real-time subscription for user:', user.id)
+
     const channel = supabase
       .channel('in_app_notifications')
       .on(
@@ -78,13 +80,26 @@ export function NotificationBell() {
           table: 'in_app_notifications',
           filter: `user_id=eq.${user.id}`
         },
-        () => {
+        (payload) => {
+          console.log('✅ Real-time notification received:', payload)
           loadNotifications()
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('📡 Subscription status:', status)
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to notifications')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Channel error - check Realtime settings')
+        } else if (status === 'TIMED_OUT') {
+          console.error('⏱️ Subscription timed out')
+        } else if (status === 'CLOSED') {
+          console.warn('🚪 Channel closed')
+        }
+      })
 
     return () => {
+      console.log('🔕 Cleaning up real-time subscription')
       supabase.removeChannel(channel)
     }
   }

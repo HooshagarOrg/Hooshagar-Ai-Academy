@@ -12,7 +12,7 @@ export default function TestSession() {
   
   useEffect(() => {
     async function loadData() {
-      const supabase = createClient()
+    const supabase = createClient()
       const { data: { session: sessionData } } = await supabase.auth.getSession()
       setSession(sessionData)
       
@@ -75,7 +75,7 @@ export default function TestSession() {
         </div>
 
         {/* Session Status */}
-        {session ? (
+      {session ? (
           <div className="space-y-4">
             {/* Status Card */}
             <div className="bg-green-500/20 backdrop-blur-lg rounded-2xl p-6 border border-green-500/30">
@@ -146,8 +146,8 @@ export default function TestSession() {
                 </button>
               </div>
             </div>
-          </div>
-        ) : (
+        </div>
+      ) : (
           <div className="bg-red-500/20 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-red-500 p-3 rounded-xl">
@@ -164,8 +164,8 @@ export default function TestSession() {
             >
               ورود به سیستم
             </Link>
-          </div>
-        )}
+        </div>
+      )}
       </div>
     </div>
   )

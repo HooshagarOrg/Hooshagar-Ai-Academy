@@ -4,13 +4,18 @@
  * Notification Bell Component
  * 
  * نمایش اعلان‌های داخل برنامه با آیکون زنگ
+ * استراتژی: Polling هر 15 ثانیه (بدون نیاز به Realtime)
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
 import { formatDistanceToNow } from 'date-fns'
 import { faIR } from 'date-fns/locale'
+
+// تنظیمات Polling
+const POLLING_INTERVAL = 15000 // 15 ثانیه
+const POLLING_INTERVAL_WHEN_OPEN = 5000 // 5 ثانیه وقتی dropdown باز است
 
 interface Notification {
   id: string
@@ -27,23 +32,62 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const supabase = createClient()
 
+  // Load notifications on mount
   useEffect(() => {
     loadNotifications()
-    
-    // Setup real-time subscription
-    let cleanup: (() => void) | undefined
-    subscribeToNotifications().then(cleanupFn => {
-      cleanup = cleanupFn
-    })
-    
-    // Cleanup on unmount
+  }, [])
+
+  // Detect when tab/window is visible or hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden)
+      if (!document.hidden) {
+        // وقتی tab دوباره visible شد، بلافاصله چک کن
+        console.log('👁️ Tab visible again - checking notifications')
+        loadNotifications()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => {
-      if (cleanup) cleanup()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
+
+  // Setup polling based on dropdown state and visibility
+  useEffect(() => {
+    // Clear existing interval
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+    }
+
+    // فقط اگر tab visible است polling کن
+    if (!isVisible) {
+      console.log('👁️ Tab hidden - pausing polling')
+      return
+    }
+
+    // Set interval based on dropdown state
+    const interval = isOpen ? POLLING_INTERVAL_WHEN_OPEN : POLLING_INTERVAL
+    
+    console.log(`🔄 Polling notifications every ${interval / 1000}s`)
+    
+    pollingIntervalRef.current = setInterval(() => {
+      loadNotifications()
+    }, interval)
+
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+    }
+  }, [isOpen, isVisible])
 
   async function loadNotifications() {
     setLoading(true)
@@ -58,50 +102,16 @@ export function NotificationBell() {
       .limit(20)
 
     if (data) {
+      // بررسی تغییرات
+      const newUnreadCount = data.filter(n => !n.is_read).length
+      if (newUnreadCount > unreadCount) {
+        console.log(`🔔 ${newUnreadCount - unreadCount} new notification(s)!`)
+      }
+      
       setNotifications(data)
-      setUnreadCount(data.filter(n => !n.is_read).length)
+      setUnreadCount(newUnreadCount)
     }
     setLoading(false)
-  }
-
-  async function subscribeToNotifications() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    console.log('🔔 Setting up real-time subscription for user:', user.id)
-
-    const channel = supabase
-      .channel('in_app_notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'in_app_notifications',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('✅ Real-time notification received:', payload)
-          loadNotifications()
-        }
-      )
-      .subscribe((status) => {
-        console.log('📡 Subscription status:', status)
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Successfully subscribed to notifications')
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Channel error - check Realtime settings')
-        } else if (status === 'TIMED_OUT') {
-          console.error('⏱️ Subscription timed out')
-        } else if (status === 'CLOSED') {
-          console.warn('🚪 Channel closed')
-        }
-      })
-
-    return () => {
-      console.log('🔕 Cleaning up real-time subscription')
-      supabase.removeChannel(channel)
-    }
   }
 
   async function markAsRead(id: string) {
@@ -135,14 +145,19 @@ export function NotificationBell() {
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
+        className="relative p-2 hover:bg-gray-100 rounded-full transition-colors group"
         aria-label="اعلان‌ها"
+        title={`اعلان‌ها (بررسی خودکار هر ${isOpen ? '5' : '15'} ثانیه)`}
       >
-        <Bell className="w-6 h-6 text-gray-700" />
+        <Bell className={`w-6 h-6 text-gray-700 transition-transform ${loading ? 'scale-110' : ''}`} />
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
+        )}
+        {/* Polling indicator (subtle pulse) */}
+        {loading && (
+          <span className="absolute inset-0 rounded-full bg-blue-500 opacity-20 animate-ping" />
         )}
       </button>
 

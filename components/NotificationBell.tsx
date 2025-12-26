@@ -34,6 +34,7 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const previousUnreadCountRef = useRef(0)
 
   const supabase = createClient()
 
@@ -104,10 +105,11 @@ export function NotificationBell() {
     if (data) {
       // بررسی تغییرات
       const newUnreadCount = data.filter(n => !n.is_read).length
-      if (newUnreadCount > unreadCount) {
-        console.log(`🔔 ${newUnreadCount - unreadCount} new notification(s)!`)
+      if (newUnreadCount > previousUnreadCountRef.current) {
+        console.log(`🔔 ${newUnreadCount - previousUnreadCountRef.current} new notification(s)!`)
       }
       
+      previousUnreadCountRef.current = newUnreadCount
       setNotifications(data)
       setUnreadCount(newUnreadCount)
     }

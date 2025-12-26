@@ -102,6 +102,18 @@ SELECT cron.schedule(
 );
 ```
 
+### Job 3: پاک‌سازی اعلان‌های قدیمی (هر شب 2 صبح)
+
+```sql
+SELECT cron.schedule(
+  'cleanup-old-notifications',
+  '0 2 * * *',
+  $$
+  SELECT cleanup_old_notifications();
+  $$
+);
+```
+
 ### بررسی Cron Jobs:
 
 ```sql
@@ -167,12 +179,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
 ## گام 7: تست سیستم 🧪
 
-### 7.1 تست In-App Notifications:
+### 7.1 اجرای Migration Helper Functions:
+
+```bash
+# اجرای migration جدید
+# در Supabase SQL Editor یا از طریق CLI
+```
+
+فایل: `supabase/migrations/091_notification_helpers.sql`
+
+### 7.2 تست In-App Notifications:
+
+**مرحله 1: دریافت User ID واقعی**
 
 ```sql
--- ایجاد یک اعلان تستی
+-- دریافت ID یک والد
+SELECT id, full_name, phone_number
+FROM profiles 
+WHERE role = 'parent' 
+  AND is_active = TRUE
+LIMIT 1;
+
+-- یا دریافت user_id خودت
+SELECT auth.uid();
+```
+
+**مرحله 2: ایجاد اعلان تستی**
+
+```sql
+-- جایگزین UUID واقعی از مرحله 1
 SELECT create_in_app_notification(
-  'USER_ID',
+  'a56a8892-0ae3-4999-9593-5f6e434874ca'::UUID,  -- ⬅️ UUID واقعی کاربر
   'تست اعلان',
   'این یک اعلان آزمایشی است',
   'message',
@@ -180,7 +217,56 @@ SELECT create_in_app_notification(
 );
 ```
 
-### 7.2 تست Weekly SMS (دستی):
+**مرحله 3: بررسی نتیجه**
+
+```sql
+-- مشاهده اعلان‌های اخیر
+SELECT 
+  id,
+  user_id,
+  title,
+  message,
+  type,
+  is_read,
+  created_at
+FROM in_app_notifications 
+ORDER BY created_at DESC 
+LIMIT 5;
+
+-- تعداد اعلان‌های خوانده‌نشده
+SELECT get_unread_notification_count('UUID_کاربر'::UUID);
+```
+
+### 7.3 تست Bulk Notifications:
+
+```sql
+-- ارسال اعلان به همه والدین
+SELECT notify_all_parents(
+  'اطلاعیه مهم',
+  'یک پیام مهم برای همه والدین',
+  'announcement',
+  'https://app.hooshagar.com/announcements'
+);
+
+-- ارسال اعلان به والدین یک کلاس خاص
+SELECT notify_class_parents(
+  'CLASS_ID'::UUID,  -- ⬅️ UUID کلاس
+  'اطلاعیه کلاس',
+  'پیام ویژه برای والدین کلاس',
+  'announcement',
+  NULL
+);
+
+-- ارسال اعلان به همه معلمان
+SELECT notify_all_teachers(
+  'اطلاعیه معلمان',
+  'یک پیام برای کادر آموزشی',
+  'announcement',
+  NULL
+);
+```
+
+### 7.5 تست Weekly SMS (دستی):
 
 ```bash
 # فراخوانی Edge Function به صورت دستی
@@ -189,7 +275,7 @@ curl -X POST \
   -H 'Authorization: Bearer YOUR_SERVICE_ROLE_KEY'
 ```
 
-### 7.3 تست Lottery SMS:
+### 7.6 تست Lottery SMS:
 
 ```bash
 # از داخل برنامه، بعد از قرعه‌کشی
@@ -199,14 +285,14 @@ POST /api/notifications/lottery/send
 }
 ```
 
-### 7.4 تست Admin Broadcast:
+### 7.7 تست Admin Broadcast:
 
 1. وارد `/admin/broadcast` شوید
 2. فرم را پر کنید
 3. ارسال کنید
 4. اعلان‌ها را در `/parent/notifications` چک کنید
 
-### 7.5 تست Financial SMS:
+### 7.8 تست Financial SMS:
 
 ```bash
 POST /api/notifications/financial
@@ -260,6 +346,29 @@ SELECT
 FROM sms_delivery_log
 ORDER BY created_at DESC
 LIMIT 50;
+```
+
+### آمار اعلان‌های هر کاربر:
+
+```sql
+-- اعلان‌های خوانده‌نشده
+SELECT 
+  p.full_name,
+  p.role,
+  get_unread_notification_count(p.id) as unread_count
+FROM profiles p
+WHERE p.is_active = TRUE
+ORDER BY unread_count DESC
+LIMIT 20;
+```
+
+### پاک‌سازی اعلان‌های قدیمی:
+
+```sql
+-- حذف اعلان‌های خوانده‌شده قدیمی‌تر از 3 ماه
+SELECT cleanup_old_notifications();
+
+-- نتیجه: تعداد اعلان‌های حذف‌شده
 ```
 
 ---

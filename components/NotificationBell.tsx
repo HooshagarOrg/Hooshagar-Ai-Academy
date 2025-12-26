@@ -32,7 +32,17 @@ export function NotificationBell() {
 
   useEffect(() => {
     loadNotifications()
-    subscribeToNotifications()
+    
+    // Setup real-time subscription
+    let cleanup: (() => void) | undefined
+    subscribeToNotifications().then(cleanupFn => {
+      cleanup = cleanupFn
+    })
+    
+    // Cleanup on unmount
+    return () => {
+      if (cleanup) cleanup()
+    }
   }, [])
 
   async function loadNotifications() {

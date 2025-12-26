@@ -8,7 +8,7 @@
 
 import { useState, useEffect } from 'react'
 import { Bell } from 'lucide-react'
-import { createSupabaseClient } from '@/lib/supabase-client'
+import { createClient } from '@/lib/supabase-client'
 import { formatDistanceToNow } from 'date-fns'
 import { faIR } from 'date-fns/locale'
 
@@ -28,6 +28,8 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  const supabase = createClient()
+
   useEffect(() => {
     loadNotifications()
     subscribeToNotifications()
@@ -35,7 +37,6 @@ export function NotificationBell() {
 
   async function loadNotifications() {
     setLoading(true)
-    const supabase = createSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -54,8 +55,6 @@ export function NotificationBell() {
   }
 
   function subscribeToNotifications() {
-    const supabase = createSupabaseClient()
-    
     const channel = supabase
       .channel('in_app_notifications')
       .on(
@@ -77,11 +76,10 @@ export function NotificationBell() {
   }
 
   async function markAsRead(id: string) {
-    const supabase = createSupabaseClient()
-    
-    await fetch(`/api/notifications/${id}`, {
-      method: 'PATCH'
-    })
+    await supabase
+      .from('in_app_notifications')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq('id', id)
 
     setNotifications(prev =>
       prev.map(n => (n.id === id ? { ...n, is_read: true } : n))
@@ -90,9 +88,14 @@ export function NotificationBell() {
   }
 
   async function markAllAsRead() {
-    await fetch('/api/notifications/mark-all-read', {
-      method: 'POST'
-    })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    await supabase
+      .from('in_app_notifications')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+      .eq('is_read', false)
 
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
     setUnreadCount(0)
@@ -108,7 +111,7 @@ export function NotificationBell() {
       >
         <Bell className="w-6 h-6 text-gray-700" />
         {unreadCount > 0 && (
-          <span className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+          <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -124,17 +127,14 @@ export function NotificationBell() {
           />
 
           {/* Notification Panel */}
-          <div 
-            className="absolute left-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[32rem] overflow-hidden flex flex-col"
-            dir="rtl"
-          >
+          <div className="absolute left-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[32rem] overflow-hidden flex flex-col">
             {/* Header */}
             <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-              <h3 className="font-semibold text-lg font-vazir">اعلان‌ها</h3>
+              <h3 className="font-semibold text-lg">اعلان‌ها</h3>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-vazir"
+                  className="text-sm text-blue-600 hover:text-blue-700"
                 >
                   خواندن همه
                 </button>
@@ -144,23 +144,18 @@ export function NotificationBell() {
             {/* Notifications List */}
             <div className="overflow-y-auto flex-1">
               {loading ? (
-                <div className="p-8 text-center text-gray-500 font-vazir">
+                <div className="p-8 text-center text-gray-500">
                   در حال بارگذاری...
                 </div>
               ) : notifications.length === 0 ? (
-                <div className="p-8 text-center text-gray-500 font-vazir">
+                <div className="p-8 text-center text-gray-500">
                   اعلانی وجود ندارد
                 </div>
               ) : (
                 notifications.map(notif => (
                   <div
                     key={notif.id}
-                    onClick={() => {
-                      markAsRead(notif.id)
-                      if (notif.link_url) {
-                        window.location.href = notif.link_url
-                      }
-                    }}
+                    onClick={() => markAsRead(notif.id)}
                     className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
                       !notif.is_read ? 'bg-blue-50' : ''
                     }`}
@@ -173,13 +168,13 @@ export function NotificationBell() {
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm text-gray-900 font-vazir">
+                        <div className="font-medium text-sm text-gray-900">
                           {notif.title}
                         </div>
-                        <div className="text-sm text-gray-600 mt-1 font-vazir">
+                        <div className="text-sm text-gray-600 mt-1">
                           {notif.message}
                         </div>
-                        <div className="text-xs text-gray-400 mt-2 font-vazir">
+                        <div className="text-xs text-gray-400 mt-2">
                           {formatDistanceToNow(new Date(notif.created_at), {
                             addSuffix: true,
                             locale: faIR
@@ -215,12 +210,9 @@ function getNotificationIcon(type: string) {
       return <span className="text-xl">⚠️</span>
     case 'achievement':
       return <span className="text-xl">🏆</span>
-    case 'lottery':
-      return <span className="text-xl">🎉</span>
-    case 'financial':
-      return <span className="text-xl">💰</span>
+    case 'announcement':
+      return <span className="text-xl">📢</span>
     default:
       return <span className="text-xl">🔔</span>
   }
 }
-

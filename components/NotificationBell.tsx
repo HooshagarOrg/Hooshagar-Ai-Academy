@@ -54,7 +54,10 @@ export function NotificationBell() {
     setLoading(false)
   }
 
-  function subscribeToNotifications() {
+  async function subscribeToNotifications() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
     const channel = supabase
       .channel('in_app_notifications')
       .on(
@@ -62,7 +65,8 @@ export function NotificationBell() {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'in_app_notifications'
+          table: 'in_app_notifications',
+          filter: `user_id=eq.${user.id}`
         },
         () => {
           loadNotifications()

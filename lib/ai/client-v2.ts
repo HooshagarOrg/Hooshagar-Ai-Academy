@@ -223,7 +223,9 @@ async function getGeminiKey(): Promise<string> {
   const { data, error } = await supabase.rpc('get_gemini_key')
 
   if (error || !data) {
-    throw new Error('No Gemini key available')
+    // موقتاً: اگر کلید نبود، null برگردان (برای fallback به OpenRouter)
+    console.warn('[Gemini] No key available, falling back to OpenRouter')
+    return ''
   }
 
   return data
@@ -371,6 +373,11 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
     console.log(`[AI] Trying Tier 1: ${config.tier1_gemini_model}`)
     const geminiKey = await getGeminiKey()
 
+    // اگر کلید نبود، skip کن
+    if (!geminiKey) {
+      throw new Error('No Gemini key available')
+    }
+
     const result = await callGeminiDirect(
       geminiKey,
       config.tier1_gemini_model,
@@ -401,6 +408,11 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
   try {
     console.log(`[AI] Trying Tier 2: ${config.tier2_gemini_model}`)
     const geminiKey = await getGeminiKey()
+
+    // اگر کلید نبود، skip کن
+    if (!geminiKey) {
+      throw new Error('No Gemini key available')
+    }
 
     const result = await callGeminiDirect(
       geminiKey,

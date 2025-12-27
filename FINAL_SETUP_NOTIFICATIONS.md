@@ -161,17 +161,39 @@ Badge باید ظرف 15 ثانیه به‌روز شود! ✅
 ### تست 2: SMS Notification (بعد از تنظیم API Keys)
 
 ```sql
--- تست ارسال SMS
+-- ابتدا باید parent_id و student_id واقعی داشته باشید
+-- دریافت یک parent و student تستی:
+SELECT 
+  p.id as parent_id, 
+  s.id as student_id,
+  p.full_name as parent_name,
+  s.full_name as student_name
+FROM students s
+JOIN profiles p ON s.parent_id = p.id
+WHERE p.role = 'parent'
+LIMIT 1;
+
+-- حالا با مقادیر واقعی تست کنید:
 INSERT INTO weekly_sms_queue (
-  user_id,
-  phone_number,
-  message_text,
-  scheduled_for
+  parent_id,
+  student_id,
+  week_start,
+  week_end,
+  week_number,
+  sms_text,
+  sms_tone,
+  scheduled_at,
+  status
 ) VALUES (
-  'YOUR_USER_ID',
-  '09123456789',
-  'تست SMS از هوشاگر',
-  NOW()
+  'PARENT_ID_FROM_ABOVE',  -- parent_id واقعی
+  'STUDENT_ID_FROM_ABOVE', -- student_id واقعی
+  CURRENT_DATE - INTERVAL '7 days',
+  CURRENT_DATE,
+  EXTRACT(WEEK FROM CURRENT_DATE)::INTEGER,
+  'تست SMS از هوشاگر - عملکرد هفته: ⭐⭐⭐⭐',
+  'positive',
+  NOW(),
+  'pending'
 );
 
 -- بررسی وضعیت
@@ -182,6 +204,14 @@ LIMIT 5;
 
 ### تست 3: Broadcast Notification (API Route)
 
+⚠️ **توجه:** این دستور باید در Terminal اجرا شود، نه SQL Editor!
+
+**Windows PowerShell:**
+```powershell
+Invoke-WebRequest -Uri "http://localhost:3000/api/notifications/broadcast" -Method POST -ContentType "application/json" -Body '{"title":"📢 اطلاعیه مهم","message":"تست سیستم Broadcast","target_roles":["parent"],"send_sms":false}'
+```
+
+**Linux/Mac (curl):**
 ```bash
 curl -X POST http://localhost:3000/api/notifications/broadcast \
   -H "Content-Type: application/json" \
@@ -191,6 +221,17 @@ curl -X POST http://localhost:3000/api/notifications/broadcast \
     "target_roles": ["parent"],
     "send_sms": false
   }'
+```
+
+**یا از طریق SQL:**
+```sql
+-- ارسال broadcast به همه والدین
+SELECT notify_all_parents(
+  '📢 اطلاعیه مهم',
+  'تست سیستم Broadcast از SQL',
+  'announcement',
+  'https://app.hooshagar.com'
+);
 ```
 
 ---
@@ -215,13 +256,25 @@ LIMIT 10;
 -- پیام‌های در صف
 SELECT COUNT(*) FROM weekly_sms_queue WHERE status = 'pending';
 
--- پیام‌های ارسال شده امروز
+-- پیام‌های ارسال شده امروز (weekly_sms_queue)
+SELECT COUNT(*) FROM weekly_sms_queue
+WHERE DATE(sent_at) = CURRENT_DATE AND status = 'sent';
+
+-- همه پیام‌های ارسال شده امروز (تمام انواع)
 SELECT COUNT(*) FROM sms_delivery_log
-WHERE DATE(sent_at) = CURRENT_DATE AND status = 'delivered';
+WHERE DATE(created_at) = CURRENT_DATE AND delivery_status = 'delivered';
 
 -- هزینه SMS امروز
-SELECT SUM(cost) FROM sms_delivery_log
-WHERE DATE(sent_at) = CURRENT_DATE;
+SELECT SUM(cost_amount) as total_cost FROM sms_delivery_log
+WHERE DATE(created_at) = CURRENT_DATE;
+
+-- جزئیات صف
+SELECT 
+  status,
+  COUNT(*) as count
+FROM weekly_sms_queue
+GROUP BY status
+ORDER BY count DESC;
 ```
 
 ### بررسی In-App Notifications

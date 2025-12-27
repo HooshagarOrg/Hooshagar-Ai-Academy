@@ -16,33 +16,58 @@ DROP TABLE IF EXISTS user_ai_limits CASCADE;
 -- ========================================
 -- 1. جدول AI Model Configs (6-Tier)
 -- ========================================
-ALTER TABLE ai_model_configs DROP COLUMN IF EXISTS tier3_model CASCADE;
-ALTER TABLE ai_model_configs DROP COLUMN IF EXISTS tier4_model CASCADE;
 
-ALTER TABLE ai_model_configs 
-  ADD COLUMN IF NOT EXISTS tier1_gemini_model VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier2_gemini_model VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier3_free_model VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier4_free_model VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier5_cheap_model VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier6_premium_model VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier5_enabled BOOLEAN DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS tier6_enabled BOOLEAN DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS tier5_cost_per_1k DECIMAL(10,6),
-  ADD COLUMN IF NOT EXISTS tier6_cost_per_1k DECIMAL(10,6);
+-- ایجاد جدول (اگر وجود ندارد)
+CREATE TABLE IF NOT EXISTS ai_model_configs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  
+  capability_key VARCHAR(50) UNIQUE NOT NULL,
+  capability_name VARCHAR(200) NOT NULL,
+  capability_description TEXT,
+  
+  -- مدل‌های 6 Tier
+  tier1_gemini_model VARCHAR(100),
+  tier2_gemini_model VARCHAR(100),
+  tier3_free_model VARCHAR(100),
+  tier4_free_model VARCHAR(100),
+  tier5_cheap_model VARCHAR(100),
+  tier6_premium_model VARCHAR(100),
+  
+  -- فعال/غیرفعال Tier پولی
+  tier5_enabled BOOLEAN DEFAULT FALSE,
+  tier6_enabled BOOLEAN DEFAULT FALSE,
+  
+  -- هزینه
+  tier5_cost_per_1k DECIMAL(10,6),
+  tier6_cost_per_1k DECIMAL(10,6),
+  
+  -- تنظیمات
+  temperature DECIMAL(3,2) DEFAULT 0.7,
+  max_tokens INTEGER DEFAULT 2000,
+  
+  -- وضعیت
+  is_active BOOLEAN DEFAULT TRUE,
+  priority INTEGER DEFAULT 0,
+  
+  -- آمار
+  total_requests INTEGER DEFAULT 0,
+  tier1_usage INTEGER DEFAULT 0,
+  tier2_usage INTEGER DEFAULT 0,
+  tier3_usage INTEGER DEFAULT 0,
+  tier4_usage INTEGER DEFAULT 0,
+  tier5_usage INTEGER DEFAULT 0,
+  tier6_usage INTEGER DEFAULT 0,
+  cache_hits INTEGER DEFAULT 0,
+  total_tokens_saved INTEGER DEFAULT 0,
+  total_errors INTEGER DEFAULT 0,
+  
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- حذف ستون‌های قدیمی
-ALTER TABLE ai_model_configs DROP COLUMN IF EXISTS tier1_model CASCADE;
-ALTER TABLE ai_model_configs DROP COLUMN IF EXISTS tier2_model CASCADE;
-
--- بروزرسانی آمار
-ALTER TABLE ai_model_configs 
-  ADD COLUMN IF NOT EXISTS tier3_usage INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS tier4_usage INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS tier5_usage INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS tier6_usage INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS cache_hits INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS total_tokens_saved INTEGER DEFAULT 0;
+-- Index‌ها
+CREATE INDEX IF NOT EXISTS idx_ai_configs_capability ON ai_model_configs(capability_key);
+CREATE INDEX IF NOT EXISTS idx_ai_configs_active ON ai_model_configs(is_active, priority);
 
 -- پاک کردن داده‌های قدیمی
 TRUNCATE TABLE ai_model_configs CASCADE;
@@ -77,7 +102,7 @@ CREATE TABLE ai_response_cache (
 );
 
 CREATE INDEX idx_cache_capability ON ai_response_cache(capability_key, last_used_at DESC);
-CREATE INDEX idx_cache_expires ON ai_response_cache(expires_at) WHERE expires_at > NOW();
+CREATE INDEX idx_cache_expires ON ai_response_cache(expires_at);
 
 COMMENT ON TABLE ai_response_cache IS 'Cache پاسخ‌های AI - صرفه‌جویی 70%+';
 
@@ -100,7 +125,7 @@ CREATE TABLE ai_answer_templates (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_templates_capability ON ai_answer_templates(capability_key) WHERE is_active = TRUE;
+CREATE INDEX idx_templates_capability ON ai_answer_templates(capability_key);
 CREATE INDEX idx_templates_keywords ON ai_answer_templates USING gin(keywords);
 
 COMMENT ON TABLE ai_answer_templates IS 'پاسخ‌های آماده برای سوالات رایج';
@@ -135,7 +160,7 @@ CREATE TABLE gemini_api_keys (
 );
 
 CREATE INDEX idx_gemini_active ON gemini_api_keys(is_active, priority, daily_count);
-CREATE INDEX idx_gemini_usage ON gemini_api_keys(daily_count, daily_limit) WHERE is_active = TRUE;
+CREATE INDEX idx_gemini_usage ON gemini_api_keys(daily_count, daily_limit);
 
 COMMENT ON TABLE gemini_api_keys IS '10 کلید Gemini با Round-Robin + Auto-Reset';
 
@@ -166,7 +191,7 @@ CREATE TABLE user_ai_limits (
 );
 
 CREATE INDEX idx_user_limits_daily ON user_ai_limits(user_id, daily_count, daily_limit);
-CREATE INDEX idx_user_limits_reset ON user_ai_limits(last_reset_date) WHERE last_reset_date < CURRENT_DATE;
+CREATE INDEX idx_user_limits_reset ON user_ai_limits(last_reset_date);
 
 COMMENT ON TABLE user_ai_limits IS 'محدودیت استفاده AI برای هر کاربر';
 

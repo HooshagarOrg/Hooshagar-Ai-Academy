@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { callAI } from '@/lib/ai/client'
+import { callAI, getUserAIStats } from '@/lib/ai/client-v2'
 import { createClient } from '@/lib/supabase-server'
 
 /**

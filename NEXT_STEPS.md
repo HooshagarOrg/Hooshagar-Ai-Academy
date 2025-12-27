@@ -1,232 +1,268 @@
-# 🎯 مراحل بعدی - فاز 1 تکمیل شد!
+# 🚀 مراحل بعدی پروژه هوشاگر
 
-## ✅ کارهای انجام شده (فاز 1)
+## ✅ کارهای انجام شده
 
-- ✅ پروژه Next.js 14 با TypeScript راه‌اندازی شد
-- ✅ فایل `package.json` با تمام dependencies ساخته شد
-- ✅ فایل‌های config (tsconfig, next.config, tailwind, postcss)
-- ✅ ساختار پوشه‌ها (app, components, lib, types, scripts)
-- ✅ `lib/supabase.ts` - Supabase client با helpers
-- ✅ `lib/ai-provider.ts` - AI wrapper با استراتژی **Gemini First**
-- ✅ `lib/validators.ts` - Zod schemas برای validation
-- ✅ `lib/utils.ts` - Helper functions
-- ✅ `middleware.ts` - Auth protection
-- ✅ `app/layout.tsx` - فارسی RTL setup
-- ✅ `app/page.tsx` - صفحه landing اولیه
-- ✅ `.gitignore` - محافظت از فایل‌های حساس
-- ✅ `.env.local.example` - Template برای environment variables
-- ✅ Scripts برای تست AI providers
+### 1️⃣ **UI/UX صفحات اصلی**
+- ✅ صفحه اصلی (`/`) - طراحی مدرن و حرفه‌ای
+- ✅ صفحه لاگین (`/login`) - 3 روش ورود (Password, OTP, Student PIN)
+- ✅ صفحه راهنما (`/help`) - FAQ و پشتیبانی
+
+### 2️⃣ **سیستم Notification (SMS + In-App)**
+- ✅ Database Schema (جداول و توابع)
+- ✅ SMS Provider Abstraction (Kavenegar + Melipayamak)
+- ✅ Edge Functions (generate-weekly-sms, send-weekly-sms)
+- ✅ Cron Jobs (پنجشنبه 11:00 صبح)
+- ✅ In-App Notifications با Smart Polling
+- ✅ NotificationBell Component
+- ✅ API Routes (broadcast, financial, lottery)
+- ⏳ **نیاز به تست با API Key واقعی**
+
+### 3️⃣ **سیستم AI با 3-Tier Fallback**
+- ✅ Database Schema (ai_model_configs, ai_request_logs, ai_model_rate_limits)
+- ✅ 12 قابلیت AI با 36 مدل منحصر به فرد
+- ✅ AI Client Library با Fallback Strategy
+- ✅ API Route تستی (`/api/ai/test`)
+- ✅ UI صفحه تست (`/admin/ai-test`)
+- ✅ مستندسازی کامل
+- ⏳ **نیاز به OpenRouter API Key**
+
+### 4️⃣ **سیستم احراز هویت (Activation Codes)**
+- ✅ Database Schema
+- ✅ API Routes (issue, validate, activate, login, OTP)
+- ✅ UI Pages (login, activate, help)
+- ✅ QR Code Generation
+- ✅ Excel Template برای Bulk Import
+- ⏳ **نیاز به تست کامل**
 
 ---
 
-## 📋 کارهای باقیمانده (برای شما)
+## 📋 کارهای باقی‌مانده (به ترتیب اولویت)
 
-### 1️⃣ نصب Dependencies
+### 🔴 اولویت بالا (هفته جاری)
 
+#### 1. **تست و راه‌اندازی سیستم AI**
 ```bash
-# با pnpm (توصیه می‌شود - سریع‌تر)
-pnpm install
+# گام 1: دریافت OpenRouter API Key
+https://openrouter.ai
 
-# یا با npm
-npm install
+# گام 2: افزودن به .env.local
+OPENROUTER_API_KEY=your_key_here
+
+# گام 3: اجرای Migration
+# supabase/migrations/100_ai_model_configs.sql
+
+# گام 4: تست در UI
+http://localhost:3000/admin/ai-test
 ```
 
-⏱️ زمان تخمینی: 2-3 دقیقه
-
----
-
-### 2️⃣ دانلود فونت فارسی
-
-**فونت Vazirmatn:**
-- لینک دانلود: https://github.com/rastikerdar/vazirmatn/releases
-- فایل‌های مورد نیاز:
-  - `Vazirmatn-Regular.woff2`
-  - `Vazirmatn-Medium.woff2`
-  - `Vazirmatn-Bold.woff2`
-
-**محل قرارگیری:**
-```
-app/fonts/
-├── Vazirmatn-Regular.woff2
-├── Vazirmatn-Medium.woff2
-└── Vazirmatn-Bold.woff2
-```
-
-⏱️ زمان تخمینی: 5 دقیقه
-
----
-
-### 3️⃣ نصب shadcn/ui Components
-
+#### 2. **تست سیستم Notification**
 ```bash
-# نصب CLI shadcn
-npx shadcn-ui@latest init
+# گام 1: تنظیم Kavenegar API Key
+KAVENEGAR_API_KEY=your_key_here
 
-# سپس نصب کامپوننت‌های پایه
-npx shadcn-ui@latest add button
-npx shadcn-ui@latest add dialog
-npx shadcn-ui@latest add dropdown-menu
-npx shadcn-ui@latest add input
-npx shadcn-ui@latest add label
-npx shadcn-ui@latest add select
-npx shadcn-ui@latest add toast
-npx shadcn-ui@latest add skeleton
-npx shadcn-ui@latest add card
-npx shadcn-ui@latest add tabs
+# گام 2: اجرای تست‌های TEST_NOTIFICATION_SYSTEM.sql
+# گام 3: بررسی Cron Jobs
+# گام 4: تست ارسال SMS واقعی
 ```
 
-⏱️ زمان تخمینی: 5 دقیقه
+#### 3. **پیاده‌سازی Dashboard اصلی**
+- [ ] `/admin/dashboard` - نمای کلی مدیر
+- [ ] `/teacher/dashboard` - نمای کلی معلم
+- [ ] `/parent/dashboard` - نمای کلی والدین
+- [ ] `/student/dashboard` - نمای کلی دانش‌آموز
+- [ ] Widget‌های آماری
+- [ ] نمودارها و گزارش‌ها
+
+#### 4. **پیاده‌سازی مدیریت دانش‌آموزان (CRUD)**
+- [ ] لیست دانش‌آموزان
+- [ ] افزودن دانش‌آموز
+- [ ] ویرایش دانش‌آموز
+- [ ] حذف دانش‌آموز (soft delete)
+- [ ] فیلتر و جستجو
+- [ ] Import از Excel
+- [ ] Export به Excel
 
 ---
 
-### 4️⃣ ساخت پروژه Supabase
+### 🟡 اولویت متوسط (هفته‌های بعد)
 
-1. به https://supabase.com بروید
-2. یک پروژه جدید بسازید
-3. URL و API Keys را کپی کنید:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+#### 5. **سیستم حضور و غیاب**
+- [ ] ثبت حضور روزانه
+- [ ] گزارش حضور به تفکیک کلاس
+- [ ] گزارش حضور به تفکیک دانش‌آموز
+- [ ] اعلان غیبت به والدین
+- [ ] آمار و نمودار
 
-⏱️ زمان تخمینی: 3 دقیقه
+#### 6. **سیستم نمرات و ارزیابی**
+- [ ] ثبت نمرات
+- [ ] کارنامه دانش‌آموز
+- [ ] گزارش عملکرد
+- [ ] رتبه‌بندی
+- [ ] نمودار پیشرفت
+
+#### 7. **قابلیت‌های AI اصلی**
+- [ ] **دستیار مطالعه (Study Buddy)** - چت درسی
+- [ ] **تحلیلگر دانش‌آموز** - تحلیل رفتار و عملکرد
+- [ ] **حل مسئله با OCR** - آپلود عکس و حل
+- [ ] **قصه‌گو** - تولید داستان آموزشی
+- [ ] **مشاور انتخاب رشته** - راهنمایی تحصیلی
+
+#### 8. **باغ استعداد (Gamification)**
+- [ ] سیستم XP و امتیاز
+- [ ] نشان‌ها (Badges)
+- [ ] تابلوی رتبه‌بندی
+- [ ] چالش‌های هفتگی
+- [ ] جوایز و انگیزش
 
 ---
 
-### 5️⃣ دریافت Google Gemini API Key
+### 🟢 اولویت پایین (آینده)
 
-1. به https://aistudio.google.com/app/apikey بروید
-2. "Create API Key" را بزنید
-3. کپی کنید و در `.env.local` قرار دهید
+#### 9. **گزارش‌گیری پیشرفته**
+- [ ] گزارش هفتگی برای والدین
+- [ ] گزارش ماهانه برای مدیر
+- [ ] گزارش عملکرد معلمان
+- [ ] Export PDF/Excel
 
-⏱️ زمان تخمینی: 2 دقیقه
+#### 10. **تنظیمات و مدیریت**
+- [ ] مدیریت کلاس‌ها
+- [ ] مدیریت معلمان
+- [ ] مدیریت درس‌ها
+- [ ] تنظیمات مدرسه
+- [ ] مدیریت سال تحصیلی
 
-**⚠️ مهم:** Google Gemini تا 1,500 درخواست/روز رایگان است!
+#### 11. **قابلیت‌های اضافی**
+- [ ] تقویم آموزشی
+- [ ] اعلانات و رویدادها
+- [ ] مدیریت تکالیف
+- [ ] کتابخانه منابع
+- [ ] انجمن گفتگو
+
+#### 12. **بهینه‌سازی و امنیت**
+- [ ] بهینه‌سازی Performance
+- [ ] Caching استراتژی
+- [ ] تست امنیتی
+- [ ] Backup خودکار
+- [ ] Monitoring و Logging
 
 ---
 
-### 6️⃣ تنظیم Environment Variables
+## 🎯 هدف هفته جاری
 
-```bash
-# کپی کردن template
-cp .env.local.example .env.local
+### روز 1-2: تست و راه‌اندازی
+- ✅ تست سیستم AI
+- ✅ تست سیستم Notification
+- ✅ رفع باگ‌های احتمالی
 
-# سپس ویرایش کنید و مقادیر واقعی را جایگزین کنید
+### روز 3-4: Dashboard اصلی
+- 🔲 طراحی UI/UX Dashboard
+- 🔲 پیاده‌سازی Widget‌ها
+- 🔲 نمودارها و آمار
+
+### روز 5-6: مدیریت دانش‌آموزان
+- 🔲 CRUD کامل
+- 🔲 Import/Export
+- 🔲 جستجو و فیلتر
+
+### روز 7: تست و مستندسازی
+- 🔲 تست End-to-End
+- 🔲 بروزرسانی مستندات
+- 🔲 آماده‌سازی Demo
+
+---
+
+## 📁 ساختار فایل‌ها
+
+```
+hooshagar-project/
+├── app/
+│   ├── (auth)/
+│   │   ├── login/page.tsx ✅
+│   │   ├── activate/[[...code]]/page.tsx ✅
+│   │   └── help/page.tsx ✅
+│   ├── (dashboard)/
+│   │   ├── admin/
+│   │   │   ├── dashboard/page.tsx 🔲
+│   │   │   ├── students/page.tsx 🔲
+│   │   │   ├── ai-test/page.tsx ✅
+│   │   │   └── broadcast/page.tsx ✅
+│   │   ├── teacher/
+│   │   │   └── dashboard/page.tsx 🔲
+│   │   ├── parent/
+│   │   │   ├── dashboard/page.tsx 🔲
+│   │   │   └── notifications/page.tsx ✅
+│   │   └── student/
+│   │       ├── dashboard/page.tsx 🔲
+│   │       ├── ai-guidance/page.tsx ✅
+│   │       ├── field-selection/page.tsx ✅
+│   │       └── konkur/page.tsx ✅
+│   ├── api/
+│   │   ├── ai/
+│   │   │   └── test/route.ts ✅
+│   │   ├── notifications/
+│   │   │   ├── route.ts ✅
+│   │   │   ├── broadcast/route.ts ✅
+│   │   │   └── financial/route.ts ✅
+│   │   └── auth/
+│   │       ├── login/route.ts ✅
+│   │       └── activate/route.ts ✅
+│   └── page.tsx ✅
+├── lib/
+│   ├── ai/
+│   │   └── client.ts ✅
+│   ├── sms/
+│   │   └── provider.ts ✅
+│   └── supabase-client.ts ✅
+├── components/
+│   ├── NotificationBell.tsx ✅
+│   ├── NotificationSettings.tsx ✅
+│   └── ui/ ✅
+├── supabase/
+│   ├── migrations/
+│   │   ├── 080_auth_system.sql ✅
+│   │   ├── 090_notification_system.sql ✅
+│   │   ├── 091_notification_helpers.sql ✅
+│   │   └── 100_ai_model_configs.sql ✅
+│   └── functions/
+│       ├── generate-weekly-sms/ ✅
+│       └── send-weekly-sms/ ✅
+└── docs/
+    ├── AI_SYSTEM_SETUP.md ✅
+    ├── NOTIFICATION_SYSTEM.md ✅
+    ├── FINAL_SETUP_NOTIFICATIONS.md ✅
+    └── BULK_IMPORT_GUIDE.md ✅
 ```
 
-**حداقل متغیرهای ضروری:**
+---
+
+## 🔑 Environment Variables لازم
+
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://qcplgczxdbjsjrorkprm.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
-GOOGLE_API_KEY=AIzaSy...
-```
 
-⏱️ زمان تخمینی: 5 دقیقه
+# AI (OpenRouter)
+OPENROUTER_API_KEY=sk-or-...
 
----
+# SMS (Kavenegar)
+KAVENEGAR_API_KEY=...
 
-### 7️⃣ تست Environment Variables
-
-```bash
-npm run verify-env
-```
-
-اگر همه چیز درست بود:
-```
-✅ All required environment variables are set!
+# App
+NEXT_PUBLIC_APP_URL=https://app.hooshagar.com
 ```
 
 ---
 
-### 8️⃣ تست AI Providers
+## 📞 پشتیبانی
 
-```bash
-# تست Google Gemini (باید اول کار کند)
-npm run test-google
-
-# تست OpenRouter (اختیاری - فقط برای fallback)
-npm run test-openrouter
-```
+- **ایمیل:** support@hooshagar.com
+- **تلگرام:** @hooshagar_support
+- **مستندات:** `docs/` folder
 
 ---
 
-### 9️⃣ اجرای Development Server
-
-```bash
-npm run dev
-```
-
-باز کنید: **http://localhost:3000**
-
-شما باید صفحه landing هوشاگر را ببینید! 🎉
-
----
-
-## 🎯 فاز 2 - Authentication (بعدی)
-
-بعد از تکمیل مراحل بالا، آماده فاز 2 هستید:
-
-1. ساخت صفحات Login/Register
-2. پیاده‌سازی Supabase Auth
-3. ساخت Database Schema (users, schools, students, classes)
-4. فعال‌سازی RLS Policies
-5. ساخت داشبوردهای سه‌گانه (Teacher, Parent, Student)
-
----
-
-## 📊 وضعیت پیشرفت
-
-```
-📦 فاز 1: Foundation          [████████████████████] 100% ✅
-📦 فاز 2: Core Features        [░░░░░░░░░░░░░░░░░░░░]   0%
-📦 فاز 3: AI Integration       [░░░░░░░░░░░░░░░░░░░░]   0%
-📦 فاز 4: Gamification         [░░░░░░░░░░░░░░░░░░░░]   0%
-📦 فاز 5: Polish               [░░░░░░░░░░░░░░░░░░░░]   0%
-```
-
----
-
-## 🔍 Checklist قبل از فاز 2
-
-- [ ] `pnpm install` اجرا شد و بدون error تمام شد
-- [ ] فونت‌های فارسی در `app/fonts/` قرار گرفتند
-- [ ] shadcn/ui components نصب شدند
-- [ ] پروژه Supabase ساخته شد
-- [ ] `.env.local` با مقادیر صحیح ساخته شد
-- [ ] `npm run verify-env` موفق بود ✅
-- [ ] `npm run test-google` موفق بود ✅
-- [ ] `npm run dev` اجرا شد و صفحه landing نمایش داده می‌شود ✅
-
----
-
-## 💡 نکات مهم
-
-1. **همیشه `.env.local` را در `.gitignore` نگه دارید** ❗
-2. **از Google Gemini به عنوان پیشفرض استفاده کنید** (رایگان)
-3. **OpenRouter فقط برای fallback** یا مدل‌های خاص (Claude/Kimi)
-4. **Type checking را فراموش نکنید:** `npm run type-check`
-
----
-
-## 🚀 دستور بعدی برای Cursor AI
-
-وقتی مراحل بالا تکمیل شد، این دستور را به Cursor بدهید:
-
-```
-@.cursorrules @CURSOR_PLANNING.md
-
-"فاز 1 تکمیل شد ✅
-
-حالا فاز 2 را شروع کن:
-1. صفحات Login/Register با Supabase Auth
-2. Database Schema (users, schools, students, classes)
-3. RLS Policies برای هر table
-4. داشبورد اولیه Teacher
-
-همه چیز را طبق استراتژی Gemini First و قوانین .cursorrules پیاده‌سازی کن."
-```
-
----
-
-**موفق باشید! 🌱🚀**
-
+**آخرین بروزرسانی:** دی 1403  
+**وضعیت:** در حال توسعه 🚧  
+**نسخه:** 0.3.0

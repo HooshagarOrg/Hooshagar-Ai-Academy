@@ -407,3 +407,4 @@ SELECT * FROM ai_model_rate_limits WHERE is_throttled = TRUE;
 **آخرین بروزرسانی:** دی 1403  
 **نسخه:** 1.0
 
+

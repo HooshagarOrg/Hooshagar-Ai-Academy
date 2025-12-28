@@ -159,7 +159,7 @@ async function checkCache(
   prompt: string
 ): Promise<AIResponse | null> {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data, error } = await supabase.rpc('check_ai_cache', {
       p_capability: capability,
@@ -197,7 +197,7 @@ async function saveToCache(
   tokens: number
 ): Promise<void> {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     await supabase.rpc('save_to_cache', {
       p_capability: capability,
@@ -218,7 +218,7 @@ async function saveToCache(
  * دریافت Gemini key
  */
 async function getGeminiKey(): Promise<string> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase.rpc('get_gemini_key')
 
@@ -236,7 +236,7 @@ async function getGeminiKey(): Promise<string> {
  */
 async function checkUserLimit(userId: string): Promise<boolean> {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data, error } = await supabase.rpc('check_user_limit', {
       p_user_id: userId,
@@ -259,7 +259,7 @@ async function checkUserLimit(userId: string): Promise<boolean> {
  */
 async function incrementUserCount(userId: string): Promise<void> {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     await supabase.rpc('increment_user_ai_count', { p_user_id: userId })
   } catch (error) {
     console.error('[User Count] Error:', error)
@@ -271,7 +271,7 @@ async function incrementUserCount(userId: string): Promise<void> {
  */
 async function incrementCacheHit(userId: string): Promise<void> {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     await supabase.rpc('increment_user_cache_hit', { p_user_id: userId })
   } catch (error) {
     console.error('[Cache Hit] Error:', error)
@@ -282,7 +282,7 @@ async function incrementCacheHit(userId: string): Promise<void> {
  * دریافت تنظیمات مدل
  */
 async function getModelConfig(capability: string): Promise<ModelConfig> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('ai_model_configs')
@@ -312,7 +312,7 @@ async function logAIRequest(
   errorMessage?: string
 ): Promise<void> {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     await supabase.rpc('log_ai_request', {
       p_capability_key: capability,

@@ -12,13 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, Sparkles, CheckCircle2, XCircle, Zap } from 'lucide-react'
+import { Loader2, Sparkles, CheckCircle2, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Capability {
   capability_key: string
   capability_name: string
-  capability_description: string
+  capability_description?: string
 }
 
 interface TestResult {
@@ -140,7 +140,7 @@ export default function AITestPage() {
               </Select>
               {selectedCapability && (
                 <p className="text-xs text-muted-foreground">
-                  {capabilities.find(c => c.capability_key === selectedCapability)?.capability_description}
+                  {capabilities.find(c => c.capability_key === selectedCapability)?.capability_description || 'توضیحی موجود نیست'}
                 </p>
               )}
             </div>

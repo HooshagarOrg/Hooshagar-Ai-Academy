@@ -13,7 +13,7 @@ import { createClient } from '@/lib/supabase-server'
  */
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     
     // بررسی احراز هویت
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
  */
 export async function GET() {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data, error } = await supabase
       .from('ai_model_configs')

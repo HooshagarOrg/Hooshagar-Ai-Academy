@@ -45,7 +45,15 @@ export default function AITestPage() {
           setCapabilities(data.capabilities)
         }
       })
-      .catch(err => console.error('Error loading capabilities:', err))
+      .catch(err => {
+        console.error('Error loading capabilities:', err)
+        // Mock data برای تست (وقتی Supabase در دسترس نیست)
+        setCapabilities([
+          { capability_key: 'study_buddy', capability_name: 'دستیار مطالعه', capability_description: 'چت‌بات کمک درسی' },
+          { capability_key: 'problem_solver_ocr', capability_name: 'حل مسئله با OCR', capability_description: 'حل مسائل از روی تصویر' },
+          { capability_key: 'story_wizard', capability_name: 'جادوگر داستان', capability_description: 'تولید داستان آموزشی' },
+        ])
+      })
   }, [])
 
   // تست AI

@@ -26,41 +26,45 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
     const offset = parseInt(searchParams.get('offset') || '0')
     
-    // دریافت leaderboard
+    // دریافت leaderboard (بدون join)
     const { data: leaderboard, error } = await supabase
       .from('talent_garden')
-      .select(`
-        user_id,
-        xp,
-        level,
-        current_streak,
-        profiles:user_id (
-          full_name,
-          avatar_url
-        )
-      `)
+      .select('user_id, xp, level, current_streak')
       .order('xp', { ascending: false })
       .range(offset, offset + limit - 1)
     
     if (error) {
       console.error('خطا در دریافت leaderboard:', error)
       return NextResponse.json(
-        { error: 'خطا در دریافت لیدربورد' },
+        { error: 'خطا در دریافت لیدربورد', details: error.message },
         { status: 500 }
       )
     }
     
-    // افزودن rank
-    const rankedLeaderboard = leaderboard.map((item, index) => ({
-      rank: offset + index + 1,
-      user_id: item.user_id,
-      full_name: item.profiles?.full_name || 'کاربر ناشناس',
-      avatar_url: item.profiles?.avatar_url || null,
-      xp: item.xp,
-      level: item.level,
-      current_streak: item.current_streak,
-      is_current_user: item.user_id === user.id
-    }))
+    // دریافت profiles جداگانه
+    const userIds = leaderboard.map(item => item.user_id)
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('id', userIds)
+    
+    // ساخت Map برای دسترسی سریع
+    const profilesMap = new Map(profiles?.map(p => [p.id, p]) || [])
+    
+    // افزودن rank و merge با profiles
+    const rankedLeaderboard = leaderboard.map((item, index) => {
+      const profile = profilesMap.get(item.user_id)
+      return {
+        rank: offset + index + 1,
+        user_id: item.user_id,
+        full_name: profile?.full_name || 'کاربر ناشناس',
+        avatar_url: profile?.avatar_url || null,
+        xp: item.xp,
+        level: item.level,
+        current_streak: item.current_streak,
+        is_current_user: item.user_id === user.id
+      }
+    })
     
     // یافتن رتبه کاربر فعلی (اگر در صفحه اول نباشد)
     let userRank = rankedLeaderboard.find(item => item.is_current_user)?.rank

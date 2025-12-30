@@ -4,7 +4,8 @@ import { z } from 'zod'
 const openrouterKey = process.env.OPENROUTER_API_KEY!
 
 const ocrSchema = z.object({
-  image: z.string(), // base64
+  image: z.string().optional(), // base64
+  imageUrl: z.string().optional(), // URL
   question: z.string().optional(),
 })
 
@@ -13,9 +14,47 @@ export async function POST(request: Request) {
     const body = await request.json()
     console.log('📸 OCR request received')
     
-    const { image, question } = ocrSchema.parse(body)
+    const { image, imageUrl, question } = ocrSchema.parse(body)
 
-    if (!image.startsWith('data:image/')) {
+    // باید یکی از image یا imageUrl موجود باشد
+    if (!image && !imageUrl) {
+      return NextResponse.json(
+        { error: 'تصویر یا URL تصویر الزامی است' },
+        { status: 400 }
+      )
+    }
+
+    let imageBase64 = image
+
+    // اگر imageUrl داریم، دانلود و تبدیل به base64
+    if (imageUrl && !imageBase64) {
+      try {
+        console.log('📥 Downloading image from:', imageUrl)
+        const imageResponse = await fetch(imageUrl)
+        
+        if (!imageResponse.ok) {
+          throw new Error('Failed to download image')
+        }
+
+        const arrayBuffer = await imageResponse.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        const base64 = buffer.toString('base64')
+        
+        // تشخیص MIME type
+        const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
+        imageBase64 = `data:${contentType};base64,${base64}`
+        
+        console.log('✅ Image converted to base64')
+      } catch (downloadError: any) {
+        console.error('❌ Image download error:', downloadError)
+        return NextResponse.json(
+          { error: 'خطا در دانلود تصویر' },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (!imageBase64 || !imageBase64.startsWith('data:image/')) {
       return NextResponse.json(
         { error: 'فرمت تصویر نامعتبر است' },
         { status: 400 }
@@ -84,7 +123,7 @@ Example output:
                   {
                     type: 'image_url',
                     image_url: {
-                      url: image
+                      url: imageBase64
                     }
                   },
                   {

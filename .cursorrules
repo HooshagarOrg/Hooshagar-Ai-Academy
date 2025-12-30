@@ -31,6 +31,8 @@
 [✓] Response Caching
 [✓] User Rate Limiting
 [✓] Admin Test UI
+[✓] Cloudflare Workers Proxy (Iran Filtering Bypass)
+[✓] OCR Error Handling Fix
 
 ## فاز 4: Gamification (هفته 8-9)
 [✓] Talent Garden UI
@@ -46,7 +48,7 @@
 [ ] Notifications
 [ ] Testing & Bug Fixes
 
-## وضعیت کلی: 📊 50% تکمیل | 🎯 فاز 3 و 4 تکمیل - آماده فاز 5 (Polish)
+## وضعیت کلی: 📊 55% تکمیل | 🎯 فاز 3 و 4 تکمیل + Cloudflare Proxy - آماده فاز 5 (Polish)
 
 # ========================================
 # قوانین طلایی - حتماً رعایت شود

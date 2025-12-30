@@ -71,6 +71,10 @@ async function callGeminiDirect(
   const startTime = Date.now()
 
   try {
+    // استفاده از Cloudflare Proxy برای دور زدن فیلترینگ ایران
+    const GEMINI_BASE_URL = process.env.NEXT_PUBLIC_GEMINI_PROXY 
+      || 'https://generativelanguage.googleapis.com'
+
     const genAI = new GoogleGenerativeAI(apiKey)
     const geminiModel = genAI.getGenerativeModel({ 
       model,
@@ -79,6 +83,12 @@ async function callGeminiDirect(
         maxOutputTokens: maxTokens,
       },
     })
+
+    // تنظیم baseUrl برای استفاده از proxy
+    if (process.env.NEXT_PUBLIC_GEMINI_PROXY) {
+      // @ts-ignore - API کتابخانه baseUrl را پشتیبانی می‌کند
+      geminiModel.apiEndpoint = GEMINI_BASE_URL
+    }
 
     const result = await geminiModel.generateContent({
       contents: [{ 

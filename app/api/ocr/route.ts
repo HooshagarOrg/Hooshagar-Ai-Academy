@@ -109,8 +109,24 @@ Example output:
         const aiData = await aiResponse.json()
         console.log(`✅ Success with ${model}`)
 
-        const aiText = aiData.choices[0].message.content
-        const result = JSON.parse(aiText)
+        const aiText = aiData.choices[0]?.message?.content
+
+        // بررسی معتبر بودن
+        if (!aiText || typeof aiText !== 'string') {
+          throw new Error('AI response is empty or invalid')
+        }
+
+        // لاگ برای دیباگ
+        console.log('AI Response Text:', aiText.substring(0, 200))
+
+        let result
+        try {
+          result = JSON.parse(aiText)
+        } catch (parseError) {
+          console.error('JSON Parse Error:', parseError)
+          console.error('AI Text was:', aiText)
+          throw new Error('AI response is not valid JSON')
+        }
 
         return NextResponse.json({
           success: true,

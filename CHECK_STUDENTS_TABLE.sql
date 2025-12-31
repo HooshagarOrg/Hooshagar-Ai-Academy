@@ -1,0 +1,10 @@
+-- بررسی وجود جدول students
+SELECT table_name, column_name, data_type 
+FROM information_schema.columns 
+WHERE table_schema = 'public' 
+AND table_name = 'students'
+ORDER BY ordinal_position;
+
+-- اگر جدول وجود ندارد، این کوئری را اجرا کنید:
+-- SELECT * FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE '%stud%';
+

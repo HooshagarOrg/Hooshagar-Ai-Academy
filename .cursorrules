@@ -1,5 +1,5 @@
 # هوشاگر - Enhanced Cursor Rules
-# نسخه: 2.0 | تاریخ: آذر 1403
+# نسخه: 2.1 | تاریخ: دی 1403
 # پروژه: سیستم عامل هوشمند مدیریت مدارس
 
 # ========================================
@@ -44,11 +44,17 @@
 [✓] Helper Functions (award-xp.ts)
 
 ## فاز 5: Polish (هفته 10-12)
-[ ] Parent Reports
+[✓] Parent Reports
+[✓] Parent Reports Database Schema
+[✓] Parent Reports API Routes
+[✓] Parent Reports Components
+[✓] Parent Reports Pages (List & Detail)
+[✓] AI-Powered Insights for Reports
+[✓] Auto-Generation (Weekly/Monthly)
 [ ] Notifications
 [ ] Testing & Bug Fixes
 
-## وضعیت کلی: 📊 55% تکمیل | 🎯 فاز 3 و 4 تکمیل + Cloudflare Proxy - آماده فاز 5 (Polish)
+## وضعیت کلی: 📊 70% تکمیل | 🎯 فاز 5 در حال پیشرفت - Parent Reports تکمیل شد
 
 # ========================================
 # قوانین طلایی - حتماً رعایت شود
@@ -350,6 +356,8 @@ NEXTAUTH_SECRET=xxx
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_PROXY=https://supabase-proxy.your-domain.workers.dev
+NEXT_PUBLIC_GEMINI_PROXY=https://gemini-proxy.your-domain.workers.dev
 
 ## AI Models (استراتژی Gemini First)
 AI_MODEL_DEFAULT=gemini-1.5-pro
@@ -401,19 +409,19 @@ npm run cost:daily       # محاسبه هزینه روزانه
 
 ## شروع هر Feature:
 @.cursorrules @CURSOR_PLANNING.md
-"فاز 3: Student Analyzer API را با استراتژی Gemini First بساز"
+"فاز 5: Parent Reports را با تحلیل‌های AI بساز"
 
 ## دیباگ:
 @.cursorrules
-"این خطا را بررسی کن: RLS policy failed for table students"
+"این خطا را بررسی کن: RLS policy failed for table parent_reports"
 
 ## افزودن کامپوننت:
-@.cursorrules @components/features/ai/
-"یک AIAnalysisModal کامپوننت بساز"
+@.cursorrules @components/reports/
+"یک ReportInsights کامپوننت بساز"
 
 ## بررسی پیشرفت:
 @.cursorrules
-"Scratchpad را بخوان و بهم بگو چقدر از فاز 1 کامل شده"
+"Scratchpad را بخوان و بهم بگو چقدر از فاز 5 کامل شده"
 
 # ========================================
 # 15 قانون برتر از cursor.directory
@@ -445,6 +453,7 @@ npm run cost:daily       # محاسبه هزینه روزانه
 - استراتژی Gemini First: 80% کاهش هزینه
 - فارسی محاوره‌ای برای UI
 - RLS برای هر table اجباری
+- PowerShell: از semicolon به جای && استفاده کن
 
 ## Cursor Learned
 - Next.js 14 App Router (نه Pages Router)
@@ -465,6 +474,6 @@ npm run cost:daily       # محاسبه هزینه روزانه
 # گیت‌هاب: github.com/your-username/hooshagar
 
 # ========================================
-# آخرین بروزرسانی: آذر 1403
-# نسخه: 2.0
+# آخرین بروزرسانی: دی 1403
+# نسخه: 2.1
 # ========================================

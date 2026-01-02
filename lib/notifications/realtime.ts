@@ -24,6 +24,8 @@ export class NotificationRealtime {
   ) {
     const supabase = createClient();
 
+    console.log('🔌 Setting up realtime subscription for user:', this.userId);
+
     this.channel = supabase
       .channel(`notifications:user:${this.userId}`)
       .on(
@@ -35,6 +37,7 @@ export class NotificationRealtime {
           filter: `user_id=eq.${this.userId}`,
         },
         (payload) => {
+          console.log('📥 INSERT event received:', payload);
           if (onInsert && payload.new) {
             onInsert(payload.new as Notification);
           }
@@ -49,6 +52,7 @@ export class NotificationRealtime {
           filter: `user_id=eq.${this.userId}`,
         },
         (payload) => {
+          console.log('📥 UPDATE event received:', payload);
           if (onUpdate && payload.new) {
             onUpdate(payload.new as Notification);
           }
@@ -63,12 +67,23 @@ export class NotificationRealtime {
           filter: `user_id=eq.${this.userId}`,
         },
         (payload) => {
+          console.log('📥 DELETE event received:', payload);
           if (onDelete && payload.old) {
             onDelete((payload.old as Notification).id);
           }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Realtime subscription successful!');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Realtime subscription error:', err);
+        } else if (status === 'TIMED_OUT') {
+          console.error('⏱️ Realtime subscription timed out');
+        } else {
+          console.log('📡 Subscription status:', status);
+        }
+      });
 
     return this;
   }

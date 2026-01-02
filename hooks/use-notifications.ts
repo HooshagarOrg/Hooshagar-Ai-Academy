@@ -116,13 +116,15 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     if (!realtime) return;
 
     const supabase = createClient();
+    let unsubscribe: (() => void) | null = null;
     
-    // دریافت user_id
+    // دریافت user_id و subscribe
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
 
-      const unsubscribe = subscribeToNotifications(data.user.id, {
+      unsubscribe = subscribeToNotifications(data.user.id, {
         onInsert: (notification) => {
+          console.log('🔔 New notification received:', notification);
           // اضافه کردن اعلان جدید
           setNotifications((prev) => [notification, ...prev].slice(0, limit));
           if (!notification.is_read) {
@@ -130,6 +132,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
           }
         },
         onUpdate: (notification) => {
+          console.log('🔄 Notification updated:', notification);
           // بروزرسانی اعلان
           setNotifications((prev) =>
             prev.map((n) => (n.id === notification.id ? notification : n))
@@ -138,16 +141,21 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
           fetchNotifications();
         },
         onDelete: (id) => {
+          console.log('🗑️ Notification deleted:', id);
           // حذف اعلان
           setNotifications((prev) => prev.filter((n) => n.id !== id));
           fetchNotifications();
         },
       });
-
-      return () => {
-        unsubscribe();
-      };
     });
+
+    // Cleanup function
+    return () => {
+      if (unsubscribe) {
+        console.log('🔌 Unsubscribing from notifications');
+        unsubscribe();
+      }
+    };
   }, [realtime, limit, fetchNotifications]);
 
   return {

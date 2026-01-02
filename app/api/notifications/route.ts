@@ -1,53 +1,71 @@
-/**
- * API Route: In-App Notifications
- * 
- * GET: دریافت لیست اعلان‌ها
- * PATCH: خواندن اعلان
- */
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase-server';
 
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
-
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createClient();
     
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'احراز هویت نشده' }, { status: 401 })
+    // بررسی احراز هویت
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'لطفاً وارد شوید' },
+        { status: 401 }
+      );
     }
 
-    const { searchParams } = new URL(req.url)
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const offset = parseInt(searchParams.get('offset') || '0')
-    const unreadOnly = searchParams.get('unread_only') === 'true'
+    // دریافت پارامترها
+    const searchParams = request.nextUrl.searchParams;
+    const unread_only = searchParams.get('unread_only') === 'true';
+    const type = searchParams.get('type');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const offset = parseInt(searchParams.get('offset') || '0');
 
+    // ساخت query
     let query = supabase
-      .from('in_app_notifications')
+      .from('notifications')
       .select('*', { count: 'exact' })
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+      .range(offset, offset + limit - 1);
 
-    if (unreadOnly) {
-      query = query.eq('is_read', false)
+    // فیلترها
+    if (unread_only) {
+      query = query.eq('is_read', false);
+    }
+    if (type) {
+      query = query.eq('notification_type', type);
     }
 
-    const { data: notifications, error, count } = await query
+    const { data: notifications, error: fetchError, count } = await query;
 
-    if (error) throw error
+    if (fetchError) {
+      console.error('خطای دریافت اعلان‌ها:', fetchError);
+      return NextResponse.json(
+        { success: false, error: 'دریافت اعلان‌ها ناموفق بود' },
+        { status: 500 }
+      );
+    }
+
+    // شمارش خوانده نشده‌ها
+    const { data: unreadCount } = await supabase.rpc('get_unread_count', {
+      p_user_id: user.id,
+    });
 
     return NextResponse.json({
+      success: true,
       notifications: notifications || [],
       total: count || 0,
-      has_more: (count || 0) > offset + limit
-    })
-
-  } catch (error: any) {
+      unread_count: unreadCount || 0,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error('خطای غیرمنتظره در دریافت اعلان‌ها:', error);
     return NextResponse.json(
-      { error: 'خطا در دریافت اعلان‌ها' },
+      { success: false, error: 'خطای سرور' },
       { status: 500 }
-    )
+    );
   }
 }
-

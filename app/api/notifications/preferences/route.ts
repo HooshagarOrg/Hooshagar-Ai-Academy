@@ -1,99 +1,141 @@
-/**
- * API Route: Notification Preferences
- * 
- * GET: دریافت تنظیمات
- * PATCH: بروزرسانی تنظیمات
- */
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase-server';
+import { z } from 'zod';
 
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { z } from 'zod'
+const preferencesSchema = z.object({
+  report_published_enabled: z.boolean().optional(),
+  grade_added_enabled: z.boolean().optional(),
+  attendance_alert_enabled: z.boolean().optional(),
+  homework_due_enabled: z.boolean().optional(),
+  homework_graded_enabled: z.boolean().optional(),
+  achievement_enabled: z.boolean().optional(),
+  badge_earned_enabled: z.boolean().optional(),
+  xp_milestone_enabled: z.boolean().optional(),
+  system_enabled: z.boolean().optional(),
+  announcement_enabled: z.boolean().optional(),
+  in_app_enabled: z.boolean().optional(),
+  email_enabled: z.boolean().optional(),
+  push_enabled: z.boolean().optional(),
+  quiet_hours_start: z.string().optional(),
+  quiet_hours_end: z.string().optional(),
+});
 
-const PreferencesSchema = z.object({
-  weekly_sms_enabled: z.boolean().optional(),
-  weekly_sms_day: z.enum(['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday']).optional(),
-  weekly_sms_time: z.string().regex(/^\d{2}:\d{2}:\d{2}$/).optional()
-})
-
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createClient();
     
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'احراز هویت نشده' }, { status: 401 })
+    // بررسی احراز هویت
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'لطفاً وارد شوید' },
+        { status: 401 }
+      );
     }
 
-    let { data: preferences } = await supabase
+    // دریافت تنظیمات
+    let { data: preferences, error } = await supabase
       .from('notification_preferences')
       .select('*')
       .eq('user_id', user.id)
-      .maybeSingle()
+      .single();
 
-    // Create default if not exists
-    if (!preferences) {
-      const { data: newPrefs } = await supabase
+    // اگر تنظیمات وجود نداشت، ایجاد کن
+    if (error && error.code === 'PGRST116') {
+      const { data: newPrefs, error: insertError } = await supabase
         .from('notification_preferences')
-        .insert({
-          user_id: user.id,
-          weekly_sms_enabled: true,
-          weekly_sms_day: 'thursday',
-          weekly_sms_time: '11:00:00'
-        })
+        .insert({ user_id: user.id })
         .select()
-        .single()
+        .single();
 
-      preferences = newPrefs
+      if (insertError) {
+        console.error('خطای ایجاد تنظیمات:', insertError);
+        return NextResponse.json(
+          { success: false, error: 'ایجاد تنظیمات ناموفق بود' },
+          { status: 500 }
+        );
+      }
+
+      preferences = newPrefs;
+    } else if (error) {
+      console.error('خطای دریافت تنظیمات:', error);
+      return NextResponse.json(
+        { success: false, error: 'دریافت تنظیمات ناموفق بود' },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ preferences })
-
-  } catch (error: any) {
+    return NextResponse.json({
+      success: true,
+      preferences,
+    });
+  } catch (error) {
+    console.error('خطای غیرمنتظره در دریافت تنظیمات:', error);
     return NextResponse.json(
-      { error: 'خطا در دریافت تنظیمات' },
+      { success: false, error: 'خطای سرور' },
       { status: 500 }
-    )
+    );
   }
 }
 
-export async function PATCH(req: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createClient();
     
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'احراز هویت نشده' }, { status: 401 })
-    }
-
-    const body = await req.json()
-    const validated = PreferencesSchema.safeParse(body)
-
-    if (!validated.success) {
+    // بررسی احراز هویت
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
       return NextResponse.json(
-        { error: 'داده‌های نامعتبر', details: validated.error.issues },
-        { status: 400 }
-      )
+        { success: false, error: 'لطفاً وارد شوید' },
+        { status: 401 }
+      );
     }
 
+    // اعتبارسنجی
+    const body = await request.json();
+    const result = preferencesSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'داده‌های نامعتبر',
+          details: result.error.issues,
+        },
+        { status: 400 }
+      );
+    }
+
+    // بروزرسانی تنظیمات
     const { data: preferences, error } = await supabase
       .from('notification_preferences')
       .upsert({
         user_id: user.id,
-        ...validated.data,
-        updated_at: new Date().toISOString()
+        ...result.data,
       })
       .select()
-      .single()
+      .single();
 
-    if (error) throw error
+    if (error) {
+      console.error('خطای بروزرسانی تنظیمات:', error);
+      return NextResponse.json(
+        { success: false, error: 'بروزرسانی تنظیمات ناموفق بود' },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json({ preferences })
-
-  } catch (error: any) {
+    return NextResponse.json({
+      success: true,
+      preferences,
+      message: 'تنظیمات با موفقیت بروزرسانی شد',
+    });
+  } catch (error) {
+    console.error('خطای غیرمنتظره در بروزرسانی تنظیمات:', error);
     return NextResponse.json(
-      { error: 'خطا در بروزرسانی تنظیمات' },
+      { success: false, error: 'خطای سرور' },
       { status: 500 }
-    )
+    );
   }
 }
-

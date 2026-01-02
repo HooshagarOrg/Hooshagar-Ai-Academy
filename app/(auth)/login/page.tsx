@@ -206,38 +206,38 @@ export default function LoginPage() {
               {/* Password Tab */}
               <TabsContent value="password">
                 <form onSubmit={handlePasswordLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">ایمیل</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="example@school.com"
-                      required
-                      disabled={isLoading}
+          <div className="space-y-2">
+            <Label htmlFor="email">ایمیل</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="example@school.com"
+              required
+              disabled={isLoading}
                       className="text-left"
                       dir="ltr"
-                    />
-                  </div>
+            />
+          </div>
 
-                  <div className="space-y-2">
+          <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password">رمز عبور</Label>
+            <Label htmlFor="password">رمز عبور</Label>
                       <Link href="/help" className="text-xs text-muted-foreground hover:text-primary">
                         فراموشی رمز؟
                       </Link>
                     </div>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                      disabled={isLoading}
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              required
+              disabled={isLoading}
                       className="text-left"
                       dir="ltr"
-                    />
-                  </div>
+            />
+          </div>
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? (
@@ -317,13 +317,13 @@ export default function LoginPage() {
                       )}
                     </Button>
 
-                    <Button
+          <Button
                       type="button"
                       variant="ghost"
-                      className="w-full"
+            className="w-full"
                       onClick={() => setOtpSent(false)}
-                      disabled={isLoading}
-                    >
+            disabled={isLoading}
+          >
                       تغییر شماره موبایل
                     </Button>
                   </form>
@@ -375,28 +375,28 @@ export default function LoginPage() {
                     ) : (
                       'ورود'
                     )}
-                  </Button>
+          </Button>
                 </form>
               </TabsContent>
             </Tabs>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-3 border-t pt-6">
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <Shield className="w-3 h-3" />
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <Shield className="w-3 h-3" />
               <span>ورود شما با امنیت بالا محافظت می‌شود</span>
-            </div>
+          </div>
 
             <div className="text-center space-y-2">
               <p className="text-sm text-muted-foreground">
-                حساب کاربری ندارید؟{' '}
-                <Link
+            حساب کاربری ندارید؟{' '}
+            <Link
                   href="/activate"
-                  className="text-primary hover:underline font-medium"
-                >
+              className="text-primary hover:underline font-medium"
+            >
                   فعال‌سازی حساب
-                </Link>
-              </p>
+            </Link>
+          </p>
               
               <Link
                 href="/help"
@@ -405,8 +405,8 @@ export default function LoginPage() {
                 راهنما و پشتیبانی
               </Link>
             </div>
-          </CardFooter>
-        </Card>
+        </CardFooter>
+    </Card>
       </div>
     </div>
   )

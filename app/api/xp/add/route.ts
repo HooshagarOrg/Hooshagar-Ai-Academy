@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const validation = addXpSchema.safeParse(body)
-
+    
     if (!validation.success) {
       return NextResponse.json(
         {
@@ -84,11 +84,11 @@ export async function POST(request: NextRequest) {
 
     if (xpError) {
       console.error('خطا در افزودن XP:', xpError)
-      return NextResponse.json(
+        return NextResponse.json(
         { error: 'خطا در افزودن امتیاز' },
-        { status: 500 }
-      )
-    }
+          { status: 500 }
+        )
+      }
 
     // دریافت اطلاعات به‌روز شده
     const { data: updatedProfile } = await supabase

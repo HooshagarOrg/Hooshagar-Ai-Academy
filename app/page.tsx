@@ -24,11 +24,11 @@ export default function Home() {
               <span className="bg-gradient-to-l from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
                 هوشاگر
               </span>
-            </h1>
+        </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground mb-4 font-medium">
-              سیستم عامل هوشمند مدیریت مدارس
-            </p>
+          سیستم عامل هوشمند مدیریت مدارس
+        </p>
             
             <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
               پلتفرم یکپارچه‌ای که با قدرت هوش مصنوعی، دانش‌آموزان را تحلیل می‌کند،
@@ -39,7 +39,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button asChild size="lg" className="text-base px-8 h-12 group">
                 <Link href="/login">
-                  ورود به سیستم
+            ورود به سیستم
                   <ArrowLeft className="mr-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
@@ -49,7 +49,7 @@ export default function Home() {
                   فعال‌سازی حساب کاربری
                 </Link>
               </Button>
-            </div>
+        </div>
 
             {/* Trust Badge */}
             <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -180,8 +180,8 @@ export default function Home() {
               </div>
               <div className="text-3xl font-bold mb-1">چند نقشی</div>
               <p className="text-muted-foreground text-sm">کاملاً یکپارچه</p>
-            </div>
-            
+          </div>
+
             <div>
               <div className="flex items-center justify-center mb-2">
                 <Heart className="w-8 h-8 text-primary" />
@@ -213,8 +213,8 @@ export default function Home() {
                 راهنما و پشتیبانی
               </Link>
             </Button>
-          </div>
         </div>
+      </div>
       </section>
 
       {/* Footer */}

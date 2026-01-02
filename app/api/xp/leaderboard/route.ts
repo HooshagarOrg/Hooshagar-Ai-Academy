@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        leaderboard,
+      leaderboard,
         total: leaderboard?.length || 0,
         limit,
         offset,

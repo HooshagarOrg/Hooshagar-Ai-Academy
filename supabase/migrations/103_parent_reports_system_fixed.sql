@@ -7,9 +7,10 @@
 -- ============================================
 
 -- ============================================
--- 0. DROP EXISTING TABLES (اگر وجود دارند)
+-- 0. DROP EXISTING TABLES & INDEXES (اگر وجود دارند)
 -- ============================================
 
+-- حذف جداول
 DROP TABLE IF EXISTS parent_reports CASCADE;
 DROP TABLE IF EXISTS homework_submissions CASCADE;
 DROP TABLE IF EXISTS student_attendance CASCADE;
@@ -22,6 +23,23 @@ DROP FUNCTION IF EXISTS generate_parent_report CASCADE;
 DROP FUNCTION IF EXISTS publish_report CASCADE;
 DROP FUNCTION IF EXISTS mark_report_viewed CASCADE;
 DROP FUNCTION IF EXISTS update_updated_at CASCADE;
+
+-- حذف indexها (اگر بدون CASCADE حذف نشدند)
+DROP INDEX IF EXISTS idx_parent_reports_parent CASCADE;
+DROP INDEX IF EXISTS idx_parent_reports_student CASCADE;
+DROP INDEX IF EXISTS idx_parent_reports_period CASCADE;
+DROP INDEX IF EXISTS idx_parent_reports_status CASCADE;
+DROP INDEX IF EXISTS idx_homework_student CASCADE;
+DROP INDEX IF EXISTS idx_homework_due_date CASCADE;
+DROP INDEX IF EXISTS idx_homework_status CASCADE;
+DROP INDEX IF EXISTS idx_attendance_student CASCADE;
+DROP INDEX IF EXISTS idx_attendance_date CASCADE;
+DROP INDEX IF EXISTS idx_attendance_status CASCADE;
+DROP INDEX IF EXISTS idx_grades_student CASCADE;
+DROP INDEX IF EXISTS idx_grades_subject CASCADE;
+DROP INDEX IF EXISTS idx_grades_date CASCADE;
+DROP INDEX IF EXISTS idx_behavior_student CASCADE;
+DROP INDEX IF EXISTS idx_behavior_date CASCADE;
 
 -- ============================================
 -- 1. TABLES

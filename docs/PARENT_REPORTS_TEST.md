@@ -1,415 +1,481 @@
-# 🧪 راهنمای تست سیستم گزارش‌های والدین
+# Parent Reports System - راهنمای تست
 
-تاریخ: دی 1403
-
----
-
-## 📋 چک‌لیست تست
-
-### ✅ بخش 1: تست Database Migration
-
-```sql
--- 1. بررسی جداول ایجاد شده
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
-AND (
-  table_name LIKE 'parent_reports%' 
-  OR table_name LIKE 'homework%'
-  OR table_name LIKE 'student_attendance%'
-  OR table_name LIKE 'student_grades%'
-  OR table_name LIKE 'student_behavior%'
-);
-
--- نتیجه مورد انتظار:
--- parent_reports
--- homework_submissions
--- student_attendance
--- student_grades
--- student_behavior
-```
-
-```sql
--- 2. بررسی توابع
-SELECT routine_name 
-FROM information_schema.routines 
-WHERE routine_schema = 'public' 
-AND routine_name LIKE '%report%';
-
--- نتیجه مورد انتظار:
--- calculate_student_stats
--- generate_parent_report
--- publish_report
--- mark_report_viewed
-```
-
-```sql
--- 3. بررسی RLS
-SELECT tablename, policyname 
-FROM pg_policies 
-WHERE schemaname = 'public' 
-AND tablename IN (
-  'parent_reports', 
-  'homework_submissions', 
-  'student_attendance', 
-  'student_grades', 
-  'student_behavior'
-);
-
--- باید برای هر جدول چندین policy وجود داشته باشد
-```
+این فایل شامل دستورات و مراحل تست کامل سیستم گزارش‌های والدین است.
 
 ---
 
-### ✅ بخش 2: تست داده‌های نمونه
+## پیش‌نیازها
+
+### 1. Migration اجرا شده باشد:
 
 ```sql
--- 1. ایجاد دانش‌آموز تست (اگر وجود ندارد)
--- ابتدا از Supabase Dashboard یک user با role=student بسازید
--- سپس student_id را در این کوئری‌ها جایگزین کنید
+-- در Supabase SQL Editor اجرا کنید:
+-- محتوای فایل: supabase/migrations/103_parent_reports_system_fixed.sql
+```
 
--- 2. اضافه کردن نمرات تست
-INSERT INTO student_grades (student_id, subject, exam_type, title, score, max_score, exam_date)
-VALUES
-  ('YOUR_STUDENT_ID', 'ریاضی', 'quiz', 'آزمون فصل اول', 18.5, 20, CURRENT_DATE - INTERVAL '5 days'),
-  ('YOUR_STUDENT_ID', 'علوم', 'midterm', 'میان‌ترم', 16.0, 20, CURRENT_DATE - INTERVAL '4 days'),
-  ('YOUR_STUDENT_ID', 'فارسی', 'quiz', 'آزمون املا', 19.0, 20, CURRENT_DATE - INTERVAL '3 days'),
-  ('YOUR_STUDENT_ID', 'ریاضی', 'quiz', 'آزمون فصل دوم', 17.5, 20, CURRENT_DATE - INTERVAL '2 days');
+### 2. داده‌های تستی:
 
--- 3. اضافه کردن حضور و غیاب
-INSERT INTO student_attendance (student_id, date, status)
+باید حداقل:
+- 1 دانش‌آموز
+- 1 والدین (parent)
+- 1 معلم یا ادمین
+
+داشته باشید.
+
+---
+
+## مرحله 1: آماده‌سازی داده‌های تستی
+
+### 1.1 یافتن شناسه دانش‌آموز:
+
+```sql
 SELECT 
-  'YOUR_STUDENT_ID',
-  CURRENT_DATE - (n || ' days')::interval,
-  CASE 
-    WHEN n % 10 = 0 THEN 'absent'
-    WHEN n % 15 = 0 THEN 'late'
-    ELSE 'present'
-  END
-FROM generate_series(1, 30) AS n;
-
--- 4. اضافه کردن تکالیف
-INSERT INTO homework_submissions (student_id, subject, title, assigned_date, due_date, status, total_score, received_score)
-VALUES
-  ('YOUR_STUDENT_ID', 'ریاضی', 'تمرینات فصل اول', CURRENT_DATE - INTERVAL '7 days', CURRENT_DATE - INTERVAL '2 days', 'graded', 20, 18),
-  ('YOUR_STUDENT_ID', 'علوم', 'تحقیق درباره نظام خورشیدی', CURRENT_DATE - INTERVAL '10 days', CURRENT_DATE - INTERVAL '3 days', 'graded', 20, 19),
-  ('YOUR_STUDENT_ID', 'فارسی', 'انشا', CURRENT_DATE - INTERVAL '5 days', CURRENT_DATE + INTERVAL '2 days', 'submitted', 20, NULL),
-  ('YOUR_STUDENT_ID', 'ریاضی', 'مسائل هندسه', CURRENT_DATE - INTERVAL '3 days', CURRENT_DATE + INTERVAL '4 days', 'pending', 20, NULL);
-
--- 5. اضافه کردن رفتار
-INSERT INTO student_behavior (student_id, date, behavior_type, title, severity, behavior_points)
-VALUES
-  ('YOUR_STUDENT_ID', CURRENT_DATE - INTERVAL '1 day', 'positive', 'کمک به دوستان', 0, 5),
-  ('YOUR_STUDENT_ID', CURRENT_DATE - INTERVAL '3 days', 'positive', 'فعالیت در کلاس', 0, 3),
-  ('YOUR_STUDENT_ID', CURRENT_DATE - INTERVAL '5 days', 'negative', 'دیر آمدن', 2, -2);
+  id, 
+  full_name, 
+  grade, 
+  parent_id,
+  user_id
+FROM students 
+WHERE parent_id IS NOT NULL
+LIMIT 1;
 ```
 
----
+📝 **یادداشت:** `id` دانش‌آموز را کپی کنید (مثلاً: `ec37f0e3-f422-4429-989f-6fe63f8ff86e`)
 
-### ✅ بخش 3: تست توابع Database
+### 1.2 اطمینان از وجود parent_id:
 
-```sql
--- 1. تست محاسبه آمار
-SELECT calculate_student_stats(
-  'YOUR_STUDENT_ID',
-  NOW() - INTERVAL '7 days',
-  NOW()
-);
-
--- نتیجه مورد انتظار: یک JSON حاوی:
--- {
---   "average_grade": 18.25,
---   "attendance_rate": 95.0,
---   "homework_completion": 75.0,
---   "behavior_score": 6.0,
---   "total_score": 88.5
--- }
-```
+اگر `parent_id` NULL است، آن را تنظیم کنید:
 
 ```sql
--- 2. تست تولید گزارش
-SELECT generate_parent_report(
-  'YOUR_STUDENT_ID',
-  'weekly',
-  NOW() - INTERVAL '7 days',
-  NOW()
-);
-
--- نتیجه مورد انتظار: یک UUID (شناسه گزارش ایجاد شده)
-```
-
-```sql
--- 3. بررسی گزارش ایجاد شده
-SELECT * FROM parent_reports 
-WHERE student_id = 'YOUR_STUDENT_ID'
-ORDER BY created_at DESC 
+-- پیدا کردن parent_user_id
+SELECT id, full_name, role 
+FROM profiles 
+WHERE role = 'parent' 
 LIMIT 1;
 
--- نتیجه مورد انتظار: یک رکورد با status='draft'
+-- تنظیم parent_id
+UPDATE students 
+SET parent_id = 'YOUR_PARENT_USER_ID'
+WHERE id = 'YOUR_STUDENT_ID';
 ```
 
-```sql
--- 4. تست انتشار گزارش
-SELECT publish_report('REPORT_ID_FROM_PREVIOUS_QUERY');
+### 1.3 ایجاد داده‌های تستی:
 
--- نتیجه مورد انتظار: true
+#### نمرات:
+
+```sql
+INSERT INTO student_grades (student_id, subject, exam_type, title, score, max_score, exam_date) 
+VALUES
+  ('YOUR_STUDENT_ID', 'ریاضی', 'quiz', 'آزمون فصل 1', 18, 20, '2024-01-15'),
+  ('YOUR_STUDENT_ID', 'علوم', 'quiz', 'آزمون فصل 1', 17, 20, '2024-01-16'),
+  ('YOUR_STUDENT_ID', 'فارسی', 'midterm', 'میان‌ترم', 85, 100, '2024-01-20'),
+  ('YOUR_STUDENT_ID', 'ریاضی', 'midterm', 'میان‌ترم', 90, 100, '2024-01-21');
 ```
 
-```sql
--- 5. بررسی وضعیت گزارش
-SELECT id, status, published_at 
-FROM parent_reports 
-WHERE id = 'REPORT_ID';
+#### حضور و غیاب:
 
--- نتیجه مورد انتظار: status='published' و published_at != NULL
+```sql
+INSERT INTO student_attendance (student_id, attendance_date, attendance_status, arrival_time)
+VALUES
+  ('YOUR_STUDENT_ID', '2024-01-08', 'present', '07:30'),
+  ('YOUR_STUDENT_ID', '2024-01-09', 'present', '07:25'),
+  ('YOUR_STUDENT_ID', '2024-01-10', 'late', '08:10'),
+  ('YOUR_STUDENT_ID', '2024-01-11', 'present', '07:30'),
+  ('YOUR_STUDENT_ID', '2024-01-12', 'absent', NULL);
+```
+
+#### تکالیف:
+
+```sql
+INSERT INTO homework_submissions (student_id, subject, title, assigned_date, due_date, submission_status, total_score, received_score)
+VALUES
+  ('YOUR_STUDENT_ID', 'ریاضی', 'تمرین صفحه 25', '2024-01-08', '2024-01-10', 'graded', 10, 9),
+  ('YOUR_STUDENT_ID', 'علوم', 'پروژه آزمایشگاه', '2024-01-10', '2024-01-15', 'graded', 20, 18),
+  ('YOUR_STUDENT_ID', 'فارسی', 'انشا', '2024-01-12', '2024-01-14', 'submitted', 10, NULL),
+  ('YOUR_STUDENT_ID', 'ریاضی', 'تمرین صفحه 30', '2024-01-15', '2024-01-17', 'pending', 10, NULL);
+```
+
+#### رفتار:
+
+```sql
+INSERT INTO student_behavior (student_id, behavior_date, behavior_type, title, severity, behavior_points)
+VALUES
+  ('YOUR_STUDENT_ID', '2024-01-09', 'positive', 'کمک به همکلاسی', 0, 5),
+  ('YOUR_STUDENT_ID', '2024-01-11', 'positive', 'مشارکت فعال در کلاس', 0, 3),
+  ('YOUR_STUDENT_ID', '2024-01-13', 'negative', 'فراموش کردن کتاب', 2, -2);
 ```
 
 ---
 
-### ✅ بخش 4: تست API Routes
+## مرحله 2: تست توابع PostgreSQL
 
-#### 1. تست تولید گزارش دستی
+### 2.1 تست calculate_student_stats:
 
-```bash
-# Windows PowerShell
-curl -X POST http://localhost:3000/api/reports/generate `
-  -H "Content-Type: application/json" `
-  -d '{\"studentId\": \"YOUR_STUDENT_ID\", \"reportType\": \"weekly\", \"periodStart\": \"2025-01-01T00:00:00Z\", \"periodEnd\": \"2025-01-08T00:00:00Z\"}'
+```sql
+SELECT calculate_student_stats(
+  'YOUR_STUDENT_ID'::uuid,
+  '2024-01-01'::timestamptz,
+  '2024-01-31'::timestamptz
+);
 ```
 
 **نتیجه مورد انتظار:**
+
 ```json
 {
-  "success": true,
-  "report": {
-    "id": "uuid",
-    "stats": {...}
-  }
+  "total_score": 85.5,
+  "average_grade": 87.5,
+  "behavior_score": 2.0,
+  "attendance_rate": 80.0,
+  "homework_completion": 66.67
 }
 ```
 
-#### 2. تست لیست گزارش‌ها
+### 2.2 تست generate_parent_report:
+
+```sql
+SELECT generate_parent_report(
+  'YOUR_STUDENT_ID'::uuid,
+  'weekly',
+  '2024-01-08'::timestamptz,
+  '2024-01-14'::timestamptz
+);
+```
+
+**نتیجه مورد انتظار:** UUID گزارش جدید (مثلاً: `a1b2c3d4-...`)
+
+### 2.3 بررسی گزارش ایجاد شده:
+
+```sql
+SELECT 
+  id,
+  student_id,
+  parent_id,
+  report_type,
+  period_start,
+  period_end,
+  report_status,
+  stats
+FROM parent_reports
+ORDER BY created_at DESC
+LIMIT 1;
+```
+
+### 2.4 تست publish_report:
+
+```sql
+SELECT publish_report('YOUR_REPORT_ID'::uuid);
+```
+
+**نتیجه مورد انتظار:** `true`
+
+### 2.5 تست mark_report_viewed:
+
+```sql
+SELECT mark_report_viewed(
+  'YOUR_REPORT_ID'::uuid,
+  'YOUR_PARENT_USER_ID'::uuid
+);
+```
+
+**نتیجه مورد انتظار:** `true`
+
+---
+
+## مرحله 3: تست API Routes
+
+### 3.1 ورود به سیستم:
+
+ابتدا با یک کاربر معلم یا ادمین وارد شوید.
+
+### 3.2 تست POST /api/reports/generate:
 
 ```bash
-curl http://localhost:3000/api/reports/list
+curl -X POST http://localhost:3000/api/reports/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_id": "YOUR_STUDENT_ID",
+    "report_type": "weekly",
+    "period_start": "2024-01-08T00:00:00Z",
+    "period_end": "2024-01-14T23:59:59Z"
+  }'
 ```
 
 **نتیجه مورد انتظار:**
+
 ```json
 {
   "success": true,
-  "reports": [...]
+  "report_id": "uuid",
+  "report": { ... },
+  "message": "گزارش با موفقیت ایجاد شد"
 }
 ```
 
-#### 3. تست جزئیات گزارش
+### 3.3 تست POST /api/reports/ai-insights:
+
+```bash
+curl -X POST http://localhost:3000/api/reports/ai-insights \
+  -H "Content-Type: application/json" \
+  -d '{
+    "report_id": "YOUR_REPORT_ID"
+  }'
+```
+
+**نتیجه مورد انتظار:**
+
+```json
+{
+  "success": true,
+  "insights": "تحلیل جامع...",
+  "recommendations": [ ... ],
+  "risk_level": "low",
+  "model_used": "gemini-1.5-pro",
+  "cost": 0
+}
+```
+
+### 3.4 تست POST /api/reports/publish:
+
+```bash
+curl -X POST http://localhost:3000/api/reports/publish \
+  -H "Content-Type: application/json" \
+  -d '{
+    "report_id": "YOUR_REPORT_ID"
+  }'
+```
+
+**نتیجه مورد انتظار:**
+
+```json
+{
+  "success": true,
+  "report": { ... },
+  "message": "گزارش با موفقیت منتشر شد"
+}
+```
+
+### 3.5 تست GET /api/reports/list:
+
+```bash
+curl http://localhost:3000/api/reports/list?limit=10
+```
+
+**نتیجه مورد انتظار:**
+
+```json
+{
+  "success": true,
+  "reports": [ ... ],
+  "total": 5,
+  "limit": 10,
+  "offset": 0
+}
+```
+
+### 3.6 تست GET /api/reports/[id]:
 
 ```bash
 curl http://localhost:3000/api/reports/YOUR_REPORT_ID
 ```
 
 **نتیجه مورد انتظار:**
+
 ```json
 {
   "success": true,
   "report": {
     "id": "uuid",
-    "student": {...},
-    "stats": {...}
-  }
-}
-```
-
-#### 4. تست تحلیل AI
-
-```bash
-curl -X POST http://localhost:3000/api/reports/ai-insights `
-  -H "Content-Type: application/json" `
-  -d '{\"reportId\": \"YOUR_REPORT_ID\"}'
-```
-
-**نتیجه مورد انتظار:**
-```json
-{
-  "success": true,
-  "insights": {
-    "insights": "تحلیل کلی...",
-    "strengths": [...],
-    "weaknesses": [...],
-    "recommendations": [...]
-  },
-  "model": "gemini-1.5-pro"
-}
-```
-
-#### 5. تست تولید خودکار
-
-```bash
-curl -X POST http://localhost:3000/api/reports/auto-generate `
-  -H "Content-Type: application/json" `
-  -d '{\"reportType\": \"weekly\"}'
-```
-
-**نتیجه مورد انتظار:**
-```json
-{
-  "success": true,
-  "message": "X گزارش با موفقیت ایجاد شد",
-  "stats": {
-    "total": X,
-    "success": X,
-    "failed": 0
+    "student": { ... },
+    "stats": { ... },
+    "ai_insights": "...",
+    "recommendations": [ ... ]
   }
 }
 ```
 
 ---
 
-### ✅ بخش 5: تست UI
+## مرحله 4: تست UI
 
-#### صفحه لیست گزارش‌ها (`/parent/reports`)
+### 4.1 صفحه ادمین:
 
-1. ✅ ورود با حساب والدین
-2. ✅ مشاهده لیست گزارش‌ها
-3. ✅ نمایش صحیح آمار (مجموع، جدید، آخرین)
-4. ✅ کلیک روی دکمه "بروزرسانی"
-5. ✅ RTL صحیح و فارسی بودن متون
-6. ✅ Responsive بودن روی موبایل
+1. برو به `http://localhost:3000/admin/reports`
+2. کلیک روی "ایجاد گزارش جدید"
+3. شناسه دانش‌آموز را وارد کن
+4. نوع گزارش: "هفتگی"
+5. تاریخ شروع: 2024-01-08
+6. تاریخ پایان: 2024-01-14
+7. کلیک روی "ایجاد گزارش"
+8. منتظر بمان تا گزارش ایجاد شود
 
-#### صفحه جزئیات گزارش (`/parent/reports/[id]`)
+✅ **بررسی:** گزارش جدید در لیست ظاهر شد؟
 
-1. ✅ کلیک روی یک گزارش
-2. ✅ نمایش اطلاعات دانش‌آموز
-3. ✅ نمایش بازه زمانی
-4. ✅ نمایش آمار با نمودارها
-5. ✅ دکمه "تولید تحلیل AI" کار می‌کند
-6. ✅ نمایش نقاط قوت و ضعف
-7. ✅ نمایش توصیه‌ها
-8. ✅ دکمه "بازگشت" کار می‌کند
-9. ✅ دکمه "دانلود PDF" (می‌تواند بعداً پیاده‌سازی شود)
+### 4.2 تولید تحلیل AI:
 
-#### صفحه ادمین (`/admin/reports`)
+1. در لیست گزارش‌ها، روی "تحلیل AI" کلیک کن
+2. منتظر بمان (10-15 ثانیه)
+3. Toast نمایش داده می‌شود: "تحلیل هوشمند با gemini-1.5-pro تولید شد"
 
-1. ✅ ورود با حساب ادمین/معلم
-2. ✅ دو کارت (هفتگی و ماهانه) نمایش داده می‌شود
-3. ✅ کلیک روی "تولید گزارش هفتگی"
-4. ✅ نمایش loading state
-5. ✅ نمایش نتیجه موفق/ناموفق
-6. ✅ کلیک روی "تولید گزارش ماهانه"
+✅ **بررسی:** تحلیل با موفقیت تولید شد؟
+
+### 4.3 انتشار گزارش:
+
+1. روی "انتشار" کلیک کن
+2. Toast نمایش داده می‌شود: "گزارش با موفقیت منتشر شد"
+3. وضعیت گزارش تغییر کرد به "منتشر شده"
+
+✅ **بررسی:** گزارش منتشر شد؟
+
+### 4.4 مشاهده به عنوان والدین:
+
+1. خارج شو از حساب ادمین
+2. با حساب والدین وارد شو
+3. برو به `http://localhost:3000/parent/reports`
+4. گزارش منتشر شده را ببین
+
+✅ **بررسی:** گزارش برای والدین نمایش داده می‌شود؟
+
+### 4.5 مشاهده جزئیات گزارش:
+
+1. روی گزارش کلیک کن
+2. به صفحه جزئیات برو
+3. بررسی کن:
+   - آمار عملکرد نمایش داده می‌شود؟
+   - تحلیل AI نمایش داده می‌شود؟
+   - توصیه‌ها نمایش داده می‌شود؟
+   - مقایسه با دوره قبل (اگر وجود دارد)
+
+✅ **بررسی:** همه بخش‌ها به درستی نمایش داده می‌شوند؟
 
 ---
 
-### ✅ بخش 6: تست RLS (امنیت)
+## مرحله 5: تست RLS
+
+### 5.1 والدین فقط گزارش‌های خودشان:
+
+1. با حساب والدین 1 وارد شو
+2. برو به `/parent/reports`
+3. فقط گزارش‌های فرزند خودش را ببین
+
+✅ **بررسی:** گزارش‌های سایر دانش‌آموزان نمایش داده نمی‌شود؟
+
+### 5.2 والدین فقط گزارش‌های منتشر شده:
+
+1. با حساب ادمین یک گزارش پیش‌نویس ایجاد کن
+2. با حساب والدین وارد شو
+3. گزارش پیش‌نویس نباید نمایش داده شود
+
+✅ **بررسی:** فقط گزارش‌های منتشر شده نمایش داده می‌شوند؟
+
+### 5.3 معلم/ادمین همه گزارش‌ها:
+
+1. با حساب ادمین وارد شو
+2. برو به `/admin/reports`
+3. همه گزارش‌ها (draft, published, archived) را ببین
+
+✅ **بررسی:** ادمین همه گزارش‌ها را می‌بیند؟
+
+---
+
+## مرحله 6: تست عملکرد
+
+### 6.1 ایجاد 10 گزارش:
 
 ```sql
--- 1. تست دسترسی والدین
--- ابتدا با حساب والدین وارد شوید
-SELECT * FROM parent_reports;
--- نتیجه: فقط گزارش‌های فرزندان خودش
-
--- 2. تست دسترسی معلم
--- با حساب معلم وارد شوید
-SELECT * FROM parent_reports;
--- نتیجه: همه گزارش‌ها
-
--- 3. تست عدم دسترسی به گزارش‌های دیگران
--- با حساب والدین A وارد شوید
-SELECT * FROM parent_reports WHERE parent_id != auth.uid();
--- نتیجه: خالی (هیچ رکوردی)
+DO $$
+DECLARE
+  i INTEGER;
+BEGIN
+  FOR i IN 1..10 LOOP
+    PERFORM generate_parent_report(
+      'YOUR_STUDENT_ID'::uuid,
+      'weekly',
+      (CURRENT_DATE - INTERVAL '7 days' * i)::timestamptz,
+      (CURRENT_DATE - INTERVAL '7 days' * (i - 1))::timestamptz
+    );
+  END LOOP;
+END $$;
 ```
+
+### 6.2 بررسی سرعت لیست:
+
+1. برو به `/parent/reports`
+2. صفحه در کمتر از 1 ثانیه بارگذاری شود؟
+
+✅ **بررسی:** عملکرد مناسب است؟
+
+### 6.3 بررسی Pagination:
+
+```bash
+curl 'http://localhost:3000/api/reports/list?limit=5&offset=0'
+curl 'http://localhost:3000/api/reports/list?limit=5&offset=5'
+```
+
+✅ **بررسی:** Pagination کار می‌کند؟
 
 ---
 
-### ✅ بخش 7: تست عملکرد (Performance)
+## خلاصه چک‌لیست تست
+
+- [ ] Migration اجرا شد
+- [ ] داده‌های تستی ایجاد شدند
+- [ ] تابع `calculate_student_stats` کار می‌کند
+- [ ] تابع `generate_parent_report` کار می‌کند
+- [ ] تابع `publish_report` کار می‌کند
+- [ ] تابع `mark_report_viewed` کار می‌کند
+- [ ] API `/api/reports/generate` کار می‌کند
+- [ ] API `/api/reports/ai-insights` کار می‌کند
+- [ ] API `/api/reports/publish` کار می‌کند
+- [ ] API `/api/reports/list` کار می‌کند
+- [ ] API `/api/reports/[id]` کار می‌کند
+- [ ] صفحه `/admin/reports` کار می‌کند
+- [ ] صفحه `/parent/reports` کار می‌کند
+- [ ] صفحه `/parent/reports/[id]` کار می‌کند
+- [ ] RLS برای والدین کار می‌کند
+- [ ] RLS برای معلم/ادمین کار می‌کند
+- [ ] عملکرد مناسب است
+
+---
+
+## عیب‌یابی
+
+### مشکل: "دانش‌آموز یافت نشد"
 
 ```sql
--- 1. تست سرعت محاسبه آمار
-EXPLAIN ANALYZE
-SELECT calculate_student_stats(
-  'YOUR_STUDENT_ID',
-  NOW() - INTERVAL '30 days',
-  NOW()
-);
-
--- زمان اجرا باید < 100ms
+-- بررسی وجود دانش‌آموز
+SELECT * FROM students WHERE id = 'YOUR_STUDENT_ID';
 ```
+
+### مشکل: "والدین ثبت شده ندارد"
 
 ```sql
--- 2. تست سرعت لیست گزارش‌ها
-EXPLAIN ANALYZE
-SELECT * FROM parent_reports
-WHERE parent_id = 'YOUR_PARENT_ID'
-ORDER BY created_at DESC
-LIMIT 20;
+-- تنظیم parent_id
+UPDATE students 
+SET parent_id = 'YOUR_PARENT_USER_ID'
+WHERE id = 'YOUR_STUDENT_ID';
+```
 
--- زمان اجرا باید < 50ms
+### مشکل: "تولید تحلیل ناموفق بود"
+
+```sql
+-- بررسی لاگ AI
+SELECT * FROM ai_request_logs 
+WHERE capability = 'student_analyzer'
+ORDER BY created_at DESC 
+LIMIT 5;
+```
+
+### مشکل: "شما مجوز مشاهده ندارید"
+
+```sql
+-- بررسی RLS
+SELECT * FROM parent_reports WHERE id = 'YOUR_REPORT_ID';
+-- اگر خالی است، RLS مشکل دارد
 ```
 
 ---
 
-### ✅ بخش 8: تست خطاها (Error Handling)
+**موفق باشید!** 🚀
 
-#### 1. تولید گزارش با دانش‌آموز نامعتبر
-
-```bash
-curl -X POST http://localhost:3000/api/reports/generate `
-  -H "Content-Type: application/json" `
-  -d '{\"studentId\": \"invalid-uuid\", \"reportType\": \"weekly\", \"periodStart\": \"2025-01-01T00:00:00Z\", \"periodEnd\": \"2025-01-08T00:00:00Z\"}'
-```
-
-**نتیجه مورد انتظار:** خطای 400 با پیام فارسی
-
-#### 2. دسترسی به گزارش بدون احراز هویت
-
-```bash
-curl http://localhost:3000/api/reports/list
-```
-
-**نتیجه مورد انتظار:** خطای 401
-
-#### 3. تحلیل AI برای گزارش نامعتبر
-
-```bash
-curl -X POST http://localhost:3000/api/reports/ai-insights `
-  -H "Content-Type: application/json" `
-  -d '{\"reportId\": \"invalid-uuid\"}'
-```
-
-**نتیجه مورد انتظار:** خطای 404 با پیام فارسی
-
----
-
-## 📊 نتیجه‌گیری
-
-بعد از انجام تمام تست‌ها، فایل `TEST_RESULTS.md` را با نتایج زیر بروزرسانی کنید:
-
-```markdown
-# نتایج تست سیستم گزارش‌های والدین
-
-تاریخ: [DATE]
-تست‌شده توسط: [YOUR_NAME]
-
-## خلاصه
-- ✅ Database Migration: [PASS/FAIL]
-- ✅ داده‌های نمونه: [PASS/FAIL]
-- ✅ توابع Database: [PASS/FAIL]
-- ✅ API Routes: [PASS/FAIL]
-- ✅ UI: [PASS/FAIL]
-- ✅ RLS: [PASS/FAIL]
-- ✅ Performance: [PASS/FAIL]
-- ✅ Error Handling: [PASS/FAIL]
-
-## مشکلات یافت شده
-1. [اگر هست]
-2. [اگر هست]
-
-## پیشنهادات بهبود
-1. [اگر هست]
-2. [اگر هست]
-```
-
----
-
-**تاریخ ایجاد:** دی 1403  
-**آخرین بروزرسانی:** دی 1403
-
+اگر تمام تست‌ها موفق بودند، Parent Reports System شما آماده استفاده است!

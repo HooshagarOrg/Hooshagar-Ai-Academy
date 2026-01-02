@@ -1,246 +1,462 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  FileText,
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import ReportCard from '@/components/reports/ReportCard';
+import { ParentReport } from '@/types/parent-reports.types';
+import { 
+  FileText, 
+  Plus, 
+  Filter, 
   Calendar,
-  Zap,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
+  Search,
+  Send,
+  Sparkles
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminReportsPage() {
+  const [reports, setReports] = useState<ParentReport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [error, setError] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [result, setResult] = useState<{
-    success: boolean;
-    message: string;
-    stats?: {
-      total: number;
-      success: number;
-      failed: number;
-    };
-  } | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
 
-  const generateReports = async (type: 'weekly' | 'monthly') => {
+  // فرم ایجاد گزارش
+  const [newReport, setNewReport] = useState({
+    student_id: '',
+    report_type: 'weekly',
+    period_start: '',
+    period_end: '',
+  });
+
+  useEffect(() => {
+    fetchReports();
+  }, [filterType, filterStatus]);
+
+  const fetchReports = async () => {
     try {
-      setIsGenerating(true);
-      setResult(null);
+      setIsLoading(true);
+      setError('');
 
-      const response = await fetch('/api/reports/auto-generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reportType: type }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'تولید گزارش‌ها ناموفق بود');
+      let url = '/api/reports/list?limit=100';
+      if (filterType !== 'all') {
+        url += `&report_type=${filterType}`;
+      }
+      if (filterStatus !== 'all') {
+        url += `&report_status=${filterStatus}`;
       }
 
-      setResult(data);
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!data.success) {
+        setError(data.error || 'دریافت گزارش‌ها ناموفق بود');
+        return;
+      }
+
+      setReports(data.reports);
     } catch (err) {
-      console.error('خطا در تولید گزارش‌ها:', err);
-      setResult({
-        success: false,
-        message: err instanceof Error ? err.message : 'خطای نامشخص',
+      console.error('خطا در دریافت گزارش‌ها:', err);
+      setError('خطای شبکه. لطفاً دوباره تلاش کنید.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!newReport.student_id || !newReport.period_start || !newReport.period_end) {
+      toast({
+        title: 'خطا',
+        description: 'لطفاً تمام فیلدها را پر کنید',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+
+      const res = await fetch('/api/reports/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newReport,
+          period_start: new Date(newReport.period_start).toISOString(),
+          period_end: new Date(newReport.period_end).toISOString(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        toast({
+          title: 'خطا',
+          description: data.error || 'ایجاد گزارش ناموفق بود',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: 'موفق',
+        description: 'گزارش با موفقیت ایجاد شد',
+      });
+
+      setIsDialogOpen(false);
+      setNewReport({
+        student_id: '',
+        report_type: 'weekly',
+        period_start: '',
+        period_end: '',
+      });
+      fetchReports();
+    } catch (err) {
+      console.error('خطا در ایجاد گزارش:', err);
+      toast({
+        title: 'خطا',
+        description: 'خطای شبکه. لطفاً دوباره تلاش کنید.',
+        variant: 'destructive',
       });
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const handlePublishReport = async (reportId: string) => {
+    try {
+      const res = await fetch('/api/reports/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ report_id: reportId }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        toast({
+          title: 'خطا',
+          description: data.error || 'انتشار گزارش ناموفق بود',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: 'موفق',
+        description: 'گزارش با موفقیت منتشر شد',
+      });
+
+      fetchReports();
+    } catch (err) {
+      console.error('خطا در انتشار گزارش:', err);
+      toast({
+        title: 'خطا',
+        description: 'خطای شبکه. لطفاً دوباره تلاش کنید.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleGenerateAIInsights = async (reportId: string) => {
+    try {
+      toast({
+        title: 'در حال پردازش...',
+        description: 'تحلیل هوشمند در حال تولید است',
+      });
+
+      const res = await fetch('/api/reports/ai-insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ report_id: reportId }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        toast({
+          title: 'خطا',
+          description: data.error || 'تولید تحلیل ناموفق بود',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: 'موفق',
+        description: `تحلیل هوشمند با ${data.model_used} تولید شد`,
+      });
+
+      fetchReports();
+    } catch (err) {
+      console.error('خطا در تولید تحلیل:', err);
+      toast({
+        title: 'خطا',
+        description: 'خطای شبکه. لطفاً دوباره تلاش کنید.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const filteredReports = reports.filter((report) => {
+    if (!searchQuery) return true;
+    return report.student?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
   return (
     <div className="space-y-6">
       {/* هدر */}
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold">مدیریت گزارش‌های والدین</h1>
-        <p className="text-muted-foreground">
-          تولید خودکار گزارش‌های هفتگی و ماهانه برای والدین
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">مدیریت گزارش‌ها</h1>
+          <p className="text-muted-foreground mt-1">
+            ایجاد، ویرایش و انتشار گزارش‌های عملکرد دانش‌آموزان
+          </p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              ایجاد گزارش جدید
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>ایجاد گزارش جدید</DialogTitle>
+              <DialogDescription>
+                گزارش عملکرد برای یک دانش‌آموز ایجاد کنید
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="student_id">شناسه دانش‌آموز</Label>
+                <Input
+                  id="student_id"
+                  placeholder="UUID دانش‌آموز"
+                  value={newReport.student_id}
+                  onChange={(e) =>
+                    setNewReport({ ...newReport, student_id: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="report_type">نوع گزارش</Label>
+                <Select
+                  value={newReport.report_type}
+                  onValueChange={(value) =>
+                    setNewReport({ ...newReport, report_type: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">هفتگی</SelectItem>
+                    <SelectItem value="monthly">ماهانه</SelectItem>
+                    <SelectItem value="term">ترم</SelectItem>
+                    <SelectItem value="custom">سفارشی</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="period_start">تاریخ شروع</Label>
+                <Input
+                  id="period_start"
+                  type="date"
+                  value={newReport.period_start}
+                  onChange={(e) =>
+                    setNewReport({ ...newReport, period_start: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="period_end">تاریخ پایان</Label>
+                <Input
+                  id="period_end"
+                  type="date"
+                  value={newReport.period_end}
+                  onChange={(e) =>
+                    setNewReport({ ...newReport, period_end: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                onClick={handleGenerateReport}
+                disabled={isGenerating}
+              >
+                {isGenerating ? 'در حال ایجاد...' : 'ایجاد گزارش'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* نتیجه */}
-      {result && (
-        <Alert variant={result.success ? 'default' : 'destructive'}>
-          {result.success ? (
-            <CheckCircle2 className="h-4 w-4" />
-          ) : (
-            <AlertCircle className="h-4 w-4" />
-          )}
-          <AlertDescription>
-            <div className="space-y-2">
-              <p>{result.message}</p>
-              {result.stats && (
-                <div className="flex gap-4 text-sm">
-                  <span>کل: {result.stats.total}</span>
-                  <span className="text-green-600">
-                    موفق: {result.stats.success}
-                  </span>
-                  {result.stats.failed > 0 && (
-                    <span className="text-red-600">
-                      ناموفق: {result.stats.failed}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* کارت‌های تولید گزارش */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* گزارش هفتگی */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                گزارش هفتگی
-              </CardTitle>
-              <Badge variant="outline">7 روز اخیر</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              تولید گزارش عملکرد 7 روز اخیر برای تمام دانش‌آموزان
-            </p>
-
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                میانگین نمرات
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                حضور و غیاب
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                تکالیف
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                رفتار و انضباط
-              </li>
-            </ul>
-
-            <Button
-              className="w-full gap-2"
-              onClick={() => generateReports('weekly')}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  در حال تولید...
-                </>
-              ) : (
-                <>
-                  <Zap className="h-4 w-4" />
-                  تولید گزارش هفتگی
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* گزارش ماهانه */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                گزارش ماهانه
-              </CardTitle>
-              <Badge variant="outline">30 روز اخیر</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              تولید گزارش جامع 30 روز اخیر برای تمام دانش‌آموزان
-            </p>
-
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                تحلیل روند پیشرفت
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                مقایسه با ماه قبل
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                توصیه‌های هوش مصنوعی
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                نمودارهای پیشرفت
-              </li>
-            </ul>
-
-            <Button
-              className="w-full gap-2"
-              onClick={() => generateReports('monthly')}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  در حال تولید...
-                </>
-              ) : (
-                <>
-                  <Zap className="h-4 w-4" />
-                  تولید گزارش ماهانه
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* راهنما */}
+      {/* فیلترها و جستجو */}
       <Card>
         <CardHeader>
-          <CardTitle>راهنمای تولید گزارش‌ها</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Filter className="h-4 w-4" />
+            فیلترها و جستجو
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <h4 className="font-semibold">گزارش هفتگی:</h4>
-            <p className="text-sm text-muted-foreground">
-              این گزارش شامل عملکرد 7 روز اخیر دانش‌آموز است و برای پیگیری سریع
-              مناسب است. توصیه می‌شود هر هفته یکبار تولید شود.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="font-semibold">گزارش ماهانه:</h4>
-            <p className="text-sm text-muted-foreground">
-              این گزارش جامع‌تر است و شامل تحلیل روند پیشرفت، مقایسه با ماه قبل
-              و توصیه‌های دقیق‌تر است. توصیه می‌شود هر ماه یکبار تولید شود.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="font-semibold">نکات مهم:</h4>
-            <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-              <li>گزارش‌ها فقط برای دانش‌آموزانی که والدین ثبت شده دارند تولید می‌شود</li>
-              <li>گزارش‌ها به صورت خودکار منتشر می‌شوند</li>
-              <li>والدین می‌توانند گزارش‌ها را در پنل خود مشاهده کنند</li>
-              <li>برای هر گزارش می‌توانید تحلیل هوش مصنوعی تولید کنید</li>
-            </ul>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2">
+              <Label htmlFor="search" className="sr-only">جستجو</Label>
+              <div className="relative">
+                <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  placeholder="جستجو نام دانش‌آموز..."
+                  className="pr-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="filterType" className="sr-only">نوع</Label>
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger id="filterType">
+                  <SelectValue placeholder="نوع گزارش" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">همه انواع</SelectItem>
+                  <SelectItem value="weekly">هفتگی</SelectItem>
+                  <SelectItem value="monthly">ماهانه</SelectItem>
+                  <SelectItem value="term">ترم</SelectItem>
+                  <SelectItem value="custom">سفارشی</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="filterStatus" className="sr-only">وضعیت</Label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger id="filterStatus">
+                  <SelectValue placeholder="وضعیت" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">همه وضعیت‌ها</SelectItem>
+                  <SelectItem value="draft">پیش‌نویس</SelectItem>
+                  <SelectItem value="published">منتشر شده</SelectItem>
+                  <SelectItem value="archived">آرشیو</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* لیست گزارش‌ها */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <div className="h-6 bg-gray-200 rounded w-3/4" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded" />
+                  <div className="h-4 bg-gray-200 rounded w-5/6" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : error ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center text-red-600">
+              <p>{error}</p>
+              <Button onClick={fetchReports} variant="outline" className="mt-4">
+                تلاش مجدد
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : filteredReports.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">
+                {searchQuery ? 'گزارشی یافت نشد' : 'هنوز گزارشی ایجاد نشده است'}
+              </p>
+              <p className="text-sm mt-2">
+                برای شروع، روی دکمه "ایجاد گزارش جدید" کلیک کنید.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredReports.map((report) => (
+            <div key={report.id} className="space-y-2">
+              <ReportCard report={report} showActions={false} />
+              <div className="flex gap-2">
+                {report.report_status === 'draft' && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 gap-2"
+                      onClick={() => handleGenerateAIInsights(report.id)}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      تحلیل AI
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1 gap-2"
+                      onClick={() => handlePublishReport(report.id)}
+                    >
+                      <Send className="h-4 w-4" />
+                      انتشار
+                    </Button>
+                  </>
+                )}
+                {report.report_status === 'published' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => window.open(`/parent/reports/${report.id}`, '_blank')}
+                  >
+                    مشاهده
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
-

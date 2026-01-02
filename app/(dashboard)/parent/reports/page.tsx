@@ -3,166 +3,160 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import ReportCard from '@/components/reports/ReportCard';
-import { FileText, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-
-interface Report {
-  id: string;
-  report_type: string;
-  period_start: string;
-  period_end: string;
-  status: string;
-  stats: {
-    average_grade?: number;
-    attendance_rate?: number;
-    homework_completion?: number;
-    behavior_score?: number;
-    total_score?: number;
-  };
-  student: {
-    full_name: string;
-    grade: number;
-  };
-  viewed_at?: string | null;
-  view_count: number;
-  created_at: string;
-}
+import { ParentReport } from '@/types/parent-reports.types';
+import { FileText, Filter, Calendar } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function ParentReportsPage() {
-  const [reports, setReports] = useState<Report[]>([]);
+  const [reports, setReports] = useState<ParentReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<string>('all');
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     fetchReports();
-  }, []);
+  }, [filterType]);
 
   const fetchReports = async () => {
     try {
       setIsLoading(true);
-      setError(null);
+      setError('');
 
-      const response = await fetch('/api/reports/list');
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'دریافت گزارش‌ها ناموفق بود');
+      let url = '/api/reports/list?limit=50';
+      if (filterType !== 'all') {
+        url += `&report_type=${filterType}`;
       }
 
-      setReports(data.reports || []);
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!data.success) {
+        setError(data.error || 'دریافت گزارش‌ها ناموفق بود');
+        return;
+      }
+
+      setReports(data.reports);
     } catch (err) {
       console.error('خطا در دریافت گزارش‌ها:', err);
-      setError(err instanceof Error ? err.message : 'خطای نامشخص');
+      setError('خطای شبکه. لطفاً دوباره تلاش کنید.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-80" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* هدر */}
       <div className="flex items-center justify-between">
-        <div className="space-y-1">
+        <div>
           <h1 className="text-3xl font-bold">گزارش‌های عملکرد</h1>
-          <p className="text-muted-foreground">
-            مشاهده گزارش‌های جامع عملکرد تحصیلی فرزندان
+          <p className="text-muted-foreground mt-1">
+            مشاهده و بررسی گزارش‌های تحصیلی فرزندان
           </p>
         </div>
-        <Button onClick={fetchReports} variant="outline">
-          بروزرسانی
-        </Button>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-sm">
+            {reports.length} گزارش
+          </Badge>
+        </div>
       </div>
 
-      {/* خطا */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+      {/* فیلترها */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Filter className="h-4 w-4" />
+            فیلترها
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">نوع گزارش:</span>
+            </div>
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="همه گزارش‌ها" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">همه گزارش‌ها</SelectItem>
+                <SelectItem value="weekly">هفتگی</SelectItem>
+                <SelectItem value="monthly">ماهانه</SelectItem>
+                <SelectItem value="term">ترم</SelectItem>
+                <SelectItem value="custom">سفارشی</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setFilterType('all');
+                fetchReports();
+              }}
+            >
+              بازنشانی
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* لیست گزارش‌ها */}
-      {reports.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent className="space-y-4">
-            <FileText className="h-16 w-16 mx-auto text-muted-foreground" />
-            <div className="space-y-2">
-              <h3 className="text-xl font-semibold">هیچ گزارشی موجود نیست</h3>
-              <p className="text-muted-foreground">
-                گزارش‌های منتشر شده توسط معلم اینجا نمایش داده می‌شود
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <div className="h-6 bg-gray-200 rounded w-3/4" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded" />
+                  <div className="h-4 bg-gray-200 rounded w-5/6" />
+                  <div className="h-4 bg-gray-200 rounded w-4/6" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : error ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center text-red-600">
+              <p>{error}</p>
+              <Button onClick={fetchReports} variant="outline" className="mt-4">
+                تلاش مجدد
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : reports.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">هنوز گزارشی منتشر نشده است</p>
+              <p className="text-sm mt-2">
+                گزارش‌های جدید توسط معلم یا مدیر مدرسه منتشر خواهد شد.
               </p>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <>
-          {/* آمار کلی */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  مجموع گزارش‌ها
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{reports.length}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  گزارش‌های جدید
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
-                  {reports.filter((r) => !r.viewed_at).length}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  آخرین گزارش
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm">
-                  {reports.length > 0
-                    ? new Date(reports[0].created_at).toLocaleDateString('fa-IR')
-                    : '-'}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* گرید گزارش‌ها */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reports.map((report) => (
-              <ReportCard key={report.id} report={report} />
-            ))}
-          </div>
-        </>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {reports.map((report) => (
+            <ReportCard key={report.id} report={report} />
+          ))}
+        </div>
       )}
     </div>
   );
 }
-

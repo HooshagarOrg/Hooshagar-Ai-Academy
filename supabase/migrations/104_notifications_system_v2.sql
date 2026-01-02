@@ -21,16 +21,9 @@ DROP FUNCTION IF EXISTS mark_notification_read CASCADE;
 DROP FUNCTION IF EXISTS mark_all_read CASCADE;
 DROP FUNCTION IF EXISTS delete_old_notifications CASCADE;
 DROP FUNCTION IF EXISTS get_unread_count CASCADE;
+DROP FUNCTION IF EXISTS update_notification_timestamp CASCADE;
 
--- حذف triggers
-DROP TRIGGER IF EXISTS notify_new_notification ON notifications CASCADE;
-
--- حذف indexها
-DROP INDEX IF EXISTS idx_notifications_user CASCADE;
-DROP INDEX IF EXISTS idx_notifications_read_status CASCADE;
-DROP INDEX IF EXISTS idx_notifications_type CASCADE;
-DROP INDEX IF EXISTS idx_notifications_created CASCADE;
-DROP INDEX IF EXISTS idx_notification_prefs_user CASCADE;
+-- نکته: تریگرها و indexها با DROP TABLE ... CASCADE حذف می‌شوند
 
 -- ============================================
 -- 1. TABLES

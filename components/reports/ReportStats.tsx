@@ -1,123 +1,195 @@
 'use client';
 
+import { ReportStats as IReportStats } from '@/types/parent-reports.types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import {
-  GraduationCap,
-  CalendarCheck,
-  BookOpen,
+import { 
+  GraduationCap, 
+  Calendar, 
+  BookOpen, 
+  Heart,
   TrendingUp,
-  Award,
+  TrendingDown,
+  Minus
 } from 'lucide-react';
 
 interface ReportStatsProps {
-  stats: {
-    average_grade?: number;
-    attendance_rate?: number;
-    homework_completion?: number;
-    behavior_score?: number;
-    total_score?: number;
-  };
+  stats: IReportStats;
+  showDetails?: boolean;
 }
 
-export default function ReportStats({ stats }: ReportStatsProps) {
-  const statItems = [
+export default function ReportStats({ stats, showDetails = false }: ReportStatsProps) {
+  const getScoreColor = (score: number, max: number = 100) => {
+    const percentage = (score / max) * 100;
+    if (percentage >= 80) return 'bg-green-500';
+    if (percentage >= 60) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  const getTrendIcon = (value: number) => {
+    if (value > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
+    if (value < 0) return <TrendingDown className="h-4 w-4 text-red-600" />;
+    return <Minus className="h-4 w-4 text-gray-600" />;
+  };
+
+  const statCards = [
     {
       title: 'میانگین نمرات',
-      value: stats.average_grade?.toFixed(1) || '0',
-      max: 20,
+      value: stats.average_grade.toFixed(1),
+      max: 100,
       icon: GraduationCap,
-      color: 'text-blue-600 dark:text-blue-400',
-      bgColor: 'bg-blue-100 dark:bg-blue-900',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
     },
     {
       title: 'حضور و غیاب',
-      value: stats.attendance_rate?.toFixed(0) || '0',
+      value: stats.attendance_rate.toFixed(1),
       max: 100,
-      suffix: '%',
-      icon: CalendarCheck,
-      color: 'text-green-600 dark:text-green-400',
-      bgColor: 'bg-green-100 dark:bg-green-900',
+      icon: Calendar,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100',
+      unit: '%',
     },
     {
       title: 'انجام تکالیف',
-      value: stats.homework_completion?.toFixed(0) || '0',
+      value: stats.homework_completion.toFixed(1),
       max: 100,
-      suffix: '%',
       icon: BookOpen,
-      color: 'text-purple-600 dark:text-purple-400',
-      bgColor: 'bg-purple-100 dark:bg-purple-900',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100',
+      unit: '%',
     },
     {
-      title: 'امتیاز رفتاری',
-      value: stats.behavior_score?.toFixed(1) || '0',
+      title: 'رفتار و انضباط',
+      value: stats.behavior_score.toFixed(1),
       max: 10,
-      icon: Award,
-      color: 'text-orange-600 dark:text-orange-400',
-      bgColor: 'bg-orange-100 dark:bg-orange-900',
+      icon: Heart,
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-100',
+      unit: '/10',
     },
   ];
 
-  const getProgressValue = (value: number, max: number) => {
-    return (value / max) * 100;
-  };
-
   return (
-    <div className="space-y-6">
-      {/* امتیاز کلی */}
-      {stats.total_score !== undefined && (
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              امتیاز کلی عملکرد
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-5xl font-bold text-blue-600 dark:text-blue-400">
-                {stats.total_score.toFixed(1)}
-              </span>
-              <span className="text-2xl text-muted-foreground">/100</span>
-            </div>
-            <Progress value={stats.total_score} className="h-3" />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* آمار تفصیلی */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {statItems.map((item, index) => {
-          const Icon = item.icon;
-          const value = parseFloat(item.value);
-          const progress = getProgressValue(value, item.max);
-
+    <div className="space-y-4">
+      {/* آمار کلیدی */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((stat) => {
+          const Icon = stat.icon;
+          const percentage = (parseFloat(stat.value) / stat.max) * 100;
+          
           return (
-            <Card key={index}>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <div className={`p-2 rounded-lg ${item.bgColor}`}>
-                    <Icon className={`h-4 w-4 ${item.color}`} />
-                  </div>
-                  {item.title}
+            <Card key={stat.title}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
                 </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-baseline gap-1">
-                  <span className={`text-3xl font-bold ${item.color}`}>
-                    {item.value}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {item.suffix || `/${item.max}`}
-                  </span>
+                <div className={`p-2 rounded-full ${stat.bgColor}`}>
+                  <Icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
-                <Progress value={progress} className="h-2" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stat.value}
+                  {stat.unit && <span className="text-sm text-muted-foreground">{stat.unit}</span>}
+                </div>
+                <Progress 
+                  value={percentage} 
+                  className="mt-2"
+                  indicatorClassName={getScoreColor(parseFloat(stat.value), stat.max)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {percentage.toFixed(0)}% از حداکثر
+                </p>
               </CardContent>
             </Card>
           );
         })}
       </div>
+
+      {/* جزئیات بیشتر */}
+      {showDetails && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">جزئیات آماری</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              {/* نمرات به تفکیک درس */}
+              {stats.grades_by_subject && Object.keys(stats.grades_by_subject).length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-2">نمرات به تفکیک درس:</h4>
+                  <div className="space-y-2">
+                    {Object.entries(stats.grades_by_subject).map(([subject, grade]) => (
+                      <div key={subject} className="flex items-center justify-between">
+                        <span className="text-muted-foreground">{subject}:</span>
+                        <span className="font-medium">{grade.toFixed(1)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* حضور و غیاب */}
+              {(stats.total_absences !== undefined || stats.total_late !== undefined) && (
+                <div>
+                  <h4 className="font-semibold mb-2">حضور و غیاب:</h4>
+                  <div className="space-y-2">
+                    {stats.total_absences !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">غیبت:</span>
+                        <span className="font-medium">{stats.total_absences} روز</span>
+                      </div>
+                    )}
+                    {stats.total_late !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">تأخیر:</span>
+                        <span className="font-medium">{stats.total_late} بار</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* تکالیف */}
+              {(stats.homework_submitted !== undefined || stats.homework_total !== undefined) && (
+                <div>
+                  <h4 className="font-semibold mb-2">تکالیف:</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">انجام شده:</span>
+                      <span className="font-medium">
+                        {stats.homework_submitted} از {stats.homework_total}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* رفتار */}
+              {(stats.positive_behaviors !== undefined || stats.negative_behaviors !== undefined) && (
+                <div>
+                  <h4 className="font-semibold mb-2">رفتار:</h4>
+                  <div className="space-y-2">
+                    {stats.positive_behaviors !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">رفتارهای مثبت:</span>
+                        <span className="font-medium text-green-600">{stats.positive_behaviors}</span>
+                      </div>
+                    )}
+                    {stats.negative_behaviors !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">رفتارهای منفی:</span>
+                        <span className="font-medium text-red-600">{stats.negative_behaviors}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
-

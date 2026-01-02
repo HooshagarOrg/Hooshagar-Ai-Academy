@@ -3,18 +3,19 @@ import { createClient } from '@/lib/supabase-server';
 import { z } from 'zod';
 
 const publishReportSchema = z.object({
-  reportId: z.string().uuid(),
+  report_id: z.string().uuid('شناسه گزارش نامعتبر است'),
 });
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-
+    
     // بررسی احراز هویت
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'احراز هویت نشده است' },
+        { success: false, error: 'لطفاً وارد شوید' },
         { status: 401 }
       );
     }
@@ -28,48 +29,59 @@ export async function POST(req: NextRequest) {
 
     if (!profile || !['teacher', 'admin'].includes(profile.role)) {
       return NextResponse.json(
-        { error: 'شما مجاز به انتشار گزارش نیستید' },
+        { success: false, error: 'شما مجوز انتشار گزارش ندارید' },
         { status: 403 }
       );
     }
 
     // اعتبارسنجی ورودی
-    const body = await req.json();
+    const body = await request.json();
     const result = publishReportSchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'داده‌های نامعتبر', details: result.error.issues },
+        {
+          success: false,
+          error: 'داده‌های نامعتبر',
+          details: result.error.issues,
+        },
         { status: 400 }
       );
     }
 
-    const { reportId } = result.data;
+    const { report_id } = result.data;
 
-    // انتشار گزارش
+    // فراخوانی تابع publish_report
     const { data: success, error: publishError } = await supabase.rpc(
       'publish_report',
-      { p_report_id: reportId }
+      { p_report_id: report_id }
     );
 
     if (publishError || !success) {
-      console.error('خطا در انتشار گزارش:', publishError);
+      console.error('خطای انتشار گزارش:', publishError);
       return NextResponse.json(
-        { error: 'انتشار گزارش ناموفق بود' },
-        { status: 500 }
+        { success: false, error: 'انتشار گزارش ناموفق بود. احتماعاً گزارش قبلاً منتشر شده است.' },
+        { status: 400 }
       );
     }
 
+    // دریافت گزارش به‌روزرسانی شده
+    const { data: report } = await supabase
+      .from('parent_reports')
+      .select('id, report_status, published_at')
+      .eq('id', report_id)
+      .single();
+
     return NextResponse.json({
       success: true,
+      report,
       message: 'گزارش با موفقیت منتشر شد',
     });
   } catch (error) {
-    console.error('خطای سرور:', error);
+    console.error('خطای غیرمنتظره در انتشار گزارش:', error);
     return NextResponse.json(
-      { error: 'خطای داخلی سرور' },
+      { success: false, error: 'خطای سرور' },
       { status: 500 }
     );
   }
 }
-

@@ -1,127 +1,141 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
-import { z } from 'zod';
 import { callAI } from '@/lib/ai/client-v2';
+import { z } from 'zod';
+import type { Recommendation } from '@/types/parent-reports.types';
 
 const aiInsightsSchema = z.object({
-  reportId: z.string().uuid(),
+  report_id: z.string().uuid('شناسه گزارش نامعتبر است'),
 });
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-
+    
     // بررسی احراز هویت
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'احراز هویت نشده است' },
+        { success: false, error: 'لطفاً وارد شوید' },
         { status: 401 }
       );
     }
 
+    // بررسی نقش کاربر
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || !['teacher', 'admin'].includes(profile.role)) {
+      return NextResponse.json(
+        { success: false, error: 'شما مجوز تولید تحلیل هوشمند ندارید' },
+        { status: 403 }
+      );
+    }
+
     // اعتبارسنجی ورودی
-    const body = await req.json();
+    const body = await request.json();
     const result = aiInsightsSchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'داده‌های نامعتبر', details: result.error.issues },
+        {
+          success: false,
+          error: 'داده‌های نامعتبر',
+          details: result.error.issues,
+        },
         { status: 400 }
       );
     }
 
-    const { reportId } = result.data;
+    const { report_id } = result.data;
 
     // دریافت گزارش
     const { data: report, error: fetchError } = await supabase
       .from('parent_reports')
       .select(`
         *,
-        student:students(full_name, grade)
+        student:students(id, full_name, grade, class_name)
       `)
-      .eq('id', reportId)
+      .eq('id', report_id)
       .single();
 
     if (fetchError || !report) {
       return NextResponse.json(
-        { error: 'گزارش یافت نشد' },
+        { success: false, error: 'گزارش یافت نشد' },
         { status: 404 }
       );
     }
 
-    // ساخت پرامپت برای AI
+    // ساخت prompt برای AI
     const prompt = `
-شما یک مشاور تحصیلی حرفه‌ای هستید. با توجه به داده‌های زیر، تحلیل جامع و توصیه‌های کاربردی ارائه دهید.
+شما یک مشاور آموزشی حرفه‌ای هستید. گزارش عملکرد تحصیلی یک دانش‌آموز را دریافت کرده‌اید.
 
 **اطلاعات دانش‌آموز:**
-- نام: ${report.student.full_name}
-- پایه تحصیلی: ${report.student.grade}
+- نام: ${report.student?.full_name || 'نامشخص'}
+- پایه: ${report.student?.grade || 'نامشخص'}
+- کلاس: ${report.student?.class_name || 'نامشخص'}
 
-**آمار عملکرد (${report.report_type}):**
-${JSON.stringify(report.stats, null, 2)}
+**آمار عملکرد (از ${report.period_start} تا ${report.period_end}):**
+- میانگین نمرات: ${report.stats.average_grade}/100
+- درصد حضور: ${report.stats.attendance_rate}%
+- انجام تکالیف: ${report.stats.homework_completion}%
+- امتیاز رفتاری: ${report.stats.behavior_score}/10
 
-**وظایف شما:**
-1. تحلیل نقاط قوت و ضعف دانش‌آموز
-2. شناسایی روندهای مثبت و منفی
-3. ارائه توصیه‌های عملی برای بهبود عملکرد
-4. پیشنهاد استراتژی‌های مطالعه مناسب
-5. توصیه‌هایی برای والدین
+**نمره کل: ${report.stats.total_score}/100**
 
-**فرمت خروجی (JSON):**
+لطفاً:
+1. یک تحلیل جامع و دلسوزانه از عملکرد دانش‌آموز ارائه دهید (حداکثر 200 کلمه).
+2. نقاط قوت و ضعف را شناسایی کنید.
+3. 3-5 توصیه عملی برای بهبود عملکرد ارائه دهید.
+4. سطح ریسک را مشخص کنید (low/medium/high).
+
+فرمت پاسخ JSON:
 {
-  "insights": "تحلیل کلی عملکرد (حداقل 200 کلمه)",
-  "strengths": ["نقطه قوت 1", "نقطه قوت 2", ...],
-  "weaknesses": ["نقطه ضعف 1", "نقطه ضعف 2", ...],
+  "insights": "تحلیل کامل به فارسی",
+  "strengths": ["نقطه قوت 1", "نقطه قوت 2"],
+  "weaknesses": ["نقطه ضعف 1", "نقطه ضعف 2"],
   "recommendations": [
     {
+      "type": "improvement",
       "title": "عنوان توصیه",
-      "description": "توضیحات کامل",
-      "priority": "high|medium|low"
+      "description": "توضیحات",
+      "priority": "high",
+      "action": "اقدام پیشنهادی"
     }
   ],
-  "parent_tips": ["توصیه 1 برای والدین", "توصیه 2", ...]
+  "risk_level": "low|medium|high"
 }
-
-لطفاً پاسخ را فقط به صورت JSON معتبر و به زبان فارسی بنویسید.
 `;
 
     // فراخوانی AI
-    const aiResponse = await callAI({
-      capability: 'analyzer',
-      userId: user.id,
+    const aiResponse = await callAI(
+      'student_analyzer',
       prompt,
-      options: {
-        temperature: 0.4,
-        maxTokens: 2000,
-      },
-    });
+      user.id,
+      { report_id, student_id: report.student_id }
+    );
 
-    if (!aiResponse.success || !aiResponse.text) {
+    if (!aiResponse.success) {
       return NextResponse.json(
-        { error: 'تولید تحلیل ناموفق بود' },
+        { success: false, error: 'تولید تحلیل هوشمند ناموفق بود' },
         { status: 500 }
       );
     }
 
-    // پارس کردن پاسخ JSON
-    let insights;
+    // پردازش پاسخ AI
+    let aiData;
     try {
-      const aiText = aiResponse.text.trim();
-      const jsonMatch = aiText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        insights = JSON.parse(jsonMatch[0]);
-      } else {
-        insights = JSON.parse(aiText);
-      }
-    } catch (parseError) {
-      console.error('خطا در پارس JSON:', parseError);
-      insights = {
-        insights: aiResponse.text,
-        strengths: [],
-        weaknesses: [],
+      aiData = JSON.parse(aiResponse.response);
+    } catch {
+      // اگر JSON نبود، فقط متن را برمی‌گردانیم
+      aiData = {
+        insights: aiResponse.response,
         recommendations: [],
-        parent_tips: [],
+        risk_level: 'low',
       };
     }
 
@@ -129,35 +143,30 @@ ${JSON.stringify(report.stats, null, 2)}
     const { error: updateError } = await supabase
       .from('parent_reports')
       .update({
-        ai_insights: insights.insights,
-        recommendations: insights.recommendations || [],
-        charts: {
-          strengths: insights.strengths || [],
-          weaknesses: insights.weaknesses || [],
-          parent_tips: insights.parent_tips || [],
-        },
+        ai_insights: aiData.insights,
+        recommendations: aiData.recommendations || [],
       })
-      .eq('id', reportId);
+      .eq('id', report_id);
 
     if (updateError) {
-      console.error('خطا در بروزرسانی گزارش:', updateError);
-      return NextResponse.json(
-        { error: 'بروزرسانی گزارش ناموفق بود' },
-        { status: 500 }
-      );
+      console.error('خطای بروزرسانی گزارش:', updateError);
     }
 
     return NextResponse.json({
       success: true,
-      insights,
-      model: aiResponse.model,
+      insights: aiData.insights,
+      strengths: aiData.strengths || [],
+      weaknesses: aiData.weaknesses || [],
+      recommendations: aiData.recommendations || [],
+      risk_level: aiData.risk_level || 'low',
+      model_used: aiResponse.model_used,
+      cost: aiResponse.cost,
     });
   } catch (error) {
-    console.error('خطای سرور:', error);
+    console.error('خطای غیرمنتظره در تولید تحلیل هوشمند:', error);
     return NextResponse.json(
-      { error: 'خطای داخلی سرور' },
+      { success: false, error: 'خطای سرور' },
       { status: 500 }
     );
   }
 }
-

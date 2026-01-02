@@ -2,19 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 export async function GET(
-  req: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createClient();
-    const reportId = params.id;
-
+    
     // بررسی احراز هویت
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'احراز هویت نشده است' },
+        { success: false, error: 'لطفاً وارد شوید' },
         { status: 401 }
+      );
+    }
+
+    const reportId = params.id;
+
+    // بررسی نقش کاربر
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile) {
+      return NextResponse.json(
+        { success: false, error: 'پروفایل یافت نشد' },
+        { status: 404 }
       );
     }
 
@@ -23,69 +39,74 @@ export async function GET(
       .from('parent_reports')
       .select(`
         *,
-        student:students(
-          id,
-          full_name,
-          grade,
-          profile_picture
-        ),
-        parent:profiles!parent_id(
-          id,
-          full_name,
-          email
-        )
+        student:students(id, full_name, grade, class_name)
       `)
       .eq('id', reportId)
       .single();
 
     if (fetchError || !report) {
-      console.error('خطا در دریافت گزارش:', fetchError);
       return NextResponse.json(
-        { error: 'گزارش یافت نشد' },
+        { success: false, error: 'گزارش یافت نشد' },
         { status: 404 }
       );
     }
 
-    // اگر والدین است، مشاهده را ثبت کن
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+    // بررسی مجوز دسترسی
+    if (profile.role === 'parent') {
+      if (report.parent_id !== user.id || report.report_status !== 'published') {
+        return NextResponse.json(
+          { success: false, error: 'شما مجوز مشاهده این گزارش را ندارید' },
+          { status: 403 }
+        );
+      }
 
-    if (profile?.role === 'parent' && report.parent_id === user.id) {
+      // ثبت مشاهده گزارش
       await supabase.rpc('mark_report_viewed', {
         p_report_id: reportId,
         p_parent_id: user.id,
       });
+    } else if (profile.role === 'student') {
+      const { data: studentData } = await supabase
+        .from('students')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!studentData || report.student_id !== studentData.id || report.report_status !== 'published') {
+        return NextResponse.json(
+          { success: false, error: 'شما مجوز مشاهده این گزارش را ندارید' },
+          { status: 403 }
+        );
+      }
     }
+    // معلم و ادمین همه گزارش‌ها را می‌بینند
 
     return NextResponse.json({
       success: true,
       report,
     });
   } catch (error) {
-    console.error('خطای سرور:', error);
+    console.error('خطای غیرمنتظره در دریافت گزارش:', error);
     return NextResponse.json(
-      { error: 'خطای داخلی سرور' },
+      { success: false, error: 'خطای سرور' },
       { status: 500 }
     );
   }
 }
 
 export async function DELETE(
-  req: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createClient();
-    const reportId = params.id;
-
+    
     // بررسی احراز هویت
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'احراز هویت نشده است' },
+        { success: false, error: 'لطفاً وارد شوید' },
         { status: 401 }
       );
     }
@@ -99,35 +120,36 @@ export async function DELETE(
 
     if (!profile || !['teacher', 'admin'].includes(profile.role)) {
       return NextResponse.json(
-        { error: 'شما مجاز به حذف گزارش نیستید' },
+        { success: false, error: 'شما مجوز حذف گزارش ندارید' },
         { status: 403 }
       );
     }
 
-    // حذف گزارش
+    const reportId = params.id;
+
+    // حذف گزارش (یا آرشیو کردن)
     const { error: deleteError } = await supabase
       .from('parent_reports')
-      .delete()
+      .update({ report_status: 'archived' })
       .eq('id', reportId);
 
     if (deleteError) {
-      console.error('خطا در حذف گزارش:', deleteError);
+      console.error('خطای حذف گزارش:', deleteError);
       return NextResponse.json(
-        { error: 'حذف گزارش ناموفق بود' },
+        { success: false, error: 'حذف گزارش ناموفق بود' },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: 'گزارش با موفقیت حذف شد',
+      message: 'گزارش با موفقیت آرشیو شد',
     });
   } catch (error) {
-    console.error('خطای سرور:', error);
+    console.error('خطای غیرمنتظره در حذف گزارش:', error);
     return NextResponse.json(
-      { error: 'خطای داخلی سرور' },
+      { success: false, error: 'خطای سرور' },
       { status: 500 }
     );
   }
 }
-

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Users,
@@ -27,69 +27,69 @@ import {
   HelpCircle,
   Eye,
   Plus,
+  Loader2,
 } from 'lucide-react'
 
 // ============================================
-// داده‌های نمونه (Mock Data)
+// Types
 // ============================================
-const teacherName = 'آقای احمدی'
-const className = 'کلاس پنجم الف'
+interface DashboardData {
+  teacher: {
+    name: string;
+    class: {
+      id: string;
+      name: string;
+      grade: number;
+      academicYear: string;
+    } | null;
+  };
+  students: Array<{
+    id: string;
+    name: string;
+    grade: number;
+    lastScore: number | null;
+    lastSubject: string | null;
+    attendance: string;
+    needsAttention: boolean;
+  }>;
+  stats: {
+    totalStudents: number;
+    presentToday: number;
+    attendanceRate: number;
+    averageGrade: number;
+    upcomingExams: number;
+  };
+  recentGrades: Array<{
+    id: string;
+    studentName: string;
+    subject: string;
+    score: number;
+    type: string;
+    date: string;
+  }>;
+  alerts: Array<{
+    id: string;
+    type: string;
+    student: string;
+    message: string;
+    badgeText: string;
+    badgeColor: string;
+    borderColor: string;
+    score?: number;
+  }>;
+}
 
-// دانش‌آموزان نمونه
-const mockStudents = [
-  { id: '1', name: 'علی محمدی', grade: 5, lastScore: 18.5, attendance: 'present', needsAttention: false },
-  { id: '2', name: 'زهرا حسینی', grade: 5, lastScore: 19.0, attendance: 'present', needsAttention: false },
-  { id: '3', name: 'محمد رضایی', grade: 5, lastScore: 14.5, attendance: 'absent', needsAttention: true },
-  { id: '4', name: 'فاطمه کریمی', grade: 5, lastScore: 17.0, attendance: 'present', needsAttention: false },
-  { id: '5', name: 'امیر صادقی', grade: 5, lastScore: 12.0, attendance: 'late', needsAttention: true },
-  { id: '6', name: 'مریم نوری', grade: 5, lastScore: 20.0, attendance: 'present', needsAttention: false },
-]
-
-// تکالیف نمونه
+// تکالیف نمونه (موقتی)
 const mockHomework = [
   { id: '1', title: 'تکلیف ریاضی - فصل ۵', dueDate: 'امروز', pending: 8, total: 32 },
   { id: '2', title: 'انشا فارسی - موضوع آزاد', dueDate: 'فردا', pending: 15, total: 32 },
   { id: '3', title: 'تمرین علوم - آزمایش', dueDate: '۳ روز دیگر', pending: 28, total: 32 },
 ]
 
-// آزمون‌های نمونه
+// آزمون‌های نمونه (موقتی)
 const mockExams = [
   { id: '1', title: 'آزمون ریاضی فصل ۴', time: '۱۰:۰۰', status: 'upcoming' },
   { id: '2', title: 'کوییز علوم', time: '۱۴:۰۰', status: 'upcoming' },
-]
-
-// هشدارها - دانش‌آموزان نیازمند توجه
-const mockAlerts = [
-  { 
-    id: '1', 
-    type: 'grade_drop', 
-    student: 'علی رضایی', 
-    message: 'نمره ریاضی از ۱۸ به ۱۰ کاهش یافته',
-    badgeText: 'افت نمره شدید',
-    badgeColor: 'bg-red-500/20 text-red-400 border-red-500/50',
-    borderColor: 'border-red-500/50 bg-red-500/10',
-    score: 10
-  },
-  { 
-    id: '2', 
-    type: 'absence', 
-    student: 'سارا احمدی', 
-    message: '۷ روز غیبت در این ماه',
-    badgeText: 'غیبت زیاد',
-    badgeColor: 'bg-orange-500/20 text-orange-400 border-orange-500/50',
-    borderColor: 'border-orange-500/50 bg-orange-500/10',
-    absenceDays: 7
-  },
-  { 
-    id: '3', 
-    type: 'behavior', 
-    student: 'محمد کریمی', 
-    message: '۴ مورد رفتار نامناسب ثبت شده',
-    badgeText: 'مشکل رفتاری',
-    badgeColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50',
-    borderColor: 'border-yellow-500/50 bg-yellow-500/10',
-    incidents: 4
-  },
 ]
 
 // ============================================
@@ -97,6 +97,36 @@ const mockAlerts = [
 // ============================================
 export default function TeacherDashboardPage() {
   const [currentTime] = useState(new Date())
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string>('')
+
+  // دریافت داده‌ها
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true)
+      setError('')
+      
+      const res = await fetch('/api/teacher/dashboard')
+      const data = await res.json()
+
+      if (!data.success) {
+        setError(data.error || 'خطا در دریافت داده‌ها')
+        return
+      }
+
+      setDashboardData(data)
+    } catch (err: any) {
+      console.error('Dashboard fetch error:', err)
+      setError('خطای شبکه')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // فرمت تاریخ شمسی
   const formatPersianDate = () => {
@@ -137,12 +167,12 @@ export default function TeacherDashboardPage() {
   }
 
   // آمار کلی
-  const stats = [
-    { label: 'دانش‌آموزان کلاس', value: mockStudents.length, icon: <Users className="w-6 h-6" />, color: 'bg-blue-500', trend: null },
-    { label: 'آزمون‌های امروز', value: mockExams.length, icon: <ClipboardCheck className="w-6 h-6" />, color: 'bg-green-500', trend: null },
+  const stats = dashboardData ? [
+    { label: 'دانش‌آموزان کلاس', value: dashboardData.stats.totalStudents, icon: <Users className="w-6 h-6" />, color: 'bg-blue-500', trend: null },
+    { label: 'آزمون‌های امروز', value: dashboardData.stats.upcomingExams, icon: <ClipboardCheck className="w-6 h-6" />, color: 'bg-green-500', trend: null },
     { label: 'تکالیف بررسی نشده', value: mockHomework.reduce((sum, h) => sum + h.pending, 0), icon: <FileText className="w-6 h-6" />, color: 'bg-orange-500', trend: null },
-    { label: 'حضور امروز', value: `${Math.round((mockStudents.filter(s => s.attendance === 'present').length / mockStudents.length) * 100)}%`, icon: <UserCheck className="w-6 h-6" />, color: 'bg-purple-500', trend: null },
-  ]
+    { label: 'حضور امروز', value: `${dashboardData.stats.attendanceRate}%`, icon: <UserCheck className="w-6 h-6" />, color: 'bg-purple-500', trend: null },
+  ] : []
 
   // ابزارهای معلم
   const tools = [
@@ -161,6 +191,47 @@ export default function TeacherDashboardPage() {
     { label: 'تحلیل دانش‌آموز', href: '/test-students-list', icon: <Brain className="w-6 h-6" />, color: 'text-purple-400' },
     { label: 'باغ استعداد', href: '/teacher/talent-garden', icon: <Trophy className="w-6 h-6" />, color: 'text-yellow-400' },
   ]
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg">در حال بارگذاری...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
+        <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+          <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <p className="text-white text-xl font-bold mb-2">خطا در بارگذاری</p>
+          <p className="text-white/70 mb-4">{error}</p>
+          <button
+            onClick={fetchDashboardData}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl transition-all"
+          >
+            تلاش مجدد
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // No data
+  if (!dashboardData) {
+    return null
+  }
+
+  const teacherName = dashboardData.teacher.name
+  const className = dashboardData.teacher.class?.name || 'بدون کلاس'
+  const students = dashboardData.students
+  const alerts = dashboardData.alerts
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-4 md:p-6 lg:p-8" dir="rtl">
@@ -185,14 +256,14 @@ export default function TeacherDashboardPage() {
             <div className="flex items-center gap-3">
               <button className="relative p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
                 <Bell className="w-5 h-5 text-white" />
-                {mockAlerts.length > 0 && (
+                {alerts.length > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {mockAlerts.length}
+                    {alerts.length}
                   </span>
                 )}
               </button>
               <Link
-                href="/test-session"
+                href="/notifications"
                 className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
               >
                 <Settings className="w-5 h-5 text-white" />
@@ -249,46 +320,58 @@ export default function TeacherDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {mockStudents.slice(0, 5).map((student) => {
-                    const attendance = getAttendanceStatus(student.attendance)
-                    return (
-                      <tr key={student.id} className="hover:bg-white/5 transition-colors">
-                        <td className="py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold">
-                              {student.name.charAt(0)}
+                  {students.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-white/50">
+                        دانش‌آموزی در کلاس ثبت نشده است
+                      </td>
+                    </tr>
+                  ) : (
+                    students.slice(0, 5).map((student) => {
+                      const attendance = getAttendanceStatus(student.attendance)
+                      return (
+                        <tr key={student.id} className="hover:bg-white/5 transition-colors">
+                          <td className="py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold">
+                                {student.name.charAt(0)}
+                              </div>
+                              <span className="text-white font-medium">
+                                {student.name}
+                                {student.needsAttention && (
+                                  <span className="mr-2 text-yellow-400">⚠️</span>
+                                )}
+                              </span>
                             </div>
-                            <span className="text-white font-medium">
-                              {student.name}
-                              {student.needsAttention && (
-                                <span className="mr-2 text-yellow-400">⚠️</span>
-                              )}
+                          </td>
+                          <td className="py-3 text-center text-white/70">{student.grade}</td>
+                          <td className="py-3 text-center">
+                            {student.lastScore !== null ? (
+                              <span className={`font-bold ${student.lastScore >= 17 ? 'text-green-400' : student.lastScore >= 14 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                {student.lastScore}
+                              </span>
+                            ) : (
+                              <span className="text-white/40 text-sm">-</span>
+                            )}
+                          </td>
+                          <td className="py-3 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${attendance.color}`}>
+                              {attendance.icon}
+                              {attendance.label}
                             </span>
-                          </div>
-                        </td>
-                        <td className="py-3 text-center text-white/70">{student.grade}</td>
-                        <td className="py-3 text-center">
-                          <span className={`font-bold ${student.lastScore >= 17 ? 'text-green-400' : student.lastScore >= 14 ? 'text-yellow-400' : 'text-red-400'}`}>
-                            {student.lastScore}
-                          </span>
-                        </td>
-                        <td className="py-3 text-center">
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${attendance.color}`}>
-                            {attendance.icon}
-                            {attendance.label}
-                          </span>
-                        </td>
-                        <td className="py-3 text-center">
-                          <Link
-                            href="/test-students-list"
-                            className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all inline-flex"
-                          >
-                            <Eye className="w-4 h-4 text-white/70" />
-                          </Link>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                          </td>
+                          <td className="py-3 text-center">
+                            <Link
+                              href={`/teacher/students?id=${student.id}`}
+                              className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all inline-flex"
+                            >
+                              <Eye className="w-4 h-4 text-white/70" />
+                            </Link>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -404,14 +487,14 @@ export default function TeacherDashboardPage() {
             <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
               <AlertTriangle className="w-5 h-5 text-yellow-400" />
               ⚠️ دانش‌آموزان نیازمند توجه
-              {mockAlerts.length > 0 && (
+              {alerts.length > 0 && (
                 <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {mockAlerts.length}
+                  {alerts.length}
                 </span>
               )}
             </h2>
             <div className="space-y-3">
-              {mockAlerts.map((alert) => (
+              {alerts.map((alert) => (
                 <div
                   key={alert.id}
                   className={`rounded-xl p-4 border-2 ${alert.borderColor} transition-all hover:scale-[1.02]`}
@@ -430,7 +513,7 @@ export default function TeacherDashboardPage() {
                       <p className="text-white/60 text-sm">{alert.message}</p>
                     </div>
                     <Link
-                      href="/test-students-list"
+                      href={`/teacher/students?id=${alert.id}`}
                       className="flex items-center gap-1 px-3 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all text-white text-sm"
                     >
                       <Eye className="w-4 h-4" />
@@ -439,7 +522,7 @@ export default function TeacherDashboardPage() {
                   </div>
                 </div>
               ))}
-              {mockAlerts.length === 0 && (
+              {alerts.length === 0 && (
                 <div className="text-center py-8">
                   <div className="bg-green-500/10 rounded-2xl p-6 border border-green-500/30">
                     <CheckCircle2 className="w-16 h-16 mx-auto mb-3 text-green-400" />

@@ -113,15 +113,25 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
 
   // Real-time subscription
   useEffect(() => {
-    if (!realtime) return;
+    if (!realtime) {
+      console.log('⏸️ Realtime disabled');
+      return;
+    }
 
+    console.log('🔌 Attempting to setup realtime subscription...');
     const supabase = createClient();
     let unsubscribe: (() => void) | null = null;
     
     // دریافت user_id و subscribe
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) return;
+      console.log('👤 User from getUser():', data.user ? data.user.id : 'NO USER');
+      
+      if (!data.user) {
+        console.error('❌ No authenticated user found for realtime!');
+        return;
+      }
 
+      console.log(`🚀 Subscribing to notifications for user: ${data.user.id}`);
       unsubscribe = subscribeToNotifications(data.user.id, {
         onInsert: (notification) => {
           console.log('🔔 New notification received:', notification);

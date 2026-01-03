@@ -9,7 +9,7 @@
 
 import { useState } from 'react';
 import { Bell, X, CheckCheck } from 'lucide-react';
-import { useNotifications } from '@/hooks/use-notifications';
+import { useNotificationsPolling } from '@/hooks/use-notifications-polling';
 import { formatDistanceToNow } from 'date-fns';
 import { faIR } from 'date-fns/locale';
 import { notificationIcons } from '@/types/notifications.types';
@@ -25,9 +25,9 @@ export function NotificationBell() {
     isLoading,
     markAsRead,
     markAllAsRead,
-  } = useNotifications({
+  } = useNotificationsPolling({
     limit: 20,
-    realtime: true,
+    pollingInterval: 10000, // 10 ثانیه
   });
 
   const handleNotificationClick = async (notification: Notification) => {

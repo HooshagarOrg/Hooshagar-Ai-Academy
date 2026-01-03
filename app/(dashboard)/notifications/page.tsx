@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useNotifications } from '@/hooks/use-notifications';
+import { useNotificationsPolling } from '@/hooks/use-notifications-polling';
 import { formatDistanceToNow } from 'date-fns';
 import { faIR } from 'date-fns/locale';
 import { 
@@ -38,10 +38,10 @@ export default function NotificationsPage() {
     markAsRead,
     markAllAsRead,
     refresh,
-  } = useNotifications({
+  } = useNotificationsPolling({
     limit: 50,
     unreadOnly: filterRead === 'unread',
-    realtime: true,
+    pollingInterval: 10000, // 10 ثانیه
   });
 
   // فیلتر محلی بر اساس نوع

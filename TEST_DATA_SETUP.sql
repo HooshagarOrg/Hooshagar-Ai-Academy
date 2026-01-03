@@ -16,14 +16,27 @@
 DO $$
 DECLARE
   teacher_user_id UUID := 'YOUR_TEACHER_USER_ID_HERE'; -- 🔴 جایگزین کنید
+  test_school_id UUID;
   test_class_id UUID;
   student1_id UUID;
   student2_id UUID;
   student3_id UUID;
 BEGIN
+  -- ایجاد یا دریافت مدرسه تستی
+  INSERT INTO schools (name, address, subscription_status)
+  VALUES ('مدرسه تستی', 'تهران', 'active')
+  ON CONFLICT DO NOTHING;
+  
+  SELECT id INTO test_school_id FROM schools WHERE name = 'مدرسه تستی' LIMIT 1;
+  
+  -- اگر مدرسه‌ای وجود نداشت، اولین مدرسه را استفاده کن
+  IF test_school_id IS NULL THEN
+    SELECT id INTO test_school_id FROM schools LIMIT 1;
+  END IF;
+  
   -- ایجاد کلاس تستی
-  INSERT INTO classes (name, grade, teacher_id, academic_year)
-  VALUES ('پنجم الف', 5, teacher_user_id, '1403-1404')
+  INSERT INTO classes (name, grade, teacher_id, academic_year, school_id)
+  VALUES ('پنجم الف', 5, teacher_user_id, '1403-1404', test_school_id)
   RETURNING id INTO test_class_id;
 
   RAISE NOTICE 'کلاس ایجاد شد: %', test_class_id;
@@ -81,11 +94,15 @@ END $$;
 DO $$
 DECLARE
   parent_user_id UUID := 'YOUR_PARENT_USER_ID_HERE'; -- 🔴 جایگزین کنید
+  test_school_id UUID;
   child_student_id UUID;
 BEGIN
+  -- دریافت مدرسه
+  SELECT id INTO test_school_id FROM schools LIMIT 1;
+  
   -- ایجاد دانش‌آموز (فرزند)
-  INSERT INTO students (full_name, grade, parent_id)
-  VALUES ('سارا کریمی', 6, parent_user_id)
+  INSERT INTO students (full_name, grade, parent_id, school_id)
+  VALUES ('سارا کریمی', 6, parent_user_id, test_school_id)
   RETURNING id INTO child_student_id;
 
   -- اضافه کردن نمرات برای فرزند
@@ -126,13 +143,17 @@ END $$;
 DO $$
 DECLARE
   student_user_id UUID := 'YOUR_STUDENT_USER_ID_HERE'; -- 🔴 جایگزین کنید
+  test_school_id UUID;
   student_record_id UUID;
 BEGIN
+  -- دریافت مدرسه
+  SELECT id INTO test_school_id FROM schools LIMIT 1;
+  
   -- ایجاد یا بروزرسانی student record
-  INSERT INTO students (user_id, full_name, grade)
-  VALUES (student_user_id, 'دانش آموز تستی', 7)
+  INSERT INTO students (user_id, full_name, grade, school_id)
+  VALUES (student_user_id, 'دانش آموز تستی', 7, test_school_id)
   ON CONFLICT (user_id) DO UPDATE
-  SET full_name = EXCLUDED.full_name
+  SET full_name = EXCLUDED.full_name, school_id = test_school_id
   RETURNING id INTO student_record_id;
 
   -- اضافه کردن نمرات

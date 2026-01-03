@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   User,
@@ -26,41 +26,56 @@ import {
   Mail,
   Megaphone,
   Users,
+  Loader2,
 } from 'lucide-react'
 
 // ============================================
-// داده‌های نمونه (Mock Data)
+// Types
 // ============================================
-const parentName = 'خانم کریمی'
-const childName = 'علی کریمی'
-const childGrade = 5
-const childClass = 'پنجم الف'
+interface DashboardData {
+  parent: {
+    name: string;
+  };
+  children: Array<{
+    id: string;
+    name: string;
+    grade: number;
+    className: string;
+  }>;
+  activeChild: {
+    id: string;
+    name: string;
+    grade: number;
+    className: string;
+  } | null;
+  grades: Array<{
+    subject: string;
+    average: number;
+    count: number;
+  }>;
+  stats: {
+    averageGrade: number;
+    attendanceRate: number;
+    totalGrades: number;
+    recentReports: number;
+  };
+  recentGrades: Array<{
+    id: string;
+    subject: string;
+    score: number;
+    type: string;
+    date: string;
+  }>;
+  messages: any[];
+}
 
-// نمرات نمونه
-const mockGrades = [
-  { subject: 'ریاضی', score: 18.5, maxScore: 20, color: '#3B82F6' },
-  { subject: 'فارسی', score: 17.0, maxScore: 20, color: '#10B981' },
-  { subject: 'علوم', score: 19.0, maxScore: 20, color: '#8B5CF6' },
-  { subject: 'اجتماعی', score: 16.5, maxScore: 20, color: '#F59E0B' },
-  { subject: 'قرآن', score: 20.0, maxScore: 20, color: '#EC4899' },
-  { subject: 'هنر', score: 18.0, maxScore: 20, color: '#06B6D4' },
-]
-
-// آخرین نمرات
-const recentGrades = [
-  { date: '۱۴۰۳/۰۹/۱۵', subject: 'ریاضی', type: 'آزمون', score: 18.5 },
-  { date: '۱۴۰۳/۰۹/۱۲', subject: 'علوم', type: 'کلاسی', score: 19.0 },
-  { date: '۱۴۰۳/۰۹/۱۰', subject: 'فارسی', type: 'تکلیف', score: 17.0 },
-  { date: '۱۴۰۳/۰۹/۰۸', subject: 'قرآن', type: 'شفاهی', score: 20.0 },
-]
-
-// پیام‌ها
+// پیام‌های نمونه (موقتی)
 const mockMessages = [
   {
     id: '1',
     from: 'آقای احمدی (معلم کلاس)',
     title: 'گزارش هفتگی عملکرد',
-    preview: 'عملکرد علی در این هفته بسیار خوب بوده...',
+    preview: 'عملکرد در این هفته بسیار خوب بوده...',
     date: '۲ ساعت پیش',
     isRead: false,
   },
@@ -70,14 +85,6 @@ const mockMessages = [
     title: 'جلسه اولیا و مربیان',
     preview: 'جلسه اولیا روز پنج‌شنبه ساعت ۱۶ برگزار...',
     date: 'دیروز',
-    isRead: true,
-  },
-  {
-    id: '3',
-    from: 'معاونت آموزشی',
-    title: 'برنامه امتحانات ترم اول',
-    preview: 'برنامه امتحانات پایان ترم اول به پیوست...',
-    date: '۳ روز پیش',
     isRead: true,
   },
 ]
@@ -108,6 +115,36 @@ const financialStatus = {
 // ============================================
 export default function ParentDashboardPage() {
   const [currentTime] = useState(new Date())
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string>('')
+
+  // دریافت داده‌ها
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true)
+      setError('')
+      
+      const res = await fetch('/api/parent/dashboard')
+      const data = await res.json()
+
+      if (!data.success) {
+        setError(data.error || 'خطا در دریافت داده‌ها')
+        return
+      }
+
+      setDashboardData(data)
+    } catch (err: any) {
+      console.error('Dashboard fetch error:', err)
+      setError('خطای شبکه')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // فرمت تاریخ شمسی
   const formatPersianDate = () => {
@@ -124,15 +161,63 @@ export default function ParentDashboardPage() {
     return new Intl.NumberFormat('fa-IR').format(amount) + ' تومان'
   }
 
-  // میانگین نمرات
-  const averageGrade = (mockGrades.reduce((sum, g) => sum + g.score, 0) / mockGrades.length).toFixed(2)
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg">در حال بارگذاری...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
+        <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <p className="text-white text-xl font-bold mb-2">خطا در بارگذاری</p>
+          <p className="text-white/70 mb-4">{error}</p>
+          <button
+            onClick={fetchDashboardData}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl transition-all"
+          >
+            تلاش مجدد
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // No data
+  if (!dashboardData || !dashboardData.activeChild) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
+        <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+          <Users className="w-16 h-16 text-white/50 mx-auto mb-4" />
+          <p className="text-white text-xl font-bold mb-2">فرزندی ثبت نشده است</p>
+          <p className="text-white/70">لطفاً با مدیر مدرسه تماس بگیرید</p>
+        </div>
+      </div>
+    )
+  }
+
+  const parentName = dashboardData.parent.name
+  const childName = dashboardData.activeChild.name
+  const childGrade = dashboardData.activeChild.grade
+  const childClass = dashboardData.activeChild.className
+  const averageGrade = dashboardData.stats.averageGrade.toFixed(2)
 
   // آمار کلی
+  const lastGrade = dashboardData.recentGrades[0]
   const stats = [
-    { label: 'آخرین نمره', value: '18.5', icon: <Star className="w-6 h-6" />, color: 'bg-yellow-500', subtext: 'ریاضی' },
-    { label: 'حضور ماه جاری', value: '95%', icon: <CheckCircle2 className="w-6 h-6" />, color: 'bg-green-500', subtext: '۱ غیبت' },
+    { label: 'میانگین نمرات', value: averageGrade, icon: <Star className="w-6 h-6" />, color: 'bg-yellow-500', subtext: `از ${dashboardData.stats.totalGrades} نمره` },
+    { label: 'حضور ماه جاری', value: `${dashboardData.stats.attendanceRate}%`, icon: <CheckCircle2 className="w-6 h-6" />, color: 'bg-green-500', subtext: '30 روز اخیر' },
     { label: 'پیام‌های جدید', value: mockMessages.filter(m => !m.isRead).length, icon: <MessageSquare className="w-6 h-6" />, color: 'bg-blue-500', subtext: 'از مدرسه' },
-    { label: 'بدهی شهریه', value: formatCurrency(financialStatus.remaining), icon: <Wallet className="w-6 h-6" />, color: 'bg-orange-500', subtext: `مهلت: ${financialStatus.dueDate}` },
+    { label: 'گزارش‌ها', value: dashboardData.stats.recentReports, icon: <FileText className="w-6 h-6" />, color: 'bg-purple-500', subtext: 'گزارش جدید' },
   ]
 
   // دسترسی سریع
@@ -218,23 +303,32 @@ export default function ParentDashboardPage() {
             {/* نمودار میله‌ای نمرات */}
             <div className="mb-6">
               <h3 className="text-white/60 text-sm mb-3">نمرات به تفکیک درس</h3>
-              <div className="space-y-3">
-                {mockGrades.map((grade, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <span className="text-white/70 text-sm w-16">{grade.subject}</span>
-                    <div className="flex-1 h-6 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${(grade.score / grade.maxScore) * 100}%`,
-                          backgroundColor: grade.color,
-                        }}
-                      />
-                    </div>
-                    <span className="text-white font-bold w-12 text-left">{grade.score}</span>
-                  </div>
-                ))}
-              </div>
+              {dashboardData.grades.length === 0 ? (
+                <p className="text-white/40 text-sm text-center py-4">نمره‌ای ثبت نشده است</p>
+              ) : (
+                <div className="space-y-3">
+                  {dashboardData.grades.map((grade, index) => {
+                    const colors = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899', '#06B6D4']
+                    const color = colors[index % colors.length]
+                    return (
+                      <div key={index} className="flex items-center gap-3">
+                        <span className="text-white/70 text-sm w-16">{grade.subject}</span>
+                        <div className="flex-1 h-6 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${(grade.average / 20) * 100}%`,
+                              backgroundColor: color,
+                            }}
+                          />
+                        </div>
+                        <span className="text-white font-bold w-12 text-left">{grade.average}</span>
+                        <span className="text-white/40 text-xs w-16">({grade.count} نمره)</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
             {/* آخرین نمرات */}
@@ -251,22 +345,30 @@ export default function ParentDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentGrades.map((grade, index) => (
-                      <tr key={index} className="border-b border-white/5 last:border-0">
-                        <td className="p-3 text-white/60 text-sm">{grade.date}</td>
-                        <td className="p-3 text-white text-sm">{grade.subject}</td>
-                        <td className="p-3 text-center">
-                          <span className="bg-white/10 text-white/70 text-xs px-2 py-1 rounded">
-                            {grade.type}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center">
-                          <span className={`font-bold ${grade.score >= 17 ? 'text-green-400' : grade.score >= 14 ? 'text-yellow-400' : 'text-red-400'}`}>
-                            {grade.score}
-                          </span>
+                    {dashboardData.recentGrades.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="p-6 text-center text-white/40 text-sm">
+                          نمره‌ای ثبت نشده است
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      dashboardData.recentGrades.map((grade, index) => (
+                        <tr key={index} className="border-b border-white/5 last:border-0">
+                          <td className="p-3 text-white/60 text-sm">{grade.date}</td>
+                          <td className="p-3 text-white text-sm">{grade.subject}</td>
+                          <td className="p-3 text-center">
+                            <span className="bg-white/10 text-white/70 text-xs px-2 py-1 rounded">
+                              {grade.type}
+                            </span>
+                          </td>
+                          <td className="p-3 text-center">
+                            <span className={`font-bold ${grade.score >= 17 ? 'text-green-400' : grade.score >= 14 ? 'text-yellow-400' : 'text-red-400'}`}>
+                              {grade.score}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

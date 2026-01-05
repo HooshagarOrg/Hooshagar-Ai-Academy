@@ -48,6 +48,9 @@ const logger = isDev ? null : pino({
 
 export default logger;
 
+// Named export برای سازگاری
+export { logger };
+
 /**
  * Helper functions برای استفاده راحت‌تر
  */

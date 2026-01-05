@@ -21,13 +21,11 @@ import {
   Key, 
   Database, 
   BarChart3, 
-  Save,
   RefreshCw,
   Trash2,
   Plus,
   CheckCircle2,
-  XCircle,
-  Loader2
+  XCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -64,12 +62,12 @@ interface SystemStats {
 }
 
 export default function AISettingsPage() {
-  const [geminiKeys, setGeminiKeys] = useState<GeminiKey[]>([])
-  const [aiConfigs, setAIConfigs] = useState<AIConfig[]>([])
-  const [systemStats, setSystemStats] = useState<SystemStats | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [newKeyName, setNewKeyName] = useState('')
-  const [newKeyValue, setNewKeyValue] = useState('')
+  const [_geminiKeys, _setGeminiKeys] = useState<GeminiKey[]>([])
+  const [_aiConfigs, _setAIConfigs] = useState<AIConfig[]>([])
+  const [_systemStats, _setSystemStats] = useState<SystemStats | null>(null)
+  const [_isLoading, _setIsLoading] = useState(false)
+  const [_newKeyName, _setNewKeyName] = useState('')
+  const [_newKeyValue, _setNewKeyValue] = useState('')
 
   // Load data
   useEffect(() => {
@@ -77,35 +75,35 @@ export default function AISettingsPage() {
   }, [])
 
   const loadData = async () => {
-    setIsLoading(true)
+    _setIsLoading(true)
     try {
       // TODO: ایجاد API routes برای دریافت داده‌ها
       toast.info('در حال بارگذاری...')
     } catch (error) {
       toast.error('خطا در بارگذاری داده‌ها')
     } finally {
-      setIsLoading(false)
+      _setIsLoading(false)
     }
   }
 
   const handleAddKey = async () => {
-    if (!newKeyName || !newKeyValue) {
+    if (!_newKeyName || !_newKeyValue) {
       toast.error('لطفاً نام و کلید را وارد کنید')
       return
     }
 
     // TODO: API call
-    toast.success(`کلید ${newKeyName} اضافه شد`)
-    setNewKeyName('')
-    setNewKeyValue('')
+    toast.success(`کلید ${_newKeyName} اضافه شد`)
+    _setNewKeyName('')
+    _setNewKeyValue('')
   }
 
-  const handleToggleKey = async (keyId: string, active: boolean) => {
+  const handleToggleKey = async (_keyId: string, active: boolean) => {
     // TODO: API call
     toast.success(active ? 'کلید فعال شد' : 'کلید غیرفعال شد')
   }
 
-  const handleToggleTier = async (configId: string, tier: 5 | 6, enabled: boolean) => {
+  const _handleToggleTier = async (_configId: string, tier: number, enabled: boolean) => {
     // TODO: API call
     toast.success(`Tier ${tier} ${enabled ? 'فعال' : 'غیرفعال'} شد`)
   }
@@ -328,8 +326,8 @@ export default function AISettingsPage() {
                   <Label>نام کلید</Label>
                   <Input
                     placeholder="gemini_key_11"
-                    value={newKeyName}
-                    onChange={(e) => setNewKeyName(e.target.value)}
+                    value={_newKeyName}
+                    onChange={(e) => _setNewKeyName(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -337,8 +335,8 @@ export default function AISettingsPage() {
                   <Input
                     type="password"
                     placeholder="AIza..."
-                    value={newKeyValue}
-                    onChange={(e) => setNewKeyValue(e.target.value)}
+                    value={_newKeyValue}
+                    onChange={(e) => _setNewKeyValue(e.target.value)}
                   />
                 </div>
               </div>

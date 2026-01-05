@@ -11,7 +11,7 @@ import {
   Bell,
   Heart,
   TrendingUp,
-  ChevronLeft,
+  
   Send,
   FileText,
   CheckCircle2,
@@ -30,9 +30,7 @@ import {
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  PRIORITY_LABELS,
   STATUS_LABELS,
-  type PriorityLevel,
   type CounselingStatus,
 } from '@/lib/types/counseling.types'
 

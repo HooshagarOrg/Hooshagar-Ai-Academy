@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   TrendingUp,
   Award,
-  Target,
+  
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,8 +21,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import {
   FINAL_GRADE_LABELS,
   STEM_SUBJECT_LABELS,
-  calculateAverageScore,
-  type AssessmentType,
+  
+  type 
 } from '@/lib/types/specialty-assessment.types'
 
 // ==========================================

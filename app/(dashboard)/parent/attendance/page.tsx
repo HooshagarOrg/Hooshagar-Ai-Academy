@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { format } from 'date-fns-jalali'
-import { faIR } from 'date-fns-jalali/locale'
 import {
   Calendar,
   CheckCircle,
@@ -13,7 +11,7 @@ import {
   TrendingUp,
   TrendingDown,
   Download,
-  ChevronRight,
+  
   ChevronLeft
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -21,14 +19,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
+  
   Tooltip,
   ResponsiveContainer,
   PieChart,

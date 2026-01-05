@@ -8,15 +8,15 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Users,
+  
   Info,
   Save,
-  Edit,
+  
   Trash2,
   Trophy,
   PartyPopper,
   Frown,
-  ArrowRight,
+  
   RefreshCw
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -43,7 +43,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { Label } from '@/components/ui/label'
@@ -52,12 +51,12 @@ import {
   ClassRegistration,
   Class,
   LOTTERY_STATUS_CONFIG,
-  REGISTRATION_STATUS_CONFIG,
+  
   formatLotteryDate,
   gradeToText,
-  formatTimeRemaining,
+  
   getTimeRemaining,
-  isRegistrationOpen,
+  
 } from '@/lib/types/lottery.types'
 
 // داده نمونه دانش‌آموز
@@ -107,7 +106,7 @@ const SAMPLE_CLASSES: (Class & { first_choice_count: number; effective_capacity:
 
 export default function ClassRegistrationPage() {
   const [isLoading, setIsLoading] = useState(true)
-  const [student, setStudent] = useState(SAMPLE_STUDENT)
+  const [student] = useState(SAMPLE_STUDENT)
   const [lotterySetting, setLotterySetting] = useState<typeof SAMPLE_LOTTERY_SETTING | null>(null)
   const [classes, setClasses] = useState<typeof SAMPLE_CLASSES>([])
   const [existingRegistration, setExistingRegistration] = useState<ClassRegistration | null>(null)
@@ -118,13 +117,13 @@ export default function ClassRegistrationPage() {
   // وضعیت
   const [canRegister, setCanRegister] = useState(false)
   const [canEdit, setCanEdit] = useState(false)
-  const [registrationStatus, setRegistrationStatus] = useState<'not_started' | 'open' | 'closed'>('open')
+  const [setRegistrationStatus] = useState<'not_started' | 'open' | 'closed'>('open')
   
   // عملیات
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showResultDialog, setShowResultDialog] = useState(false)
+  const [setShowResultDialog] = useState(false)
   
   // تایمر
   const [timeRemaining, setTimeRemaining] = useState({ days: 0, hours: 0, minutes: 0, expired: false })

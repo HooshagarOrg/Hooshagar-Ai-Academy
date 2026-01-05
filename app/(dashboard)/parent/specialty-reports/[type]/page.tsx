@@ -16,7 +16,7 @@ import {
   Trophy,
   Target,
   TrendingUp,
-  Clock,
+  
   User,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,12 +24,12 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   FINAL_GRADE_LABELS,
-  MUSIC_SKILL_LABELS,
-  ART_SKILL_LABELS,
-  SPORTS_FITNESS_LABELS,
-  SPORTS_SKILL_LABELS,
-  STEM_SKILL_LABELS,
-  STEM_SUBJECT_LABELS,
+  
+  
+  
+  
+  
+  
   FITNESS_TEST_LABELS,
   type AssessmentType,
   type MusicAssessment,

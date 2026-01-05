@@ -26,3 +26,6 @@ export async function createClient() {
     }
   )
 }
+
+// Alias برای سازگاری با فایل‌های قدیمی
+export { createClient as createServerClient }

@@ -10,21 +10,20 @@ import {
   CheckCircle,
   Calendar,
   Eye,
-  Ear,
+  
   Activity,
-  TrendingUp,
-  Clock,
-  FileText,
+  
+  
+  
   MessageSquare,
-  ChevronLeft,
+  
   AlertCircle,
   Pill,
   Phone
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'

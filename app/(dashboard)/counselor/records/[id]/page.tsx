@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import {
   FileText,
-  User,
+  
   Calendar,
   Clock,
   MessageSquare,
@@ -15,19 +15,19 @@ import {
   ChevronRight,
   Edit,
   Lock,
-  AlertTriangle,
+  
   CheckCircle2,
   Plus,
   Star,
   Phone,
-  Users,
-  Activity,
+  
+  
   Download,
   Printer,
   Mail,
   ExternalLink,
   TrendingUp,
-  ClipboardList,
+  
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -56,19 +56,18 @@ import {
   SESSION_TYPE_LABELS,
   TEST_TYPE_LABELS,
   CONTACT_TYPE_LABELS,
-  COOPERATION_LABELS,
+  
   SEVERITY_LABELS,
   FREQUENCY_LABELS,
-  ISSUE_CATEGORIES,
-  SESSION_TOPICS,
-  INTERVENTIONS,
-  OBSERVATION_SETTINGS,
+  
+  
+  
+  
   type CounselingRecord,
   type CounselingSession,
   type PsychologicalTest,
   type BehavioralObservation,
   type ParentContact,
-  type CounselingGoal,
   type PriorityLevel,
   type SessionType,
   type TestType,
@@ -332,9 +331,9 @@ export default function CounselingRecordDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('info')
   const [showSessionDialog, setShowSessionDialog] = useState(false)
-  const [showTestDialog, setShowTestDialog] = useState(false)
-  const [showObservationDialog, setShowObservationDialog] = useState(false)
-  const [showContactDialog, setShowContactDialog] = useState(false)
+  const [setShowTestDialog] = useState(false)
+  const [setShowObservationDialog] = useState(false)
+  const [setShowContactDialog] = useState(false)
 
   useEffect(() => {
     // TODO: Replace with API call

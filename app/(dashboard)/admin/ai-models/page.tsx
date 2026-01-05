@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState} from 'react'
 import {
   Settings,
   Search,
-  ChevronDown,
-  ChevronUp,
-  Check,
-  X,
-  Zap,
-  Star,
+  
+  
+  
+  
+  
+  
   Eye,
-  EyeOff,
+  
   Edit2,
   Save,
   RotateCcw,
@@ -21,13 +21,13 @@ import {
   Sliders,
   CreditCard,
   Loader2,
-  AlertTriangle,
+  
   CheckCircle,
-  Info,
+  
   Play,
   RefreshCw,
-  ExternalLink,
-  Copy,
+  
+  
   Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -35,7 +35,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { Slider } from '@/components/ui/slider'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -54,7 +53,7 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
+  
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -95,9 +94,7 @@ import {
   formatCost,
   renderRating,
   renderSpeed,
-  estimateCost,
   type AvailableModel,
-  type AIModelConfig,
   type ModelTestResult,
 } from '@/lib/ai-model-manager'
 
@@ -230,7 +227,6 @@ export default function AIModelsPage() {
   const [selectedFeature, setSelectedFeature] = useState<FeatureConfig | null>(null)
   const [isModelDialogOpen, setIsModelDialogOpen] = useState(false)
   const [isTestDialogOpen, setIsTestDialogOpen] = useState(false)
-  const [isCompareDialogOpen, setIsCompareDialogOpen] = useState(false)
   const [editingType, setEditingType] = useState<'primary' | 'fallback'>('primary')
   
   const [isSaving, setIsSaving] = useState(false)
@@ -312,13 +308,13 @@ export default function AIModelsPage() {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000))
       
-      const results = selectedModelsForCompare.map(modelKey => {
+      const results: ModelTestResult[] = selectedModelsForCompare.map(modelKey => {
         const [provider, modelId] = modelKey.split('/')
         const modelInfo = AVAILABLE_MODELS.find(m => m.provider === provider && m.modelId === modelId)
         
         return {
-          provider,
-          model: modelId,
+          provider: provider || 'unknown',
+          model: modelId || 'unknown',
           success: true,
           output: `پاسخ نمونه از ${modelInfo?.modelName || modelId}`,
           responseTimeMs: Math.floor(Math.random() * 3000) + 500,
@@ -546,7 +542,7 @@ export default function AIModelsPage() {
                                       onValueChange={([value]) => {
                                         setConfigs(prev => prev.map(c =>
                                           c.featureName === config.featureName
-                                            ? { ...c, temperature: value }
+                                            ? { ...c, temperature: value as number }
                                             : c
                                         ))
                                       }}
@@ -667,7 +663,7 @@ export default function AIModelsPage() {
                                       `${config.primaryProvider}/${config.primaryModel}`,
                                     ])
                                     setCompareResults([])
-                                    setIsCompareDialogOpen(true)
+                                    // TODO: Implement compare dialog
                                   }}
                                 >
                                   <GitCompare className="w-4 h-4" />
@@ -1296,7 +1292,7 @@ export default function AIModelsPage() {
 
 function ModelCard({
   model,
-  provider,
+  
   modelId,
   isPrimary,
   onChangeClick,

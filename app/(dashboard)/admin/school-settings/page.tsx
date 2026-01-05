@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback} from 'react'
 import {
   Settings,
   Building,
@@ -8,22 +8,22 @@ import {
   Image as ImageIcon,
   Upload,
   RotateCw,
-  Crop,
+  
   ZoomIn,
   ZoomOut,
   Save,
-  Check,
+  
   Globe,
   Phone,
   Mail,
   MapPin,
   FileText,
   Eye,
-  EyeOff,
-  RefreshCw,
+  
+  
   Trash2,
-  Download,
-  Info,
+  
+  
   Loader2,
   Sun,
   Moon,
@@ -31,8 +31,8 @@ import {
   Sidebar,
   LogIn,
   FileOutput,
-  Maximize2,
-  Minimize2,
+  
+  
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -46,7 +46,6 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Switch } from '@/components/ui/switch'
 import {
   Card,
   CardContent,

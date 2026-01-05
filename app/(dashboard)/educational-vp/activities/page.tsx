@@ -6,7 +6,7 @@ import {
   Palette,
   ArrowRight,
   User,
-  Calendar,
+  
   Star,
   Save,
   Loader2,

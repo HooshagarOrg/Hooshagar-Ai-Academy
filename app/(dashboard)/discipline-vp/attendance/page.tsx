@@ -1,15 +1,13 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { format, subDays, startOfWeek, startOfMonth } from 'date-fns-jalali'
-import { faIR } from 'date-fns-jalali/locale'
 import {
   AlertTriangle,
   Eye,
   CheckCircle,
   Phone,
   Calendar,
-  Filter,
+  
   Download,
   Users,
   Clock,
@@ -34,11 +32,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Progress } from '@/components/ui/progress'
+import { Avatar, AvatarFallback} from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { toast } from 'sonner'
 import {
   LineChart,

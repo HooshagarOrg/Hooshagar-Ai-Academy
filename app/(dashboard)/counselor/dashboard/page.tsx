@@ -8,7 +8,7 @@ import {
   Calendar,
   AlertTriangle,
   Clock,
-  TrendingUp,
+  
   ChevronLeft,
   Bell,
   Brain,

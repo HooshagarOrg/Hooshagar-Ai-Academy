@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import Link from 'next/link'
 import {
   Cpu, Building2, Coins, TrendingUp, TrendingDown, Edit2, Save, X,
-  ChevronLeft, Users, BarChart3, PieChart, Calendar, Search, Filter,
-  Database, Sparkles, Brain, BookOpen, MessageSquare, Camera, Wand2,
-  RefreshCw, Download, Settings, AlertTriangle, CheckCircle2, Clock
+  Users, BarChart3, PieChart, Search,
+  Database, Sparkles, Brain, BookOpen, Camera, Wand2,
+  RefreshCw, Download, AlertTriangle, Clock
 } from 'lucide-react'
 
 // ============================================

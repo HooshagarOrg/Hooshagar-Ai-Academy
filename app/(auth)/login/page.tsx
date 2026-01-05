@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Mail, Smartphone, GraduationCap, ArrowLeft, Shield, Loader2 } from 'lucide-react'
 
@@ -13,17 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card'
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [otpSent, setOtpSent] = useState(false)
   const [otpPhone, setOtpPhone] = useState('')
-  const router = useRouter()
 
   // Password Login
   const handlePasswordLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -49,7 +44,17 @@ export default function LoginPage() {
       
       if (response.ok && data.success) {
         toast.success('✅ ورود موفق!')
-        window.location.replace('/dashboard')
+        
+        // بررسی redirect query parameter
+        const urlParams = new URLSearchParams(window.location.search)
+        const redirect = urlParams.get('redirect')
+        
+        if (redirect) {
+          window.location.replace(redirect)
+        } else {
+          // اگر redirect نداشت، بذار middleware خودش handle کنه
+          window.location.replace('/dashboard')
+        }
       } else {
         toast.error(data.error || 'ایمیل یا رمز عبور اشتباه است')
         setIsLoading(false)

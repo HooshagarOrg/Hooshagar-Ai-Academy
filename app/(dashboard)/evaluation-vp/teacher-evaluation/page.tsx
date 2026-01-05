@@ -1,21 +1,21 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo} from 'react'
 import {
   ClipboardCheck,
   User,
   Calendar,
   ChevronDown,
-  ChevronUp,
+  
   Check,
   Star,
-  Award,
-  TrendingUp,
+  
+  
   AlertTriangle,
   Lightbulb,
   Target,
   Save,
-  Send,
+  
   Printer,
   Mail,
   CalendarPlus,
@@ -33,7 +33,7 @@ import {
   Heart,
   Briefcase,
   Loader2,
-  Info,
+  
   CheckCircle2,
   XCircle,
   AlertCircle,
@@ -54,7 +54,7 @@ import {
   Tooltip,
   BarChart,
   Bar,
-  Legend,
+  
 } from 'recharts'
 
 import { Button } from '@/components/ui/button'
@@ -121,7 +121,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 
 // ============================================

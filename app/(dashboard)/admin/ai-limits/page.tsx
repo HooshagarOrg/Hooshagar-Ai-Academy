@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState} from 'react'
 import {
   Search,
   Settings,
-  ChevronDown,
+  
   Plus,
   Trash2,
   Edit2,
@@ -14,19 +14,19 @@ import {
   Building2,
   Globe,
   User,
-  Calendar,
+  
   BarChart3,
   Save,
-  X,
-  Check,
+  
+  
   Info,
-  AlertTriangle,
+  
   Sparkles,
-  TrendingUp,
-  Clock,
-  Filter,
-  MoreHorizontal,
-  Eye,
+  
+  
+  
+  
+  
   Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -34,7 +34,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -53,11 +52,11 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
+  
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  
 } from '@/components/ui/dialog'
 import {
   Select,
@@ -75,11 +74,6 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import {
   Table,
   TableBody,
   TableCell,
@@ -93,17 +87,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-import { AI_FEATURES, type FeatureInfo } from '@/lib/check-ai-limit'
+import { AI_FEATURES } from '@/lib/check-ai-limit'
 
 // ============================================
 // تایپ‌ها
@@ -240,7 +226,7 @@ const SCHOOLS = [
 
 export default function AILimitsPage() {
   const [limits, setLimits] = useState<AILimit[]>(SAMPLE_LIMITS)
-  const [specialUsers, setSpecialUsers] = useState<SpecialUser[]>(SAMPLE_SPECIAL_USERS)
+  const [specialUsers] = useState<SpecialUser[]>(SAMPLE_SPECIAL_USERS)
   const [stats] = useState<UsageStats>(SAMPLE_STATS)
   
   const [activeTab, setActiveTab] = useState('global')

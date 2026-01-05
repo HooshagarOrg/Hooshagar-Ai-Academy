@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
           .insert({
             student_id: studentId,
             xp_points: 0,
-            level: 1,
+        level: 1,
             garden_state: { plants: [], achievements: [], unlocked_items: [] },
           })
           .select()

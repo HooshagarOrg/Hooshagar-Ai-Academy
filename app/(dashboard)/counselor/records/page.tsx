@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   FileText,
   Search,
-  Filter,
+  
   Plus,
   Eye,
   Edit,
@@ -13,12 +13,12 @@ import {
   ChevronRight,
   AlertTriangle,
   Calendar,
-  User,
-  Clock,
+  
+  
   CheckCircle2,
   X,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -224,7 +224,7 @@ export default function CounselingRecordsPage() {
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState(1)
-  const [showNewRecordDialog, setShowNewRecordDialog] = useState(false)
+  const [setShowNewRecordDialog] = useState(false)
   
   const itemsPerPage = 10
 

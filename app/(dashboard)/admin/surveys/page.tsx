@@ -8,8 +8,8 @@ import {
   Users,
   Star,
   Clock,
-  TrendingUp,
-  Filter,
+  
+  
   Download,
   ThumbsUp,
   ThumbsDown,
@@ -17,8 +17,8 @@ import {
   MessageSquare,
   GraduationCap,
   Building,
-  RefreshCw,
-  ChevronDown,
+  
+  
   User,
 } from 'lucide-react'
 

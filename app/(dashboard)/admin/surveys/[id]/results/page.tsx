@@ -12,7 +12,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Accordion,
@@ -71,20 +70,19 @@ import {
   ThumbsDown,
   Meh,
   BarChart3,
-  PieChartIcon,
+  
   Activity,
   Eye,
   Calendar,
 } from 'lucide-react';
 import {
   type Survey,
-  type QuestionResult,
   type SurveyResults,
   SURVEY_TYPE_LABELS,
   QUESTION_TYPE_LABELS,
   getDaysRemaining,
-  ratingToPercentage,
-  EMOJI_RATINGS,
+  
+  
 } from '@/lib/types/survey.types';
 
 // رنگ‌های نمودار
@@ -279,7 +277,7 @@ export default function SurveyResultsPage() {
   const comparisonData = results.questions
     .filter((q) => q.average_rating !== null)
     .slice(0, 5)
-    .map((q, i) => ({
+    .map((i) => ({
       name: `سوال ${i + 1}`,
       والدین: 3.8 + Math.random() * 1.2,
       'دانش‌آموزان': 4 + Math.random() * 1,

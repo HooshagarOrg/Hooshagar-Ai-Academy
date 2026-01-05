@@ -69,3 +69,6 @@ export async function getServerSession() {
   }
 }
 
+// Alias برای سازگاری با فایل‌های قدیمی
+export { createClient as createServerSupabaseClient }
+

@@ -8,17 +8,17 @@ import {
   Send,
   Paperclip,
   Smile,
-  Mic,
+  
   Star,
   Archive,
   MoreVertical,
   Check,
   CheckCheck,
-  Phone,
-  Video,
-  Info,
+  
+  
+  
   X,
-  Image as ImageIcon,
+  Image as 
   FileText,
   Download,
   Eye,
@@ -27,11 +27,11 @@ import {
   Ban,
   ArrowDown,
   Loader2,
-  Settings,
-  ChevronLeft,
+  
+  
   User,
-  Users,
-  Clock,
+  
+  
   Circle,
 } from 'lucide-react'
 import { toast } from 'sonner'

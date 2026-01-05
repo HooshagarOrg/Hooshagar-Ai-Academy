@@ -7,18 +7,18 @@ import {
   School,
   Users,
   User,
-  Calendar,
-  Clock,
-  Check,
-  X,
+  
+  
+  
+  
   AlertTriangle,
-  Info,
+  
   History,
   Settings,
-  ChevronDown,
-  Filter,
-  RotateCcw,
-  Save,
+  
+  
+  
+  
   Loader2,
   Ban,
   CheckCircle,
@@ -84,17 +84,15 @@ import {
   Alert,
   AlertDescription,
 } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { AI_FEATURES } from '@/lib/check-ai-limit'
 import {
-  type FeatureAccessRecord,
   type AccessHistoryRecord,
   setFeatureAccess,
   setAllFeaturesAccess,
   translateScope,
-  translateAction,
-  formatAccessDate,
+  
+  
 } from '@/lib/check-ai-access'
 
 // ============================================
@@ -234,7 +232,6 @@ export default function AIAccessControlPage() {
   const [noExpiry, setNoExpiry] = useState(true)
   
   // Loading states
-  const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
   // ============================================
@@ -403,11 +400,6 @@ export default function AIAccessControlPage() {
     }
     return selectedUser?.name || ''
   }
-
-  const hasSelection = 
-    (activeTab === 'school' && selectedSchool) ||
-    (activeTab === 'class' && selectedClass) ||
-    (activeTab === 'user' && selectedUser)
 
   // ============================================
   // رندر

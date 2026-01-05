@@ -6,25 +6,25 @@ import {
   Calendar,
   Users,
   Play,
-  Pause,
+  
   CheckCircle,
   XCircle,
   Clock,
   RefreshCw,
   Plus,
-  Settings,
+  
   BarChart3,
-  History,
+  
   ChevronRight,
   AlertTriangle,
-  Trophy,
-  Eye,
+  
+  
   Download
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'

@@ -12,11 +12,11 @@ import {
   Calendar,
   AlertTriangle,
   CheckCircle2,
-  Clock,
+  
   Activity,
   ArrowUp,
   ArrowDown,
-  ExternalLink,
+  
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -38,8 +38,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   PRIORITY_LABELS,
-  STATUS_LABELS,
-  ISSUE_CATEGORIES,
+  
+  
   type PriorityLevel,
 } from '@/lib/types/counseling.types'
 

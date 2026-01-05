@@ -270,7 +270,13 @@ export async function middleware(request: NextRequest) {
   const userProfile = profile as UserProfile
   const userRole = userProfile.role
 
-  // 8. بررسی RBAC
+  // 8. Redirect از /dashboard به role-based dashboard
+  if (pathname === '/dashboard') {
+    const defaultRoute = getDefaultRouteForRole(userRole)
+    return NextResponse.redirect(new URL(defaultRoute, request.url))
+  }
+
+  // 9. بررسی RBAC
   const allowedRoles = getAllowedRoles(pathname)
 
   if (allowedRoles !== null) {
@@ -292,7 +298,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 9. بررسی دسترسی مبتنی بر مدرسه (School-Based Access)
+  // 10. بررسی دسترسی مبتنی بر مدرسه (School-Based Access)
   // platform_admin به همه مدارس دسترسی دارد
   if (userRole !== 'platform_admin' && userRole !== 'admin') {
     // اگر کاربر school_id ندارد
@@ -318,7 +324,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 10. افزودن headers برای استفاده در صفحات
+  // 11. افزودن headers برای استفاده در صفحات
   response.headers.set('x-user-role', userRole)
   response.headers.set('x-user-id', userProfile.id)
   if (userProfile.school_id) {

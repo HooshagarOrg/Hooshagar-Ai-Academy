@@ -11,14 +11,14 @@ import {
   Zap,
   Building,
   Users,
-  Check,
-  X,
+  
+  
   Info,
   Bell,
-  Clock,
+  
   AlertTriangle,
   Lock,
-  Unlock,
+  
   TrendingUp,
   Brain,
   BookOpen,

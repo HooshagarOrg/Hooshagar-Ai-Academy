@@ -1,0 +1,1053 @@
+﻿
+> hooshagar@1.0.0 type-check
+> tsc --noEmit
+
+app/(auth)/login/page.tsx(16,3): error TS6133: 'CardDescription' is declared but its value is never read.
+app/(auth)/login/page.tsx(18,3): error TS6133: 'CardHeader' is declared but its value is never read.
+app/(auth)/login/page.tsx(19,3): error TS6133: 'CardTitle' is declared but its value is never read.
+app/(auth)/login/page.tsx(26,9): error TS6133: 'router' is declared but its value is never read.
+app/(auth)/register/page.tsx(43,9): error TS6133: 'router' is declared but its value is never read.
+app/(auth)/register/page.tsx(66,21): error TS6133: 'authData' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(10,3): error TS6133: 'Calendar' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(11,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(12,3): error TS6133: 'Check' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(13,3): error TS6133: 'X' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(15,3): error TS6133: 'Info' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(18,3): error TS6133: 'ChevronDown' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(19,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(20,3): error TS6133: 'RotateCcw' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(21,3): error TS6133: 'Save' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(87,1): error TS6133: 'Separator' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(91,8): error TS6133: 'FeatureAccessRecord' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(96,3): error TS6133: 'translateAction' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(97,3): error TS6133: 'formatAccessDate' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(237,10): error TS6133: 'isLoading' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(237,21): error TS6133: 'setIsLoading' is declared but its value is never read.
+app/(dashboard)/admin/ai-access-control/page.tsx(407,9): error TS6133: 'hasSelection' is declared but its value is never read.
+app/(dashboard)/admin/ai-credits/page.tsx(4,1): error TS6133: 'Link' is declared but its value is never read.
+app/(dashboard)/admin/ai-credits/page.tsx(7,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+app/(dashboard)/admin/ai-credits/page.tsx(7,44): error TS6133: 'Calendar' is declared but its value is never read.
+app/(dashboard)/admin/ai-credits/page.tsx(7,62): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/admin/ai-credits/page.tsx(8,40): error TS6133: 'MessageSquare' is declared but its value is never read.
+app/(dashboard)/admin/ai-credits/page.tsx(9,24): error TS6133: 'Settings' is declared but its value is never read.
+app/(dashboard)/admin/ai-credits/page.tsx(9,49): error TS6133: 'CheckCircle2' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(3,20): error TS6133: 'useEffect' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(7,3): error TS6133: 'ChevronDown' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(17,3): error TS6133: 'Calendar' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(20,3): error TS6133: 'X' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(21,3): error TS6133: 'Check' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(23,3): error TS6133: 'AlertTriangle' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(25,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(26,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(27,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(28,3): error TS6133: 'MoreHorizontal' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(29,3): error TS6133: 'Eye' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(37,1): error TS6133: 'Progress' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(56,3): error TS6133: 'DialogDescription' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(60,3): error TS6133: 'DialogTrigger' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(77,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/admin/ai-limits/page.tsx(96,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/admin/ai-limits/page.tsx(106,28): error TS6133: 'FeatureInfo' is declared but its value is never read.
+app/(dashboard)/admin/ai-limits/page.tsx(243,24): error TS6133: 'setSpecialUsers' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(3,20): error TS6133: 'useEffect' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(7,3): error TS6133: 'ChevronDown' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(8,3): error TS6133: 'ChevronUp' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(9,3): error TS6133: 'Check' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(10,3): error TS6133: 'X' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(11,3): error TS6133: 'Zap' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(12,3): error TS6133: 'Star' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(14,3): error TS6133: 'EyeOff' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(24,3): error TS6133: 'AlertTriangle' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(26,3): error TS6133: 'Info' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(29,3): error TS6133: 'ExternalLink' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(30,3): error TS6133: 'Copy' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(38,1): error TS6133: 'Progress' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(57,3): error TS6133: 'DialogDescription' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(98,3): error TS6133: 'estimateCost' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(100,8): error TS6133: 'AIModelConfig' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(233,10): error TS6133: 'isCompareDialogOpen' is declared but its value is never read.
+app/(dashboard)/admin/ai-models/page.tsx(334,25): error TS2345: Argument of type '{ provider: string | undefined; model: string | undefined; success: boolean; output: string; responseTimeMs: number; inputTokens: number; outputTokens: number; estimatedCost: number; qualityScore: number; relevanceScore: number; creativityScore: number; }[]' is not assignable to parameter of type 'SetStateAction<ModelTestResult[]>'.
+  Type '{ provider: string | undefined; model: string | undefined; success: boolean; output: string; responseTimeMs: number; inputTokens: number; outputTokens: number; estimatedCost: number; qualityScore: number; relevanceScore: number; creativityScore: number; }[]' is not assignable to type 'ModelTestResult[]'.
+    Type '{ provider: string | undefined; model: string | undefined; success: boolean; output: string; responseTimeMs: number; inputTokens: number; outputTokens: number; estimatedCost: number; qualityScore: number; relevanceScore: number; creativityScore: number; }' is not assignable to type 'ModelTestResult'.
+      Types of property 'provider' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+app/(dashboard)/admin/ai-models/page.tsx(547,52): error TS2345: Argument of type '(prev: FeatureConfig[]) => { temperature: number | undefined; featureName: string; featureLabel: string; featureIcon: string; featureDescription?: string | undefined; ... 8 more ...; stats: { ...; }; }[]' is not assignable to parameter of type 'SetStateAction<FeatureConfig[]>'.
+  Type '(prev: FeatureConfig[]) => { temperature: number | undefined; featureName: string; featureLabel: string; featureIcon: string; featureDescription?: string | undefined; ... 8 more ...; stats: { ...; }; }[]' is not assignable to type '(prevState: FeatureConfig[]) => FeatureConfig[]'.
+    Type '{ temperature: number | undefined; featureName: string; featureLabel: string; featureIcon: string; featureDescription?: string | undefined; primaryProvider: string; primaryModel: string; ... 6 more ...; stats: { ...; }; }[]' is not assignable to type 'FeatureConfig[]'.
+      Type '{ temperature: number | undefined; featureName: string; featureLabel: string; featureIcon: string; featureDescription?: string; primaryProvider: string; primaryModel: string; fallbackProvider?: string; ... 5 more ...; stats: { totalRequests: number; successfulRequests: number; failedRequests: number; fallbackUsedCou...' is not assignable to type 'FeatureConfig'.
+        Types of property 'temperature' are incompatible.
+          Type 'number | undefined' is not assignable to type 'number'.
+            Type 'undefined' is not assignable to type 'number'.
+app/(dashboard)/admin/ai-models/page.tsx(1299,3): error TS6133: 'provider' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(24,3): error TS6133: 'Save' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(30,3): error TS6133: 'Loader2' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(67,10): error TS6133: 'geminiKeys' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(67,22): error TS6133: 'setGeminiKeys' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(68,10): error TS6133: 'aiConfigs' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(68,21): error TS6133: 'setAIConfigs' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(69,10): error TS6133: 'systemStats' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(69,23): error TS6133: 'setSystemStats' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(70,10): error TS6133: 'isLoading' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(103,34): error TS6133: 'keyId' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(108,9): error TS6133: 'handleToggleTier' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(108,35): error TS6133: 'configId' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(434,41): error TS6133: 'checked' is declared but its value is never read.
+app/(dashboard)/admin/ai-settings/page.tsx(457,41): error TS6133: 'checked' is declared but its value is never read.
+app/(dashboard)/admin/ai-system/page.tsx(35,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+app/(dashboard)/admin/ai-system/page.tsx(36,3): error TS6133: 'Settings' is declared but its value is never read.
+app/(dashboard)/admin/ai-system/page.tsx(37,3): error TS6133: 'Eye' is declared but its value is never read.
+app/(dashboard)/admin/ai-system/page.tsx(39,3): error TS6133: 'XCircle' is declared but its value is never read.
+app/(dashboard)/admin/ai-system/page.tsx(40,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/admin/ai-test/page.tsx(173,42): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<string>'.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(3,20): error TS6133: 'useEffect' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(7,3): error TS6133: 'TrendingDown' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(9,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(11,3): error TS6133: 'Download' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(15,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(21,3): error TS6133: 'Zap' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(23,3): error TS6133: 'ChevronDown' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(26,3): error TS6133: 'Loader2' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(29,1): error TS6133: 'Input' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(31,1): error TS6133: 'Progress' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(35,3): error TS6133: 'CardDescription' is declared but its value is never read.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(39,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/admin/ai-usage-dashboard/page.tsx(60,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/admin/bulk-import/page.tsx(14,3): error TS6133: 'X' is declared but its value is never read.
+app/(dashboard)/admin/bulk-import/page.tsx(23,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/admin/bulk-import/page.tsx(25,3): error TS6133: 'Send' is declared but its value is never read.
+app/(dashboard)/admin/bulk-import/page.tsx(26,3): error TS6133: 'Mail' is declared but its value is never read.
+app/(dashboard)/admin/bulk-import/page.tsx(27,3): error TS6133: 'Shield' is declared but its value is never read.
+app/(dashboard)/admin/bulk-import/page.tsx(28,3): error TS6133: 'Building' is declared but its value is never read.
+app/(dashboard)/admin/bulk-import/page.tsx(33,3): error TS6133: 'ArrowLeft' is declared but its value is never read.
+app/(dashboard)/admin/bulk-import/page.tsx(34,3): error TS6133: 'Home' is declared but its value is never read.
+app/(dashboard)/admin/bulk-import/page.tsx(39,3): error TS6133: 'MessageSquare' is declared but its value is never read.
+app/(dashboard)/admin/bulk-import/page.tsx(952,38): error TS2339: Property 'description' does not exist on type '{ key: string; label: string; example: string; }'.
+app/(dashboard)/admin/bulk-import/page.tsx(953,77): error TS2339: Property 'description' does not exist on type '{ key: string; label: string; example: string; }'.
+app/(dashboard)/admin/early-warning/page.tsx(8,3): error TS6133: 'Users' is declared but its value is never read.
+app/(dashboard)/admin/early-warning/page.tsx(12,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/admin/early-warning/page.tsx(16,3): error TS6133: 'ChevronDown' is declared but its value is never read.
+app/(dashboard)/admin/early-warning/page.tsx(26,3): error TS6133: 'XCircle' is declared but its value is never read.
+app/(dashboard)/admin/early-warning/page.tsx(29,3): error TS6133: 'Building' is declared but its value is never read.
+app/(dashboard)/admin/early-warning/page.tsx(30,3): error TS6133: 'GraduationCap' is declared but its value is never read.
+app/(dashboard)/admin/early-warning/page.tsx(31,3): error TS6133: 'MessageSquare' is declared but its value is never read.
+app/(dashboard)/admin/early-warning/page.tsx(32,3): error TS6133: 'Phone' is declared but its value is never read.
+app/(dashboard)/admin/early-warning/page.tsx(33,3): error TS6133: 'School' is declared but its value is never read.
+app/(dashboard)/admin/early-warning/page.tsx(674,45): error TS2322: Type 'WarningType' is not assignable to type '"academic" | "behavioral" | "attendance"'.
+  Type '"all"' is not assignable to type '"academic" | "behavioral" | "attendance"'.
+app/(dashboard)/admin/features-management/page.tsx(14,3): error TS6133: 'Check' is declared but its value is never read.
+app/(dashboard)/admin/features-management/page.tsx(15,3): error TS6133: 'X' is declared but its value is never read.
+app/(dashboard)/admin/features-management/page.tsx(18,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/admin/features-management/page.tsx(21,3): error TS6133: 'Unlock' is declared but its value is never read.
+app/(dashboard)/admin/lottery/audit/page.tsx(17,3): error TS6133: 'Calendar' is declared but its value is never read.
+app/(dashboard)/admin/lottery/audit/page.tsx(18,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/admin/lottery/page.tsx(9,3): error TS6133: 'Pause' is declared but its value is never read.
+app/(dashboard)/admin/lottery/page.tsx(15,3): error TS6133: 'Settings' is declared but its value is never read.
+app/(dashboard)/admin/lottery/page.tsx(17,3): error TS6133: 'History' is declared but its value is never read.
+app/(dashboard)/admin/lottery/page.tsx(20,3): error TS6133: 'Trophy' is declared but its value is never read.
+app/(dashboard)/admin/lottery/page.tsx(21,3): error TS6133: 'Eye' is declared but its value is never read.
+app/(dashboard)/admin/lottery/page.tsx(22,3): error TS6133: 'Download' is declared but its value is never read.
+app/(dashboard)/admin/lottery/page.tsx(27,52): error TS6133: 'CardDescription' is declared but its value is never read.
+app/(dashboard)/admin/lottery/page.tsx(132,410): error TS2322: Type '{ full_name: string; }' is not assignable to type '{ id: string; full_name: string; grade: number; } & { full_name: string; }'.
+  Type '{ full_name: string; }' is missing the following properties from type '{ id: string; full_name: string; grade: number; }': id, grade
+app/(dashboard)/admin/lottery/page.tsx(133,409): error TS2322: Type '{ full_name: string; }' is not assignable to type '{ id: string; full_name: string; grade: number; } & { full_name: string; }'.
+  Type '{ full_name: string; }' is missing the following properties from type '{ id: string; full_name: string; grade: number; }': id, grade
+app/(dashboard)/admin/lottery/page.tsx(134,411): error TS2322: Type '{ full_name: string; }' is not assignable to type '{ id: string; full_name: string; grade: number; } & { full_name: string; }'.
+  Type '{ full_name: string; }' is missing the following properties from type '{ id: string; full_name: string; grade: number; }': id, grade
+app/(dashboard)/admin/page.tsx(18,3): error TS6133: 'Shield' is declared but its value is never read.
+app/(dashboard)/admin/page.tsx(22,3): error TS6133: 'Database' is declared but its value is never read.
+app/(dashboard)/admin/page.tsx(26,3): error TS6133: 'AlertCircle' is declared but its value is never read.
+app/(dashboard)/admin/page.tsx(27,3): error TS6133: 'CheckCircle2' is declared but its value is never read.
+app/(dashboard)/admin/progression/page.tsx(17,3): error TS6133: 'Search' is declared but its value is never read.
+app/(dashboard)/admin/progression/page.tsx(18,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/admin/progression/page.tsx(19,3): error TS6133: 'Calendar' is declared but its value is never read.
+app/(dashboard)/admin/progression/page.tsx(20,3): error TS6133: 'School' is declared but its value is never read.
+app/(dashboard)/admin/progression/page.tsx(21,3): error TS6133: 'ChevronDown' is declared but its value is never read.
+app/(dashboard)/admin/reports/page.tsx(6,1): error TS6133: 'Badge' is declared but its value is never read.
+app/(dashboard)/admin/reports/page.tsx(15,3): error TS6133: 'Calendar' is declared but its value is never read.
+app/(dashboard)/admin/reports/page.tsx(94,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/reports/page.tsx(118,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/reports/page.tsx(126,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/reports/page.tsx(141,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/reports/page.tsx(162,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/reports/page.tsx(170,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/reports/page.tsx(178,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/reports/page.tsx(188,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/reports/page.tsx(202,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/reports/page.tsx(210,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/reports/page.tsx(218,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/school-settings/page.tsx(3,41): error TS6133: 'useEffect' is declared but its value is never read.
+app/(dashboard)/admin/school-settings/page.tsx(11,3): error TS6133: 'Crop' is declared but its value is never read.
+app/(dashboard)/admin/school-settings/page.tsx(15,3): error TS6133: 'Check' is declared but its value is never read.
+app/(dashboard)/admin/school-settings/page.tsx(22,3): error TS6133: 'EyeOff' is declared but its value is never read.
+app/(dashboard)/admin/school-settings/page.tsx(23,3): error TS6133: 'RefreshCw' is declared but its value is never read.
+app/(dashboard)/admin/school-settings/page.tsx(25,3): error TS6133: 'Download' is declared but its value is never read.
+app/(dashboard)/admin/school-settings/page.tsx(26,3): error TS6133: 'Info' is declared but its value is never read.
+app/(dashboard)/admin/school-settings/page.tsx(34,3): error TS6133: 'Maximize2' is declared but its value is never read.
+app/(dashboard)/admin/school-settings/page.tsx(35,3): error TS6133: 'Minimize2' is declared but its value is never read.
+app/(dashboard)/admin/school-settings/page.tsx(49,1): error TS6133: 'Switch' is declared but its value is never read.
+app/(dashboard)/admin/school-settings/page.tsx(76,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/admin/surveys/[id]/results/page.tsx(15,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/admin/surveys/[id]/results/page.tsx(74,3): error TS6133: 'PieChartIcon' is declared but its value is never read.
+app/(dashboard)/admin/surveys/[id]/results/page.tsx(81,8): error TS6133: 'QuestionResult' is declared but its value is never read.
+app/(dashboard)/admin/surveys/[id]/results/page.tsx(86,3): error TS6133: 'ratingToPercentage' is declared but its value is never read.
+app/(dashboard)/admin/surveys/[id]/results/page.tsx(87,3): error TS6133: 'EMOJI_RATINGS' is declared but its value is never read.
+app/(dashboard)/admin/surveys/[id]/results/page.tsx(201,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/surveys/[id]/results/page.tsx(216,7): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/admin/surveys/[id]/results/page.tsx(282,11): error TS6133: 'q' is declared but its value is never read.
+app/(dashboard)/admin/surveys/[id]/results/page.tsx(623,33): error TS18048: 'percent' is possibly 'undefined'.
+app/(dashboard)/admin/surveys/page.tsx(11,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+app/(dashboard)/admin/surveys/page.tsx(12,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/admin/surveys/page.tsx(20,3): error TS6133: 'RefreshCw' is declared but its value is never read.
+app/(dashboard)/admin/surveys/page.tsx(21,3): error TS6133: 'ChevronDown' is declared but its value is never read.
+app/(dashboard)/counselor/dashboard/page.tsx(11,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+app/(dashboard)/counselor/family-insight/page.tsx(16,3): error TS6133: 'ChevronDown' is declared but its value is never read.
+app/(dashboard)/counselor/family-insight/page.tsx(17,3): error TS6133: 'ChevronUp' is declared but its value is never read.
+app/(dashboard)/counselor/family-insight/page.tsx(20,3): error TS6133: 'AlertCircle' is declared but its value is never read.
+app/(dashboard)/counselor/family-insight/page.tsx(21,3): error TS6133: 'User' is declared but its value is never read.
+app/(dashboard)/counselor/family-insight/page.tsx(78,1): error TS6133: 'cn' is declared but its value is never read.
+app/(dashboard)/counselor/family-insight/page.tsx(691,76): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+app/(dashboard)/counselor/page.tsx(19,3): error TS6133: 'User' is declared but its value is never read.
+app/(dashboard)/counselor/page.tsx(22,3): error TS6133: 'TrendingDown' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(8,3): error TS6133: 'User' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(18,3): error TS6133: 'AlertTriangle' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(23,3): error TS6133: 'Users' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(24,3): error TS6133: 'Activity' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(30,3): error TS6133: 'ClipboardList' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(59,3): error TS6133: 'COOPERATION_LABELS' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(62,3): error TS6133: 'ISSUE_CATEGORIES' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(63,3): error TS6133: 'SESSION_TOPICS' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(64,3): error TS6133: 'INTERVENTIONS' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(65,3): error TS6133: 'OBSERVATION_SETTINGS' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(71,8): error TS6133: 'CounselingGoal' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(335,10): error TS6133: 'showTestDialog' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(335,26): error TS6133: 'setShowTestDialog' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(336,10): error TS6133: 'showObservationDialog' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(336,33): error TS6133: 'setShowObservationDialog' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(337,10): error TS6133: 'showContactDialog' is declared but its value is never read.
+app/(dashboard)/counselor/records/[id]/page.tsx(337,29): error TS6133: 'setShowContactDialog' is declared but its value is never read.
+app/(dashboard)/counselor/records/new/page.tsx(22,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/counselor/records/page.tsx(8,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/counselor/records/page.tsx(16,3): error TS6133: 'User' is declared but its value is never read.
+app/(dashboard)/counselor/records/page.tsx(17,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/counselor/records/page.tsx(21,29): error TS6133: 'CardHeader' is declared but its value is never read.
+app/(dashboard)/counselor/records/page.tsx(21,41): error TS6133: 'CardTitle' is declared but its value is never read.
+app/(dashboard)/counselor/records/page.tsx(39,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/counselor/records/page.tsx(227,10): error TS6133: 'showNewRecordDialog' is declared but its value is never read.
+app/(dashboard)/counselor/records/page.tsx(227,31): error TS6133: 'setShowNewRecordDialog' is declared but its value is never read.
+app/(dashboard)/counselor/reports/page.tsx(15,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/counselor/reports/page.tsx(19,3): error TS6133: 'ExternalLink' is declared but its value is never read.
+app/(dashboard)/counselor/reports/page.tsx(41,3): error TS6133: 'STATUS_LABELS' is declared but its value is never read.
+app/(dashboard)/counselor/reports/page.tsx(42,3): error TS6133: 'ISSUE_CATEGORIES' is declared but its value is never read.
+app/(dashboard)/discipline-vp/attendance/page.tsx(4,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/discipline-vp/attendance/page.tsx(5,1): error TS6133: 'faIR' is declared but its value is never read.
+app/(dashboard)/discipline-vp/attendance/page.tsx(12,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/discipline-vp/attendance/page.tsx(24,3): error TS6133: 'School' is declared but its value is never read.
+app/(dashboard)/discipline-vp/attendance/page.tsx(37,34): error TS6133: 'AvatarImage' is declared but its value is never read.
+app/(dashboard)/discipline-vp/attendance/page.tsx(38,1): error TS6133: 'Progress' is declared but its value is never read.
+app/(dashboard)/discipline-vp/attendance/page.tsx(40,1): error TS6133: 'CalendarComponent' is declared but its value is never read.
+app/(dashboard)/discipline-vp/attendance/page.tsx(41,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/discipline-vp/attendance/page.tsx(384,36): error TS2322: Type '"destructive" | "warning"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+  Type '"warning"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+app/(dashboard)/discipline-vp/attendance/page.tsx(482,34): error TS2322: Type '"destructive" | "warning"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+  Type '"warning"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+app/(dashboard)/discipline-vp/attendance/page.tsx(572,68): error TS18048: 'percent' is possibly 'undefined'.
+app/(dashboard)/discipline-vp/attendance/page.tsx(871,24): error TS2322: Type '"destructive" | "warning"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+  Type '"warning"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+app/(dashboard)/educational-vp/activities/page.tsx(9,3): error TS6133: 'Calendar' is declared but its value is never read.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(3,40): error TS6133: 'useCallback' is declared but its value is never read.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(9,3): error TS6133: 'ChevronUp' is declared but its value is never read.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(12,3): error TS6133: 'Award' is declared but its value is never read.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(13,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(18,3): error TS6133: 'Send' is declared but its value is never read.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(36,3): error TS6133: 'Info' is declared but its value is never read.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(57,3): error TS6133: 'Legend' is declared but its value is never read.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(124,1): error TS6133: 'ScrollArea' is declared but its value is never read.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(568,9): error TS6133: 'emojiIndex' is declared but its value is never read.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(588,40): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(707,34): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(719,26): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(869,13): error TS7030: Not all code paths return a value.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(1098,34): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(1103,32): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(1267,34): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(1269,49): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/evaluation-vp/teacher-evaluation/page.tsx(1473,29): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+app/(dashboard)/financial-vp/payments/page.tsx(15,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/financial-vp/payments/page.tsx(17,3): error TS6133: 'Building' is declared but its value is never read.
+app/(dashboard)/financial-vp/payments/page.tsx(18,3): error TS6133: 'Calendar' is declared but its value is never read.
+app/(dashboard)/financial-vp/payments/page.tsx(19,3): error TS6133: 'Hash' is declared but its value is never read.
+app/(dashboard)/financial-vp/payments/page.tsx(20,3): error TS6133: 'AlertCircle' is declared but its value is never read.
+app/(dashboard)/financial-vp/sms/page.tsx(14,3): error TS6133: 'Users' is declared but its value is never read.
+app/(dashboard)/messages/page.tsx(11,3): error TS6133: 'Mic' is declared but its value is never read.
+app/(dashboard)/messages/page.tsx(17,3): error TS6133: 'Phone' is declared but its value is never read.
+app/(dashboard)/messages/page.tsx(18,3): error TS6133: 'Video' is declared but its value is never read.
+app/(dashboard)/messages/page.tsx(19,3): error TS6133: 'Info' is declared but its value is never read.
+app/(dashboard)/messages/page.tsx(21,12): error TS6133: 'ImageIcon' is declared but its value is never read.
+app/(dashboard)/messages/page.tsx(30,3): error TS6133: 'Settings' is declared but its value is never read.
+app/(dashboard)/messages/page.tsx(31,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+app/(dashboard)/messages/page.tsx(33,3): error TS6133: 'Users' is declared but its value is never read.
+app/(dashboard)/messages/page.tsx(34,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/messages/page.tsx(140,20): error TS2322: Type 'User | undefined' is not assignable to type 'User'.
+  Type 'undefined' is not assignable to type 'User'.
+app/(dashboard)/messages/page.tsx(158,20): error TS2322: Type 'User | undefined' is not assignable to type 'User'.
+  Type 'undefined' is not assignable to type 'User'.
+app/(dashboard)/messages/page.tsx(177,20): error TS2322: Type 'User | undefined' is not assignable to type 'User'.
+  Type 'undefined' is not assignable to type 'User'.
+app/(dashboard)/messages/page.tsx(195,20): error TS2322: Type 'User | undefined' is not assignable to type 'User'.
+  Type 'undefined' is not assignable to type 'User'.
+app/(dashboard)/messages/page.tsx(213,20): error TS2322: Type 'User | undefined' is not assignable to type 'User'.
+  Type 'undefined' is not assignable to type 'User'.
+app/(dashboard)/messages/page.tsx(341,12): error TS18048: 'participant' is possibly 'undefined'.
+app/(dashboard)/messages/page.tsx(343,10): error TS18048: 'participant' is possibly 'undefined'.
+app/(dashboard)/messages/page.tsx(352,69): error TS18048: 'participant' is possibly 'undefined'.
+app/(dashboard)/messages/page.tsx(370,67): error TS18048: 'participant' is possibly 'undefined'.
+app/(dashboard)/messages/page.tsx(559,13): error TS7030: Not all code paths return a value.
+app/(dashboard)/messages/page.tsx(562,11): error TS18048: 'lastMsg' is possibly 'undefined'.
+app/(dashboard)/messages/page.tsx(845,22): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/messages/page.tsx(847,20): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/messages/page.tsx(853,22): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/messages/page.tsx(856,22): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/messages/page.tsx(859,23): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/messages/page.tsx(925,21): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/notifications/page.tsx(14,3): error TS6133: 'Trash2' is declared but its value is never read.
+app/(dashboard)/notifications/page.tsx(27,1): error TS6133: 'NotificationType' is declared but its value is never read.
+app/(dashboard)/notifications/settings/page.tsx(36,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/notifications/settings/page.tsx(68,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/notifications/settings/page.tsx(73,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/notifications/settings/page.tsx(81,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/parent/attendance/page.tsx(4,1): error TS6133: 'format' is declared but its value is never read.
+app/(dashboard)/parent/attendance/page.tsx(5,1): error TS6133: 'faIR' is declared but its value is never read.
+app/(dashboard)/parent/attendance/page.tsx(16,3): error TS6133: 'ChevronRight' is declared but its value is never read.
+app/(dashboard)/parent/attendance/page.tsx(17,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+app/(dashboard)/parent/attendance/page.tsx(24,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/parent/attendance/page.tsx(31,3): error TS6133: 'CartesianGrid' is declared but its value is never read.
+app/(dashboard)/parent/attendance/page.tsx(49,11): error TS6196: 'MonthlyStats' is declared but never used.
+app/(dashboard)/parent/class-registration/page.tsx(11,3): error TS6133: 'Users' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(14,3): error TS6133: 'Edit' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(19,3): error TS6133: 'ArrowRight' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(46,1): error TS6133: 'Separator' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(55,3): error TS6133: 'REGISTRATION_STATUS_CONFIG' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(58,3): error TS6133: 'formatTimeRemaining' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(60,3): error TS6133: 'isRegistrationOpen' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(110,19): error TS6133: 'setStudent' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(121,10): error TS6133: 'registrationStatus' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(127,10): error TS6133: 'showResultDialog' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(127,28): error TS6133: 'setShowResultDialog' is declared but its value is never read.
+app/(dashboard)/parent/class-registration/page.tsx(201,7): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+app/(dashboard)/parent/class-registration/page.tsx(202,7): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+app/(dashboard)/parent/class-registration/page.tsx(203,7): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+app/(dashboard)/parent/class-registration/page.tsx(204,7): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+app/(dashboard)/parent/counseling/page.tsx(4,1): error TS6133: 'Link' is declared but its value is never read.
+app/(dashboard)/parent/counseling/page.tsx(14,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+app/(dashboard)/parent/counseling/page.tsx(33,3): error TS6133: 'PRIORITY_LABELS' is declared but its value is never read.
+app/(dashboard)/parent/counseling/page.tsx(35,8): error TS6133: 'PriorityLevel' is declared but its value is never read.
+app/(dashboard)/parent/financials/page.tsx(3,1): error TS6133: 'useState' is declared but its value is never read.
+app/(dashboard)/parent/health/page.tsx(4,1): error TS6133: 'Link' is declared but its value is never read.
+app/(dashboard)/parent/health/page.tsx(13,3): error TS6133: 'Ear' is declared but its value is never read.
+app/(dashboard)/parent/health/page.tsx(15,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+app/(dashboard)/parent/health/page.tsx(16,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/parent/health/page.tsx(17,3): error TS6133: 'FileText' is declared but its value is never read.
+app/(dashboard)/parent/health/page.tsx(19,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+app/(dashboard)/parent/health/page.tsx(25,29): error TS6133: 'CardDescription' is declared but its value is never read.
+app/(dashboard)/parent/health/page.tsx(27,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/parent/health/page.tsx(208,28): error TS2322: Type '"warning"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+app/(dashboard)/parent/health/page.tsx(252,30): error TS2322: Type '"secondary" | "warning" | "outline"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+  Type '"warning"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+app/(dashboard)/parent/health/page.tsx(443,34): error TS2322: Type '"secondary" | "warning" | "outline"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+  Type '"warning"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+app/(dashboard)/parent/page.tsx(6,3): error TS6133: 'User' is declared but its value is never read.
+app/(dashboard)/parent/page.tsx(210,9): error TS6133: 'childGrade' is declared but its value is never read.
+app/(dashboard)/parent/page.tsx(215,9): error TS6133: 'lastGrade' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/[type]/page.tsx(19,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/[type]/page.tsx(27,3): error TS6133: 'MUSIC_SKILL_LABELS' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/[type]/page.tsx(28,3): error TS6133: 'ART_SKILL_LABELS' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/[type]/page.tsx(29,3): error TS6133: 'SPORTS_FITNESS_LABELS' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/[type]/page.tsx(30,3): error TS6133: 'SPORTS_SKILL_LABELS' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/[type]/page.tsx(31,3): error TS6133: 'STEM_SKILL_LABELS' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/[type]/page.tsx(32,3): error TS6133: 'STEM_SUBJECT_LABELS' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/[type]/page.tsx(152,7): error TS6133: 'RadarChartPlaceholder' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/page.tsx(16,3): error TS6133: 'Target' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/page.tsx(24,3): error TS6133: 'calculateAverageScore' is declared but its value is never read.
+app/(dashboard)/parent/specialty-reports/page.tsx(25,8): error TS6133: 'AssessmentType' is declared but its value is never read.
+app/(dashboard)/parent/survey/page.tsx(27,11): error TS6196: 'SurveySection' is declared but never used.
+app/(dashboard)/principal/page.tsx(6,3): error TS6133: 'Building2' is declared but its value is never read.
+app/(dashboard)/principal/page.tsx(16,3): error TS6133: 'Calendar' is declared but its value is never read.
+app/(dashboard)/principal/page.tsx(22,3): error TS6133: 'Award' is declared but its value is never read.
+app/(dashboard)/principal/page.tsx(24,3): error TS6133: 'MessageSquare' is declared but its value is never read.
+app/(dashboard)/principal/page.tsx(29,3): error TS6133: 'Megaphone' is declared but its value is never read.
+app/(dashboard)/student/ai-guidance/page.tsx(25,10): error TS6133: 'currentGrade' is declared but its value is never read.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,25): error TS2305: Module '"recharts"' has no exported member 'Gauge'.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,25): error TS6133: 'Gauge' is declared but its value is never read.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,32): error TS2305: Module '"recharts"' has no exported member 'GaugeContainer'.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,32): error TS6133: 'GaugeContainer' is declared but its value is never read.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,48): error TS2305: Module '"recharts"' has no exported member 'GaugeValueArc'.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,48): error TS6133: 'GaugeValueArc' is declared but its value is never read.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,63): error TS2305: Module '"recharts"' has no exported member 'GaugeReferenceArc'.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,63): error TS6133: 'GaugeReferenceArc' is declared but its value is never read.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,82): error TS6133: 'Radar' is declared but its value is never read.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,89): error TS6133: 'RadarChart' is declared but its value is never read.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,101): error TS6133: 'PolarGrid' is declared but its value is never read.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,112): error TS6133: 'PolarAngleAxis' is declared but its value is never read.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(11,128): error TS6133: 'PolarRadiusAxis' is declared but its value is never read.
+app/(dashboard)/student/annual-report/[yearId]/page.tsx(12,10): error TS6133: 'ChartContainer' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/result/page.tsx(31,3): error TS6133: 'BarChart' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/result/page.tsx(32,3): error TS6133: 'Bar' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/result/page.tsx(33,3): error TS6133: 'XAxis' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/result/page.tsx(34,3): error TS6133: 'YAxis' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/result/page.tsx(35,3): error TS6133: 'CartesianGrid' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/result/page.tsx(47,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/result/page.tsx(50,3): error TS6133: 'ChevronDown' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/result/page.tsx(56,3): error TS6133: 'getScoreLabel' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/result/page.tsx(58,22): error TS7016: Could not find a declaration file for module 'canvas-confetti'. 'D:/hooshagar-project/node_modules/canvas-confetti/src/confetti.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/canvas-confetti` if it exists or add a new declaration (.d.ts) file containing `declare module 'canvas-confetti';`
+app/(dashboard)/student/exams/[id]/result/page.tsx(168,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/student/exams/[id]/results/page.tsx(14,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/results/page.tsx(22,29): error TS6133: 'CardDescription' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/results/page.tsx(163,5): error TS2322: Type '{ id: string; questionNumber: number; text: string; type: string; yourAnswer: string | null; correctAnswer: string; isCorrect: boolean; points: number; earnedPoints: number; explanation: string; topic: string | undefined; }' is not assignable to type 'QuestionResult'.
+  Types of property 'topic' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+app/(dashboard)/student/exams/[id]/results/page.tsx(195,9): error TS6133: 'params' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/results/page.tsx(196,9): error TS6133: 'router' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/results/page.tsx(456,54): error TS6133: 'index' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/take/page.tsx(23,3): error TS6133: 'DialogDescription' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/take/page.tsx(24,3): error TS6133: 'DialogFooter' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/take/page.tsx(45,3): error TS6133: 'Save' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/take/page.tsx(49,3): error TS6133: 'X' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/take/page.tsx(333,9): error TS6133: 'startTimeRef' is declared but its value is never read.
+app/(dashboard)/student/exams/[id]/take/page.tsx(367,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(412,24): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(419,24): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(430,7): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(454,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(534,47): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(537,26): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(541,24): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(549,43): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(557,18): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(559,26): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(567,19): error TS2322: Type 'ExamQuestion | undefined' is not assignable to type 'ExamQuestion'.
+  Type 'undefined' is not assignable to type 'ExamQuestion'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(568,35): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/student/exams/[id]/take/page.tsx(573,18): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/student/field-selection/page.tsx(10,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+app/(dashboard)/student/future-compass/page.tsx(36,3): error TS6133: 'Globe' is declared but its value is never read.
+app/(dashboard)/student/future-compass/page.tsx(51,3): error TS6133: 'SENSITIVE_FIELDS_FOR_STUDENT' is declared but its value is never read.
+app/(dashboard)/student/future-compass/page.tsx(313,10): error TS6133: 'JobCard' is declared but its value is never read.
+app/(dashboard)/student/future-compass/page.tsx(434,9): error TS6133: 'canViewLimited' is declared but its value is never read.
+app/(dashboard)/student/future-compass/page.tsx(580,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+app/(dashboard)/student/konkur-roadmap/page.tsx(24,3): error TS6133: 'Star' is declared but its value is never read.
+app/(dashboard)/student/konkur-roadmap/page.tsx(31,3): error TS6133: 'Users' is declared but its value is never read.
+app/(dashboard)/student/konkur-roadmap/page.tsx(32,3): error TS6133: 'Zap' is declared but its value is never read.
+app/(dashboard)/student/konkur/page.tsx(12,3): error TS6133: 'Award' is declared but its value is never read.
+app/(dashboard)/student/page.tsx(6,3): error TS6133: 'BookOpen' is declared but its value is never read.
+app/(dashboard)/student/page.tsx(11,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/student/page.tsx(21,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+app/(dashboard)/student/page.tsx(25,3): error TS6133: 'GraduationCap' is declared but its value is never read.
+app/(dashboard)/student/page.tsx(469,28): error TS2339: Property 'disabled' does not exist on type '{ label: string; href: string; icon: Element; color: string; emoji: string; description: string; }'.
+app/(dashboard)/student/page.tsx(471,26): error TS2339: Property 'disabled' does not exist on type '{ label: string; href: string; icon: Element; color: string; emoji: string; description: string; }'.
+app/(dashboard)/student/page.tsx(473,38): error TS2339: Property 'disabled' does not exist on type '{ label: string; href: string; icon: Element; color: string; emoji: string; description: string; }'.
+app/(dashboard)/student/practice-playground/page.tsx(20,3): error TS6133: 'PartyPopper' is declared but its value is never read.
+app/(dashboard)/student/practice-playground/page.tsx(420,54): error TS18048: 'currentWord' is possibly 'undefined'.
+app/(dashboard)/student/practice-playground/page.tsx(432,42): error TS18048: 'currentWord' is possibly 'undefined'.
+app/(dashboard)/student/practice-playground/page.tsx(515,22): error TS18048: 'currentWord' is possibly 'undefined'.
+app/(dashboard)/student/practice-playground/page.tsx(540,31): error TS18048: 'currentWord' is possibly 'undefined'.
+app/(dashboard)/student/practice-playground/page.tsx(583,35): error TS6133: 'subject' is declared but its value is never read.
+app/(dashboard)/student/shop/my-items/page.tsx(28,1): error TS6133: 'Separator' is declared but its value is never read.
+app/(dashboard)/student/shop/my-items/page.tsx(296,9): error TS6133: 'getTypeIcon' is declared but its value is never read.
+app/(dashboard)/student/shop/page.tsx(5,1): error TS6133: 'Image' is declared but its value is never read.
+app/(dashboard)/student/shop/page.tsx(22,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/student/shop/page.tsx(23,3): error TS6133: 'SlidersHorizontal' is declared but its value is never read.
+app/(dashboard)/student/shop/page.tsx(40,3): error TS6133: 'DialogDescription' is declared but its value is never read.
+app/(dashboard)/student/shop/page.tsx(48,1): error TS6133: 'Progress' is declared but its value is never read.
+app/(dashboard)/student/shop/page.tsx(56,3): error TS6133: 'ShopFilters' is declared but its value is never read.
+app/(dashboard)/student/shop/page.tsx(707,37): error TS2345: Argument of type 'ShopItem | undefined' is not assignable to parameter of type 'SetStateAction<ShopItem | null>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<ShopItem | null>'.
+app/(dashboard)/student/shop/page.tsx(723,37): error TS2345: Argument of type 'ShopItem | undefined' is not assignable to parameter of type 'SetStateAction<ShopItem | null>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<ShopItem | null>'.
+app/(dashboard)/student/streak/page.tsx(51,3): error TS6133: 'CalendarDay' is declared but its value is never read.
+app/(dashboard)/student/streak/page.tsx(67,3): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+app/(dashboard)/student/streak/page.tsx(132,29): error TS2345: Argument of type '{ activity_date: string | undefined; is_active: boolean; is_freeze_used: boolean; xp_earned: number; activities_count: number; }[]' is not assignable to parameter of type 'SetStateAction<{ activity_date: string; is_active: boolean; is_freeze_used: boolean; xp_earned: number; activities_count: number; }[]>'.
+  Type '{ activity_date: string | undefined; is_active: boolean; is_freeze_used: boolean; xp_earned: number; activities_count: number; }[]' is not assignable to type '{ activity_date: string; is_active: boolean; is_freeze_used: boolean; xp_earned: number; activities_count: number; }[]'.
+    Type '{ activity_date: string | undefined; is_active: boolean; is_freeze_used: boolean; xp_earned: number; activities_count: number; }' is not assignable to type '{ activity_date: string; is_active: boolean; is_freeze_used: boolean; xp_earned: number; activities_count: number; }'.
+      Types of property 'activity_date' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+app/(dashboard)/surveys/[id]/page.tsx(39,8): error TS6133: 'QuestionType' is declared but its value is never read.
+app/(dashboard)/surveys/[id]/page.tsx(43,22): error TS7016: Could not find a declaration file for module 'canvas-confetti'. 'D:/hooshagar-project/node_modules/canvas-confetti/src/confetti.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/canvas-confetti` if it exists or add a new declaration (.d.ts) file containing `declare module 'canvas-confetti';`
+app/(dashboard)/surveys/[id]/page.tsx(171,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+app/(dashboard)/surveys/[id]/page.tsx(253,46): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'string | number | string[]'.
+  Type 'undefined' is not assignable to type 'string | number | string[]'.
+app/(dashboard)/surveys/[id]/page.tsx(466,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/surveys/[id]/page.tsx(494,7): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/surveys/[id]/page.tsx(508,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/surveys/[id]/page.tsx(542,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/surveys/[id]/page.tsx(561,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/surveys/[id]/page.tsx(667,20): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/surveys/[id]/page.tsx(674,20): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/surveys/[id]/page.tsx(676,18): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/surveys/[id]/page.tsx(677,37): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/surveys/[id]/page.tsx(682,19): error TS2322: Type 'SurveyQuestion | undefined' is not assignable to type 'SurveyQuestion'.
+  Type 'undefined' is not assignable to type 'SurveyQuestion'.
+app/(dashboard)/surveys/[id]/page.tsx(683,34): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/surveys/[id]/page.tsx(683,58): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/surveys/[id]/page.tsx(683,109): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/surveys/[id]/page.tsx(684,49): error TS18048: 'currentQuestion' is possibly 'undefined'.
+app/(dashboard)/teacher/academic-foundation/page.tsx(10,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+app/(dashboard)/teacher/academic-foundation/page.tsx(11,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+app/(dashboard)/teacher/academic-foundation/page.tsx(12,3): error TS6133: 'ChevronRight' is declared but its value is never read.
+app/(dashboard)/teacher/academic-foundation/page.tsx(20,3): error TS6133: 'BarChart3' is declared but its value is never read.
+app/(dashboard)/teacher/academic-foundation/page.tsx(25,3): error TS6133: 'MessageSquare' is declared but its value is never read.
+app/(dashboard)/teacher/academic-foundation/page.tsx(79,1): error TS6133: 'Separator' is declared but its value is never read.
+app/(dashboard)/teacher/academic-foundation/page.tsx(279,3): error TS6133: 'color' is declared but its value is never read.
+app/(dashboard)/teacher/academic-foundation/page.tsx(305,40): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+app/(dashboard)/teacher/academic-foundation/page.tsx(1138,38): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/teacher/academic-foundation/page.tsx(1142,39): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/teacher/attendance/page.tsx(3,20): error TS6133: 'useEffect' is declared but its value is never read.
+app/(dashboard)/teacher/attendance/page.tsx(155,10): error TS6133: 'tempCertificate' is declared but its value is never read.
+app/(dashboard)/teacher/award-badges/page.tsx(10,3): error TS6133: 'Check' is declared but its value is never read.
+app/(dashboard)/teacher/award-badges/page.tsx(18,1): error TS6133: 'Input' is declared but its value is never read.
+app/(dashboard)/teacher/award-badges/page.tsx(22,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/teacher/award-badges/page.tsx(61,34): error TS6133: 'AvatarImage' is declared but its value is never read.
+app/(dashboard)/teacher/exams/create/page.tsx(36,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/teacher/exams/create/page.tsx(37,3): error TS6133: 'BookOpen' is declared but its value is never read.
+app/(dashboard)/teacher/exams/create/page.tsx(38,3): error TS6133: 'Settings' is declared but its value is never read.
+app/(dashboard)/teacher/exams/create/page.tsx(222,51): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+app/(dashboard)/teacher/exams/create/page.tsx(700,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/teacher/exams/create/page.tsx(726,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/teacher/exams/create/page.tsx(733,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/teacher/oral-questions/page.tsx(13,3): error TS6133: 'ChevronDown' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(17,3): error TS6133: 'Pause' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(21,3): error TS6133: 'BookOpen' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(22,3): error TS6133: 'BarChart3' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(31,3): error TS6133: 'MessageSquare' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(32,3): error TS6133: 'X' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(34,3): error TS6133: 'AlertCircle' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(35,3): error TS6133: 'Star' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(46,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/teacher/oral-questions/page.tsx(60,3): error TS6133: 'DialogDescription' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(361,3): error TS6133: 'grade' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(419,10): error TS6133: 'timerRunning' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(419,24): error TS6133: 'setTimerRunning' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(492,28): error TS6133: 'question' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(496,31): error TS6133: 'id' is declared but its value is never read.
+app/(dashboard)/teacher/oral-questions/page.tsx(522,19): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/teacher/question-bank-v2/page.tsx(7,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/teacher/question-bank-v2/page.tsx(15,3): error TS6133: 'AlertCircle' is declared but its value is never read.
+app/(dashboard)/teacher/question-bank-v2/page.tsx(17,3): error TS6133: 'BarChart3' is declared but its value is never read.
+app/(dashboard)/teacher/question-bank-v2/page.tsx(21,29): error TS6133: 'CardDescription' is declared but its value is never read.
+app/(dashboard)/teacher/question-bank-v2/page.tsx(21,46): error TS6133: 'CardHeader' is declared but its value is never read.
+app/(dashboard)/teacher/question-bank-v2/page.tsx(21,58): error TS6133: 'CardTitle' is declared but its value is never read.
+app/(dashboard)/teacher/question-bank-v2/page.tsx(31,1): error TS6192: All imports in import declaration are unused.
+app/(dashboard)/teacher/question-bank/page.tsx(18,1): error TS6133: 'Checkbox' is declared but its value is never read.
+app/(dashboard)/teacher/question-bank/page.tsx(54,3): error TS6133: 'Filter' is declared but its value is never read.
+app/(dashboard)/teacher/question-bank/page.tsx(62,3): error TS6133: 'XCircle' is declared but its value is never read.
+app/(dashboard)/teacher/question-bank/page.tsx(64,3): error TS6133: 'Image' is declared but its value is never read.
+app/(dashboard)/teacher/question-bank/page.tsx(149,15): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/teacher/question-bank/page.tsx(179,5): error TS2322: Type '{ text: string; id?: string | undefined; is_correct?: boolean; }' is not assignable to type 'QuestionOption'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+app/(dashboard)/teacher/question-bank/page.tsx(511,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/teacher/question-bank/page.tsx(540,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/teacher/question-bank/page.tsx(550,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/teacher/question-bank/page.tsx(566,15): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/teacher/question-bank/page.tsx(571,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | (() => ReactNode)'.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(3,20): error TS6133: 'useEffect' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(9,3): error TS6133: 'Calendar' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(13,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(14,3): error TS6133: 'ChevronRight' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(15,3): error TS6133: 'Search' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(17,3): error TS6133: 'Eye' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(26,16): error TS6133: 'TabsContent' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(49,1): error TS6133: 'Skeleton' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(51,3): error TS6133: 'ART_TECHNIQUES' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(52,3): error TS6133: 'SPECIALIZED_SPORTS' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(53,3): error TS6133: 'PROGRAMMING_LANGUAGES' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(54,3): error TS6133: 'STEM_CONCEPTS' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(56,3): error TS6133: 'STEM_SUBJECT_LABELS' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(57,3): error TS6133: 'MUSIC_SKILL_LABELS' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(58,3): error TS6133: 'ART_SKILL_LABELS' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(59,3): error TS6133: 'SPORTS_FITNESS_LABELS' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(60,3): error TS6133: 'SPORTS_SKILL_LABELS' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(61,3): error TS6133: 'STEM_SKILL_LABELS' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(63,8): error TS6133: 'STEMSubject' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(64,8): error TS6133: 'FinalGrade' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(121,40): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(343,60): error TS2532: Object is possibly 'undefined'.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(345,10): error TS6133: 'isLoading' is declared but its value is never read.
+app/(dashboard)/teacher/specialty-assessment/page.tsx(345,21): error TS6133: 'setIsLoading' is declared but its value is never read.
+app/(dashboard)/teacher/students/page.tsx(132,28): error TS2322: Type 'never[] | { id: any; grade: any; created_at: any; user: { id: any; full_name: any; email: any; }[]; class: { id: any; name: any; academic_year: any; }[]; }[]' is not assignable to type 'Student[]'.
+  Type '{ id: any; grade: any; created_at: any; user: { id: any; full_name: any; email: any; }[]; class: { id: any; name: any; academic_year: any; }[]; }[]' is not assignable to type 'Student[]'.
+    Type '{ id: any; grade: any; created_at: any; user: { id: any; full_name: any; email: any; }[]; class: { id: any; name: any; academic_year: any; }[]; }' is not assignable to type 'Student'.
+      Types of property 'user' are incompatible.
+        Property 'full_name' is missing in type '{ id: any; full_name: any; email: any; }[]' but required in type '{ full_name: string; }'.
+app/(dashboard)/teacher/weekly-report/page.tsx(17,3): error TS6133: 'Clock' is declared but its value is never read.
+app/(dashboard)/teacher/weekly-report/page.tsx(20,3): error TS6133: 'AlertTriangle' is declared but its value is never read.
+app/(dashboard)/teacher/weekly-report/page.tsx(333,24): error TS2532: Object is possibly 'undefined'.
+app/actions/auth.ts(39,11): error TS6133: 'data' is declared but its value is never read.
+app/api/academic-years/[id]/route.ts(1,10): error TS2724: '"@/lib/supabase/server"' has no exported member named 'createServerClient'. Did you mean 'createClient'?
+app/api/academic-years/[id]/route.ts(18,3): error TS6133: 'request' is declared but its value is never read.
+app/api/academic-years/[id]/route.ts(126,3): error TS6133: 'request' is declared but its value is never read.
+app/api/academic-years/promote/route.ts(1,10): error TS2724: '"@/lib/supabase/server"' has no exported member named 'createServerClient'. Did you mean 'createClient'?
+app/api/academic-years/route.ts(1,10): error TS2724: '"@/lib/supabase/server"' has no exported member named 'createServerClient'. Did you mean 'createClient'?
+app/api/admin/activation-codes/issue/route.ts(2,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/admin/activation-codes/issue/route.ts(42,19): error TS6133: 'activationCode' is declared but its value is never read.
+app/api/admin/activation-codes/route.ts(2,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/admin/activation-codes/route.ts(4,27): error TS6133: 'request' is declared but its value is never read.
+app/api/admin/ai-alerts/[id]/acknowledge/route.ts(9,3): error TS6133: 'request' is declared but its value is never read.
+app/api/admin/ai-alerts/route.ts(8,27): error TS6133: 'request' is declared but its value is never read.
+app/api/admin/ai-limits/route.ts(90,7): error TS6133: 'expiresAt' is declared but its value is never read.
+app/api/admin/ai-limits/route.ts(91,7): error TS6133: 'reason' is declared but its value is never read.
+app/api/admin/ai-models/route.ts(8,27): error TS6133: 'request' is declared but its value is never read.
+app/api/admin/ai-models/test/route.ts(3,10): error TS6133: 'AVAILABLE_MODELS' is declared but its value is never read.
+app/api/admin/ai-models/test/route.ts(12,39): error TS6133: 'options' is declared but its value is never read.
+app/api/admin/ai-models/test/route.ts(148,28): error TS6133: 'options' is declared but its value is never read.
+app/api/admin/ai-settings/route.ts(8,27): error TS6133: 'request' is declared but its value is never read.
+app/api/admin/ai-usage-stats/route.ts(14,11): error TS6133: 'schoolId' is declared but its value is never read.
+app/api/admin/bulk-import/route.ts(112,26): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+app/api/admin/bulk-import/route.ts(116,21): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+app/api/admin/bulk-import/route.ts(161,19): error TS2532: Object is possibly 'undefined'.
+app/api/admin/bulk-import/route.ts(165,20): error TS2532: Object is possibly 'undefined'.
+app/api/admin/bulk-import/route.ts(438,11): error TS2345: Argument of type 'SupabaseClient<any, "public", "public", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.
+  Type '"public"' is not assignable to type 'never'.
+app/api/admin/bulk-import/route.ts(503,15): error TS2345: Argument of type 'SupabaseClient<any, "public", "public", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.
+  Type '"public"' is not assignable to type 'never'.
+app/api/admin/bulk-import/route.ts(536,15): error TS2345: Argument of type 'SupabaseClient<any, "public", "public", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.
+  Type '"public"' is not assignable to type 'never'.
+app/api/ai/check-limit/route.ts(69,7): error TS2322: Type '"┘à╪ص╪»┘ê╪»█î╪ز ╪▒┘ê╪▓╪د┘┘ç ╪ز┘à╪د┘à ╪┤╪»┘ç ╪د╪│╪ز"' is not assignable to type 'null'.
+app/api/ai/check-limit/route.ts(72,7): error TS2322: Type '"╪د╪╣╪ز╪ذ╪د╪▒ ┌ر╪د┘█î ┘╪»╪د╪▒█î╪»"' is not assignable to type 'null'.
+app/api/ai/test/route.ts(2,18): error TS6133: 'getUserAIStats' is declared but its value is never read.
+app/api/ai/universal/route.ts(117,16): error TS2304: Cannot find name 'body'.
+app/api/ai/universal/route.ts(124,18): error TS2304: Cannot find name 'body'.
+app/api/ai/universal/route.ts(164,27): error TS6133: 'request' is declared but its value is never read.
+app/api/analytics/monitoring/route.ts(11,5): error TS18047: 'logger' is possibly 'null'.
+app/api/analytics/monitoring/route.ts(19,5): error TS18047: 'logger' is possibly 'null'.
+app/api/analytics/vitals/route.ts(11,5): error TS18047: 'logger' is possibly 'null'.
+app/api/analytics/vitals/route.ts(24,5): error TS18047: 'logger' is possibly 'null'.
+app/api/analyze/route.ts(97,19): error TS6133: 'savedAnalysis' is declared but its value is never read.
+app/api/attendance/route.ts(2,10): error TS2724: '"@/lib/supabase/server"' has no exported member named 'createServerClient'. Did you mean 'createClient'?
+app/api/attendance/route.ts(130,13): error TS6133: 'data' is declared but its value is never read.
+app/api/attendance/stats/route.ts(2,10): error TS2724: '"@/lib/supabase/server"' has no exported member named 'createServerClient'. Did you mean 'createClient'?
+app/api/attendance/stats/route.ts(86,31): error TS7006: Parameter 'r' implicitly has an 'any' type.
+app/api/attendance/stats/route.ts(87,30): error TS7006: Parameter 'r' implicitly has an 'any' type.
+app/api/attendance/stats/route.ts(88,28): error TS7006: Parameter 'r' implicitly has an 'any' type.
+app/api/attendance/stats/route.ts(89,28): error TS7006: Parameter 'r' implicitly has an 'any' type.
+app/api/attendance/stats/route.ts(90,31): error TS7006: Parameter 'r' implicitly has an 'any' type.
+app/api/attendance/stats/route.ts(118,46): error TS7006: Parameter 'r' implicitly has an 'any' type.
+app/api/attendance/stats/route.ts(119,45): error TS7006: Parameter 'r' implicitly has an 'any' type.
+app/api/attendance/stats/route.ts(120,43): error TS7006: Parameter 'r' implicitly has an 'any' type.
+app/api/auth/activate/route.ts(2,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/auth/login/route.ts(5,1): error TS6133: 'verifyRecaptcha' is declared but its value is never read.
+app/api/auth/login/route.ts(10,7): error TS6133: 'limiter' is declared but its value is never read.
+app/api/auth/login/route.ts(40,30): error TS6133: 'recaptcha_token' is declared but its value is never read.
+app/api/auth/me/route.ts(9,27): error TS6133: 'req' is declared but its value is never read.
+app/api/auth/reset-password/route.ts(241,18): error TS18048: 'firstError' is possibly 'undefined'.
+app/api/auth/send-otp/route.ts(10,11): error TS6196: 'OtpRequest' is declared but never used.
+app/api/auth/send-otp/route.ts(205,18): error TS18048: 'firstError' is possibly 'undefined'.
+app/api/auth/send-otp/route.ts(218,22): error TS6133: 'attemptsLeft' is declared but its value is never read.
+app/api/auth/validate-code/route.ts(2,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/auth/verify-otp/route.ts(329,18): error TS18048: 'firstError' is possibly 'undefined'.
+app/api/badges/route.ts(9,27): error TS6133: 'req' is declared but its value is never read.
+app/api/badges/user/route.ts(116,13): error TS6133: 'data' is declared but its value is never read.
+app/api/counseling/records/[id]/route.ts(45,3): error TS6133: 'req' is declared but its value is never read.
+app/api/counseling/records/[id]/route.ts(207,3): error TS6133: 'req' is declared but its value is never read.
+app/api/counseling/records/route.ts(8,1): error TS6133: 'ISSUE_CATEGORIES' is declared but its value is never read.
+app/api/counseling/records/route.ts(36,7): error TS6133: 'updateRecordSchema' is declared but its value is never read.
+app/api/counseling/stats/route.ts(121,7): error TS2532: Object is possibly 'undefined'.
+app/api/counseling/stats/route.ts(201,36): error TS2339: Property 'profiles' does not exist on type '{ id: any; profiles: { full_name: any; }[]; }[]'.
+app/api/counseling/stats/route.ts(206,27): error TS2339: Property 'id' does not exist on type '{ id: any; grade: any; profiles: { full_name: any; avatar_url: any; }[]; }[]'.
+app/api/counseling/stats/route.ts(207,34): error TS2339: Property 'profiles' does not exist on type '{ id: any; grade: any; profiles: { full_name: any; avatar_url: any; }[]; }[]'.
+app/api/counseling/stats/route.ts(208,30): error TS2339: Property 'grade' does not exist on type '{ id: any; grade: any; profiles: { full_name: any; avatar_url: any; }[]; }[]'.
+app/api/counseling/stats/route.ts(209,35): error TS2339: Property 'profiles' does not exist on type '{ id: any; grade: any; profiles: { full_name: any; avatar_url: any; }[]; }[]'.
+app/api/exams/[id]/result/route.ts(5,3): error TS6133: 'request' is declared but its value is never read.
+app/api/exams/[id]/route.ts(10,3): error TS6133: 'request' is declared but its value is never read.
+app/api/exams/[id]/route.ts(14,11): error TS6133: 'cookieStore' is declared but its value is never read.
+app/api/exams/[id]/route.ts(94,11): error TS6133: 'cookieStore' is declared but its value is never read.
+app/api/exams/[id]/route.ts(148,3): error TS6133: 'request' is declared but its value is never read.
+app/api/exams/[id]/route.ts(152,11): error TS6133: 'cookieStore' is declared but its value is never read.
+app/api/exams/[id]/start/route.ts(5,3): error TS6133: 'request' is declared but its value is never read.
+app/api/exams/[id]/submit/route.ts(17,11): error TS6133: 'session_id' is declared but its value is never read.
+app/api/field-selection/analyze/route.ts(2,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/gdpr/delete/route.ts(52,5): error TS18047: 'logger' is possibly 'null'.
+app/api/gdpr/delete/route.ts(61,5): error TS18047: 'logger' is possibly 'null'.
+app/api/gdpr/export/route.ts(5,28): error TS6133: 'request' is declared but its value is never read.
+app/api/gdpr/export/route.ts(41,5): error TS18047: 'logger' is possibly 'null'.
+app/api/gdpr/export/route.ts(50,5): error TS18047: 'logger' is possibly 'null'.
+app/api/health/records/route.ts(27,7): error TS2740: Type 'PostgrestBuilder<any, any[], false>' is missing the following properties from type 'PostgrestFilterBuilder<any, any, any, any[], "student_health_records", unknown, "GET">': eq, neq, gt, gte, and 38 more.
+app/api/konkur/predict-rank/route.ts(2,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/lottery/audit/route.ts(2,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/lottery/audit/route.ts(36,40): error TS7006: Parameter 's' implicitly has an 'any' type.
+app/api/lottery/audit/route.ts(37,36): error TS7006: Parameter 's' implicitly has an 'any' type.
+app/api/notifications/[id]/route.ts(9,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/notifications/[id]/route.ts(12,3): error TS6133: 'req' is declared but its value is never read.
+app/api/notifications/[id]/route.ts(45,3): error TS6133: 'req' is declared but its value is never read.
+app/api/notifications/broadcast/route.ts(8,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/notifications/broadcast/route.ts(9,10): error TS2614: Module '"@/lib/logger"' has no exported member 'logger'. Did you mean to use 'import logger from "@/lib/logger"' instead?
+app/api/notifications/broadcast/route.ts(112,15): error TS7006: Parameter 'res' implicitly has an 'any' type.
+app/api/notifications/broadcast/route.ts(130,51): error TS7006: Parameter 's' implicitly has an 'any' type.
+app/api/notifications/broadcast/route.ts(144,53): error TS7006: Parameter 'recipient' implicitly has an 'any' type.
+app/api/notifications/broadcast/route.ts(206,27): error TS6133: 'req' is declared but its value is never read.
+app/api/notifications/financial/route.ts(10,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/notifications/financial/route.ts(11,10): error TS2614: Module '"@/lib/logger"' has no exported member 'logger'. Did you mean to use 'import logger from "@/lib/logger"' instead?
+app/api/notifications/financial/route.ts(116,43): error TS7006: Parameter 't' implicitly has an 'any' type.
+app/api/notifications/financial/route.ts(117,20): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+app/api/notifications/financial/route.ts(117,25): error TS7006: Parameter 't' implicitly has an 'any' type.
+app/api/notifications/financial/route.ts(125,38): error TS7006: Parameter 't' implicitly has an 'any' type.
+app/api/notifications/lottery/send/route.ts(8,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/notifications/lottery/send/route.ts(9,10): error TS2614: Module '"@/lib/logger"' has no exported member 'logger'. Did you mean to use 'import logger from "@/lib/logger"' instead?
+app/api/notifications/mark-all-read/route.ts(6,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/notifications/mark-all-read/route.ts(8,28): error TS6133: 'req' is declared but its value is never read.
+app/api/notifications/preferences/route.ts(23,27): error TS6133: 'request' is declared but its value is never read.
+app/api/notifications/unread-count/route.ts(4,27): error TS6133: 'request' is declared but its value is never read.
+app/api/parent/dashboard/route.ts(83,21): error TS18048: 'activeChild' is possibly 'undefined'.
+app/api/parent/dashboard/route.ts(86,34): error TS6133: 'gradesError' is declared but its value is never read.
+app/api/parent/dashboard/route.ts(98,38): error TS6133: 'attendanceError' is declared but its value is never read.
+app/api/parent/dashboard/route.ts(151,31): error TS2339: Property 'name' does not exist on type '{ name: any; grade: any; }[]'.
+app/api/parent/dashboard/route.ts(154,13): error TS18048: 'activeChild' is possibly 'undefined'.
+app/api/parent/dashboard/route.ts(155,15): error TS18048: 'activeChild' is possibly 'undefined'.
+app/api/parent/dashboard/route.ts(156,16): error TS18048: 'activeChild' is possibly 'undefined'.
+app/api/parent/dashboard/route.ts(157,20): error TS18048: 'activeChild' is possibly 'undefined'.
+app/api/parent/dashboard/route.ts(157,41): error TS2339: Property 'name' does not exist on type '{ name: any; grade: any; }[]'.
+app/api/progression/bulk/route.ts(2,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/progression/history/route.ts(2,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/progression/manual/route.ts(2,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'createServerSupabaseClient'.
+app/api/qr/route.ts(14,39): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(text: string | QRCodeSegment[], callback: (error: Error | null | undefined, buffer: Buffer<ArrayBufferLike>) => void): void', gave the following error.
+    Object literal may only specify known properties, and 'errorCorrectionLevel' does not exist in type '(error: Error | null | undefined, buffer: Buffer<ArrayBufferLike>) => void'.
+  Overload 2 of 3, '(text: string | QRCodeSegment[], options?: QRCodeToBufferOptions | undefined): Promise<Buffer<ArrayBufferLike>>', gave the following error.
+    Object literal may only specify known properties, and 'quality' does not exist in type 'QRCodeToBufferOptions'.
+app/api/qr/route.ts(26,29): error TS2345: Argument of type 'void & Promise<Buffer<ArrayBufferLike>>' is not assignable to parameter of type 'BodyInit | null | undefined'.
+  Type 'void & Promise<Buffer<ArrayBufferLike>>' is missing the following properties from type 'ArrayBuffer': byteLength, slice, maxByteLength, resizable, and 4 more.
+app/api/question-bank/[id]/route.ts(6,3): error TS6133: 'request' is declared but its value is never read.
+app/api/question-bank/[id]/route.ts(80,3): error TS6133: 'request' is declared but its value is never read.
+app/api/reports/[id]/route.ts(5,3): error TS6133: 'request' is declared but its value is never read.
+app/api/reports/[id]/route.ts(98,3): error TS6133: 'request' is declared but its value is never read.
+app/api/reports/ai-insights/route.ts(5,1): error TS6133: 'Recommendation' is declared but its value is never read.
+app/api/reports/ai-insights/route.ts(117,7): error TS2554: Expected 1 arguments, but got 4.
+app/api/reports/ai-insights/route.ts(132,38): error TS2339: Property 'response' does not exist on type 'AIResponse'.
+app/api/reports/ai-insights/route.ts(136,30): error TS2339: Property 'response' does not exist on type 'AIResponse'.
+app/api/reports/ai-insights/route.ts(163,24): error TS2339: Property 'cost' does not exist on type 'AIResponse'.
+app/api/reports/annual/[id]/route.ts(1,10): error TS2724: '"@/lib/supabase/server"' has no exported member named 'createServerClient'. Did you mean 'createClient'?
+app/api/reports/annual/[id]/route.ts(8,3): error TS6133: 'request' is declared but its value is never read.
+app/api/reports/annual/generate/route.ts(1,10): error TS2724: '"@/lib/supabase/server"' has no exported member named 'createServerClient'. Did you mean 'createClient'?
+app/api/specialty-assessments/[id]/route.ts(61,7): error TS2698: Spread types may only be created from object types.
+app/api/specialty-assessments/[id]/route.ts(62,27): error TS2339: Property 'student' does not exist on type 'ParserError<`Unable to parse renamed field at \`student:students!${string}_student_id_fkey(
+          id,
+          grade,
+          profiles:profiles!students_user_id_fkey(full_name, avatar_url, phone)
+        ),
+        teacher:profiles!${string}_teacher_id_fkey(
+          id,
+          full_name,
+          avatar...'.
+app/api/specialty-assessments/[id]/route.ts(63,24): error TS2339: Property 'student' does not exist on type 'ParserError<`Unable to parse renamed field at \`student:students!${string}_student_id_fkey(
+          id,
+          grade,
+          profiles:profiles!students_user_id_fkey(full_name, avatar_url, phone)
+        ),
+        teacher:profiles!${string}_teacher_id_fkey(
+          id,
+          full_name,
+          avatar...'.
+app/api/specialty-assessments/[id]/route.ts(64,31): error TS2339: Property 'student' does not exist on type 'ParserError<`Unable to parse renamed field at \`student:students!${string}_student_id_fkey(
+          id,
+          grade,
+          profiles:profiles!students_user_id_fkey(full_name, avatar_url, phone)
+        ),
+        teacher:profiles!${string}_teacher_id_fkey(
+          id,
+          full_name,
+          avatar...'.
+app/api/specialty-assessments/[id]/route.ts(65,27): error TS2339: Property 'student' does not exist on type 'ParserError<`Unable to parse renamed field at \`student:students!${string}_student_id_fkey(
+          id,
+          grade,
+          profiles:profiles!students_user_id_fkey(full_name, avatar_url, phone)
+        ),
+        teacher:profiles!${string}_teacher_id_fkey(
+          id,
+          full_name,
+          avatar...'.
+app/api/specialty-assessments/[id]/route.ts(66,32): error TS2339: Property 'student' does not exist on type 'ParserError<`Unable to parse renamed field at \`student:students!${string}_student_id_fkey(
+          id,
+          grade,
+          profiles:profiles!students_user_id_fkey(full_name, avatar_url, phone)
+        ),
+        teacher:profiles!${string}_teacher_id_fkey(
+          id,
+          full_name,
+          avatar...'.
+app/api/specialty-assessments/route.ts(7,1): error TS6133: 'z' is declared but its value is never read.
+app/api/specialty-assessments/route.ts(79,7): error TS2698: Spread types may only be created from object types.
+app/api/specialty-assessments/route.ts(80,27): error TS2339: Property 'student' does not exist on type 'ParserError<`Unable to parse renamed field at \`student:students!${string}_student_id_fkey(
+          id,
+          grade,
+          profiles:profiles!students_user_id_fkey(full_name, avatar_url)
+        ),
+        teacher:profiles!${string}_teacher_id_fkey(
+          id,
+          full_name,
+          avatar_url
+  ...'.
+app/api/specialty-assessments/route.ts(81,24): error TS2339: Property 'student' does not exist on type 'ParserError<`Unable to parse renamed field at \`student:students!${string}_student_id_fkey(
+          id,
+          grade,
+          profiles:profiles!students_user_id_fkey(full_name, avatar_url)
+        ),
+        teacher:profiles!${string}_teacher_id_fkey(
+          id,
+          full_name,
+          avatar_url
+  ...'.
+app/api/specialty-assessments/route.ts(82,31): error TS2339: Property 'student' does not exist on type 'ParserError<`Unable to parse renamed field at \`student:students!${string}_student_id_fkey(
+          id,
+          grade,
+          profiles:profiles!students_user_id_fkey(full_name, avatar_url)
+        ),
+        teacher:profiles!${string}_teacher_id_fkey(
+          id,
+          full_name,
+          avatar_url
+  ...'.
+app/api/specialty-assessments/route.ts(83,27): error TS2339: Property 'student' does not exist on type 'ParserError<`Unable to parse renamed field at \`student:students!${string}_student_id_fkey(
+          id,
+          grade,
+          profiles:profiles!students_user_id_fkey(full_name, avatar_url)
+        ),
+        teacher:profiles!${string}_teacher_id_fkey(
+          id,
+          full_name,
+          avatar_url
+  ...'.
+app/api/specialty-assessments/route.ts(84,32): error TS2339: Property 'student' does not exist on type 'ParserError<`Unable to parse renamed field at \`student:students!${string}_student_id_fkey(
+          id,
+          grade,
+          profiles:profiles!students_user_id_fkey(full_name, avatar_url)
+        ),
+        teacher:profiles!${string}_teacher_id_fkey(
+          id,
+          full_name,
+          avatar_url
+  ...'.
+app/api/streak/route.ts(1,10): error TS6133: 'NextRequest' is declared but its value is never read.
+app/api/student/dashboard/route.ts(61,34): error TS6133: 'xpError' is declared but its value is never read.
+app/api/student/dashboard/route.ts(76,34): error TS6133: 'gradesError' is declared but its value is never read.
+app/api/student/dashboard/route.ts(85,43): error TS6133: 'attendanceError' is declared but its value is never read.
+app/api/student/dashboard/route.ts(124,22): error TS2532: Object is possibly 'undefined'.
+app/api/student/dashboard/route.ts(125,12): error TS2339: Property 'rank' does not exist on type '{ total_xp: any; level: any; coins: any; current_streak: any; longest_streak: any; }'.
+app/api/student/dashboard/route.ts(126,12): error TS2339: Property 'total_students' does not exist on type '{ total_xp: any; level: any; coins: any; current_streak: any; longest_streak: any; }'.
+app/api/student/dashboard/route.ts(137,33): error TS2339: Property 'name' does not exist on type '{ id: any; name: any; grade: any; }[]'.
+app/api/student/dashboard/route.ts(145,18): error TS2339: Property 'rank' does not exist on type '{ total_xp: any; level: any; coins: any; current_streak: any; longest_streak: any; }'.
+app/api/student/dashboard/route.ts(146,27): error TS2339: Property 'total_students' does not exist on type '{ total_xp: any; level: any; coins: any; current_streak: any; longest_streak: any; }'.
+app/api/students/[id]/edit/route.ts(1,10): error TS2724: '"@/lib/supabase/server"' has no exported member named 'createServerClient'. Did you mean 'createClient'?
+app/api/students/[id]/route.ts(24,3): error TS6133: 'request' is declared but its value is never read.
+app/api/students/[id]/route.ts(48,3): error TS6133: 'request' is declared but its value is never read.
+app/api/students/route.ts(92,41): error TS2532: Object is possibly 'undefined'.
+app/api/surveys/[id]/responses/route.ts(25,11): error TS6133: 'cookieStore' is declared but its value is never read.
+app/api/surveys/[id]/responses/route.ts(148,11): error TS6133: 'cookieStore' is declared but its value is never read.
+app/api/surveys/[id]/results/route.ts(5,3): error TS6133: 'request' is declared but its value is never read.
+app/api/surveys/[id]/results/route.ts(130,7): error TS2532: Object is possibly 'undefined'.
+app/api/surveys/[id]/route.ts(6,3): error TS6133: 'request' is declared but its value is never read.
+app/api/surveys/[id]/route.ts(126,3): error TS6133: 'request' is declared but its value is never read.
+app/api/teacher/dashboard/route.ts(86,37): error TS6133: 'gradesError' is declared but its value is never read.
+app/api/teacher/dashboard/route.ts(95,43): error TS6133: 'attendanceError' is declared but its value is never read.
+app/api/transfers/[id]/approve/route.ts(1,10): error TS2724: '"@/lib/supabase/server"' has no exported member named 'createServerClient'. Did you mean 'createClient'?
+app/api/transfers/route.ts(1,10): error TS2724: '"@/lib/supabase/server"' has no exported member named 'createServerClient'. Did you mean 'createClient'?
+app/api/xp/add/route.ts(78,19): error TS6133: 'result' is declared but its value is never read.
+app/test-talent-garden/page.tsx(396,74): error TS6133: 'i' is declared but its value is never read.
+components/ai-access-denied.tsx(5,1): error TS6133: 'Badge' is declared but its value is never read.
+components/ai-access-denied.tsx(239,3): error TS6133: 'userId' is declared but its value is never read.
+components/ai-usage-indicator.tsx(9,3): error TS6133: 'Info' is declared but its value is never read.
+components/ai-usage-indicator.tsx(10,3): error TS6133: 'RefreshCw' is declared but its value is never read.
+components/ai-usage-indicator.tsx(12,3): error TS6133: 'Sparkles' is declared but its value is never read.
+components/ai-usage-indicator.tsx(28,8): error TS2307: Cannot find module '@/components/ui/collapsible' or its corresponding type declarations.
+components/ai-usage-indicator.tsx(31,8): error TS6133: 'AIUsageLimit' is declared but its value is never read.
+components/ai-usage-indicator.tsx(78,10): error TS6133: 'isLoading' is declared but its value is never read.
+components/ai-usage-indicator.tsx(146,9): error TS6133: 'creditColor' is declared but its value is never read.
+components/ai-usage-notifications.tsx(4,40): error TS6133: 'CheckCircle' is declared but its value is never read.
+components/ai-usage-notifications.tsx(5,1): error TS6133: 'Button' is declared but its value is never read.
+components/ai-usage-wrapper.tsx(16,1): error TS6133: 'AI_FEATURES' is declared but its value is never read.
+components/ai-usage-wrapper.tsx(316,3): error TS6133: 'userId' is declared but its value is never read.
+components/attendance/admin-attendance-card.tsx(5,44): error TS6133: 'BarChart3' is declared but its value is never read.
+components/attendance/admin-attendance-card.tsx(9,1): error TS6133: 'Progress' is declared but its value is never read.
+components/attendance/admin-attendance-card.tsx(23,19): error TS6133: 'setSchools' is declared but its value is never read.
+components/attendance/admin-attendance-card.tsx(30,10): error TS6133: 'isLoading' is declared but its value is never read.
+components/attendance/admin-attendance-card.tsx(30,21): error TS6133: 'setIsLoading' is declared but its value is never read.
+components/attendance/counselor-attendance-card.tsx(28,20): error TS6133: 'setStudents' is declared but its value is never read.
+components/attendance/counselor-attendance-card.tsx(35,10): error TS6133: 'isLoading' is declared but its value is never read.
+components/attendance/counselor-attendance-card.tsx(35,21): error TS6133: 'setIsLoading' is declared but its value is never read.
+components/attendance/counselor-attendance-card.tsx(71,18): error TS2322: Type '"warning"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+components/attendance/parent-attendance-card.tsx(31,17): error TS6133: 'setStats' is declared but its value is never read.
+components/attendance/parent-attendance-card.tsx(43,10): error TS6133: 'isLoading' is declared but its value is never read.
+components/attendance/parent-attendance-card.tsx(43,21): error TS6133: 'setIsLoading' is declared but its value is never read.
+components/attendance/principal-attendance-card.tsx(5,10): error TS6133: 'Users' is declared but its value is never read.
+components/attendance/principal-attendance-card.tsx(8,1): error TS6133: 'Badge' is declared but its value is never read.
+components/attendance/principal-attendance-card.tsx(33,17): error TS6133: 'setStats' is declared but its value is never read.
+components/attendance/principal-attendance-card.tsx(43,22): error TS6133: 'setWeeklyData' is declared but its value is never read.
+components/attendance/principal-attendance-card.tsx(51,10): error TS6133: 'isLoading' is declared but its value is never read.
+components/attendance/principal-attendance-card.tsx(51,21): error TS6133: 'setIsLoading' is declared but its value is never read.
+components/avatar-upload.tsx(113,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+components/badge-notification.tsx(68,13): error TS7030: Not all code paths return a value.
+components/badge-notification.tsx(131,44): error TS18048: 'currentBadge' is possibly 'undefined'.
+components/badge-notification.tsx(132,23): error TS18048: 'currentBadge' is possibly 'undefined'.
+components/badge-notification.tsx(133,18): error TS18048: 'currentBadge' is possibly 'undefined'.
+components/badge-notification.tsx(178,16): error TS18048: 'currentBadge' is possibly 'undefined'.
+components/badge-notification.tsx(184,49): error TS18048: 'currentBadge' is possibly 'undefined'.
+components/badge-notification.tsx(191,12): error TS18048: 'currentBadge' is possibly 'undefined'.
+components/badge-notification.tsx(200,23): error TS18048: 'currentBadge' is possibly 'undefined'.
+components/BadgeCard.tsx(52,3): error TS6133: 'progress' is declared but its value is never read.
+components/features/student/AddStudentModal.tsx(95,7): error TS2322: Type 'string' is not assignable to type 'number'.
+components/features/student/AddStudentModal.tsx(208,45): error TS2345: Argument of type '(values: { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }) => Promise<void>' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+  Types of parameters 'values' and 'data' are incompatible.
+    Type 'TFieldValues' is not assignable to type '{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }'.
+      Type 'FieldValues' is missing the following properties from type '{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }': grade, full_name
+components/features/student/AddStudentModal.tsx(211,15): error TS2322: Type 'Control<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues>' is not assignable to type 'Control<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+  The types of '_options.resolver' are incompatible between these types.
+    Type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues> | undefined' is not assignable to type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | undefined'.
+      Type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues>' is not assignable to type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+        Type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, TFieldValues> | Promise<ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, TFieldValues>>' is not assignable to type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | Promise<...>'.
+          Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | Promise<...>'.
+            Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverSuccess<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+              Type 'TFieldValues' is not assignable to type '{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }'.
+                Type 'FieldValues' is missing the following properties from type '{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }': grade, full_name
+components/features/student/AddStudentModal.tsx(232,15): error TS2322: Type 'Control<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues>' is not assignable to type 'Control<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+  The types of '_options.resolver' are incompatible between these types.
+    Type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues> | undefined' is not assignable to type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | undefined'.
+      Type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues>' is not assignable to type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+        Type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, TFieldValues> | Promise<ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, TFieldValues>>' is not assignable to type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | Promise<...>'.
+          Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | Promise<...>'.
+            Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverSuccess<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+              Type 'TFieldValues' is not assignable to type '{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }'.
+                Type 'FieldValues' is missing the following properties from type '{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }': grade, full_name
+components/features/student/AddStudentModal.tsx(241,21): error TS2322: Type 'number' is not assignable to type 'string'.
+components/features/student/AddStudentModal.tsx(264,15): error TS2322: Type 'Control<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues>' is not assignable to type 'Control<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+  The types of '_options.resolver' are incompatible between these types.
+    Type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues> | undefined' is not assignable to type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | undefined'.
+      Type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues>' is not assignable to type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+        Type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, TFieldValues> | Promise<ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, TFieldValues>>' is not assignable to type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | Promise<...>'.
+          Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | Promise<...>'.
+            Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverSuccess<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+              Type 'TFieldValues' is not assignable to type '{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }'.
+                Type 'FieldValues' is missing the following properties from type '{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }': grade, full_name
+components/features/student/AddStudentModal.tsx(288,17): error TS2322: Type 'Control<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues>' is not assignable to type 'Control<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+  The types of '_options.resolver' are incompatible between these types.
+    Type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues> | undefined' is not assignable to type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | undefined'.
+      Type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, TFieldValues>' is not assignable to type 'Resolver<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, any, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+        Type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, TFieldValues> | Promise<ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, TFieldValues>>' is not assignable to type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | Promise<...>'.
+          Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverResult<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }, { grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }> | Promise<...>'.
+            Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverSuccess<{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }>'.
+              Type 'TFieldValues' is not assignable to type '{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }'.
+                Type 'FieldValues' is missing the following properties from type '{ grade: number; full_name: string; class_id?: string | undefined; parent_email?: string | undefined; }': grade, full_name
+components/health/growth-chart.tsx(9,3): error TS6133: 'LineChart' is declared but its value is never read.
+components/health/growth-chart.tsx(86,38): error TS6133: 'age' is declared but its value is never read.
+components/health/growth-chart.tsx(96,3): error TS6133: 'gender' is declared but its value is never read.
+components/install-prompt.tsx(55,71): error TS2339: Property 'MSStream' does not exist on type 'Window & typeof globalThis'.
+components/pwa-provider.tsx(177,7): error TS18047: 'swRegistration.active' is possibly 'null'.
+components/reports/ReportStats.tsx(29,9): error TS6133: 'getTrendIcon' is declared but its value is never read.
+components/reports/ReportStats.tsx(99,19): error TS2322: Type '{ value: number; className: string; indicatorClassName: string; }' is not assignable to type 'IntrinsicAttributes & Omit<ProgressProps & RefAttributes<HTMLDivElement>, "ref"> & RefAttributes<HTMLDivElement>'.
+  Property 'indicatorClassName' does not exist on type 'IntrinsicAttributes & Omit<ProgressProps & RefAttributes<HTMLDivElement>, "ref"> & RefAttributes<HTMLDivElement>'.
+components/service-worker-provider.tsx(41,10): error TS6133: 'updateAvailable' is declared but its value is never read.
+components/streak-widget.tsx(10,3): error TS6133: 'Clock' is declared but its value is never read.
+components/streak-widget.tsx(47,3): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+components/ui/calendar.tsx(57,20): error TS6133: 'props' is declared but its value is never read.
+components/ui/calendar.tsx(58,21): error TS6133: 'props' is declared but its value is never read.
+components/ui/responsive-container.tsx(74,3): error TS6133: 'role' is declared but its value is never read.
+lib/ai-model-manager.ts(669,3): error TS6133: 'options' is declared but its value is never read.
+lib/ai-provider.ts(201,3): error TS6133: 'options' is declared but its value is never read.
+lib/ai/client-v2.ts(591,6): error TS2339: Property 'from' does not exist on type 'Promise<SupabaseClient<Database, "public", any, any, { PostgrestVersion: "12"; }>>'.
+lib/ai/client-v2.ts(617,6): error TS2339: Property 'from' does not exist on type 'Promise<SupabaseClient<Database, "public", any, any, { PostgrestVersion: "12"; }>>'.
+lib/ai/client-v2.ts(624,19): error TS7006: Parameter 'cap' implicitly has an 'any' type.
+lib/ai/client-v2.ts(639,6): error TS2339: Property 'from' does not exist on type 'Promise<SupabaseClient<Database, "public", any, any, { PostgrestVersion: "12"; }>>'.
+lib/ai/client-v2.ts(643,6): error TS2339: Property 'from' does not exist on type 'Promise<SupabaseClient<Database, "public", any, any, { PostgrestVersion: "12"; }>>'.
+lib/ai/client-v2.ts(648,6): error TS2339: Property 'from' does not exist on type 'Promise<SupabaseClient<Database, "public", any, any, { PostgrestVersion: "12"; }>>'.
+lib/ai/client-v2.ts(653,41): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/ai/client-v2.ts(653,46): error TS7006: Parameter 'c' implicitly has an 'any' type.
+lib/ai/client-v2.ts(654,42): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/ai/client-v2.ts(654,47): error TS7006: Parameter 'c' implicitly has an 'any' type.
+lib/ai/client-v2.ts(655,44): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/ai/client-v2.ts(655,49): error TS7006: Parameter 'c' implicitly has an 'any' type.
+lib/ai/client-v2.ts(657,37): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/ai/client-v2.ts(657,42): error TS7006: Parameter 'k' implicitly has an 'any' type.
+lib/ai/client-v2.ts(658,37): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/ai/client-v2.ts(658,42): error TS7006: Parameter 'k' implicitly has an 'any' type.
+lib/ai/client.ts(97,42): error TS2339: Property 'rpc' does not exist on type 'Promise<SupabaseClient<Database, "public", any, any, { PostgrestVersion: "12"; }>>'.
+lib/ai/client.ts(129,18): error TS2339: Property 'rpc' does not exist on type 'Promise<SupabaseClient<Database, "public", any, any, { PostgrestVersion: "12"; }>>'.
+lib/ai/client.ts(146,18): error TS2339: Property 'rpc' does not exist on type 'Promise<SupabaseClient<Database, "public", any, any, { PostgrestVersion: "12"; }>>'.
+lib/ai/client.ts(153,39): error TS6133: 'metadata' is declared but its value is never read.
+lib/ai/client.ts(241,6): error TS2339: Property 'from' does not exist on type 'Promise<SupabaseClient<Database, "public", any, any, { PostgrestVersion: "12"; }>>'.
+lib/ai/client.ts(272,6): error TS2339: Property 'from' does not exist on type 'Promise<SupabaseClient<Database, "public", any, any, { PostgrestVersion: "12"; }>>'.
+lib/ai/universal-provider-v2.ts(13,1): error TS6133: 'log' is declared but its value is never read.
+lib/ai/universal-provider-v2.ts(116,10): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(135,9): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(140,17): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(141,18): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(161,11): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(163,18): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(174,18): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(186,13): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(187,31): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(196,15): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(197,16): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(222,15): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(223,16): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(235,15): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(236,16): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(248,11): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(248,32): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(251,21): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(252,28): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(252,42): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(255,19): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(256,20): error TS18048: 'tier' is possibly 'undefined'.
+lib/ai/universal-provider-v2.ts(429,3): error TS6133: 'supabase' is declared but its value is never read.
+lib/arvan-storage.ts(298,20): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+lib/arvan-storage.ts(300,19): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+lib/arvan-storage.ts(690,18): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+lib/cache/redis-client.ts(24,9): error TS18047: 'logger' is possibly 'null'.
+lib/cache/redis-client.ts(27,7): error TS18047: 'logger' is possibly 'null'.
+lib/cache/redis-client.ts(30,7): error TS18047: 'logger' is possibly 'null'.
+lib/cache/redis-client.ts(46,7): error TS18047: 'logger' is possibly 'null'.
+lib/cache/redis-client.ts(48,7): error TS18047: 'logger' is possibly 'null'.
+lib/cache/redis-client.ts(58,7): error TS18047: 'logger' is possibly 'null'.
+lib/cache/redis-client.ts(60,7): error TS18047: 'logger' is possibly 'null'.
+lib/cache/redis-client.ts(73,9): error TS18047: 'logger' is possibly 'null'.
+lib/cache/redis-client.ts(76,7): error TS18047: 'logger' is possibly 'null'.
+lib/check-ai-access.ts(60,3): error TS6133: 'userId' is declared but its value is never read.
+lib/check-ai-access.ts(61,3): error TS6133: 'featureName' is declared but its value is never read.
+lib/check-ai-limit.ts(216,3): error TS6133: 'userId' is declared but its value is never read.
+lib/check-ai-limit.ts(424,15): error TS2484: Export declaration conflicts with exported declaration of 'FeatureInfo'.
+lib/types/exam.types.ts(396,6): error TS2322: Type 'QuestionOption | undefined' is not assignable to type 'QuestionOption'.
+  Type 'undefined' is not assignable to type 'QuestionOption'.
+lib/types/exam.types.ts(396,19): error TS2322: Type 'QuestionOption | undefined' is not assignable to type 'QuestionOption'.
+  Type 'undefined' is not assignable to type 'QuestionOption'.
+lib/types/specialty-assessment.types.ts(7,1): error TS6133: 'Json' is declared but its value is never read.
+lib/types/streak.types.ts(286,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+lib/types/streak.types.ts(304,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+lib/types/streak.types.ts(320,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+sentry.server.config.ts(10,21): error TS6133: 'hint' is declared but its value is never read.

@@ -1,38 +1,36 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState} from 'react'
 import {
   BarChart3,
   TrendingUp,
-  TrendingDown,
+  
   Users,
-  Clock,
+  
   Activity,
-  Download,
+  
   Mail,
   RefreshCw,
   Calendar,
-  Filter,
+  
   FileSpreadsheet,
   FileText,
   Settings,
   Eye,
   AlertCircle,
-  Zap,
+  
   CreditCard,
-  ChevronDown,
+  
   ArrowUpRight,
   ArrowDownRight,
-  Loader2,
+  
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import {
   Card,
   CardContent,
-  CardDescription,
+  
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'

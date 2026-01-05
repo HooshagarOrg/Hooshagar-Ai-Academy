@@ -16,10 +16,10 @@ import {
   Heart,
   AlertTriangle,
   Eye,
-  User,
+  
   BookOpen,
   Home,
-  TrendingDown,
+  
   MessageCircle,
   CalendarDays,
   ClipboardList,

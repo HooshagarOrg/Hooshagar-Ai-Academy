@@ -32,12 +32,10 @@ import {
   DollarSign, 
   Zap, 
   AlertTriangle,
-  TrendingUp,
-  Settings,
-  Eye,
-  CheckCircle2,
-  XCircle,
-  Clock
+  
+  
+  
+  CheckCircle2
 } from 'lucide-react';
 import { toast } from 'sonner';
 

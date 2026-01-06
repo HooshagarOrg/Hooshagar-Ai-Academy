@@ -103,10 +103,11 @@ export default function AISettingsPage() {
     toast.success(active ? 'کلید فعال شد' : 'کلید غیرفعال شد')
   }
 
-  const _handleToggleTier = async (_configId: string, tier: number, enabled: boolean) => {
-    // TODO: API call
-    toast.success(`Tier ${tier} ${enabled ? 'فعال' : 'غیرفعال'} شد`)
-  }
+  // TODO: Implement when needed
+  // const handleToggleTier = async (configId: string, tier: number, enabled: boolean) => {
+  //   // TODO: API call
+  //   toast.success(`Tier ${tier} ${enabled ? 'فعال' : 'غیرفعال'} شد`)
+  // }
 
   const handleClearCache = async () => {
     if (!confirm('آیا مطمئن هستید که می‌خواهید کل Cache را پاک کنید؟')) {
@@ -429,7 +430,7 @@ export default function AISettingsPage() {
                     </div>
                     <Switch 
                       checked={false}
-                      onCheckedChange={(checked) => {}}
+                      onCheckedChange={(_checked) => {}}
                     />
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">
@@ -452,7 +453,7 @@ export default function AISettingsPage() {
                     </div>
                     <Switch 
                       checked={false}
-                      onCheckedChange={(checked) => {}}
+                      onCheckedChange={(_checked) => {}}
                     />
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">

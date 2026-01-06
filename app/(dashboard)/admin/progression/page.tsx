@@ -14,11 +14,6 @@ import {
   XCircle,
   AlertTriangle,
   Loader2,
-  Search,
-  Filter,
-  Calendar,
-  School,
-  ChevronDown,
 } from 'lucide-react'
 
 // ============================================

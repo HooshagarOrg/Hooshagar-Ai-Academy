@@ -140,7 +140,14 @@ interface ImportHistory {
 // داده‌های نمونه
 // ============================================
 
-const STUDENT_COLUMNS = {
+interface ColumnDef {
+  key: string
+  label: string
+  example: string
+  description?: string
+}
+
+const STUDENT_COLUMNS: { required: ColumnDef[]; optional: ColumnDef[] } = {
   required: [
     { key: 'firstName', label: 'نام', example: 'علی' },
     { key: 'lastName', label: 'نام خانوادگی', example: 'رضایی' },
@@ -161,7 +168,7 @@ const STUDENT_COLUMNS = {
   ],
 }
 
-const TEACHER_COLUMNS = {
+const TEACHER_COLUMNS: { required: ColumnDef[]; optional: ColumnDef[] } = {
   required: [
     { key: 'firstName', label: 'نام', example: 'سارا' },
     { key: 'lastName', label: 'نام خانوادگی', example: 'احمدی' },
@@ -178,7 +185,7 @@ const TEACHER_COLUMNS = {
   ],
 }
 
-const STAFF_COLUMNS = {
+const STAFF_COLUMNS: { required: ColumnDef[]; optional: ColumnDef[] } = {
   required: [
     { key: 'firstName', label: 'نام', example: 'حسین' },
     { key: 'lastName', label: 'نام خانوادگی', example: 'نوری' },

@@ -163,3 +163,4 @@ GROUP BY s.id, s.full_name, s.grade, c.name;
 -- - Parent: http://localhost:3000/parent  
 -- - Student: http://localhost:3000/student
 
+

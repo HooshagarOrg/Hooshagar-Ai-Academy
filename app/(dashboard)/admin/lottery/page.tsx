@@ -17,9 +17,6 @@ import {
   
   ChevronRight,
   AlertTriangle,
-  
-  
-  Download
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -128,10 +125,10 @@ const SAMPLE_CLASSES: Class[] = [
 ]
 
 // داده نمونه ثبت‌نام‌ها
-const SAMPLE_REGISTRATIONS: (ClassRegistration & { student: { full_name: string } })[] = [
-  { id: '1', student_id: 's1', lottery_setting_id: '1', choice_1_class_id: '1', choice_2_class_id: '2', choice_3_class_id: '3', choice_4_class_id: null, result_class_id: null, assigned_choice: null, status: 'pending', registered_by: 'p1', registered_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), last_modified_at: null, assigned_at: null, admin_note: null, created_at: '', updated_at: '', student: { full_name: 'علی رضایی' } },
-  { id: '2', student_id: 's2', lottery_setting_id: '1', choice_1_class_id: '2', choice_2_class_id: '1', choice_3_class_id: '4', choice_4_class_id: '3', result_class_id: null, assigned_choice: null, status: 'pending', registered_by: 'p2', registered_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), last_modified_at: null, assigned_at: null, admin_note: null, created_at: '', updated_at: '', student: { full_name: 'سارا احمدی' } },
-  { id: '3', student_id: 's3', lottery_setting_id: '1', choice_1_class_id: '1', choice_2_class_id: '3', choice_3_class_id: null, choice_4_class_id: null, result_class_id: null, assigned_choice: null, status: 'pending', registered_by: 'p3', registered_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), last_modified_at: null, assigned_at: null, admin_note: null, created_at: '', updated_at: '', student: { full_name: 'محمد حسینی' } },
+const SAMPLE_REGISTRATIONS: (ClassRegistration & { student: { id: string; full_name: string; grade: number } })[] = [
+  { id: '1', student_id: 's1', lottery_setting_id: '1', choice_1_class_id: '1', choice_2_class_id: '2', choice_3_class_id: '3', choice_4_class_id: null, result_class_id: null, assigned_choice: null, status: 'pending', registered_by: 'p1', registered_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), last_modified_at: null, assigned_at: null, admin_note: null, created_at: '', updated_at: '', student: { id: 's1', full_name: 'علی رضایی', grade: 5 } },
+  { id: '2', student_id: 's2', lottery_setting_id: '1', choice_1_class_id: '2', choice_2_class_id: '1', choice_3_class_id: '4', choice_4_class_id: '3', result_class_id: null, assigned_choice: null, status: 'pending', registered_by: 'p2', registered_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), last_modified_at: null, assigned_at: null, admin_note: null, created_at: '', updated_at: '', student: { id: 's2', full_name: 'سارا احمدی', grade: 5 } },
+  { id: '3', student_id: 's3', lottery_setting_id: '1', choice_1_class_id: '1', choice_2_class_id: '3', choice_3_class_id: null, choice_4_class_id: null, result_class_id: null, assigned_choice: null, status: 'pending', registered_by: 'p3', registered_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), last_modified_at: null, assigned_at: null, admin_note: null, created_at: '', updated_at: '', student: { id: 's3', full_name: 'محمد حسینی', grade: 5 } },
 ]
 
 // داده نمونه آمار

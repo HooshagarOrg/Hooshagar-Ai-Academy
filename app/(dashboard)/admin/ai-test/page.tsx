@@ -170,7 +170,7 @@ export default function AITestPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPrompt(samplePrompts[selectedCapability])}
+                onClick={() => setPrompt(samplePrompts[selectedCapability] || '')}
                 disabled={isLoading}
               >
                 استفاده از پرامپت نمونه

@@ -671,7 +671,9 @@ export default function EarlyWarningPage() {
                           {student.className}
                         </td>
                         <td className="px-4 py-4 text-center">
-                          <WarningTypeBadge type={student.warningType} />
+                          {student.warningType !== 'all' && (
+                            <WarningTypeBadge type={student.warningType} />
+                          )}
                         </td>
                         <td className="px-4 py-4 text-center">
                           <RiskBadge level={student.riskLevel} />

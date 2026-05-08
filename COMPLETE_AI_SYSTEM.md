@@ -113,7 +113,8 @@ F (Paid Premium - نیاز به تأیید Admin)
 ### 1️⃣ **تنظیم Environment Variables:**
 
 ```bash
-# .env.local
+# 
+
 GOOGLE_API_KEY_1=AIzaSyXXXXXX...
 GOOGLE_API_KEY_2=AIzaSyYYYYYY...
 ...

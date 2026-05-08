@@ -1,229 +1,332 @@
 import Link from 'next/link'
-import { ArrowLeft, Brain, BookOpen, Sparkles, GraduationCap, Users, TrendingUp, Shield, Zap, Heart } from 'lucide-react'
+import {
+  Brain, BookOpen, Sparkles, GraduationCap, Users, TrendingUp,
+  Shield, Zap, Heart, CheckCircle2, ArrowLeft, Star,
+  BarChart3, MessageSquare, Trophy, Target, Smartphone,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 
-export default function Home() {
+// ============================================
+// داده‌های ثابت
+// ============================================
+const features = [
+  {
+    icon: Brain,
+    title: 'هوش مصنوعی پیشرفته',
+    description: '۱۲ قابلیت AI با ۷۲ مدل پیشرفته برای تحلیل، آموزش و راهنمایی',
+    color: 'text-purple-600',
+    bg: 'bg-purple-50',
+  },
+  {
+    icon: Users,
+    title: 'مدیریت جامع کارکنان',
+    description: '۱۸ نقش سازمانی از مدیر تا نگهبان — هر کس صفحه خودش را دارد',
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+  },
+  {
+    icon: Trophy,
+    title: 'Gamification آموزشی',
+    description: 'سیستم XP، نشان، Streak و جدول رتبه‌بندی برای انگیزه‌بخشی به دانش‌آموزان',
+    color: 'text-amber-600',
+    bg: 'bg-amber-50',
+  },
+  {
+    icon: BarChart3,
+    title: 'گزارش‌های هوشمند',
+    description: 'گزارش‌های تحلیلی برای والدین، معلمان و مدیران با نمودارهای پیشرفته',
+    color: 'text-green-600',
+    bg: 'bg-green-50',
+  },
+  {
+    icon: Smartphone,
+    title: 'موبایل‌پسند',
+    description: 'طراحی واکنش‌گرا برای همه دستگاه‌ها — بدون نیاز به اپ جداگانه',
+    color: 'text-teal-600',
+    bg: 'bg-teal-50',
+  },
+  {
+    icon: Shield,
+    title: 'امنیت بالا',
+    description: 'RLS، احراز هویت چندلایه و حفاظت داده برای اطلاعات دانش‌آموزان',
+    color: 'text-red-600',
+    bg: 'bg-red-50',
+  },
+]
+
+const userTypes = [
+  {
+    icon: GraduationCap,
+    role: 'دانش‌آموز',
+    color: 'from-orange-500 to-amber-500',
+    items: ['دستیار مطالعه AI', 'حل مسئله با عکس', 'انتخاب رشته هوشمند', 'برنامه‌ریزی کنکور', 'باغ استعداد'],
+  },
+  {
+    icon: BookOpen,
+    role: 'معلم',
+    color: 'from-blue-500 to-indigo-500',
+    items: ['آزمون‌ساز هوشمند', 'تحلیل رفتاری دانش‌آموز', 'تولید محتوا با AI', 'ثبت حضور و نمره', 'گزارش هفتگی'],
+  },
+  {
+    icon: Heart,
+    role: 'والدین',
+    color: 'from-green-500 to-teal-500',
+    items: ['پیگیری لحظه‌ای فرزند', 'گزارش تحصیلی ماهانه', 'ارتباط با معلم', 'وضعیت مالی و شهریه', 'پورتال مشاوره'],
+  },
+  {
+    icon: BarChart3,
+    role: 'مدیر مدرسه',
+    color: 'from-purple-500 to-pink-500',
+    items: ['داشبورد مدیریتی', 'هشدار زودهنگام', 'قرعه‌کشی ثبت‌نام', 'گزارش جامع مدرسه', 'کنترل AI و امنیت'],
+  },
+]
+
+const stats = [
+  { value: '۱۸+', label: 'نقش سازمانی' },
+  { value: '۱۲', label: 'قابلیت AI' },
+  { value: '۷۲', label: 'مدل هوش مصنوعی' },
+  { value: '۱۰۰%', label: 'ایرانی‌پسند' },
+]
+
+export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[size:75px_75px]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-        
-        <div className="relative container mx-auto px-4 pt-20 pb-32 md:pt-32 md:pb-40">
+    <div className="min-h-screen bg-white" dir="rtl">
+
+      {/* ===== Navbar ===== */}
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">ه</span>
+            </div>
+            <span className="font-bold text-gray-900">هوشاگر</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/login">
+              <Button variant="ghost" size="sm">ورود</Button>
+            </Link>
+            <Link href="/login">
+              <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                شروع رایگان
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* ===== Hero ===== */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-purple-950 text-white">
+        {/* Background decoration */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 right-20 w-72 h-72 rounded-full bg-blue-500 blur-3xl" />
+          <div className="absolute bottom-10 left-20 w-96 h-96 rounded-full bg-purple-500 blur-3xl" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="text-center max-w-4xl mx-auto">
-            {/* Logo Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-primary/10 border border-primary/20">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">نسل جدید مدیریت آموزشی</span>
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-white/10 border border-white/20 text-sm">
+              <Sparkles className="w-4 h-4 text-yellow-400" />
+              <span>نسل جدید مدیریت آموزشی در ایران</span>
             </div>
 
-            {/* Main Heading */}
             <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
-              <span className="bg-gradient-to-l from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-l from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 هوشاگر
               </span>
-        </h1>
-            
-            <p className="text-xl md:text-2xl text-muted-foreground mb-4 font-medium">
-          سیستم عامل هوشمند مدیریت مدارس
-        </p>
-            
-            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
-              پلتفرم یکپارچه‌ای که با قدرت هوش مصنوعی، دانش‌آموزان را تحلیل می‌کند،
-              معلمان را توانمند می‌سازد و والدین را در مسیر رشد فرزندانشان همراهی می‌کند
+            </h1>
+
+            <p className="text-xl md:text-2xl text-blue-100 mb-4 font-medium">
+              سیستم‌عامل هوشمند مدیریت مدارس
+            </p>
+            <p className="text-base text-white/60 mb-10 max-w-2xl mx-auto leading-relaxed">
+              از ثبت‌نام تا کنکور — همه چیز در یک پلتفرم. هوش مصنوعی، گیمیفیکیشن و مدیریت جامع
+              برای بهترین تجربه آموزشی ایران.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button asChild size="lg" className="text-base px-8 h-12 group">
-                <Link href="/login">
-            ورود به سیستم
-                  <ArrowLeft className="mr-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
-              
-              <Button asChild size="lg" variant="outline" className="text-base px-8 h-12">
-                <Link href="/activate">
-                  فعال‌سازی حساب کاربری
-                </Link>
-              </Button>
-        </div>
-
-            {/* Trust Badge */}
-            <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Shield className="w-4 h-4" />
-              <span>امن • سریع • هوشمند</span>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/login">
+                <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 h-12 text-base shadow-lg shadow-blue-500/30">
+                  <Zap className="w-5 h-5 ml-2" />
+                  شروع رایگان
+                </Button>
+              </Link>
+              <Link href="#features">
+                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 px-8 h-12 text-base">
+                  مشاهده امکانات
+                  <ArrowLeft className="w-5 h-5 mr-2" />
+                </Button>
+              </Link>
             </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20 max-w-3xl mx-auto">
+            {stats.map((stat, i) => (
+              <div key={i} className="text-center">
+                <p className="text-3xl md:text-4xl font-black text-white mb-1">{stat.value}</p>
+                <p className="text-sm text-white/50">{stat.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              قابلیت‌های هوشمند
+      {/* ===== ویژگی‌ها ===== */}
+      <section id="features" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+              همه چیز در یک پلتفرم
             </h2>
-            <p className="text-muted-foreground text-lg">
-              همه‌چیز آنچه برای مدیریت مدرسه نوین نیاز دارید
+            <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+              از مدیریت کلاس تا هوش مصنوعی — هوشاگر برای هر نیاز مدرسه راه‌حل دارد
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {/* Feature 1 */}
-            <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg group">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Brain className="w-6 h-6 text-white" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((f, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 group"
+              >
+                <div className={`w-12 h-12 ${f.bg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <f.icon className={`w-6 h-6 ${f.color}`} />
                 </div>
-                <h3 className="text-xl font-bold mb-2">تحلیلگر هوشمند</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  تحلیل رفتاری و تحصیلی دانش‌آموزان با هوش مصنوعی پیشرفته و ارائه گزارش‌های جامع
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Feature 2 */}
-            <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg group">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">یادیار هوشمند</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  دستیار درسی مبتنی بر AI با قابلیت حل مسائل، OCR تصاویر و پاسخگویی فوری
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Feature 3 */}
-            <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg group">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <GraduationCap className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">قطب‌نمای آینده</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  راهنمایی تحصیلی و شغلی با استفاده از تحلیل استعدادها و علایق دانش‌آموزان
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Feature 4 */}
-            <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg group">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">باغ استعداد</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  سیستم گیمیفیکیشن و انگیزش‌بخشی برای افزایش تعامل و انگیزه دانش‌آموزان
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Feature 5 */}
-            <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg group">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">پنل والدین</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  دسترسی آسان والدین به عملکرد، گزارش‌ها و اطلاعیه‌های مربوط به فرزندانشان
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Feature 6 */}
-            <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg group">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">تحلیل پیشرفت</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  نمودارها و گزارش‌های تحلیلی جامع برای پیگیری پیشرفت تحصیلی
-                </p>
-              </CardContent>
-            </Card>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">{f.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{f.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto text-center">
-            <div>
-              <div className="flex items-center justify-center mb-2">
-                <Zap className="w-8 h-8 text-primary" />
-              </div>
-              <div className="text-3xl font-bold mb-1">هوش مصنوعی</div>
-              <p className="text-muted-foreground text-sm">پیشرفته</p>
-            </div>
-            
-            <div>
-              <div className="flex items-center justify-center mb-2">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
-              <div className="text-3xl font-bold mb-1">امنیت</div>
-              <p className="text-muted-foreground text-sm">بانک‌محور</p>
-            </div>
-            
-            <div>
-              <div className="flex items-center justify-center mb-2">
-                <Users className="w-8 h-8 text-primary" />
-              </div>
-              <div className="text-3xl font-bold mb-1">چند نقشی</div>
-              <p className="text-muted-foreground text-sm">کاملاً یکپارچه</p>
+      {/* ===== برای هر کاربر ===== */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+              برای همه، نه فقط مدیران
+            </h2>
+            <p className="text-lg text-gray-500">
+              هر نقش صفحه اختصاصی خودش را دارد
+            </p>
           </div>
 
-            <div>
-              <div className="flex items-center justify-center mb-2">
-                <Heart className="w-8 h-8 text-primary" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {userTypes.map((u, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                <div className={`bg-gradient-to-br ${u.color} p-6 text-white`}>
+                  <u.icon className="w-8 h-8 mb-3 opacity-90" />
+                  <h3 className="text-lg font-bold">{u.role}</h3>
+                </div>
+                <div className="bg-white p-4">
+                  <ul className="space-y-2">
+                    {u.items.map((item, j) => (
+                      <li key={j} className="flex items-center gap-2 text-sm text-gray-600">
+                        <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <div className="text-3xl font-bold mb-1">کاربرپسند</div>
-              <p className="text-muted-foreground text-sm">طراحی مدرن</p>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== AI Section ===== */}
+      <section className="py-20 bg-gradient-to-br from-blue-600 to-purple-700 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 border border-white/20 text-sm mb-6">
+                <Brain className="w-4 h-4 text-yellow-400" />
+                <span>هوش مصنوعی ایران‌پسند</span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-black mb-6 leading-tight">
+                ۱۲ قابلیت AI <br /> با ۷۲ مدل رایگان
+              </h2>
+              <p className="text-white/70 text-lg leading-relaxed mb-8">
+                از OCR برای حل مسئله با عکس تا تحلیل استعداد و مشاوره انتخاب رشته —
+                همه رایگان و بدون نیاز به فیلترشکن.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {['تحلیلگر دانش‌آموز', 'حل مسئله OCR', 'دستیار مطالعه', 'قصه‌گوی هوشمند',
+                  'مشاور انتخاب رشته', 'پیش‌بینی کنکور', 'تولید آزمون', 'خلاصه‌ساز'].map((ai, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm text-white/80">
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
+                    {ai}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
+              <div className="space-y-4">
+                <div className="bg-white/10 rounded-2xl p-4">
+                  <p className="text-white/60 text-xs mb-1">سیستم Fallback ۵ لایه‌ای</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {['Tier 1', 'Tier 2', 'Tier 3', 'Gemini Pool', 'Premium'].map((t, i) => (
+                      <span key={i} className="bg-white/20 text-white text-xs px-2 py-1 rounded-lg">{t}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-white/10 rounded-2xl p-4">
+                  <p className="text-white/60 text-xs mb-2">هزینه ماهانه برای ۱۰۰۰ کاربر</p>
+                  <p className="text-3xl font-black text-white">$0 <span className="text-lg font-normal text-white/60">تا $50</span></p>
+                  <p className="text-white/50 text-xs mt-1">۸۵٪ درخواست‌ها رایگان</p>
+                </div>
+                <div className="bg-white/10 rounded-2xl p-4">
+                  <p className="text-white/60 text-xs mb-1">بدون فیلترشکن</p>
+                  <p className="text-white font-medium">Cloudflare Worker Proxy ✓</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-l from-primary/10 via-purple-500/10 to-pink-500/10">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            آماده شروع هستید؟
-          </h2>
-          <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-            کد فعال‌سازی خود را از مدرسه دریافت کرده‌اید؟ همین حالا حساب خود را فعال کنید
+      {/* ===== CTA ===== */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-100">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center mx-auto mb-6">
+              <span className="text-white text-2xl font-black">ه</span>
+            </div>
+            <h2 className="text-3xl font-black text-gray-900 mb-4">
+              مدرسه خود را متحول کنید
+            </h2>
+            <p className="text-gray-500 mb-8 text-lg">
+              همین امروز شروع کنید. نصب آسان، پشتیبانی فارسی، بدون نیاز به VPN
+            </p>
+            <Link href="/login">
+              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-10 h-12 text-base shadow-lg shadow-blue-200">
+                <GraduationCap className="w-5 h-5 ml-2" />
+                شروع رایگان
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Footer ===== */}
+      <footer className="bg-gray-900 text-white py-10">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <span className="text-white text-xs font-bold">ه</span>
+            </div>
+            <span className="font-bold">هوشاگر</span>
+          </div>
+          <p className="text-gray-400 text-sm">
+            سیستم‌عامل هوشمند مدیریت مدارس ایران
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="text-base px-8 h-12">
-              <Link href="/activate">
-                فعال‌سازی حساب
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="text-base px-8 h-12">
-              <Link href="/help">
-                راهنما و پشتیبانی
-              </Link>
-            </Button>
-        </div>
-      </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-8 border-t">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} هوشاگر. تمامی حقوق محفوظ است.</p>
+          <p className="text-gray-600 text-xs mt-4">
+            © ۱۴۰۴ هوشاگر — ساخته شده با ❤️ برای آموزش ایران
+          </p>
         </div>
       </footer>
-    </main>
+    </div>
   )
 }
-

@@ -1,580 +1,534 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import {
-  GraduationCap,
-  ArrowRight,
-  Users,
-  UserPlus,
-  History,
-  Upload,
-  Download,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Loader2,
+  GraduationCap, Users, CheckCircle2, XCircle, History,
+  Loader2, AlertCircle, RefreshCw,
+  Search, ArrowUp, Shield,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/ui/page-header'
+import { EmptyState } from '@/components/ui/empty-state'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
 
 // ============================================
 // تایپ‌ها
 // ============================================
-interface Student {
+interface StudentData {
   id: string
-  name: string
+  student_number: string
+  full_name: string
   grade: number
-  className: string
-  avgGrade: number
-  status: 'promoted' | 'retained'
+  class_name?: string
+  avg_grade: number
+  eligible: boolean
 }
 
-interface ProgressionHistory {
-  id: string
-  studentName: string
-  fromGrade: number
-  toGrade: number
-  progressionType: string
-  date: string
-  academicYear: string
+interface ProgressionSummary {
+  total: number
+  eligible: number
+  not_eligible: number
+}
+
+interface ProgressionResult {
+  total: number
+  promoted: number
+  failed: number
 }
 
 // ============================================
-// داده‌های نمونه
-// ============================================
-const sampleStudents: Student[] = [
-  { id: '1', name: 'علی محمدی', grade: 1, className: 'اول الف', avgGrade: 18.5, status: 'promoted' },
-  { id: '2', name: 'سارا رضایی', grade: 1, className: 'اول الف', avgGrade: 19.2, status: 'promoted' },
-  { id: '3', name: 'محمد احمدی', grade: 1, className: 'اول ب', avgGrade: 11.5, status: 'retained' },
-  { id: '4', name: 'زهرا کریمی', grade: 1, className: 'اول ب', avgGrade: 17.8, status: 'promoted' },
-]
-
-const sampleHistory: ProgressionHistory[] = [
-  { id: '1', studentName: 'علی محمدی', fromGrade: 1, toGrade: 2, progressionType: 'normal', date: '۱۴۰۳/۰۳/۳۱', academicYear: '۱۴۰۲-۱۴۰۳' },
-  { id: '2', studentName: 'سارا رضایی', fromGrade: 1, toGrade: 2, progressionType: 'lottery', date: '۱۴۰۳/۰۳/۳۱', academicYear: '۱۴۰۲-۱۴۰۳' },
-]
-
-// ============================================
-// کامپوننت اصلی
+// صفحه اصلی
 // ============================================
 export default function ProgressionPage() {
-  const [activeTab, setActiveTab] = useState<'bulk' | 'manual' | 'history'>('bulk')
-  const [selectedSchool, setSelectedSchool] = useState<string>('1')
-  const [selectedGrade, setSelectedGrade] = useState<string>('1')
-  const [minAvgGrade, setMinAvgGrade] = useState<string>('12')
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [showResults, setShowResults] = useState(false)
-  
-  // فرم افزودن دستی
-  const [manualForm, setManualForm] = useState({
-    fullName: '',
-    nationalCode: '',
-    dateOfBirth: '',
-    schoolId: '',
-    grade: '',
-    classId: '',
-    parentPhone: '',
-    parentName: '',
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const { toast: toastFn } = useToast()
+  const [activeTab, setActiveTab] = useState<'manage' | 'history'>('manage')
+  const [students, setStudents] = useState<StudentData[]>([])
+  const [summary, setSummary] = useState<ProgressionSummary | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [search, setSearch] = useState('')
+  const [gradeFilter, setGradeFilter] = useState('all')
+  const [eligibleFilter, setEligibleFilter] = useState<'all' | 'eligible' | 'not_eligible'>('all')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [academicYear, setAcademicYear] = useState('1403-1404')
+  const [progressionMode, setProgressionMode] = useState<'selected' | 'all_eligible' | 'all'>('all_eligible')
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [isPromoting, setIsPromoting] = useState(false)
+  const [result, setResult] = useState<ProgressionResult | null>(null)
 
-  const handleBulkPromotion = async () => {
-    setIsProcessing(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setIsProcessing(false)
-    setShowResults(true)
+  useEffect(() => {
+    fetchStudents()
+  }, [gradeFilter])
+
+  const fetchStudents = async () => {
+    setIsLoading(true)
+    setSelectedIds(new Set())
+    try {
+      const params = new URLSearchParams({ type: 'eligible' })
+      if (gradeFilter !== 'all') params.append('grade', gradeFilter)
+
+      const res = await fetch(`/api/admin/progression?${params}`)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setStudents(data.students || [])
+      setSummary(data.summary || null)
+    } catch (e: unknown) {
+      toastFn.error('خطا در دریافت اطلاعات: ' + (e instanceof Error ? e.message : 'لطفاً دوباره تلاش کنید'))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleManualSubmit = async () => {
-    setIsSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setIsSubmitting(false)
-    setSubmitSuccess(true)
-    setTimeout(() => {
-      setSubmitSuccess(false)
-      setManualForm({
-        fullName: '',
-        nationalCode: '',
-        dateOfBirth: '',
-        schoolId: '',
-        grade: '',
-        classId: '',
-        parentPhone: '',
-        parentName: '',
+  const handlePromotion = async () => {
+    setIsPromoting(true)
+    try {
+      const res = await fetch('/api/admin/progression', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_ids: progressionMode === 'selected' ? [...selectedIds] : [],
+          academic_year: academicYear,
+          mode: progressionMode,
+        }),
       })
-    }, 2000)
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+
+      setResult({
+        total: data.total || 0,
+        promoted: data.promoted || 0,
+        failed: data.failed || 0,
+      })
+
+      toastFn.success(`${data.promoted || 0} دانش‌آموز با موفقیت ارتقاء یافت`)
+      fetchStudents()
+    } catch (e: unknown) {
+      toastFn.error('خطا در ارتقاء: ' + (e instanceof Error ? e.message : 'لطفاً دوباره تلاش کنید'))
+    } finally {
+      setIsPromoting(false)
+      setShowConfirm(false)
+    }
   }
 
-  const promotedCount = sampleStudents.filter(s => s.status === 'promoted').length
-  const retainedCount = sampleStudents.filter(s => s.status === 'retained').length
+  // فیلتر محلی
+  const filtered = students.filter(s => {
+    const matchSearch = s.full_name.includes(search) || s.student_number.includes(search)
+    const matchEligible = eligibleFilter === 'all' ? true :
+      eligibleFilter === 'eligible' ? s.eligible : !s.eligible
+    return matchSearch && matchEligible
+  })
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filtered.map(s => s.id)))
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/admin"
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
+    <div dir="rtl">
+      <PageHeader
+        title="ارتقاء خودکار دانش‌آموزان"
+        description="انتقال دانش‌آموزان به پایه بالاتر با حفظ سوابق"
+        icon={GraduationCap}
+        iconColor="text-emerald-600"
+        iconBg="bg-emerald-50"
+      />
+
+      {/* تب‌ها */}
+      <div className="flex gap-2 mb-6 border-b border-gray-200 pb-0">
+        {[
+          { key: 'manage', label: 'مدیریت ارتقاء', icon: GraduationCap },
+          { key: 'history', label: 'تاریخچه', icon: History },
+        ].map(tab => {
+          const Icon = tab.icon
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key as typeof activeTab)}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
+                activeTab === tab.key
+                  ? 'border-emerald-500 text-emerald-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              )}
             >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </Link>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <GraduationCap className="w-8 h-8 text-purple-400" />
-                مدیریت انتقال دانش‌آموزان
-              </h1>
-              <p className="text-white/60 mt-1">
-                انتقال گروهی، افزودن دستی و مشاهده تاریخچه
-              </p>
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {activeTab === 'manage' && (
+        <div className="space-y-5">
+          {/* نتیجه ارتقاء */}
+          {result && (
+            <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-200">
+              <h3 className="font-bold text-emerald-800 mb-3 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5" />
+                نتیجه ارتقاء
+              </h3>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { label: 'کل', value: result.total, color: 'text-gray-700' },
+                  { label: 'ارتقاء یافته', value: result.promoted, color: 'text-emerald-700' },
+                  { label: 'ناموفق', value: result.failed, color: 'text-red-600' },
+                ].map(s => (
+                  <div key={s.label} className="bg-white rounded-xl p-3 text-center">
+                    <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                    <p className="text-xs text-gray-500">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* آمار کلی */}
+          {summary && (
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: 'کل دانش‌آموزان', value: summary.total, color: 'text-gray-700', bg: 'bg-gray-50' },
+                { label: 'واجد شرایط', value: summary.eligible, color: 'text-emerald-700', bg: 'bg-emerald-50' },
+                { label: 'غیرواجد', value: summary.not_eligible, color: 'text-red-600', bg: 'bg-red-50' },
+              ].map(s => (
+                <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
+                  <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* تنظیمات ارتقاء */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Shield className="w-4 h-4 text-emerald-600" />
+              تنظیمات ارتقاء
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">سال تحصیلی</label>
+                <Input
+                  value={academicYear}
+                  onChange={e => setAcademicYear(e.target.value)}
+                  placeholder="مثال: 1403-1404"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">حالت ارتقاء</label>
+                <Select value={progressionMode} onValueChange={v => setProgressionMode(v as typeof progressionMode)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all_eligible">همه واجد شرایط (میانگین ≥ ۱۰)</SelectItem>
+                    <SelectItem value="selected">فقط انتخاب‌شده‌ها</SelectItem>
+                    <SelectItem value="all">همه دانش‌آموزان (بدون شرط)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button
+                  onClick={() => setShowConfirm(true)}
+                  disabled={
+                    isLoading ||
+                    (progressionMode === 'selected' && selectedIds.size === 0)
+                  }
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 gap-2"
+                >
+                  <ArrowUp className="w-4 h-4" />
+                  اجرای ارتقاء
+                  {progressionMode === 'selected' && selectedIds.size > 0 &&
+                    ` (${selectedIds.size} نفر)`
+                  }
+                </Button>
+              </div>
             </div>
           </div>
-        </header>
 
-        {/* Tabs */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden mb-6">
-          <div className="flex border-b border-white/10">
-            {[
-              { key: 'bulk', label: 'انتقال گروهی پایان سال', icon: Users },
-              { key: 'manual', label: 'افزودن دستی دانش‌آموز', icon: UserPlus },
-              { key: 'history', label: 'تاریخچه انتقال‌ها', icon: History },
-            ].map((tab) => {
-              const Icon = tab.icon
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-4 transition-all ${
-                    activeTab === tab.key
-                      ? 'bg-white/10 text-white border-b-2 border-purple-500'
-                      : 'text-white/50 hover:text-white hover:bg-white/5'
-                  }`}
+          {/* فیلترها */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="جستجو..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pr-9"
+              />
+            </div>
+            <Select value={gradeFilter} onValueChange={setGradeFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="پایه" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">همه پایه‌ها</SelectItem>
+                {Array.from({ length: 11 }, (_, i) => i + 1).map(g => (
+                  <SelectItem key={g} value={String(g)}>پایه {g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex gap-1">
+              {[
+                { key: 'all', label: 'همه' },
+                { key: 'eligible', label: 'واجد شرایط' },
+                { key: 'not_eligible', label: 'غیرواجد' },
+              ].map(f => (
+                <Button
+                  key={f.key}
+                  size="sm"
+                  variant={eligibleFilter === f.key ? 'default' : 'outline'}
+                  onClick={() => setEligibleFilter(f.key as typeof eligibleFilter)}
+                  className="text-xs"
                 >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden md:inline">{tab.label}</span>
-                </button>
-              )
-            })}
+                  {f.label}
+                </Button>
+              ))}
+            </div>
+            <Button variant="outline" size="sm" onClick={fetchStudents}>
+              <RefreshCw className="w-4 h-4" />
+            </Button>
           </div>
 
-          <div className="p-6">
-            {/* ==================== انتقال گروهی ==================== */}
-            {activeTab === 'bulk' && (
-              <div className="space-y-6">
-                {/* فیلترها */}
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-white/70 text-sm mb-2 block">مدرسه</label>
-                    <select
-                      value={selectedSchool}
-                      onChange={(e) => setSelectedSchool(e.target.value)}
-                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                    >
-                      <option value="1" className="bg-slate-800">دبستان آزمایشی هوشاگر</option>
-                      <option value="2" className="bg-slate-800">دبستان شهید بهشتی</option>
-                      <option value="3" className="bg-slate-800">دبستان امام خمینی</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-white/70 text-sm mb-2 block">پایه تحصیلی</label>
-                    <select
-                      value={selectedGrade}
-                      onChange={(e) => setSelectedGrade(e.target.value)}
-                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                    >
-                      {[1, 2, 3, 4, 5, 6].map(grade => (
-                        <option key={grade} value={grade} className="bg-slate-800">
-                          پایه {grade}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-white/70 text-sm mb-2 block">حداقل میانگین نمرات</label>
-                    <input
-                      type="number"
-                      value={minAvgGrade}
-                      onChange={(e) => setMinAvgGrade(e.target.value)}
-                      min="10"
-                      max="20"
-                      step="0.5"
-                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                    />
-                  </div>
-                </div>
-
-                {/* اطلاعات */}
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-blue-200">
-                      <p className="font-bold mb-1">⚠️ توجه:</p>
-                      <ul className="list-disc list-inside space-y-1 text-blue-300">
-                        <li>دانش‌آموزانی که میانگین کمتر از {minAvgGrade} دارند، در همان پایه می‌مانند</li>
-                        <li>این عملیات برگشت‌پذیر نیست، قبل از اجرا مطمئن شوید</li>
-                        <li>تاریخچه کامل در سیستم ذخیره می‌شود</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                {/* دکمه اجرا */}
-                {!showResults && (
-                  <button
-                    onClick={handleBulkPromotion}
-                    disabled={isProcessing}
-                    className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-bold transition-all ${
-                      isProcessing
-                        ? 'bg-white/20 text-white/50 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white'
-                    }`}
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        در حال پردازش...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-5 h-5" />
-                        اجرای انتقال گروهی
-                      </>
-                    )}
-                  </button>
-                )}
-
-                {/* نتایج */}
-                {showResults && (
-                  <div className="space-y-4">
-                    {/* آمار */}
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Users className="w-5 h-5 text-blue-400" />
-                          <span className="text-white/70 text-sm">کل دانش‌آموزان</span>
-                        </div>
-                        <p className="text-3xl font-bold text-white">{sampleStudents.length}</p>
-                      </div>
-                      
-                      <div className="bg-green-500/10 rounded-xl p-4 border border-green-500/20">
-                        <div className="flex items-center gap-3 mb-2">
-                          <CheckCircle className="w-5 h-5 text-green-400" />
-                          <span className="text-green-300 text-sm">قبول شده</span>
-                        </div>
-                        <p className="text-3xl font-bold text-green-400">{promotedCount}</p>
-                      </div>
-                      
-                      <div className="bg-red-500/10 rounded-xl p-4 border border-red-500/20">
-                        <div className="flex items-center gap-3 mb-2">
-                          <XCircle className="w-5 h-5 text-red-400" />
-                          <span className="text-red-300 text-sm">باقی‌مانده</span>
-                        </div>
-                        <p className="text-3xl font-bold text-red-400">{retainedCount}</p>
-                      </div>
-                    </div>
-
-                    {/* جدول نتایج */}
-                    <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b border-white/10 bg-white/5">
-                              <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">نام دانش‌آموز</th>
-                              <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">کلاس</th>
-                              <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">میانگین</th>
-                              <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">وضعیت</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {sampleStudents.map((student) => (
-                              <tr key={student.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                                <td className="px-4 py-3 text-white">{student.name}</td>
-                                <td className="px-4 py-3 text-white/70">{student.className}</td>
-                                <td className="px-4 py-3">
-                                  <span className={`font-bold ${
-                                    student.avgGrade >= parseFloat(minAvgGrade)
-                                      ? 'text-green-400'
-                                      : 'text-red-400'
-                                  }`}>
-                                    {student.avgGrade.toFixed(1)}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3">
-                                  {student.status === 'promoted' ? (
-                                    <span className="flex items-center gap-2 text-green-400">
-                                      <CheckCircle className="w-4 h-4" />
-                                      به پایه {student.grade + 1}
-                                    </span>
-                                  ) : (
-                                    <span className="flex items-center gap-2 text-red-400">
-                                      <XCircle className="w-4 h-4" />
-                                      ماندن در پایه {student.grade}
-                                    </span>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    {/* دکمه‌های اقدام */}
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setShowResults(false)}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all"
-                      >
-                        <ArrowRight className="w-4 h-4" />
-                        انتقال جدید
-                      </button>
-                      <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all">
-                        <Download className="w-4 h-4" />
-                        دانلود گزارش
-                      </button>
-                    </div>
-                  </div>
-                )}
+          {/* جدول */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="دانش‌آموزی یافت نشد"
+              description="با فیلتر انتخابی دانش‌آموزی وجود ندارد"
+            />
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              {/* هدر جدول */}
+              <div className="flex items-center gap-3 px-5 py-3 bg-gray-50 border-b border-gray-100">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.size === filtered.length && filtered.length > 0}
+                  onChange={toggleSelectAll}
+                  className="rounded"
+                />
+                <span className="text-sm text-gray-500">
+                  {selectedIds.size > 0 ? `${selectedIds.size} نفر انتخاب شده` : `${filtered.length} دانش‌آموز`}
+                </span>
               </div>
-            )}
 
-            {/* ==================== افزودن دستی ==================== */}
-            {activeTab === 'manual' && (
-              <div className="space-y-6">
-                <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 mb-6">
-                  <div className="flex items-start gap-3">
-                    <UserPlus className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-purple-200">
-                      <p className="font-bold mb-1">افزودن دانش‌آموز جدید به سیستم</p>
-                      <p className="text-purple-300">
-                        این فرم برای افزودن دانش‌آموزانی است که تازه وارد مدرسه شده‌اند (مثلاً از مدرسه دیگر)
+              <div className="divide-y divide-gray-50">
+                {filtered.map(student => (
+                  <div
+                    key={student.id}
+                    className={cn(
+                      'flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors',
+                      selectedIds.has(student.id) && 'bg-emerald-50'
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(student.id)}
+                      onChange={() => toggleSelect(student.id)}
+                      className="rounded flex-shrink-0"
+                    />
+
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-4 h-4 text-emerald-600" />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 text-sm">{student.full_name}</p>
+                      <p className="text-xs text-gray-500">
+                        {student.student_number} • پایه {student.grade}
+                        {student.class_name && ` • ${student.class_name}`}
                       </p>
                     </div>
-                  </div>
-                </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* ستون چپ */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-white/70 text-sm mb-2 block">نام و نام خانوادگی *</label>
-                      <input
-                        type="text"
-                        value={manualForm.fullName}
-                        onChange={(e) => setManualForm({...manualForm, fullName: e.target.value})}
-                        placeholder="مثال: علی محمدی"
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                      />
-                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <div className="text-center">
+                        <p className={cn(
+                          'text-sm font-bold',
+                          student.avg_grade >= 17 ? 'text-emerald-600' :
+                          student.avg_grade >= 12 ? 'text-blue-600' :
+                          student.avg_grade >= 10 ? 'text-yellow-600' : 'text-red-500'
+                        )}>
+                          {student.avg_grade > 0 ? student.avg_grade.toFixed(1) : '-'}
+                        </p>
+                        <p className="text-xs text-gray-400">میانگین</p>
+                      </div>
 
-                    <div>
-                      <label className="text-white/70 text-sm mb-2 block">کد ملی *</label>
-                      <input
-                        type="text"
-                        value={manualForm.nationalCode}
-                        onChange={(e) => setManualForm({...manualForm, nationalCode: e.target.value})}
-                        placeholder="0123456789"
-                        maxLength={10}
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                      />
-                    </div>
+                      <div className="flex items-center gap-1">
+                        <ArrowUp className="w-3 h-3 text-gray-400" />
+                        <span className="text-xs text-gray-500">پایه {student.grade + 1}</span>
+                      </div>
 
-                    <div>
-                      <label className="text-white/70 text-sm mb-2 block">تاریخ تولد *</label>
-                      <input
-                        type="text"
-                        value={manualForm.dateOfBirth}
-                        onChange={(e) => setManualForm({...manualForm, dateOfBirth: e.target.value})}
-                        placeholder="۱۳۹۵/۰۵/۱۵"
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-white/70 text-sm mb-2 block">شماره موبایل ولی *</label>
-                      <input
-                        type="tel"
-                        value={manualForm.parentPhone}
-                        onChange={(e) => setManualForm({...manualForm, parentPhone: e.target.value})}
-                        placeholder="09123456789"
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                      />
+                      {student.eligible ? (
+                        <Badge className="bg-emerald-100 text-emerald-700 text-xs gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          واجد شرایط
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-red-100 text-red-600 text-xs gap-1">
+                          <XCircle className="w-3 h-3" />
+                          غیرواجد
+                        </Badge>
+                      )}
                     </div>
                   </div>
-
-                  {/* ستون راست */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-white/70 text-sm mb-2 block">نام ولی *</label>
-                      <input
-                        type="text"
-                        value={manualForm.parentName}
-                        onChange={(e) => setManualForm({...manualForm, parentName: e.target.value})}
-                        placeholder="مثال: محمد محمدی"
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-white/70 text-sm mb-2 block">مدرسه *</label>
-                      <select
-                        value={manualForm.schoolId}
-                        onChange={(e) => setManualForm({...manualForm, schoolId: e.target.value})}
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                      >
-                        <option value="" className="bg-slate-800">انتخاب مدرسه...</option>
-                        <option value="1" className="bg-slate-800">دبستان آزمایشی هوشاگر</option>
-                        <option value="2" className="bg-slate-800">دبستان شهید بهشتی</option>
-                        <option value="3" className="bg-slate-800">دبستان امام خمینی</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-white/70 text-sm mb-2 block">پایه تحصیلی *</label>
-                      <select
-                        value={manualForm.grade}
-                        onChange={(e) => setManualForm({...manualForm, grade: e.target.value})}
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                      >
-                        <option value="" className="bg-slate-800">انتخاب پایه...</option>
-                        {[1, 2, 3, 4, 5, 6].map(grade => (
-                          <option key={grade} value={grade} className="bg-slate-800">
-                            پایه {grade}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-white/70 text-sm mb-2 block">کلاس (اختیاری)</label>
-                      <select
-                        value={manualForm.classId}
-                        onChange={(e) => setManualForm({...manualForm, classId: e.target.value})}
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                      >
-                        <option value="" className="bg-slate-800">بدون کلاس (بعداً تخصیص)</option>
-                        <option value="1" className="bg-slate-800">الف</option>
-                        <option value="2" className="bg-slate-800">ب</option>
-                        <option value="3" className="bg-slate-800">ج</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* دکمه افزودن */}
-                <button
-                  onClick={handleManualSubmit}
-                  disabled={isSubmitting || !manualForm.fullName || !manualForm.nationalCode}
-                  className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-bold transition-all ${
-                    isSubmitting || !manualForm.fullName || !manualForm.nationalCode
-                      ? 'bg-white/20 text-white/50 cursor-not-allowed'
-                      : submitSuccess
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white'
-                  }`}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      در حال افزودن...
-                    </>
-                  ) : submitSuccess ? (
-                    <>
-                      <CheckCircle className="w-5 h-5" />
-                      اضافه شد!
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="w-5 h-5" />
-                      افزودن دانش‌آموز
-                    </>
-                  )}
-                </button>
+                ))}
               </div>
-            )}
-
-            {/* ==================== تاریخچه ==================== */}
-            {activeTab === 'history' && (
-              <div className="space-y-6">
-                {/* فیلترها */}
-                <div className="flex flex-wrap gap-3">
-                  <select className="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white text-sm focus:outline-none">
-                    <option className="bg-slate-800">همه مدارس</option>
-                    <option className="bg-slate-800">دبستان آزمایشی هوشاگر</option>
-                  </select>
-                  
-                  <select className="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white text-sm focus:outline-none">
-                    <option className="bg-slate-800">همه پایه‌ها</option>
-                    {[1, 2, 3, 4, 5, 6].map(g => (
-                      <option key={g} className="bg-slate-800">پایه {g}</option>
-                    ))}
-                  </select>
-                  
-                  <select className="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white text-sm focus:outline-none">
-                    <option className="bg-slate-800">همه انواع</option>
-                    <option className="bg-slate-800">انتقال عادی</option>
-                    <option className="bg-slate-800">قرعه‌کشی</option>
-                    <option className="bg-slate-800">دستی</option>
-                  </select>
-
-                  <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all text-sm ml-auto">
-                    <Download className="w-4 h-4" />
-                    دانلود Excel
-                  </button>
-                </div>
-
-                {/* جدول تاریخچه */}
-                <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-white/10 bg-white/5">
-                          <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">نام دانش‌آموز</th>
-                          <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">از پایه</th>
-                          <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">به پایه</th>
-                          <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">نوع انتقال</th>
-                          <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">سال تحصیلی</th>
-                          <th className="px-4 py-3 text-right text-white/70 text-sm font-medium">تاریخ</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sampleHistory.map((record) => (
-                          <tr key={record.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                            <td className="px-4 py-3 text-white">{record.studentName}</td>
-                            <td className="px-4 py-3 text-white/70">پایه {record.fromGrade}</td>
-                            <td className="px-4 py-3 text-green-400 font-bold">پایه {record.toGrade}</td>
-                            <td className="px-4 py-3">
-                              <span className={`px-2 py-1 rounded-lg text-xs ${
-                                record.progressionType === 'normal' ? 'bg-blue-500/20 text-blue-400' :
-                                record.progressionType === 'lottery' ? 'bg-purple-500/20 text-purple-400' :
-                                'bg-orange-500/20 text-orange-400'
-                              }`}>
-                                {record.progressionType === 'normal' ? 'عادی' :
-                                 record.progressionType === 'lottery' ? 'قرعه‌کشی' : 'دستی'}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-white/70">{record.academicYear}</td>
-                            <td className="px-4 py-3 text-white/70">{record.date}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
+      )}
 
-        {/* Footer */}
-        <footer className="text-center text-white/40 text-sm py-6">
-          <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
-        </footer>
-      </div>
+      {activeTab === 'history' && (
+        <ProgressionHistory />
+      )}
+
+      {/* دیالوگ تایید */}
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-500" />
+              تایید ارتقاء دانش‌آموزان
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-right space-y-1">
+              <p>این عملیات دانش‌آموزان را به پایه بالاتر منتقل می‌کند.</p>
+              <p className="font-medium text-gray-700">
+                {progressionMode === 'all_eligible' && `${summary?.eligible || 0} دانش‌آموز واجد شرایط ارتقاء می‌یابند`}
+                {progressionMode === 'selected' && `${selectedIds.size} دانش‌آموز انتخاب‌شده ارتقاء می‌یابند`}
+                {progressionMode === 'all' && `${summary?.total || 0} دانش‌آموز (همه) ارتقاء می‌یابند`}
+              </p>
+              <p className="text-amber-600 text-sm">این عملیات قابل بازگشت نیست.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handlePromotion}
+              disabled={isPromoting}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {isPromoting ? (
+                <><Loader2 className="w-4 h-4 animate-spin ml-2" />در حال اجرا...</>
+              ) : 'تایید و اجرا'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
 
+// ============================================
+// کامپوننت تاریخچه
+// ============================================
+function ProgressionHistory() {
+  const [history, setHistory] = useState<{
+    id: string
+    from_grade: number
+    to_grade: number
+    academic_year: string
+    progression_type: string
+    status: string
+    progression_date: string
+    students?: { profiles?: { full_name: string } }
+  }[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/admin/progression?type=history')
+      .then(r => r.json())
+      .then(d => setHistory(d.history || []))
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  const formatDate = (dateStr: string) =>
+    new Intl.DateTimeFormat('fa-IR', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    }).format(new Date(dateStr))
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    )
+  }
+
+  if (history.length === 0) {
+    return (
+      <EmptyState
+        icon={History}
+        title="تاریخچه‌ای ثبت نشده"
+        description="پس از اجرای ارتقاء، تاریخچه اینجا نمایش داده می‌شود"
+      />
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <div className="divide-y divide-gray-50">
+        {history.map(h => (
+          <div key={h.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50">
+            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+              <ArrowUp className="w-4 h-4 text-emerald-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-800">
+                {(h.students as { profiles?: { full_name: string } } | null)?.profiles?.full_name || 'نامشخص'}
+              </p>
+              <p className="text-xs text-gray-500">
+                پایه {h.from_grade} → پایه {h.to_grade} • {h.academic_year}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge className="text-xs bg-gray-100 text-gray-600">{h.progression_type === 'normal' ? 'عادی' : h.progression_type}</Badge>
+              <Badge className={cn(
+                'text-xs',
+                h.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+              )}>
+                {h.status === 'completed' ? 'موفق' : 'ناموفق'}
+              </Badge>
+              <span className="text-xs text-gray-400">{formatDate(h.progression_date)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 
+// اسکیما سوال مستقیم (از OCR)
+const directQuestionSchema = z.object({
+  question_text: z.string(),
+  question_type: z.enum(['multiple_choice', 'true_false', 'short_answer', 'descriptive']),
+  options: z.string().nullable().optional(),
+  correct_answer: z.string().nullable().optional(),
+  points: z.number().int().min(1).default(2),
+  difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
+})
+
 // اسکیما ایجاد امتحان
 const createExamSchema = z.object({
   title: z.string().min(3),
@@ -18,6 +28,7 @@ const createExamSchema = z.object({
     })
     .optional(),
   question_ids: z.array(z.string().uuid()).optional(),
+  questions: z.array(directQuestionSchema).optional(),
 });
 
 // دریافت لیست امتحانات
@@ -85,14 +96,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { question_ids, ...examData } = result.data;
+    const { question_ids, questions: directQuestions, ...examData } = result.data;
+
+    const totalQuestions = (question_ids?.length || 0) + (directQuestions?.length || 0)
 
     // ایجاد امتحان
     const { data: exam, error: examError } = await supabase
       .from('exams')
       .insert({
         ...examData,
-        total_questions: question_ids?.length || 0,
+        total_questions: totalQuestions,
         status: 'draft',
         created_by: userData.user.id,
       })
@@ -148,6 +161,31 @@ export async function POST(request: NextRequest) {
           .update({ total_points: totalPoints })
           .eq('id', exam.id);
       }
+    }
+
+    // افزودن سوالات مستقیم (از OCR)
+    if (directQuestions && directQuestions.length > 0) {
+      const examQuestions = directQuestions.map((q, index) => ({
+        exam_id: exam.id,
+        question_text: q.question_text,
+        question_type: q.question_type,
+        question_order: (question_ids?.length || 0) + index + 1,
+        options: q.options ? JSON.parse(q.options) : null,
+        correct_answer: q.correct_answer || null,
+        points: q.points,
+        difficulty: q.difficulty,
+      }));
+
+      const { error: dqError } = await supabase
+        .from('exam_questions')
+        .insert(examQuestions);
+
+      if (dqError) {
+        console.error('خطا در افزودن سوالات مستقیم:', dqError);
+      }
+
+      const totalPoints = directQuestions.reduce((sum, q) => sum + q.points, 0);
+      await supabase.from('exams').update({ total_points: totalPoints }).eq('id', exam.id);
     }
 
     return NextResponse.json(exam, { status: 201 });

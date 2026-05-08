@@ -16,13 +16,35 @@ type UserRole =
   | 'educational_vp'
   | 'financial_vp'
   | 'disciplinary_vp'
+  | 'evaluation_vp'
   | 'art_teacher'
   | 'sports_teacher'
+  | 'secretary'
+  | 'librarian'
+  | 'security'
+  | 'maintenance'
+
+type EducationStage = 'preschool' | 'elementary' | 'middle_school' | 'high_school' | 'vocational' | 'technical'
 
 interface UserProfile {
   id: string
   role: UserRole
   school_id: string | null
+  must_change_password?: boolean
+}
+
+interface StudentProfile extends UserProfile {
+  grade_level: number | null
+  education_stage: EducationStage | null
+}
+
+// مسیرهایی که حداقل پایه تحصیلی نیاز دارند
+const GRADE_RESTRICTED_ROUTES: Record<string, { min_grade: number; stages: EducationStage[] }> = {
+  '/student/konkur':         { min_grade: 10, stages: ['high_school', 'vocational', 'technical'] },
+  '/student/konkur-roadmap': { min_grade: 10, stages: ['high_school', 'vocational', 'technical'] },
+  '/student/field-selection':{ min_grade: 9,  stages: ['middle_school', 'high_school', 'vocational', 'technical'] },
+  '/student/future-compass': { min_grade: 8,  stages: ['middle_school', 'high_school', 'vocational', 'technical'] },
+  '/student/ai-guidance':    { min_grade: 7,  stages: ['middle_school', 'high_school', 'vocational', 'technical'] },
 }
 
 // ============================================
@@ -50,57 +72,28 @@ const EXCLUDED_ROUTES = [
 // تنظیم دسترسی نقش‌ها به مسیرها
 // ============================================
 const ROUTE_PERMISSIONS: Record<string, UserRole[]> = {
-  // مدیر پلتفرم و ادمین
-  '/admin': ['admin', 'platform_admin'],
-
-  // مدیر مدرسه
-  '/principal': ['principal', 'admin', 'platform_admin'],
-
-  // معلم
-  '/teacher': ['teacher', 'principal', 'admin', 'platform_admin'],
-
-  // والدین
-  '/parent': ['parent'],
-
-  // دانش‌آموز
-  '/student': ['student'],
-
-  // مشاور
-  '/counselor': ['counselor', 'principal', 'admin', 'platform_admin'],
-
-  // معاون بهداشت
-  '/health-vp': ['health_vp', 'principal', 'admin', 'platform_admin'],
-
-  // معاون پرورشی
-  '/educational-vp': ['educational_vp', 'principal', 'admin', 'platform_admin'],
-
-  // معاون مالی
-  '/financial-vp': ['financial_vp', 'principal', 'admin', 'platform_admin'],
-
-  // معاون انضباطی
-  '/disciplinary-vp': ['disciplinary_vp', 'principal', 'admin', 'platform_admin'],
-
-  // معلم هنر
-  '/art-teacher': ['art_teacher', 'principal', 'admin', 'platform_admin'],
-
-  // معلم ورزش
-  '/sports-teacher': ['sports_teacher', 'principal', 'admin', 'platform_admin'],
-
-  // داشبورد عمومی - همه نقش‌ها دسترسی دارند
+  '/admin':           ['admin', 'platform_admin'],
+  '/principal':       ['principal', 'admin', 'platform_admin'],
+  '/teacher':         ['teacher', 'principal', 'admin', 'platform_admin'],
+  '/parent':          ['parent'],
+  '/student':         ['student'],
+  '/counselor':       ['counselor', 'principal', 'admin', 'platform_admin'],
+  '/health-vp':       ['health_vp', 'principal', 'admin', 'platform_admin'],
+  '/educational-vp':  ['educational_vp', 'principal', 'admin', 'platform_admin'],
+  '/financial-vp':    ['financial_vp', 'principal', 'admin', 'platform_admin'],
+  '/discipline-vp':   ['disciplinary_vp', 'principal', 'admin', 'platform_admin'],
+  '/evaluation-vp':   ['evaluation_vp', 'principal', 'admin', 'platform_admin'],
+  '/art-teacher':     ['art_teacher', 'principal', 'admin', 'platform_admin'],
+  '/sports-teacher':  ['sports_teacher', 'principal', 'admin', 'platform_admin'],
+  '/secretary':       ['secretary', 'principal', 'admin', 'platform_admin'],
+  '/librarian':       ['librarian', 'principal', 'admin', 'platform_admin'],
+  '/security':        ['security', 'principal', 'admin', 'platform_admin'],
+  '/maintenance':     ['maintenance', 'principal', 'admin', 'platform_admin'],
   '/dashboard': [
-    'admin',
-    'platform_admin',
-    'principal',
-    'teacher',
-    'parent',
-    'student',
-    'counselor',
-    'health_vp',
-    'educational_vp',
-    'financial_vp',
-    'disciplinary_vp',
-    'art_teacher',
-    'sports_teacher',
+    'admin', 'platform_admin', 'principal', 'teacher', 'parent', 'student',
+    'counselor', 'health_vp', 'educational_vp', 'financial_vp', 'disciplinary_vp',
+    'evaluation_vp', 'art_teacher', 'sports_teacher', 'secretary', 'librarian',
+    'security', 'maintenance',
   ],
 }
 
@@ -150,11 +143,34 @@ function getDefaultRouteForRole(role: UserRole): string {
     health_vp: '/health-vp',
     educational_vp: '/educational-vp',
     financial_vp: '/financial-vp',
-    disciplinary_vp: '/disciplinary-vp',
+    disciplinary_vp: '/discipline-vp',
+    evaluation_vp: '/evaluation-vp',
     art_teacher: '/art-teacher',
     sports_teacher: '/sports-teacher',
+    secretary: '/secretary',
+    librarian: '/librarian',
+    security: '/security',
+    maintenance: '/maintenance',
   }
   return roleRoutes[role] || '/dashboard'
+}
+
+// ============================================
+// هلپر: بررسی محدودیت مقطع تحصیلی
+// ============================================
+function checkGradeRestriction(
+  pathname: string,
+  grade_level: number | null,
+  education_stage: EducationStage | null
+): boolean {
+  for (const [route, restriction] of Object.entries(GRADE_RESTRICTED_ROUTES)) {
+    if (pathname.startsWith(route)) {
+      if (!grade_level || !education_stage) return false
+      if (grade_level < restriction.min_grade) return false
+      if (!restriction.stages.includes(education_stage)) return false
+    }
+  }
+  return true
 }
 
 // ============================================
@@ -255,7 +271,7 @@ export async function middleware(request: NextRequest) {
   // 7. دریافت پروفایل کاربر
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, role, school_id')
+    .select('id, role, school_id, must_change_password')
     .eq('id', session.user.id)
     .single()
 
@@ -270,7 +286,16 @@ export async function middleware(request: NextRequest) {
   const userProfile = profile as UserProfile
   const userRole = userProfile.role
 
-  // 8. Redirect از /dashboard به role-based dashboard
+  // 8. بررسی must_change_password - اجبار به تغییر رمز
+  if (
+    userProfile.must_change_password &&
+    pathname !== '/change-password' &&
+    !pathname.startsWith('/api')
+  ) {
+    return NextResponse.redirect(new URL('/change-password', request.url))
+  }
+
+  // 8.5. Redirect از /dashboard به role-based dashboard
   if (pathname === '/dashboard') {
     const defaultRoute = getDefaultRouteForRole(userRole)
     return NextResponse.redirect(new URL(defaultRoute, request.url))
@@ -294,6 +319,27 @@ export async function middleware(request: NextRequest) {
 
       const redirectUrl = new URL(defaultRoute, request.url)
       redirectUrl.searchParams.set('error', 'access_denied')
+      return NextResponse.redirect(redirectUrl)
+    }
+  }
+
+  // 9.5. بررسی محدودیت مقطع تحصیلی برای دانش‌آموزان
+  if (userRole === 'student' && Object.keys(GRADE_RESTRICTED_ROUTES).some(r => pathname.startsWith(r))) {
+    const { data: studentData } = await supabase
+      .from('students')
+      .select('grade, education_stage')
+      .eq('user_id', session.user.id)
+      .single()
+
+    const gradeAllowed = checkGradeRestriction(
+      pathname,
+      studentData?.grade ?? null,
+      (studentData?.education_stage ?? null) as EducationStage | null
+    )
+
+    if (!gradeAllowed) {
+      const redirectUrl = new URL('/student', request.url)
+      redirectUrl.searchParams.set('error', 'grade_not_allowed')
       return NextResponse.redirect(redirectUrl)
     }
   }
@@ -329,6 +375,9 @@ export async function middleware(request: NextRequest) {
   response.headers.set('x-user-id', userProfile.id)
   if (userProfile.school_id) {
     response.headers.set('x-school-id', userProfile.school_id)
+  }
+  if (userProfile.must_change_password) {
+    response.headers.set('x-must-change-password', 'true')
   }
 
   return response

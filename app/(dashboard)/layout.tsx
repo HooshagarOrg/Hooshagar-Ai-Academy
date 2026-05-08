@@ -1,32 +1,48 @@
-import { NotificationBell } from '@/components/NotificationBell'
+import { headers } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
+import { DashboardShell } from '@/components/layout/dashboard-shell'
+import { redirect } from 'next/navigation'
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  // دریافت پروفایل کاربر
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, role, school_id')
+    .eq('id', user.id)
+    .single()
+
+  // دریافت نام مدرسه
+  let schoolName: string | undefined
+  if (profile?.school_id) {
+    const { data: school } = await supabase
+      .from('schools')
+      .select('name')
+      .eq('id', profile.school_id)
+      .single()
+    schoolName = school?.name
+  }
+
+  const role = profile?.role || 'student'
+  const userName = profile?.full_name || user.email?.split('@')[0] || 'کاربر'
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header با NotificationBell */}
-      <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-gray-800">🎓 هوشاگر</h1>
-            <span className="text-sm text-gray-500 hidden sm:inline">
-              سیستم هوشمند مدیریت مدارس
-            </span>
-          </div>
-          
-          {/* Notification Bell */}
-          <NotificationBell />
-        </div>
-      </header>
-      
-      {/* Main Content */}
-      <main className="container mx-auto">
-        {children}
-      </main>
-    </div>
+    <DashboardShell
+      role={role}
+      userName={userName}
+      schoolName={schoolName}
+    >
+      {children}
+    </DashboardShell>
   )
 }
-

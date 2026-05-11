@@ -38,19 +38,19 @@ const loginSchema = z.discriminatedUnion('method', [
 // helper: ساخت Supabase client با کوکی
 // ============================================
 async function getSupabaseWithCookies() {
-  const cookieStore = cookies()
+    const cookieStore = cookies()
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+          set(name: string, value: string, options: CookieOptions) {
           try { cookieStore.set({ name, value, ...options }) } catch {}
-        },
-        remove(name: string, options: CookieOptions) {
+          },
+          remove(name: string, options: CookieOptions) {
           try { cookieStore.set({ name, value: '', ...options }) } catch {}
         },
       },
@@ -103,10 +103,10 @@ async function handleStaffLogin(
   // 3. ورود با ایمیل + رمز
   const { error } = await supabase.auth.signInWithPassword({
     email: authUser.user.email,
-    password,
-  })
-
-  if (error) {
+      password,
+    })
+    
+    if (error) {
     // ثبت تلاش ناموفق
     await admin
       .from('profiles')
@@ -324,7 +324,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-
+    
     const supabase = await getSupabaseWithCookies()
 
     // انتخاب روش ورود
@@ -357,8 +357,8 @@ export async function POST(request: NextRequest) {
             { status: 401 }
           )
         }
-        return NextResponse.json({
-          success: true,
+    return NextResponse.json({ 
+      success: true,
           must_change_password: otpResult.must_change_password,
           role: otpResult.role,
           redirect: '/dashboard',

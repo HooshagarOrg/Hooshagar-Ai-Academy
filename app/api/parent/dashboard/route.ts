@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * GET /api/parent/dashboard
@@ -165,7 +165,7 @@ export async function GET() {
         recentReports: 0, // TODO: link to parent_reports
       },
       recentGrades,
-      messages: [], // TODO: link to messages system
+      messages: [], // پیام‌ها از /api/messages دریافت می‌شود
     });
 
   } catch (error: any) {

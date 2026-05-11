@@ -10,7 +10,7 @@ import {
   Activity, ClipboardCheck, DollarSign, Mail, Search, AlertCircle,
   Wrench, Bell, Send, GraduationCap, Building, ChevronLeft, ChevronRight,
   Sparkles, Trophy, Compass, Gamepad2, Lightbulb, LogOut, User,
-  Heart, PenTool, HelpCircle, Clock, TrendingUp, X,
+  Heart, PenTool, HelpCircle, Clock, TrendingUp, X, CreditCard,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -76,11 +76,19 @@ const navConfig: Record<string, NavGroup[]> = {
       ]
     },
     {
+      title: 'نظارت سیستم',
+      items: [
+        { title: 'جریان داده', href: '/admin/data-flow', icon: Activity },
+        { title: 'امنیت', href: '/admin/security', icon: Shield },
+      ]
+    },
+    {
       title: 'تنظیمات',
       items: [
         { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders },
         { title: 'سال تحصیلی', href: '/admin/academic-years', icon: Calendar },
         { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign },
+        { title: 'پلن‌های اشتراک', href: '/admin/subscriptions', icon: CreditCard },
         { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
       ]
     },
@@ -94,6 +102,7 @@ const navConfig: Record<string, NavGroup[]> = {
       items: [
         { title: 'دانش‌آموزان', href: '/teacher/students', icon: Users },
         { title: 'حضور و غیاب', href: '/teacher/attendance', icon: ClipboardCheck },
+        { title: 'نمرات', href: '/teacher/grades', icon: GraduationCap },
         { title: 'رفتار دانش‌آموزان', href: '/teacher/behavior', icon: Heart },
         { title: 'گزارش هفتگی', href: '/teacher/weekly-report', icon: FileText },
       ]
@@ -122,6 +131,7 @@ const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'فرزندم',
       items: [
+        { title: 'نمرات فرزند', href: '/parent/grades', icon: GraduationCap },
         { title: 'گزارشات', href: '/parent/reports', icon: BarChart3 },
         { title: 'حضور و غیاب', href: '/parent/attendance', icon: ClipboardCheck },
         { title: 'بهداشت', href: '/parent/health', icon: Heart },
@@ -145,9 +155,10 @@ const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'یادگیری',
       items: [
+        { title: 'نمراتم', href: '/student/grades', icon: GraduationCap },
+        { title: 'آزمون‌هایم', href: '/student/exams', icon: ClipboardCheck },
         { title: 'دستیار مطالعه', href: '/student/study-buddy', icon: BookOpen },
         { title: 'حل مسئله (OCR)', href: '/student/problem-solver', icon: Lightbulb },
-        { title: 'آزمون‌هایم', href: '/student/exams', icon: ClipboardCheck },
       ]
     },
     {
@@ -157,6 +168,12 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'کنکور', href: '/student/konkur', icon: Award },
         { title: 'نقشه راه کنکور', href: '/student/konkur-roadmap', icon: Compass },
         { title: 'قطب‌نمای آینده', href: '/student/future-compass', icon: Compass },
+      ]
+    },
+    {
+      title: 'ثبت‌نام',
+      items: [
+        { title: 'ثبت‌نام کلاس', href: '/student/class-registration', icon: GraduationCap },
       ]
     },
     {

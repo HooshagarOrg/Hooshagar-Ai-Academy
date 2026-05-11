@@ -134,8 +134,8 @@ export default function LandingPage() {
               <span className="bg-gradient-to-l from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 هوشاگر
               </span>
-            </h1>
-
+        </h1>
+            
             <p className="text-xl md:text-2xl text-blue-100 mb-4 font-medium">
               سیستم‌عامل هوشمند مدیریت مدارس
             </p>
@@ -145,18 +145,18 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/login">
+                <Link href="/login">
                 <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 h-12 text-base shadow-lg shadow-blue-500/30">
                   <Zap className="w-5 h-5 ml-2" />
                   شروع رایگان
                 </Button>
-              </Link>
+                </Link>
               <Link href="#features">
                 <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 px-8 h-12 text-base">
                   مشاهده امکانات
                   <ArrowLeft className="w-5 h-5 mr-2" />
-                </Button>
-              </Link>
+              </Button>
+                </Link>
             </div>
           </div>
 
@@ -197,8 +197,8 @@ export default function LandingPage() {
                 <p className="text-sm text-gray-500 leading-relaxed">{f.description}</p>
               </div>
             ))}
-          </div>
-        </div>
+                </div>
+                </div>
       </section>
 
       {/* ===== برای هر کاربر ===== */}
@@ -211,7 +211,7 @@ export default function LandingPage() {
             <p className="text-lg text-gray-500">
               هر نقش صفحه اختصاصی خودش را دارد
             </p>
-          </div>
+                </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {userTypes.map((u, i) => (
@@ -250,7 +250,7 @@ export default function LandingPage() {
               </h2>
               <p className="text-white/70 text-lg leading-relaxed mb-8">
                 از OCR برای حل مسئله با عکس تا تحلیل استعداد و مشاوره انتخاب رشته —
-                همه رایگان و بدون نیاز به فیلترشکن.
+                هوش مصنوعی در خدمت آموزش ایرانی.
               </p>
               <div className="grid grid-cols-2 gap-3">
                 {['تحلیلگر دانش‌آموز', 'حل مسئله OCR', 'دستیار مطالعه', 'قصه‌گوی هوشمند',
@@ -258,7 +258,7 @@ export default function LandingPage() {
                   <div key={i} className="flex items-center gap-2 text-sm text-white/80">
                     <Sparkles className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
                     {ai}
-                  </div>
+            </div>
                 ))}
               </div>
             </div>
@@ -273,13 +273,13 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4">
-                  <p className="text-white/60 text-xs mb-2">هزینه ماهانه برای ۱۰۰۰ کاربر</p>
-                  <p className="text-3xl font-black text-white">$0 <span className="text-lg font-normal text-white/60">تا $50</span></p>
-                  <p className="text-white/50 text-xs mt-1">۸۵٪ درخواست‌ها رایگان</p>
+                  <p className="text-white/60 text-xs mb-2">پشتیبانی از زبان فارسی</p>
+                  <p className="text-3xl font-black text-white">۱۰۰٪</p>
+                  <p className="text-white/50 text-xs mt-1">بهینه‌شده برای محتوای درسی ایران</p>
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4">
-                  <p className="text-white/60 text-xs mb-1">بدون فیلترشکن</p>
-                  <p className="text-white font-medium">Cloudflare Worker Proxy ✓</p>
+                  <p className="text-white/60 text-xs mb-1">همیشه در دسترس</p>
+                  <p className="text-white font-medium">زیرساخت پایدار و مطمئن ✓</p>
                 </div>
               </div>
             </div>
@@ -296,18 +296,25 @@ export default function LandingPage() {
             </div>
             <h2 className="text-3xl font-black text-gray-900 mb-4">
               مدرسه خود را متحول کنید
-            </h2>
+          </h2>
             <p className="text-gray-500 mb-8 text-lg">
-              همین امروز شروع کنید. نصب آسان، پشتیبانی فارسی، بدون نیاز به VPN
+              همین امروز شروع کنید. نصب آسان، پشتیبانی فارسی، طراحی‌شده برای مدارس ایران
             </p>
-            <Link href="/login">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-10 h-12 text-base shadow-lg shadow-blue-200">
-                <GraduationCap className="w-5 h-5 ml-2" />
-                شروع رایگان
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/auth/login">
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-10 h-12 text-base shadow-lg shadow-blue-200">
+                  <GraduationCap className="w-5 h-5 ml-2" />
+                  شروع رایگان
+                </Button>
+              </Link>
+              <Link href="/pricing">
+                <Button size="lg" variant="outline" className="px-10 h-12 text-base border-2">
+                  مشاهده پلن‌ها
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
+      </div>
       </section>
 
       {/* ===== Footer ===== */}

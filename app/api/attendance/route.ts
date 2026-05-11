@@ -1,225 +1,108 @@
-import { NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { withAuth, TEACHER_AND_ABOVE } from '@/lib/security/api-guard'
 
-// GET: دریافت لیست حضور و غیاب
-export async function GET(request: Request) {
-  try {
-    const supabase = createServerClient()
+// ============================================
+// GET: دریافت حضور و غیاب
+// - دانش‌آموز: فقط خودش
+// - والد: فرزندانش
+// - معلم/ادمین: همه
+// ============================================
+export async function GET(request: NextRequest) {
+  return withAuth(request, async (ctx) => {
+    const supabase = await createClient()
     const { searchParams } = new URL(request.url)
-    
-    const classId = searchParams.get('classId')
-    const date = searchParams.get('date')
-    const studentId = searchParams.get('studentId')
-    const startDate = searchParams.get('startDate')
-    const endDate = searchParams.get('endDate')
-    const status = searchParams.get('status')
-    const followedUp = searchParams.get('followedUp')
-    
-    // دریافت کاربر جاری
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    
-    // دریافت پروفایل کاربر
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, school_id')
-      .eq('id', user.id)
-      .single()
-    
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
-    }
-    
-    // ساخت query
+    const studentId = searchParams.get('student_id')
+    const dateFrom = searchParams.get('date_from')
+    const dateTo = searchParams.get('date_to')
+
     let query = supabase
       .from('attendance')
-      .select(`
-        *,
-        student:students(id, full_name, student_code, avatar_url, class_id),
-        class:classes(id, name)
-      `)
-    
-    // فیلتر بر اساس نقش
-    if (profile.role !== 'admin') {
-      query = query.eq('school_id', profile.school_id)
-    }
-    
-    // اعمال فیلترها
-    if (classId) {
-      query = query.eq('class_id', classId)
-    }
-    
-    if (date) {
-      query = query.eq('date', date)
-    }
-    
-    if (studentId) {
+      .select('*, students(full_name, grade)')
+      .order('date', { ascending: false })
+      .limit(100)
+
+    if (ctx.role === 'student') {
+      const { data: s } = await supabase.from('students').select('id').eq('user_id', ctx.userId).single()
+      if (!s) return NextResponse.json({ attendance: [] })
+      query = query.eq('student_id', s.id)
+    } else if (ctx.role === 'parent') {
+      const { data: children } = await supabase.from('students').select('id').eq('parent_id', ctx.userId)
+      if (!children?.length) return NextResponse.json({ attendance: [] })
+      query = query.in('student_id', children.map(c => c.id))
+    } else if (studentId) {
       query = query.eq('student_id', studentId)
     }
-    
-    if (startDate && endDate) {
-      query = query.gte('date', startDate).lte('date', endDate)
-    }
-    
-    if (status) {
-      query = query.eq('status', status)
-    }
-    
-    if (followedUp !== null) {
-      query = query.eq('followed_up', followedUp === 'true')
-    }
-    
-    query = query.order('date', { ascending: false })
-    
+
+    if (dateFrom) query = query.gte('date', dateFrom)
+    if (dateTo) query = query.lte('date', dateTo)
+
     const { data, error } = await query
-    
-    if (error) throw error
-    
-    return NextResponse.json({ data })
-  } catch (error: any) {
-    console.error('Error fetching attendance:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
+    if (error) return NextResponse.json({ attendance: [], error: error.message })
+    return NextResponse.json({ attendance: data || [] })
+  }, {})
 }
 
-// POST: ثبت حضور و غیاب
-export async function POST(request: Request) {
-  try {
-    const supabase = createServerClient()
+// ============================================
+// POST: ثبت دسته‌ای حضور و غیاب توسط معلم
+// ============================================
+export async function POST(request: NextRequest) {
+  return withAuth(request, async (ctx) => {
     const body = await request.json()
-    
     const { records } = body
-    
-    if (!records || !Array.isArray(records)) {
-      return NextResponse.json({ error: 'Invalid records' }, { status: 400 })
+    // records: [{student_id, date, status, absence_reason, notes, notify_parent}]
+
+    if (!Array.isArray(records) || records.length === 0) {
+      return NextResponse.json({ error: 'لیست حضور و غیاب خالی است' }, { status: 400 })
     }
-    
-    // دریافت کاربر جاری
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    
-    // دریافت پروفایل کاربر
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, school_id')
-      .eq('id', user.id)
-      .single()
-    
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
-    }
-    
-    // بررسی دسترسی
-    if (!['teacher', 'principal', 'discipline_vp', 'educational_vp', 'admin'].includes(profile.role)) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
-    }
-    
-    // آماده‌سازی رکوردها
-    const preparedRecords = records.map(record => ({
-      ...record,
-      school_id: profile.school_id,
-      recorded_by: user.id,
-      recorded_at: new Date().toISOString(),
+
+    const supabase = await createClient()
+    const rows = records.map((r: {
+      student_id: string; date: string; status: string
+      absence_reason?: string; notes?: string; notify_parent?: boolean
+    }) => ({
+      student_id: r.student_id,
+      date: r.date,
+      status: r.status,
+      notes: r.notes || null,
+      recorded_by: ctx.userId,
     }))
-    
-    // Upsert رکوردها
-    const { data, error } = await supabase
+
+    const { error } = await supabase
       .from('attendance')
-      .upsert(preparedRecords, {
-        onConflict: 'student_id,date',
-        ignoreDuplicates: false,
-      })
-      .select()
-    
-    if (error) throw error
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'حضور و غیاب با موفقیت ثبت شد',
-      count: preparedRecords.length 
+      .upsert(rows, { onConflict: 'student_id,date' })
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+    // ارسال پیام به والدین دانش‌آموزان غایب
+    const absentRecords = records.filter(r => r.status !== 'present' && r.notify_parent !== false)
+    if (absentRecords.length > 0) {
+      for (const rec of absentRecords) {
+        const { data: student } = await supabase
+          .from('students')
+          .select('full_name, parent_id')
+          .eq('id', rec.student_id)
+          .single()
+
+        if (student?.parent_id) {
+          await supabase.from('messages_direct').insert({
+            sender_id: ctx.userId,
+            receiver_id: student.parent_id,
+            subject: 'اطلاعیه غیبت',
+            content: `دانش‌آموز ${student.full_name} در تاریخ ${rec.date} ${
+              rec.status === 'absent' ? 'غایب' :
+              rec.status === 'late' ? 'تأخیر داشت' : 'وضعیت خاص داشت'
+            }.${rec.notes ? ` توضیح: ${rec.notes}` : ''}`,
+            is_read: false,
+          }).catch(() => {}) // بدون خطای بلاک‌کننده
+        }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      saved: rows.length,
+      notified: absentRecords.length,
     })
-  } catch (error: any) {
-    console.error('Error saving attendance:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
+  }, { roles: TEACHER_AND_ABOVE })
 }
-
-// PATCH: بروزرسانی رکورد (پیگیری)
-export async function PATCH(request: Request) {
-  try {
-    const supabase = createServerClient()
-    const body = await request.json()
-    
-    const { id, ...updates } = body
-    
-    if (!id) {
-      return NextResponse.json({ error: 'Record ID is required' }, { status: 400 })
-    }
-    
-    // دریافت کاربر جاری
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    
-    // دریافت پروفایل کاربر
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, school_id')
-      .eq('id', user.id)
-      .single()
-    
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
-    }
-    
-    // بررسی دسترسی برای پیگیری
-    if (!['discipline_vp', 'principal', 'counselor', 'admin'].includes(profile.role)) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
-    }
-    
-    // اگر پیگیری است، اطلاعات پیگیری‌کننده را اضافه کن
-    if (updates.followed_up === true) {
-      updates.followed_up_by = user.id
-      updates.followed_up_at = new Date().toISOString()
-    }
-    
-    updates.updated_at = new Date().toISOString()
-    
-    const { data, error } = await supabase
-      .from('attendance')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-    
-    if (error) throw error
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'رکورد با موفقیت بروزرسانی شد',
-      data 
-    })
-  } catch (error: any) {
-    console.error('Error updating attendance:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-

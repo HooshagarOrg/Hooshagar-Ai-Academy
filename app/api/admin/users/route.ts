@@ -1,0 +1,245 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard'
+
+// ============================================
+// GET: لیست کاربران
+// ============================================
+export async function GET(request: NextRequest) {
+  return withAuth(
+    request,
+    async () => {
+      const supabase = await createClient()
+      const { searchParams } = new URL(request.url)
+
+      const role = searchParams.get('role')
+      const search = searchParams.get('search')
+      const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 200)
+      const offset = parseInt(searchParams.get('offset') || '0')
+
+      let query = supabase
+        .from('profiles')
+        .select('id, email, full_name, role, username, phone, is_staff, school_id, created_at, last_login_at, must_change_password', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1)
+
+      if (role && role !== 'all') query = query.eq('role', role)
+      if (search) {
+        query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,username.ilike.%${search}%`)
+      }
+
+      const { data, error, count } = await query
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      // آمار کلی
+      const { data: roleStats } = await supabase
+        .from('profiles')
+        .select('role')
+
+      const stats = (roleStats || []).reduce((acc: Record<string, number>, p) => {
+        acc[p.role] = (acc[p.role] || 0) + 1
+        return acc
+      }, {})
+
+      return NextResponse.json({
+        users: data || [],
+        total: count || 0,
+        stats,
+      })
+    },
+    { roles: ADMIN_ROLES, rateLimit: 'admin_action' }
+  )
+}
+
+// ============================================
+// POST: ساخت کاربر جدید
+// با پشتیبانی از:
+// - دانش‌آموز: ساخت رکورد در students با student_number/pin/grade
+// - والد: اتصال به دانش‌آموزان (parent_student_ids)
+// - کارکنان: ساخت با username + رمز موقت
+// ============================================
+export async function POST(request: NextRequest) {
+  return withAuth(
+    request,
+    async () => {
+      const body = await request.json()
+      const {
+        email, password, full_name, role, username, phone, school_id,
+        // فیلدهای اضافی برای دانش‌آموز
+        student_number, pin, grade, education_stage, parent_id,
+        // فیلد اضافی برای والد
+        children_ids, // آرایه‌ای از student_id ها
+      } = body
+
+      if (!email || !password || !full_name || !role) {
+        return NextResponse.json({ error: 'نام، ایمیل، رمز و نقش الزامی است' }, { status: 400 })
+      }
+
+      // ساخت کاربر در auth با service role
+      const { createClient: createAdminClient } = await import('@supabase/supabase-js')
+      const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      )
+
+      // 1. ساخت auth.user
+      const { data: authUser, error: authError } = await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      })
+
+      if (authError) {
+        return NextResponse.json({ error: authError.message }, { status: 400 })
+      }
+
+      const userId = authUser.user.id
+
+      // 2. ساخت پروفایل
+      const isStaff = ['admin', 'platform_admin', 'principal', 'teacher', 'counselor',
+                       'health_vp', 'educational_vp', 'financial_vp', 'disciplinary_vp',
+                       'evaluation_vp', 'art_teacher', 'sports_teacher', 'secretary',
+                       'librarian', 'security', 'maintenance'].includes(role)
+
+      const { error: profileError } = await admin
+        .from('profiles')
+        .upsert({
+          id: userId,
+          email,
+          full_name,
+          role,
+          username: username || null,
+          phone: phone || null,
+          school_id: school_id || null,
+          is_staff: isStaff,
+          must_change_password: !isStaff && role !== 'student' ? false : true,
+        })
+
+      if (profileError) {
+        // در صورت خطا، کاربر auth را حذف کن
+        await admin.auth.admin.deleteUser(userId).catch(() => {})
+        return NextResponse.json({ error: 'خطا در ساخت پروفایل: ' + profileError.message }, { status: 400 })
+      }
+
+      // 3. اقدامات اضافی بر اساس نقش
+      if (role === 'student') {
+        // ساخت رکورد در جدول students
+        const studentNum = student_number || `STD${Date.now().toString().slice(-8)}`
+        const studentPin = pin || Math.floor(1000 + Math.random() * 9000).toString()
+
+        const { error: studentError } = await admin
+          .from('students')
+          .insert({
+            user_id: userId,
+            parent_id: parent_id || null,
+            full_name,
+            student_number: studentNum,
+            pin_hash: Buffer.from(studentPin).toString('base64'),
+            phone: phone || null,
+            grade: grade || 1,
+            school_id: school_id || null,
+            education_stage: education_stage || null,
+            can_login: true,
+            status: 'active',
+          })
+
+        if (studentError) {
+          await admin.from('profiles').delete().eq('id', userId).catch(() => {})
+          await admin.auth.admin.deleteUser(userId).catch(() => {})
+          return NextResponse.json({
+            error: 'خطا در ساخت رکورد دانش‌آموز: ' + studentError.message
+          }, { status: 400 })
+        }
+
+        return NextResponse.json({
+          success: true,
+          user_id: userId,
+          student_number: studentNum,
+          pin: studentPin,
+          message: `دانش‌آموز ساخته شد. کد: ${studentNum} | PIN: ${studentPin}`
+        })
+      }
+
+      if (role === 'parent' && Array.isArray(children_ids) && children_ids.length > 0) {
+        // اتصال والد به فرزندان
+        const { error: linkError } = await admin
+          .from('students')
+          .update({ parent_id: userId })
+          .in('id', children_ids)
+
+        if (linkError) {
+          console.error('خطا در اتصال والد به فرزندان:', linkError)
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        user_id: userId,
+        message: 'کاربر با موفقیت ساخته شد'
+      })
+    },
+    { roles: ADMIN_ROLES, rateLimit: 'admin_action' }
+  )
+}
+
+// ============================================
+// PATCH: بروزرسانی کاربر
+// ============================================
+export async function PATCH(request: NextRequest) {
+  return withAuth(
+    request,
+    async () => {
+      const body = await request.json()
+      const { id, ...updates } = body
+
+      if (!id) return NextResponse.json({ error: 'شناسه کاربر الزامی' }, { status: 400 })
+
+      const { createClient: createAdminClient } = await import('@supabase/supabase-js')
+      const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      )
+
+      const { error } = await admin.from('profiles').update(updates).eq('id', id)
+
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+      return NextResponse.json({ success: true })
+    },
+    { roles: ADMIN_ROLES, rateLimit: 'admin_action' }
+  )
+}
+
+// ============================================
+// DELETE: حذف کاربر
+// ============================================
+export async function DELETE(request: NextRequest) {
+  return withAuth(
+    request,
+    async () => {
+      const { searchParams } = new URL(request.url)
+      const id = searchParams.get('id')
+
+      if (!id) return NextResponse.json({ error: 'شناسه کاربر الزامی' }, { status: 400 })
+
+      const { createClient: createAdminClient } = await import('@supabase/supabase-js')
+      const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      )
+
+      const { error } = await admin.auth.admin.deleteUser(id)
+
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+      return NextResponse.json({ success: true })
+    },
+    { roles: ADMIN_ROLES, rateLimit: 'admin_action' }
+  )
+}

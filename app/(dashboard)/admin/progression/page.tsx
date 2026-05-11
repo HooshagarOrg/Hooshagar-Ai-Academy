@@ -171,24 +171,24 @@ export default function ProgressionPage() {
           { key: 'manage', label: 'مدیریت ارتقاء', icon: GraduationCap },
           { key: 'history', label: 'تاریخچه', icon: History },
         ].map(tab => {
-          const Icon = tab.icon
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as typeof activeTab)}
+              const Icon = tab.icon
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as typeof activeTab)}
               className={cn(
                 'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
-                activeTab === tab.key
+                    activeTab === tab.key
                   ? 'border-emerald-500 text-emerald-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               )}
-            >
-              <Icon className="w-4 h-4" />
+                >
+                  <Icon className="w-4 h-4" />
               {tab.label}
-            </button>
-          )
-        })}
-      </div>
+                </button>
+              )
+            })}
+          </div>
 
       {activeTab === 'manage' && (
         <div className="space-y-5">
@@ -210,8 +210,8 @@ export default function ProgressionPage() {
                     <p className="text-xs text-gray-500">{s.label}</p>
                   </div>
                 ))}
-              </div>
-            </div>
+                  </div>
+                </div>
           )}
 
           {/* آمار کلی */}
@@ -245,7 +245,7 @@ export default function ProgressionPage() {
                   placeholder="مثال: 1403-1404"
                   className="mt-1"
                 />
-              </div>
+                        </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">حالت ارتقاء</label>
                 <Select value={progressionMode} onValueChange={v => setProgressionMode(v as typeof progressionMode)}>
@@ -258,7 +258,7 @@ export default function ProgressionPage() {
                     <SelectItem value="all">همه دانش‌آموزان (بدون شرط)</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+                      </div>
               <div className="flex items-end">
                 <Button
                   onClick={() => setShowConfirm(true)}
@@ -274,9 +274,9 @@ export default function ProgressionPage() {
                     ` (${selectedIds.size} نفر)`
                   }
                 </Button>
-              </div>
-            </div>
-          </div>
+                    </div>
+                  </div>
+                </div>
 
           {/* فیلترها */}
           <div className="flex flex-col sm:flex-row gap-3">
@@ -287,8 +287,8 @@ export default function ProgressionPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="pr-9"
-              />
-            </div>
+                      />
+                    </div>
             <Select value={gradeFilter} onValueChange={setGradeFilter}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="پایه" />
@@ -320,7 +320,7 @@ export default function ProgressionPage() {
             <Button variant="outline" size="sm" onClick={fetchStudents}>
               <RefreshCw className="w-4 h-4" />
             </Button>
-          </div>
+                    </div>
 
           {/* جدول */}
           {isLoading ? (
@@ -337,7 +337,7 @@ export default function ProgressionPage() {
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
               {/* هدر جدول */}
               <div className="flex items-center gap-3 px-5 py-3 bg-gray-50 border-b border-gray-100">
-                <input
+                      <input
                   type="checkbox"
                   checked={selectedIds.size === filtered.length && filtered.length > 0}
                   onChange={toggleSelectAll}
@@ -346,7 +346,7 @@ export default function ProgressionPage() {
                 <span className="text-sm text-gray-500">
                   {selectedIds.size > 0 ? `${selectedIds.size} نفر انتخاب شده` : `${filtered.length} دانش‌آموز`}
                 </span>
-              </div>
+                    </div>
 
               <div className="divide-y divide-gray-50">
                 {filtered.map(student => (
@@ -357,7 +357,7 @@ export default function ProgressionPage() {
                       selectedIds.has(student.id) && 'bg-emerald-50'
                     )}
                   >
-                    <input
+                      <input
                       type="checkbox"
                       checked={selectedIds.has(student.id)}
                       onChange={() => toggleSelect(student.id)}
@@ -366,7 +366,7 @@ export default function ProgressionPage() {
 
                     <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                       <GraduationCap className="w-4 h-4 text-emerald-600" />
-                    </div>
+                  </div>
 
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 text-sm">{student.full_name}</p>
@@ -387,12 +387,12 @@ export default function ProgressionPage() {
                           {student.avg_grade > 0 ? student.avg_grade.toFixed(1) : '-'}
                         </p>
                         <p className="text-xs text-gray-400">میانگین</p>
-                      </div>
+                    </div>
 
                       <div className="flex items-center gap-1">
                         <ArrowUp className="w-3 h-3 text-gray-400" />
                         <span className="text-xs text-gray-500">پایه {student.grade + 1}</span>
-                      </div>
+                    </div>
 
                       {student.eligible ? (
                         <Badge className="bg-emerald-100 text-emerald-700 text-xs gap-1">
@@ -408,13 +408,13 @@ export default function ProgressionPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
+                  </div>
+                </div>
           )}
-        </div>
-      )}
+              </div>
+            )}
 
-      {activeTab === 'history' && (
+            {activeTab === 'history' && (
         <ProgressionHistory />
       )}
 
@@ -486,7 +486,7 @@ function ProgressionHistory() {
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-      </div>
+                </div>
     )
   }
 
@@ -507,7 +507,7 @@ function ProgressionHistory() {
           <div key={h.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50">
             <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
               <ArrowUp className="w-4 h-4 text-emerald-600" />
-            </div>
+                  </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-800">
                 {(h.students as { profiles?: { full_name: string } } | null)?.profiles?.full_name || 'نامشخص'}
@@ -515,7 +515,7 @@ function ProgressionHistory() {
               <p className="text-xs text-gray-500">
                 پایه {h.from_grade} → پایه {h.to_grade} • {h.academic_year}
               </p>
-            </div>
+                </div>
             <div className="flex items-center gap-2">
               <Badge className="text-xs bg-gray-100 text-gray-600">{h.progression_type === 'normal' ? 'عادی' : h.progression_type}</Badge>
               <Badge className={cn(
@@ -525,7 +525,7 @@ function ProgressionHistory() {
                 {h.status === 'completed' ? 'موفق' : 'ناموفق'}
               </Badge>
               <span className="text-xs text-gray-400">{formatDate(h.progression_date)}</span>
-            </div>
+              </div>
           </div>
         ))}
       </div>

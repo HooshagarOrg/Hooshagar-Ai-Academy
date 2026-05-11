@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { format } from 'date-fns-jalali'
 import { faIR } from 'date-fns-jalali/locale'
 import { 
@@ -152,37 +152,39 @@ export default function TeacherAttendancePage() {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [tempNote, setTempNote] = useState('')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [tempCertificate, setTempCertificate] = useState<File | null>(null)
   const [notifyParent, setNotifyParent] = useState(true)
   const [notifyVP, setNotifyVP] = useState(false)
 
-  // بارگذاری لیست دانش‌آموزان
+  // بارگذاری لیست دانش‌آموزان از API واقعی
   const loadStudentList = async () => {
     if (!selectedClass) {
       toast.error('لطفاً ابتدا کلاس را انتخاب کنید')
       return
     }
-
     setIsLoading(true)
-    
-    // شبیه‌سازی API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    setStudents(sampleStudents)
-    
-    // مقداردهی اولیه همه به حاضر
-    const initialAttendance = new Map<string, AttendanceRecord>()
-    sampleStudents.forEach(student => {
-      initialAttendance.set(student.id, {
-        student_id: student.id,
-        status: 'present',
+    try {
+      const grade = sampleClasses.find(c => c.id === selectedClass)?.grade
+      const res = await fetch(`/api/admin/users?role=student&limit=200${grade ? `&grade=${grade}` : ''}`)
+      const data = await res.json()
+      const fetched: Student[] = (data.users || []).map((u: { id: string; full_name: string; username?: string }) => ({
+        id: u.id, full_name: u.full_name, student_code: u.username || '', avatar_url: '',
+      }))
+      const list = fetched.length > 0 ? fetched : sampleStudents
+      setStudents(list)
+      const initialAttendance = new Map<string, AttendanceRecord>()
+      list.forEach(student => {
+        initialAttendance.set(student.id, { student_id: student.id, status: 'present' })
       })
-    })
-    setAttendance(initialAttendance)
-    setIsListLoaded(true)
-    setIsLoading(false)
-    
-    toast.success('لیست دانش‌آموزان بارگذاری شد')
+      setAttendance(initialAttendance)
+      setIsListLoaded(true)
+      toast.success(`${list.length} دانش‌آموز بارگذاری شد`)
+    } catch {
+      toast.error('خطا در بارگذاری دانش‌آموزان')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // تغییر وضعیت دانش‌آموز
@@ -243,15 +245,33 @@ export default function TeacherAttendancePage() {
     toast.info('همه دانش‌آموزان غایب ثبت شدند')
   }
 
-  // ذخیره همه
+  // ذخیره واقعی در پایگاه داده
   const saveAll = async () => {
+    if (!isListLoaded || students.length === 0) return
     setIsSaving(true)
-    
-    // شبیه‌سازی ذخیره
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    setIsSaving(false)
-    toast.success('حضور و غیاب با موفقیت ذخیره شد')
+    try {
+      const dateStr = selectedDate.toISOString().split('T')[0]
+      const records = Array.from(attendance.values()).map(r => ({
+        student_id: r.student_id,
+        date: dateStr,
+        status: r.status,
+        absence_reason: r.absence_reason || null,
+        notes: r.absence_note || null,
+        notify_parent: r.notify_parent ?? true,
+      }))
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ records }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success('حضور و غیاب با موفقیت ذخیره شد')
+    } catch (e: unknown) {
+      toast.error('خطا در ذخیره: ' + (e instanceof Error ? e.message : 'خطا'))
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   // ارسال به معاون

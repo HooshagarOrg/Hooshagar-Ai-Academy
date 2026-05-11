@@ -28,74 +28,55 @@ import {
 } from 'lucide-react'
 
 // ============================================
-// داده‌های نمونه (Mock Data)
 // ============================================
-const studentName = 'علی کریمی'
-const studentGrade = 5
-const studentClass = 'پنجم الف'
+// کامپوننت اصلی — داده‌ها از API دریافت می‌شوند
+// ============================================
+type RealGrade = { id: string; subject: string; score: number; max_score: number; exam_date: string; exam_type: string }
+type RealExam  = { id: string; title: string; subject: string; status: string; start_time: string }
+
+// برنامه کلاسی امروز (در آینده از API دریافت می‌شود)
+const todaySchedule: {id:string;subject:string;time:string;teacher:string;icon:string;color:string}[] = []
+
+// مقادیر پیش‌فرض XP تا اتصال به سیستم گیمیفیکیشن
+const xpData = { totalXp: 0, level: 1, levelTitle: 'تازه‌کار', xpForNextLevel: 100, xpInCurrentLevel: 0, rank: 0 }
 const studentAvatar = '🧑‍🎓'
-
-// XP و Level
-const xpData = {
-  totalXp: 1250,
-  level: 5,
-  levelTitle: 'نابغه',
-  xpForNextLevel: 250,
-  xpInCurrentLevel: 150,
-  rank: 3,
-}
-
-// تکالیف نمونه
-const mockHomework = [
-  { id: '1', subject: 'ریاضی', title: 'حل تمرینات صفحه ۴۵', dueDate: 'امروز', done: true },
-  { id: '2', subject: 'فارسی', title: 'نوشتن انشا درباره طبیعت', dueDate: 'امروز', done: false },
-  { id: '3', subject: 'علوم', title: 'خواندن فصل ۶', dueDate: 'فردا', done: false },
-  { id: '4', subject: 'اجتماعی', title: 'تحقیق درباره جنگل‌های ایران', dueDate: 'فردا', done: false },
-]
-
-// نمرات اخیر
-const recentGrades = [
-  { id: '1', subject: 'ریاضی', score: 18.5, maxScore: 20, date: '۱۴۰۳/۰۹/۱۵', type: 'آزمون' },
-  { id: '2', subject: 'علوم', score: 19.0, maxScore: 20, date: '۱۴۰۳/۰۹/۱۲', type: 'کلاسی' },
-  { id: '3', subject: 'فارسی', score: 17.0, maxScore: 20, date: '۱۴۰۳/۰۹/۱۰', type: 'تکلیف' },
-  { id: '4', subject: 'قرآن', score: 20.0, maxScore: 20, date: '۱۴۰۳/۰۹/۰۸', type: 'شفاهی' },
-  { id: '5', subject: 'هنر', score: 18.0, maxScore: 20, date: '۱۴۰۳/۰۹/۰۵', type: 'پروژه' },
-]
-
-// برنامه کلاسی امروز
-const todaySchedule = [
-  { id: '1', subject: 'ریاضی', time: '۸:۰۰ - ۸:۴۵', teacher: 'آقای احمدی', icon: '🔢', color: 'bg-blue-500' },
-  { id: '2', subject: 'فارسی', time: '۹:۰۰ - ۹:۴۵', teacher: 'خانم رضایی', icon: '📚', color: 'bg-green-500' },
-  { id: '3', subject: 'ورزش', time: '۱۰:۰۰ - ۱۰:۴۵', teacher: 'آقای محمدی', icon: '⚽', color: 'bg-orange-500' },
-  { id: '4', subject: 'علوم', time: '۱۱:۰۰ - ۱۱:۴۵', teacher: 'خانم کریمی', icon: '🔬', color: 'bg-purple-500' },
-  { id: '5', subject: 'هنر', time: '۱۲:۰۰ - ۱۲:۴۵', teacher: 'خانم نوری', icon: '🎨', color: 'bg-pink-500' },
-]
+const studentGrade = '—'
+const studentClass = '—'
 
 // ============================================
 // کامپوننت اصلی
 // ============================================
 export default function StudentDashboardPage() {
-  const [homework, setHomework] = useState(mockHomework)
+  const [homework, setHomework] = useState<{id:string;subject:string;title:string;dueDate:string;done:boolean}[]>([])
   const [currentTime] = useState(new Date())
+  const [recentGrades, setRecentGrades] = useState<RealGrade[]>([])
+  const [upcomingExams, setUpcomingExams]  = useState<RealExam[]>([])
+  const [profileName, setProfileName] = useState('')
 
-  // Toggle homework done status
+  // بارگذاری داده‌های واقعی
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/grades').then(r => r.json()),
+      fetch('/api/exams?filter=upcoming').then(r => r.json()),
+      fetch('/api/profile').then(r => r.json()).catch(() => ({})),
+    ]).then(([gData, eData, pData]) => {
+      setRecentGrades((gData.grades || []).slice(0, 5))
+      setUpcomingExams((eData.exams || []).slice(0, 3))
+      if (pData?.full_name) setProfileName(pData.full_name)
+    }).catch(() => {})
+  }, [])
+
   const toggleHomework = (id: string) => {
-    setHomework(prev =>
-      prev.map(hw =>
-        hw.id === id ? { ...hw, done: !hw.done } : hw
-      )
-    )
+    setHomework(prev => prev.map(hw => hw.id === id ? { ...hw, done: !hw.done } : hw))
   }
 
-  // محاسبه پیشرفت تکالیف
-  const homeworkProgress = Math.round(
-    (homework.filter(hw => hw.done).length / homework.length) * 100
-  )
+  const homeworkProgress = homework.length > 0
+    ? Math.round((homework.filter(hw => hw.done).length / homework.length) * 100)
+    : 0
 
-  // محاسبه میانگین نمرات
-  const averageGrade = (
-    recentGrades.reduce((sum, g) => sum + g.score, 0) / recentGrades.length
-  ).toFixed(1)
+  const averageGrade = recentGrades.length > 0
+    ? (recentGrades.reduce((sum, g) => sum + (g.score / g.max_score) * 20, 0) / recentGrades.length).toFixed(1)
+    : '—'
 
   // فرمت تاریخ شمسی
   const formatPersianDate = () => {
@@ -215,7 +196,7 @@ export default function StudentDashboardPage() {
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                  سلام، {studentName}! 👋
+                  سلام، {profileName || 'دانش‌آموز'}! 👋
                 </h1>
                 <p className="text-white/70">
                   <span className="bg-white/20 px-3 py-1 rounded-full text-sm ml-2">

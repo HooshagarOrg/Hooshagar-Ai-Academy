@@ -78,6 +78,7 @@ const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'نظارت سیستم',
       items: [
+        { title: 'گزارش تحلیلی', href: '/admin/analytics', icon: BarChart3 },
         { title: 'جریان داده', href: '/admin/data-flow', icon: Activity },
         { title: 'امنیت', href: '/admin/security', icon: Shield },
       ]

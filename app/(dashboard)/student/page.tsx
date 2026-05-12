@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   BookOpen,
@@ -29,19 +29,22 @@ import {
 
 // ============================================
 // ============================================
-// کامپوننت اصلی — داده‌ها از API دریافت می‌شوند
+// تایپ‌ها
 // ============================================
 type RealGrade = { id: string; subject: string; score: number; max_score: number; exam_date: string; exam_type: string }
 type RealExam  = { id: string; title: string; subject: string; status: string; start_time: string }
+type XPData    = { xp: number; level: number; coins: number; current_streak: number; longest_streak: number; xp_progress: { current: number; needed: number } }
 
-// برنامه کلاسی امروز (در آینده از API دریافت می‌شود)
 const todaySchedule: {id:string;subject:string;time:string;teacher:string;icon:string;color:string}[] = []
 
-// مقادیر پیش‌فرض XP تا اتصال به سیستم گیمیفیکیشن
-const xpData = { totalXp: 0, level: 1, levelTitle: 'تازه‌کار', xpForNextLevel: 100, xpInCurrentLevel: 0, rank: 0 }
-const studentAvatar = '🧑‍🎓'
-const studentGrade = '—'
-const studentClass = '—'
+function getLevelTitle(level: number): string {
+  if (level <= 1) return 'تازه‌کار'
+  if (level <= 2) return 'دانش‌آموز'
+  if (level <= 3) return 'دانش‌پژوه'
+  if (level <= 4) return 'پژوهشگر'
+  if (level <= 5) return 'دانشمند'
+  return 'نابغه'
+}
 
 // ============================================
 // کامپوننت اصلی
@@ -52,18 +55,30 @@ export default function StudentDashboardPage() {
   const [recentGrades, setRecentGrades] = useState<RealGrade[]>([])
   const [upcomingExams, setUpcomingExams]  = useState<RealExam[]>([])
   const [profileName, setProfileName] = useState('')
+  const [xpData, setXpData] = useState<XPData>({
+    xp: 0, level: 1, coins: 0, current_streak: 0, longest_streak: 0,
+    xp_progress: { current: 0, needed: 100 }
+  })
+  const studentAvatar = '🧑‍🎓'
+  const studentGrade  = '—'
+  const studentClass  = '—'
 
-  // بارگذاری داده‌های واقعی
   useEffect(() => {
+    // ورود روزانه + دریافت XP
+    fetch('/api/gamification/daily-xp', { method: 'POST' }).catch(() => {})
+
+    // بارگذاری موازی داده‌ها
     Promise.all([
-      fetch('/api/grades').then(r => r.json()),
-      fetch('/api/exams?filter=upcoming').then(r => r.json()),
+      fetch('/api/grades').then(r => r.json()).catch(() => ({ grades: [] })),
+      fetch('/api/exams?filter=upcoming').then(r => r.json()).catch(() => ({ exams: [] })),
       fetch('/api/profile').then(r => r.json()).catch(() => ({})),
-    ]).then(([gData, eData, pData]) => {
+      fetch('/api/xp/balance').then(r => r.json()).catch(() => null),
+    ]).then(([gData, eData, pData, xData]) => {
       setRecentGrades((gData.grades || []).slice(0, 5))
       setUpcomingExams((eData.exams || []).slice(0, 3))
       if (pData?.full_name) setProfileName(pData.full_name)
-    }).catch(() => {})
+      if (xData && !xData.error) setXpData(xData)
+    })
   }, [])
 
   const toggleHomework = (id: string) => {
@@ -88,10 +103,10 @@ export default function StudentDashboardPage() {
     }).format(currentTime)
   }
 
-  // Get level progress percentage
-  const levelProgress = Math.round(
-    (xpData.xpInCurrentLevel / (xpData.xpInCurrentLevel + xpData.xpForNextLevel)) * 100
-  )
+  const levelProgress = xpData.xp_progress.needed > 0
+    ? Math.round((xpData.xp_progress.current / xpData.xp_progress.needed) * 100)
+    : 0
+  const levelTitle = getLevelTitle(xpData.level)
 
   // ابزارهای یادگیری
   const learningTools = [
@@ -145,14 +160,13 @@ export default function StudentDashboardPage() {
     },
   ]
 
-  // آمار کلی
   const stats = [
     { 
       label: 'امتیاز XP', 
-      value: xpData.totalXp.toLocaleString('fa-IR'), 
+      value: xpData.xp.toLocaleString('fa-IR'), 
       icon: <Zap className="w-6 h-6" />, 
       color: 'bg-yellow-500',
-      subtext: `سطح ${xpData.level} - ${xpData.levelTitle}`,
+      subtext: `سطح ${xpData.level} - ${levelTitle}`,
       badge: `Lv.${xpData.level}`
     },
     { 
@@ -170,11 +184,11 @@ export default function StudentDashboardPage() {
       subtext: 'انجام شده'
     },
     { 
-      label: 'رتبه در کلاس', 
-      value: `#${xpData.rank}`, 
+      label: 'روزهای متوالی', 
+      value: `${xpData.current_streak} 🔥`, 
       icon: <Medal className="w-6 h-6" />, 
       color: 'bg-purple-500',
-      subtext: 'از ۳۲ نفر'
+      subtext: `بیشترین: ${xpData.longest_streak} روز`
     },
   ]
 
@@ -191,7 +205,7 @@ export default function StudentDashboardPage() {
                   {studentAvatar}
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                  Lv.{xpData.level}
+                  Lv.{xpData.level} {levelTitle}
                 </div>
               </div>
               <div>
@@ -214,7 +228,7 @@ export default function StudentDashboardPage() {
               <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl px-4 py-2 border border-yellow-500/30">
                 <div className="flex items-center gap-2">
                   <Zap className="w-5 h-5 text-yellow-400" />
-                  <span className="text-yellow-400 font-bold">{xpData.totalXp} XP</span>
+                  <span className="text-yellow-400 font-bold">{xpData.xp.toLocaleString('fa-IR')} XP</span>
                 </div>
                 <div className="h-1.5 bg-white/20 rounded-full mt-1 w-24 overflow-hidden">
                   <div 
@@ -411,7 +425,7 @@ export default function StudentDashboardPage() {
                     </td>
                     <td className="py-3 text-center">
                       <span className="bg-white/10 text-white/70 text-xs px-2 py-1 rounded">
-                        {grade.type}
+                        {grade.exam_type || '—'}
                       </span>
                     </td>
                     <td className="py-3 text-center">
@@ -421,9 +435,11 @@ export default function StudentDashboardPage() {
                       }`}>
                         {grade.score}
                       </span>
-                      <span className="text-white/40 text-xs">/{grade.maxScore}</span>
+                      <span className="text-white/40 text-xs">/{grade.max_score || 20}</span>
                     </td>
-                    <td className="py-3 text-center text-white/60 text-sm">{grade.date}</td>
+                    <td className="py-3 text-center text-white/60 text-sm">
+                      {grade.exam_date ? new Date(grade.exam_date).toLocaleDateString('fa-IR') : '—'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -445,13 +461,10 @@ export default function StudentDashboardPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {learningTools.map((tool, index) => (
-              <Link
-                key={index}
-                href={tool.disabled ? '#' : tool.href}
-                className={`bg-gradient-to-br ${tool.color} rounded-2xl p-4 text-center transition-all group relative overflow-hidden
-                  ${tool.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 hover:shadow-xl cursor-pointer'}
-                `}
-                onClick={(e) => tool.disabled && e.preventDefault()}
+            <Link
+              key={index}
+              href={tool.href}
+              className={`bg-gradient-to-br ${tool.color} rounded-2xl p-4 text-center transition-all group relative overflow-hidden hover:scale-105 hover:shadow-xl cursor-pointer`}
               >
                 {/* Background decoration */}
                 <div className="absolute top-0 left-0 w-full h-full opacity-20">
@@ -483,16 +496,16 @@ export default function StudentDashboardPage() {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-white">باغ استعداد</h3>
-                <p className="text-white/80">امتیاز جمع کن، سطح بالا ببر، نشان بگیر!</p>
-              </div>
+              <p className="text-white/80">امتیاز جمع کن، سطح بالا ببر، نشان بگیر!</p>
             </div>
-            <div className="text-left">
-              <p className="text-white/80 text-sm">امتیاز فعلی</p>
-              <p className="text-white text-3xl font-bold">{xpData.totalXp} XP</p>
-              <div className="flex items-center gap-1 mt-1">
-                <Award className="w-4 h-4 text-yellow-300" />
-                <span className="text-yellow-300 text-sm">رتبه {xpData.rank}</span>
-              </div>
+          </div>
+          <div className="text-left">
+            <p className="text-white/80 text-sm">امتیاز فعلی</p>
+            <p className="text-white text-3xl font-bold">{xpData.xp.toLocaleString('fa-IR')} XP</p>
+            <div className="flex items-center gap-1 mt-1">
+              <Award className="w-4 h-4 text-yellow-300" />
+              <span className="text-yellow-300 text-sm">{levelTitle}</span>
+            </div>
             </div>
             <ChevronLeft className="w-8 h-8 text-white/50 group-hover:translate-x-[-4px] transition-transform" />
           </div>

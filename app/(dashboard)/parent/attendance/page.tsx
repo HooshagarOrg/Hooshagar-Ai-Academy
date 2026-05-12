@@ -1,423 +1,228 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import {
-  Calendar,
-  CheckCircle,
-  XCircle,
-  Clock,
-  FileCheck,
-  Stethoscope,
-  TrendingUp,
-  TrendingDown,
-  Download,
-  
-  ChevronLeft
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useEffect, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts'
+import { CheckCircle2, XCircle, Clock, Users, Calendar, TrendingUp } from 'lucide-react'
 
-// Types
 interface AttendanceRecord {
   id: string
   date: string
-  dayOfWeek: string
-  status: 'present' | 'absent' | 'late' | 'excused' | 'sick'
-  absence_reason?: string
-  absence_note?: string
+  status: 'present' | 'absent' | 'late' | 'excused'
+  notes?: string
+  student_name?: string
 }
 
-interface MonthlyStats {
-  month: string
-  presentDays: number
-  absentDays: number
-  lateDays: number
-  sickDays: number
-  excusedDays: number
-  totalDays: number
-  attendancePercentage: number
+interface Child {
+  id: string
+  full_name: string
+  grade: number
+  attendance: AttendanceRecord[]
+  stats: { total: number; present: number; absent: number; late: number }
 }
 
-// داده نمونه
-const sampleRecords: AttendanceRecord[] = [
-  { id: '1', date: '1403/09/15', dayOfWeek: 'یکشنبه', status: 'present' },
-  { id: '2', date: '1403/09/14', dayOfWeek: 'شنبه', status: 'present' },
-  { id: '3', date: '1403/09/13', dayOfWeek: 'پنج‌شنبه', status: 'present' },
-  { id: '4', date: '1403/09/12', dayOfWeek: 'چهارشنبه', status: 'late', absence_note: '10 دقیقه تأخیر' },
-  { id: '5', date: '1403/09/11', dayOfWeek: 'سه‌شنبه', status: 'present' },
-  { id: '6', date: '1403/09/10', dayOfWeek: 'دوشنبه', status: 'sick', absence_reason: 'مریضی', absence_note: 'سرماخوردگی' },
-  { id: '7', date: '1403/09/09', dayOfWeek: 'یکشنبه', status: 'sick', absence_reason: 'مریضی' },
-  { id: '8', date: '1403/09/08', dayOfWeek: 'شنبه', status: 'present' },
-  { id: '9', date: '1403/09/07', dayOfWeek: 'پنج‌شنبه', status: 'present' },
-  { id: '10', date: '1403/09/06', dayOfWeek: 'چهارشنبه', status: 'present' },
-  { id: '11', date: '1403/09/05', dayOfWeek: 'سه‌شنبه', status: 'excused', absence_reason: 'مراسم خانوادگی' },
-  { id: '12', date: '1403/09/04', dayOfWeek: 'دوشنبه', status: 'present' },
-  { id: '13', date: '1403/09/03', dayOfWeek: 'یکشنبه', status: 'present' },
-  { id: '14', date: '1403/09/02', dayOfWeek: 'شنبه', status: 'present' },
-  { id: '15', date: '1403/09/01', dayOfWeek: 'پنج‌شنبه', status: 'present' },
-]
+const statusLabel: Record<string, string> = {
+  present: 'حاضر',
+  absent: 'غایب',
+  late: 'تأخیر',
+  excused: 'موجه',
+}
 
-const monthlyTrendData = [
-  { month: 'شهریور', rate: 95 },
-  { month: 'مهر', rate: 92 },
-  { month: 'آبان', rate: 88 },
-  { month: 'آذر', rate: 90 },
-]
+const statusColor: Record<string, string> = {
+  present: 'bg-green-100 text-green-800',
+  absent: 'bg-red-100 text-red-800',
+  late: 'bg-yellow-100 text-yellow-800',
+  excused: 'bg-blue-100 text-blue-800',
+}
 
-const statusConfig = {
-  present: { label: 'حاضر', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  absent: { label: 'غایب', color: 'bg-red-100 text-red-700', icon: XCircle },
-  late: { label: 'تأخیر', color: 'bg-orange-100 text-orange-700', icon: Clock },
-  excused: { label: 'با اجازه', color: 'bg-blue-100 text-blue-700', icon: FileCheck },
-  sick: { label: 'بیمار', color: 'bg-yellow-100 text-yellow-700', icon: Stethoscope },
+const statusIcon: Record<string, React.ReactNode> = {
+  present: <CheckCircle2 className="w-4 h-4 text-green-600" />,
+  absent: <XCircle className="w-4 h-4 text-red-600" />,
+  late: <Clock className="w-4 h-4 text-yellow-600" />,
+  excused: <CheckCircle2 className="w-4 h-4 text-blue-600" />,
 }
 
 export default function ParentAttendancePage() {
-  const [selectedMonth, setSelectedMonth] = useState('1403/09')
-  const [records] = useState(sampleRecords)
+  const [children, setChildren] = useState<Child[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState<string>('')
 
-  // محاسبه آمار
-  const stats = useMemo(() => {
-    const total = records.length
-    const present = records.filter(r => r.status === 'present').length
-    const absent = records.filter(r => r.status === 'absent').length
-    const late = records.filter(r => r.status === 'late').length
-    const sick = records.filter(r => r.status === 'sick').length
-    const excused = records.filter(r => r.status === 'excused').length
-    
-    return {
-      total,
-      present,
-      absent,
-      late,
-      sick,
-      excused,
-      attendancePercentage: total > 0 ? Math.round((present / total) * 100) : 0,
+  useEffect(() => {
+    loadAttendance()
+  }, [])
+
+  async function loadAttendance() {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/parent/attendance')
+      const data = await res.json()
+      if (data.children) {
+        setChildren(data.children)
+        if (data.children.length > 0) setSelected(data.children[0].id)
+      }
+    } catch {
+      // اگر API وجود نداشت، داده نمونه نشان بده
+      setChildren([])
+    } finally {
+      setLoading(false)
     }
-  }, [records])
+  }
 
-  // داده نمودار دایره‌ای
-  const pieData = [
-    { name: 'حاضر', value: stats.present, color: '#22c55e' },
-    { name: 'غایب', value: stats.absent, color: '#ef4444' },
-    { name: 'تأخیر', value: stats.late, color: '#f97316' },
-    { name: 'بیمار', value: stats.sick, color: '#eab308' },
-    { name: 'با اجازه', value: stats.excused, color: '#3b82f6' },
-  ].filter(item => item.value > 0)
+  const activeChild = children.find(c => c.id === selected)
+
+  const attendancePercent = (child: Child) => {
+    if (!child.stats.total) return 0
+    return Math.round((child.stats.present / child.stats.total) * 100)
+  }
 
   return (
-    <div className="container mx-auto py-6 px-4">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div className="p-6 space-y-6" dir="rtl">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="bg-blue-100 p-3 rounded-xl">
+          <Calendar className="w-6 h-6 text-blue-600" />
+        </div>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-            <Calendar className="w-8 h-8 text-blue-500" />
-            گزارش حضور و غیاب
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            وضعیت حضور فرزند شما: علی رضایی - کلاس ششم الف
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1403/09">آذر 1403</SelectItem>
-              <SelectItem value="1403/08">آبان 1403</SelectItem>
-              <SelectItem value="1403/07">مهر 1403</SelectItem>
-              <SelectItem value="1403/06">شهریور 1403</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            دانلود گزارش
-          </Button>
+          <h1 className="text-2xl font-bold text-gray-900">حضور و غیاب فرزندان</h1>
+          <p className="text-gray-500 text-sm">وضعیت حضور و غیاب فرزندتان را مشاهده کنید</p>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm">حاضر</p>
-                <p className="text-3xl font-bold">{stats.present}</p>
-                <p className="text-green-100 text-xs">روز</p>
-              </div>
-              <CheckCircle className="w-10 h-10 opacity-50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-red-100 text-sm">غایب</p>
-                <p className="text-3xl font-bold">{stats.absent}</p>
-                <p className="text-red-100 text-xs">روز</p>
-              </div>
-              <XCircle className="w-10 h-10 opacity-50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-100 text-sm">تأخیر</p>
-                <p className="text-3xl font-bold">{stats.late}</p>
-                <p className="text-orange-100 text-xs">روز</p>
-              </div>
-              <Clock className="w-10 h-10 opacity-50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-yellow-100 text-sm">بیمار</p>
-                <p className="text-3xl font-bold">{stats.sick}</p>
-                <p className="text-yellow-100 text-xs">روز</p>
-              </div>
-              <Stethoscope className="w-10 h-10 opacity-50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm">با اجازه</p>
-                <p className="text-3xl font-bold">{stats.excused}</p>
-                <p className="text-blue-100 text-xs">روز</p>
-              </div>
-              <FileCheck className="w-10 h-10 opacity-50" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* جدول حضور */}
-          <Card>
-            <CardHeader>
-              <CardTitle>سوابق حضور و غیاب</CardTitle>
-              <CardDescription>لیست کامل وضعیت حضور در ماه جاری</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>تاریخ</TableHead>
-                      <TableHead>روز</TableHead>
-                      <TableHead>وضعیت</TableHead>
-                      <TableHead>علت</TableHead>
-                      <TableHead>توضیحات</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {records.map(record => {
-                      const config = statusConfig[record.status]
-                      const Icon = config.icon
-                      
-                      return (
-                        <TableRow key={record.id}>
-                          <TableCell className="font-medium">{record.date}</TableCell>
-                          <TableCell>{record.dayOfWeek}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={config.color}>
-                              <Icon className="w-3 h-3 ml-1" />
-                              {config.label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{record.absence_reason || '-'}</TableCell>
-                          <TableCell className="text-sm text-gray-500">
-                            {record.absence_note || '-'}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
         </div>
+      ) : children.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
+            <Users className="w-16 h-16 text-gray-300" />
+            <p className="text-gray-500 text-lg">اطلاعاتی یافت نشد</p>
+            <p className="text-gray-400 text-sm">فرزندی به حساب شما متصل نیست یا اطلاعات حضور ثبت نشده</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {/* انتخاب فرزند */}
+          {children.length > 1 && (
+            <div className="flex gap-3 flex-wrap">
+              {children.map(child => (
+                <button
+                  key={child.id}
+                  onClick={() => setSelected(child.id)}
+                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                    selected === child.id
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-white text-gray-700 border hover:bg-gray-50'
+                  }`}
+                >
+                  {child.full_name}
+                  <span className="mr-2 text-sm opacity-70">پایه {child.grade}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* نرخ حضور */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">نرخ حضور ماهانه</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <p className="text-5xl font-bold text-blue-600">{stats.attendancePercentage}%</p>
-                <p className="text-gray-500 text-sm mt-1">از {stats.total} روز</p>
+          {activeChild && (
+            <>
+              {/* آمار کلی */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="border-0 shadow-sm bg-green-50">
+                  <CardContent className="p-4 text-center">
+                    <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-green-700">{activeChild.stats.present}</p>
+                    <p className="text-sm text-green-600">روز حاضر</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-0 shadow-sm bg-red-50">
+                  <CardContent className="p-4 text-center">
+                    <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-red-700">{activeChild.stats.absent}</p>
+                    <p className="text-sm text-red-600">روز غیبت</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-0 shadow-sm bg-yellow-50">
+                  <CardContent className="p-4 text-center">
+                    <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-yellow-700">{activeChild.stats.late}</p>
+                    <p className="text-sm text-yellow-600">بار تأخیر</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-0 shadow-sm bg-blue-50">
+                  <CardContent className="p-4 text-center">
+                    <TrendingUp className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-blue-700">{attendancePercent(activeChild)}%</p>
+                    <p className="text-sm text-blue-600">درصد حضور</p>
+                  </CardContent>
+                </Card>
               </div>
-              
-              <Progress value={stats.attendancePercentage} className="h-3" />
-              
-              <div className="flex items-center justify-center gap-2 text-sm">
-                {stats.attendancePercentage >= 90 ? (
-                  <>
-                    <TrendingUp className="w-4 h-4 text-green-500" />
-                    <span className="text-green-600">عالی! وضعیت حضور بسیار خوب است</span>
-                  </>
-                ) : stats.attendancePercentage >= 75 ? (
-                  <>
-                    <TrendingUp className="w-4 h-4 text-yellow-500" />
-                    <span className="text-yellow-600">خوب، اما قابل بهبود است</span>
-                  </>
-                ) : (
-                  <>
-                    <TrendingDown className="w-4 h-4 text-red-500" />
-                    <span className="text-red-600">نیاز به توجه بیشتر دارد</span>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* نمودار دایره‌ای */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">توزیع وضعیت حضور</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value, name) => [`${value} روز`, name]} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              
-              <div className="flex flex-wrap justify-center gap-3 mt-4">
-                {pieData.map(item => (
-                  <div key={item.name} className="flex items-center gap-1 text-xs">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span>{item.name}</span>
+              {/* نوار پیشرفت */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                    نرخ حضور {activeChild.full_name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          attendancePercent(activeChild) >= 80 ? 'bg-green-500' :
+                          attendancePercent(activeChild) >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${attendancePercent(activeChild)}%` }}
+                      />
+                    </div>
+                    <span className="font-bold text-gray-700 w-12">{attendancePercent(activeChild)}%</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {activeChild.stats.present} از {activeChild.stats.total} روز تحصیلی
+                  </p>
+                </CardContent>
+              </Card>
 
-          {/* روند ماهانه */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">روند حضور</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[150px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={monthlyTrendData}>
-                    <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                    <YAxis domain={[70, 100]} tick={{ fontSize: 10 }} />
-                    <Tooltip formatter={(value) => [`${value}%`, 'نرخ حضور']} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="rate" 
-                      stroke="#3b82f6" 
-                      strokeWidth={2}
-                      dot={{ fill: '#3b82f6', r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              {/* جدول تاریخچه */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">تاریخچه حضور و غیاب</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {activeChild.attendance.length === 0 ? (
+                    <p className="text-center text-gray-400 py-8">هنوز اطلاعاتی ثبت نشده</p>
+                  ) : (
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {activeChild.attendance.map(record => (
+                        <div
+                          key={record.id}
+                          className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            {statusIcon[record.status]}
+                            <div>
+                              <p className="font-medium text-gray-800 text-sm">
+                                {new Date(record.date).toLocaleDateString('fa-IR', {
+                                  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                                })}
+                              </p>
+                              {record.notes && (
+                                <p className="text-xs text-gray-500">{record.notes}</p>
+                              )}
+                            </div>
+                          </div>
+                          <Badge className={`${statusColor[record.status]} border-0`}>
+                            {statusLabel[record.status]}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </>
+      )}
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

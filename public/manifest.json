@@ -1,14 +1,15 @@
 {
-  "name": "هوشاگر - سیستم مدیریت مدارس هوشمند",
+  "name": "هوشاگر - سیستم هوشمند مدارس",
   "short_name": "هوشاگر",
-  "description": "سیستم جامع مدیریت مدارس با هوش مصنوعی",
+  "description": "سیستم مدیریت هوشمند مدارس با قدرت هوش مصنوعی",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#7c3aed",
+  "theme_color": "#7c3aed",
   "orientation": "portrait-primary",
-  "dir": "rtl",
   "lang": "fa",
+  "dir": "rtl",
+  "categories": ["education", "productivity"],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -35,20 +36,8 @@
       "purpose": "maskable any"
     },
     {
-      "src": "/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-384x384.png",
-      "sizes": "384x384",
       "type": "image/png",
       "purpose": "maskable any"
     },
@@ -59,44 +48,18 @@
       "purpose": "maskable any"
     }
   ],
-  "categories": ["education", "productivity", "business"],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/screenshots/mobile-1.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ],
   "shortcuts": [
     {
       "name": "داشبورد",
-      "short_name": "داشبورد",
-      "description": "مشاهده داشبورد اصلی",
       "url": "/dashboard",
-      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+      "description": "ورود به داشبورد"
     },
     {
-      "name": "حضور و غیاب",
-      "short_name": "حضور",
-      "description": "ثبت حضور و غیاب",
-      "url": "/dashboard/attendance",
-      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "دانش‌آموزان",
-      "short_name": "دانش‌آموزان",
-      "description": "مدیریت دانش‌آموزان",
-      "url": "/dashboard/students",
-      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+      "name": "دستیار مطالعه",
+      "url": "/test-study-buddy",
+      "description": "چت‌بات کمک درسی"
     }
   ],
-  "related_applications": [],
+  "screenshots": [],
   "prefer_related_applications": false
 }

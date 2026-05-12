@@ -104,25 +104,22 @@ export async function POST(
         .eq('exam_id', params.id)
         .eq('student_id', student.id);
 
-      // محاسبه XP
+      // محاسبه XP بر اساس درصد نمره
       const xpEarned =
-        percentage >= 90
-          ? 200
-          : percentage >= 80
-          ? 150
-          : percentage >= 70
-          ? 100
-          : percentage >= 50
-          ? 50
-          : 20;
+        percentage >= 90 ? 200
+        : percentage >= 80 ? 150
+        : percentage >= 70 ? 100
+        : percentage >= 50 ? 50
+        : 20;
 
-      // اضافه کردن XP
-      await supabase
-        .from('talent_garden')
-        .update({
-          total_xp: supabase.rpc('increment_xp', { amount: xpEarned }),
-        })
-        .eq('user_id', student.user_id);
+      // افزودن XP با RPC استاندارد
+      await supabase.rpc('add_xp', {
+        p_user_id: student.user_id,
+        p_action_type: 'exam_submitted',
+        p_xp_amount: xpEarned,
+        p_description: `آزمون با نمره ${percentage.toFixed(0)}% تکمیل شد`,
+        p_metadata: JSON.stringify({ exam_id: params.id, percentage, passed }),
+      });
 
       return NextResponse.json({
         total_score: totalScore,

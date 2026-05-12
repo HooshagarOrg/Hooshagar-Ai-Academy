@@ -94,6 +94,26 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 400 })
       }
 
+      // اگر نمره بالاتر از 80% بود XP به دانش‌آموز بده
+      const percentage = (score / (max_score || 20)) * 100
+      if (percentage >= 80) {
+        const { data: student } = await supabase
+          .from('students')
+          .select('user_id')
+          .eq('id', student_id)
+          .single()
+        if (student?.user_id) {
+          const xpAmount = percentage >= 90 ? 50 : 30
+          await supabase.rpc('add_xp', {
+            p_user_id: student.user_id,
+            p_action_type: 'grade_earned',
+            p_xp_amount: xpAmount,
+            p_description: `نمره ${score} در ${subject}`,
+            p_metadata: JSON.stringify({ subject, score, max_score: max_score || 20 }),
+          })
+        }
+      }
+
       return NextResponse.json({ success: true, grade: data })
     },
     { roles: TEACHER_AND_ABOVE, rateLimit: 'api_default' }

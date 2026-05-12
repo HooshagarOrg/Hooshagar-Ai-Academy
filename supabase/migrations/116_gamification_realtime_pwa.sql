@@ -111,6 +111,7 @@ CREATE TRIGGER trg_check_badges_on_xp
   EXECUTE FUNCTION trigger_check_badges_on_xp();
 
 -- ── 5. تابع ورود روزانه ─────────────────────────────────────
+DROP FUNCTION IF EXISTS record_daily_login(UUID);
 CREATE OR REPLACE FUNCTION record_daily_login(p_user_id UUID)
 RETURNS TABLE (xp_earned INT, is_first_today BOOLEAN)
 LANGUAGE plpgsql SECURITY DEFINER
@@ -192,10 +193,29 @@ DROP POLICY IF EXISTS "notifications_insert_service" ON notifications;
 CREATE POLICY "notifications_insert_service" ON notifications
   FOR INSERT WITH CHECK (true);
 
--- ── 7. فعال کردن Realtime ───────────────────────────────────
-ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
-ALTER PUBLICATION supabase_realtime ADD TABLE messages_direct;
-ALTER PUBLICATION supabase_realtime ADD TABLE user_badges;
+-- ── 7. فعال کردن Realtime (اگر قبلاً اضافه نشده) ───────────
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'notifications'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'messages_direct'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE messages_direct;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'user_badges'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE user_badges;
+  END IF;
+END;
+$$;
 
 -- ── 8. تابع: ارسال اعلان ───────────────────────────────────
 CREATE OR REPLACE FUNCTION send_notification(

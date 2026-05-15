@@ -30,7 +30,6 @@ GRANT SELECT ON TABLE subscription_plans TO anon, authenticated;
 GRANT SELECT ON TABLE badges TO anon, authenticated;
 GRANT SELECT ON TABLE streak_milestones TO anon, authenticated;
 GRANT SELECT ON TABLE field_of_study TO anon, authenticated;
-GRANT SELECT ON TABLE available_ai_models TO anon, authenticated;
 
 -- جداول کاربران (فقط authenticated)
 GRANT SELECT, INSERT, UPDATE ON TABLE profiles TO authenticated;
@@ -70,29 +69,59 @@ GRANT SELECT ON TABLE subscription_plans TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE subscriptions TO authenticated;
 GRANT SELECT, INSERT ON TABLE payment_transactions TO authenticated;
 
--- هوش مصنوعی
-GRANT SELECT, INSERT ON TABLE ai_analyses TO authenticated;
-GRANT SELECT, INSERT ON TABLE ai_usage_logs TO authenticated;
-GRANT SELECT ON TABLE ai_model_configs TO authenticated;
-GRANT SELECT, INSERT ON TABLE chat_history TO authenticated;
-GRANT SELECT, INSERT ON TABLE stories TO authenticated;
+-- هوش مصنوعی (با بررسی وجود جدول)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ai_analyses' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT, INSERT ON TABLE ai_analyses TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ai_model_configs' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT ON TABLE ai_model_configs TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'chat_history' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT, INSERT ON TABLE chat_history TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'stories' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT, INSERT ON TABLE stories TO authenticated';
+  END IF;
+END;
+$$;
 
--- امنیت (فقط ادمین/سیستم — authenticated می‌تواند insert کند)
-GRANT INSERT ON TABLE audit_logs TO authenticated;
-GRANT INSERT ON TABLE login_logs TO authenticated;
+-- امنیت
 GRANT INSERT ON TABLE security_audit_log TO authenticated;
 
--- OTP
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE otp_codes TO authenticated;
-GRANT INSERT ON TABLE otp_verify_attempts TO authenticated;
-
--- سایر جداول دانش‌آموزی
-GRANT SELECT, INSERT, UPDATE ON TABLE counseling_sessions TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON TABLE health_reports TO authenticated;
-GRANT SELECT, INSERT ON TABLE student_academic_history TO authenticated;
-GRANT SELECT ON TABLE student_progression_history TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON TABLE surveys TO authenticated;
-GRANT SELECT, INSERT ON TABLE survey_responses TO authenticated;
+-- OTP (اگر وجود داشت)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'otp_codes' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE otp_codes TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_logs' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT INSERT ON TABLE audit_logs TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'login_logs' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT INSERT ON TABLE login_logs TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'counseling_sessions' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON TABLE counseling_sessions TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'health_reports' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON TABLE health_reports TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'student_academic_history' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT, INSERT ON TABLE student_academic_history TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'student_progression_history' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT ON TABLE student_progression_history TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'surveys' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON TABLE surveys TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'survey_responses' AND table_schema = 'public') THEN
+    EXECUTE 'GRANT SELECT, INSERT ON TABLE survey_responses TO authenticated';
+  END IF;
+END;
+$$;
 
 -- service_role همیشه دسترسی کامل دارد (پیش‌فرض Supabase)
 -- نیازی به GRANT صریح برای service_role نیست

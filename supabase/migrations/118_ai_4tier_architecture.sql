@@ -37,15 +37,30 @@ CREATE TABLE IF NOT EXISTS ai_model_configs (
   updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 2. اضافه کردن ستون‌های جدید به جدول موجود ──────────────────
+-- ── 2. اضافه کردن تمام ستون‌های لازم (در صورت نبود) ────────────
 ALTER TABLE ai_model_configs
-  ADD COLUMN IF NOT EXISTS google_model    VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier4_model    VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier4_usage    INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS tier5_model    VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier6_model    VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier5_enabled  BOOLEAN DEFAULT false,
-  ADD COLUMN IF NOT EXISTS tier6_enabled  BOOLEAN DEFAULT false;
+  ADD COLUMN IF NOT EXISTS capability_name        VARCHAR(200),
+  ADD COLUMN IF NOT EXISTS capability_description TEXT,
+  ADD COLUMN IF NOT EXISTS google_model           VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier1_model            VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier2_model            VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier3_model            VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier4_model            VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier4_usage            INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tier5_model            VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier6_model            VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier5_enabled          BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS tier6_enabled          BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS temperature            DECIMAL(3,2) DEFAULT 0.7,
+  ADD COLUMN IF NOT EXISTS max_tokens             INTEGER DEFAULT 2000,
+  ADD COLUMN IF NOT EXISTS is_active              BOOLEAN DEFAULT true,
+  ADD COLUMN IF NOT EXISTS priority               INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_requests         INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tier1_usage            INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tier2_usage            INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tier3_usage            INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_errors           INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS updated_at             TIMESTAMPTZ DEFAULT NOW();
 
 -- ── 3. درج یا بروزرسانی تنظیمات هر قابلیت ─────────────────────
 -- هر قابلیت از مدل Google متفاوتی استفاده می‌کند تا سقف رایگان تقسیم شود

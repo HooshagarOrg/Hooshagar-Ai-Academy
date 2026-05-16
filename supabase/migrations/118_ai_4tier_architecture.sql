@@ -5,186 +5,214 @@
 -- Tier 2: OpenRouter Key A (مدل‌های 200B+)
 -- Tier 3: OpenRouter Key B (مدل‌های 32-70B)
 -- Tier 4: OpenRouter Key C (مدل‌های سریع 7-24B)
--- Tier 5: Cheap (غیرفعال)
--- Tier 6: Premium (غیرفعال)
+-- Tier 5/6: غیرفعال
 -- ═══════════════════════════════════════════════════════════
 
--- ── 1. اضافه کردن ستون‌های جدید به ai_model_configs ─────────
+-- ── 1. ایجاد جدول اصلی (اگر وجود ندارد) ─────────────────────
+CREATE TABLE IF NOT EXISTS ai_model_configs (
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  capability_key      VARCHAR(50)  UNIQUE NOT NULL,
+  capability_name     VARCHAR(200) NOT NULL,
+  capability_description TEXT,
+  google_model        VARCHAR(100),
+  tier1_model         VARCHAR(100),
+  tier2_model         VARCHAR(100),
+  tier3_model         VARCHAR(100),
+  tier4_model         VARCHAR(100),
+  tier5_model         VARCHAR(100),
+  tier6_model         VARCHAR(100),
+  tier5_enabled       BOOLEAN DEFAULT false,
+  tier6_enabled       BOOLEAN DEFAULT false,
+  temperature         DECIMAL(3,2) DEFAULT 0.7,
+  max_tokens          INTEGER DEFAULT 2000,
+  is_active           BOOLEAN DEFAULT true,
+  priority            INTEGER DEFAULT 0,
+  total_requests      INTEGER DEFAULT 0,
+  tier1_usage         INTEGER DEFAULT 0,
+  tier2_usage         INTEGER DEFAULT 0,
+  tier3_usage         INTEGER DEFAULT 0,
+  tier4_usage         INTEGER DEFAULT 0,
+  total_errors        INTEGER DEFAULT 0,
+  created_at          TIMESTAMPTZ DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ── 2. اضافه کردن ستون‌های جدید به جدول موجود ──────────────────
 ALTER TABLE ai_model_configs
-  ADD COLUMN IF NOT EXISTS tier4_model VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier4_usage  INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS google_model VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier5_model  VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier6_model  VARCHAR(100),
-  ADD COLUMN IF NOT EXISTS tier5_enabled BOOLEAN DEFAULT false,
-  ADD COLUMN IF NOT EXISTS tier6_enabled BOOLEAN DEFAULT false;
+  ADD COLUMN IF NOT EXISTS google_model    VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier4_model    VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier4_usage    INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tier5_model    VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier6_model    VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS tier5_enabled  BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS tier6_enabled  BOOLEAN DEFAULT false;
 
--- ── 2. بروزرسانی همه قابلیت‌ها با معماری جدید ───────────────
--- هر قابلیت:
---   google_model = مدل Google اختصاصی (Tier 1)
---   tier1_model  = OpenRouter Key A - مدل بزرگ (Tier 2)
---   tier2_model  = OpenRouter Key B - مدل متوسط (Tier 3)
---   tier3_model  = OpenRouter Key C - مدل سریع (Tier 4)
---   tier4_model  = همان tier3 (پشتیبان)
+-- ── 3. درج یا بروزرسانی تنظیمات هر قابلیت ─────────────────────
+-- هر قابلیت از مدل Google متفاوتی استفاده می‌کند تا سقف رایگان تقسیم شود
 
--- ① تحلیلگر دانش‌آموز
-UPDATE ai_model_configs SET
-  google_model = 'gemini-2.5-pro',
-  tier1_model  = 'deepseek/deepseek-r1:free',
-  tier2_model  = 'qwen/qwen3-235b-a22b:free',
-  tier3_model  = 'qwen/qwen3-32b:free',
-  tier4_model  = 'mistralai/mistral-small-3.1-24b-instruct:free',
-  temperature  = 0.3, max_tokens = 3000
-WHERE capability_key = 'student_analyzer';
+INSERT INTO ai_model_configs
+  (capability_key, capability_name, capability_description,
+   google_model, tier1_model, tier2_model, tier3_model, tier4_model,
+   temperature, max_tokens, priority)
+VALUES
 
--- ② حل مسئله با OCR
-UPDATE ai_model_configs SET
-  google_model = 'gemini-2.0-flash-exp',
-  tier1_model  = 'qwen/qwen2.5-vl-72b-instruct:free',
-  tier2_model  = 'meta-llama/llama-4-maverick:free',
-  tier3_model  = 'nvidia/nemotron-nano-12b-v2-vl:free',
-  tier4_model  = 'google/gemma-3-27b-it:free',
-  temperature  = 0.2, max_tokens = 2000
-WHERE capability_key = 'problem_solver_ocr';
+-- ① تحلیلگر دانش‌آموز — Google: gemini-2.5-pro
+('student_analyzer', 'تحلیلگر دانش‌آموز', 'تحلیل رفتاری و تحصیلی دانش‌آموزان',
+ 'gemini-2.5-pro',
+ 'deepseek/deepseek-r1:free',
+ 'qwen/qwen3-235b-a22b:free',
+ 'qwen/qwen3-32b:free',
+ 'mistralai/mistral-small-3.1-24b-instruct:free',
+ 0.3, 3000, 1),
 
--- ③ دستیار مطالعه
-UPDATE ai_model_configs SET
-  google_model = 'gemini-2.0-flash',
-  tier1_model  = 'deepseek/deepseek-chat-v3.1:free',
-  tier2_model  = 'meta-llama/llama-3.3-70b-instruct:free',
-  tier3_model  = 'mistralai/mistral-small-3.1-24b-instruct:free',
-  tier4_model  = 'qwen/qwen3-14b:free',
-  temperature  = 0.7, max_tokens = 1500
-WHERE capability_key = 'study_buddy';
+-- ② حل مسئله با OCR — Google: gemini-2.0-flash-exp
+('problem_solver_ocr', 'حل مسئله با OCR', 'حل مسائل درسی از روی تصویر',
+ 'gemini-2.0-flash-exp',
+ 'qwen/qwen2.5-vl-72b-instruct:free',
+ 'meta-llama/llama-4-maverick:free',
+ 'nvidia/nemotron-nano-12b-v2-vl:free',
+ 'google/gemma-3-27b-it:free',
+ 0.2, 2000, 2),
 
--- ④ داستان‌ساز آموزشی
-UPDATE ai_model_configs SET
-  google_model = 'gemini-2.0-flash-lite',
-  tier1_model  = 'meta-llama/llama-4-maverick:free',
-  tier2_model  = 'meta-llama/llama-3.3-70b-instruct:free',
-  tier3_model  = 'google/gemma-3-27b-it:free',
-  tier4_model  = 'qwen/qwen3-14b:free',
-  temperature  = 0.9, max_tokens = 3000
-WHERE capability_key = 'story_wizard';
+-- ③ دستیار مطالعه — Google: gemini-2.0-flash
+('study_buddy', 'دستیار مطالعه', 'چت‌بات کمک درسی',
+ 'gemini-2.0-flash',
+ 'deepseek/deepseek-chat-v3.1:free',
+ 'meta-llama/llama-3.3-70b-instruct:free',
+ 'mistralai/mistral-small-3.1-24b-instruct:free',
+ 'qwen/qwen3-14b:free',
+ 0.7, 1500, 3),
 
--- ⑤ مشاور انتخاب رشته
-UPDATE ai_model_configs SET
-  google_model = 'gemini-2.5-flash',
-  tier1_model  = 'nvidia/llama-3.1-nemotron-ultra-253b-v1:free',
-  tier2_model  = 'qwen/qwen3-32b:free',
-  tier3_model  = 'deepseek/deepseek-chat-v3.1:free',
-  tier4_model  = 'mistralai/mistral-small-3.1-24b-instruct:free',
-  temperature  = 0.5, max_tokens = 2500
-WHERE capability_key = 'field_selector';
+-- ④ داستان‌ساز آموزشی — Google: gemini-2.0-flash-lite
+('story_wizard', 'جادوگر داستان', 'تولید داستان‌های آموزشی',
+ 'gemini-2.0-flash-lite',
+ 'meta-llama/llama-4-maverick:free',
+ 'meta-llama/llama-3.3-70b-instruct:free',
+ 'google/gemma-3-27b-it:free',
+ 'qwen/qwen3-14b:free',
+ 0.9, 3000, 4),
 
--- ⑥ پیش‌بینی رتبه کنکور
-UPDATE ai_model_configs SET
-  google_model = 'gemini-2.5-flash-preview-05-20',
-  tier1_model  = 'deepseek/deepseek-r1-0528:free',
-  tier2_model  = 'qwen/qwq-32b:free',
-  tier3_model  = 'deepseek/deepseek-r1-distill-qwen-32b:free',
-  tier4_model  = 'qwen/qwen3-14b:free',
-  temperature  = 0.4, max_tokens = 2000
-WHERE capability_key = 'konkur_predictor';
+-- ⑤ مشاور انتخاب رشته — Google: gemini-2.5-flash
+('field_selector', 'مشاور انتخاب رشته', 'تحلیل و مشاوره برای انتخاب رشته',
+ 'gemini-2.5-flash',
+ 'nvidia/llama-3.1-nemotron-ultra-253b-v1:free',
+ 'qwen/qwen3-32b:free',
+ 'deepseek/deepseek-chat-v3.1:free',
+ 'mistralai/mistral-small-3.1-24b-instruct:free',
+ 0.5, 2500, 5),
 
--- ⑦ نقشه راه کنکور
-UPDATE ai_model_configs SET
-  google_model = 'learnlm-2.0-flash-experimental',
-  tier1_model  = 'nousresearch/hermes-3-llama-3.1-405b:free',
-  tier2_model  = 'tngtech/deepseek-r1t2-chimera:free',
-  tier3_model  = 'deepseek/deepseek-r1-distill-llama-70b:free',
-  tier4_model  = 'google/gemma-3-12b-it:free',
-  temperature  = 0.5, max_tokens = 2500
-WHERE capability_key = 'konkur_roadmap';
+-- ⑥ پیش‌بینی رتبه کنکور — Google: gemini-2.5-flash-preview-05-20
+('konkur_predictor', 'پیش‌بین کنکور', 'پیش‌بینی رتبه کنکور',
+ 'gemini-2.5-flash-preview-05-20',
+ 'deepseek/deepseek-r1-0528:free',
+ 'qwen/qwq-32b:free',
+ 'deepseek/deepseek-r1-distill-qwen-32b:free',
+ 'qwen/qwen3-14b:free',
+ 0.4, 2000, 6),
 
--- ⑧ تولید محتوای درسی
-UPDATE ai_model_configs SET
-  google_model = 'gemini-1.5-flash',
-  tier1_model  = 'qwen/qwen3-coder:free',
-  tier2_model  = 'deepseek/deepseek-r1-distill-llama-70b:free',
-  tier3_model  = 'qwen/qwen3-32b:free',
-  tier4_model  = 'qwen/qwen3-14b:free',
-  temperature  = 0.6, max_tokens = 3500
-WHERE capability_key = 'content_creator';
+-- ⑦ نقشه راه کنکور — Google: learnlm-2.0-flash-experimental
+('konkur_roadmap', 'نقشه راه کنکور', 'برنامه‌ریزی آماده‌سازی کنکور',
+ 'learnlm-2.0-flash-experimental',
+ 'nousresearch/hermes-3-llama-3.1-405b:free',
+ 'tngtech/deepseek-r1t2-chimera:free',
+ 'deepseek/deepseek-r1-distill-llama-70b:free',
+ 'google/gemma-3-12b-it:free',
+ 0.5, 2500, 7),
 
--- ⑨ تولید سوال و آزمون
-UPDATE ai_model_configs SET
-  google_model = 'gemini-1.5-flash-8b',
-  tier1_model  = 'qwen/qwen3-235b-a22b:free',
-  tier2_model  = 'deepseek/deepseek-r1:free',
-  tier3_model  = 'mistralai/mistral-small-3.1-24b-instruct:free',
-  tier4_model  = 'google/gemma-3-12b-it:free',
-  temperature  = 0.7, max_tokens = 2500
-WHERE capability_key = 'exam_generator';
+-- ⑧ تولید محتوای درسی — Google: gemini-1.5-flash
+('content_creator', 'تولیدکننده محتوا', 'تولید محتوای آموزشی',
+ 'gemini-1.5-flash',
+ 'qwen/qwen3-coder:free',
+ 'deepseek/deepseek-r1-distill-llama-70b:free',
+ 'qwen/qwen3-32b:free',
+ 'qwen/qwen3-14b:free',
+ 0.6, 3500, 8),
 
--- ⑩ ارزیابی تکلیف (Vision — shared با gemini-2.0-flash-exp)
-UPDATE ai_model_configs SET
-  google_model = 'gemini-2.0-flash-exp',
-  tier1_model  = 'qwen/qwen2.5-vl-72b-instruct:free',
-  tier2_model  = 'meta-llama/llama-4-maverick:free',
-  tier3_model  = 'google/gemma-3-27b-it:free',
-  tier4_model  = 'mistralai/mistral-small-3.1-24b-instruct:free',
-  temperature  = 0.3, max_tokens = 2000
-WHERE capability_key = 'homework_evaluator';
+-- ⑨ تولید سوال و آزمون — Google: gemini-1.5-flash-8b
+('exam_generator', 'تولیدکننده آزمون', 'تولید سوال با سطح‌بندی مناسب',
+ 'gemini-1.5-flash-8b',
+ 'qwen/qwen3-235b-a22b:free',
+ 'deepseek/deepseek-r1:free',
+ 'mistralai/mistral-small-3.1-24b-instruct:free',
+ 'google/gemma-3-12b-it:free',
+ 0.7, 2500, 9),
 
--- ⑪ تحلیل استعداد
-UPDATE ai_model_configs SET
-  google_model = 'gemini-1.5-pro',
-  tier1_model  = 'meta-llama/llama-4-scout:free',
-  tier2_model  = 'deepseek/deepseek-chat-v3.1:free',
-  tier3_model  = 'qwen/qwen3-32b:free',
-  tier4_model  = 'google/gemma-3-27b-it:free',
-  temperature  = 0.4, max_tokens = 2500
-WHERE capability_key = 'talent_analyzer';
+-- ⑩ ارزیابی تکلیف — Google: gemini-2.0-flash-exp (Vision)
+('homework_evaluator', 'ارزیاب تکلیف', 'ارزیابی تکالیف دانش‌آموزان',
+ 'gemini-2.0-flash-exp',
+ 'qwen/qwen2.5-vl-72b-instruct:free',
+ 'meta-llama/llama-4-maverick:free',
+ 'google/gemma-3-27b-it:free',
+ 'mistralai/mistral-small-3.1-24b-instruct:free',
+ 0.3, 2000, 10),
 
--- ⑫ خلاصه‌ساز (shared با gemini-2.5-flash)
-UPDATE ai_model_configs SET
-  google_model = 'gemini-2.5-flash',
-  tier1_model  = 'deepseek/deepseek-chat-v3.1:free',
-  tier2_model  = 'mistralai/mistral-small-3.1-24b-instruct:free',
-  tier3_model  = 'qwen/qwen3-14b:free',
-  tier4_model  = 'google/gemma-3-12b-it:free',
-  temperature  = 0.5, max_tokens = 1500
-WHERE capability_key = 'summarizer';
+-- ⑪ تحلیل استعداد — Google: gemini-1.5-pro
+('talent_analyzer', 'تحلیلگر استعداد', 'تحلیل استعدادهای دانش‌آموز',
+ 'gemini-1.5-pro',
+ 'meta-llama/llama-4-scout:free',
+ 'deepseek/deepseek-chat-v3.1:free',
+ 'qwen/qwen3-32b:free',
+ 'google/gemma-3-27b-it:free',
+ 0.4, 2500, 11),
 
--- ── 3. جدول تنظیمات کلیدهای API ────────────────────────────
+-- ⑫ خلاصه‌ساز — Google: gemini-2.5-flash
+('summarizer', 'خلاصه‌ساز', 'خلاصه‌سازی متون و درس‌ها',
+ 'gemini-2.5-flash',
+ 'deepseek/deepseek-chat-v3.1:free',
+ 'mistralai/mistral-small-3.1-24b-instruct:free',
+ 'qwen/qwen3-14b:free',
+ 'google/gemma-3-12b-it:free',
+ 0.5, 1500, 12)
+
+ON CONFLICT (capability_key) DO UPDATE SET
+  google_model   = EXCLUDED.google_model,
+  tier1_model    = EXCLUDED.tier1_model,
+  tier2_model    = EXCLUDED.tier2_model,
+  tier3_model    = EXCLUDED.tier3_model,
+  tier4_model    = EXCLUDED.tier4_model,
+  temperature    = EXCLUDED.temperature,
+  max_tokens     = EXCLUDED.max_tokens,
+  updated_at     = NOW();
+
+-- ── 4. جدول تنظیمات کلیدهای API ──────────────────────────────
 CREATE TABLE IF NOT EXISTS ai_api_keys_config (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   provider    TEXT NOT NULL CHECK (provider IN ('google', 'openrouter')),
-  key_alias   TEXT NOT NULL UNIQUE,  -- 'google_1'...'google_10', 'openrouter_a/b/c'
-  env_var     TEXT NOT NULL,          -- نام متغیر محیطی در .env
-  tier        INTEGER NOT NULL,       -- 1=Google, 2=OR-A, 3=OR-B, 4=OR-C
+  key_alias   TEXT NOT NULL UNIQUE,
+  env_var     TEXT NOT NULL,
+  tier        INTEGER NOT NULL,
   is_active   BOOLEAN DEFAULT true,
-  daily_limit INTEGER DEFAULT 1500,   -- درخواست در روز
+  daily_limit INTEGER DEFAULT 1500,
   used_today  INTEGER DEFAULT 0,
   last_reset  DATE DEFAULT CURRENT_DATE,
-  created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE ai_api_keys_config ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "ai_keys_admin_only" ON ai_api_keys_config;
 CREATE POLICY "ai_keys_admin_only" ON ai_api_keys_config
   FOR ALL USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('platform_admin', 'admin'))
   );
 
--- ثبت کلیدها
 INSERT INTO ai_api_keys_config (provider, key_alias, env_var, tier, daily_limit) VALUES
-  ('google', 'google_1',  'GOOGLE_API_KEY_1',  1, 1500),
-  ('google', 'google_2',  'GOOGLE_API_KEY_2',  1, 1500),
-  ('google', 'google_3',  'GOOGLE_API_KEY_3',  1, 1500),
-  ('google', 'google_4',  'GOOGLE_API_KEY_4',  1, 1500),
-  ('google', 'google_5',  'GOOGLE_API_KEY_5',  1, 1500),
-  ('google', 'google_6',  'GOOGLE_API_KEY_6',  1, 1500),
-  ('google', 'google_7',  'GOOGLE_API_KEY_7',  1, 1500),
-  ('google', 'google_8',  'GOOGLE_API_KEY_8',  1, 1500),
-  ('google', 'google_9',  'GOOGLE_API_KEY_9',  1, 1500),
-  ('google', 'google_10', 'GOOGLE_API_KEY_10', 1, 1500),
-  ('openrouter', 'openrouter_a', 'OPENROUTER_API_KEY',   2, 999999),
-  ('openrouter', 'openrouter_b', 'OPENROUTER_API_KEY_B', 3, 999999),
-  ('openrouter', 'openrouter_c', 'OPENROUTER_API_KEY_C', 4, 999999)
+  ('google',      'google_1',      'GOOGLE_API_KEY_1',      1, 1500),
+  ('google',      'google_2',      'GOOGLE_API_KEY_2',      1, 1500),
+  ('google',      'google_3',      'GOOGLE_API_KEY_3',      1, 1500),
+  ('google',      'google_4',      'GOOGLE_API_KEY_4',      1, 1500),
+  ('google',      'google_5',      'GOOGLE_API_KEY_5',      1, 1500),
+  ('google',      'google_6',      'GOOGLE_API_KEY_6',      1, 1500),
+  ('google',      'google_7',      'GOOGLE_API_KEY_7',      1, 1500),
+  ('google',      'google_8',      'GOOGLE_API_KEY_8',      1, 1500),
+  ('google',      'google_9',      'GOOGLE_API_KEY_9',      1, 1500),
+  ('google',      'google_10',     'GOOGLE_API_KEY_10',     1, 1500),
+  ('openrouter',  'openrouter_a',  'OPENROUTER_API_KEY',    2, 999999),
+  ('openrouter',  'openrouter_b',  'OPENROUTER_API_KEY_B',  3, 999999),
+  ('openrouter',  'openrouter_c',  'OPENROUTER_API_KEY_C',  4, 999999)
 ON CONFLICT (key_alias) DO NOTHING;
 
--- ── 4. تابع انتخاب مدل با Fallback جدید ────────────────────
+-- ── 5. تابع دریافت تنظیمات AI ──────────────────────────────────
 CREATE OR REPLACE FUNCTION get_ai_config_v2(p_capability_key TEXT)
 RETURNS TABLE (
   google_model   TEXT,
@@ -208,8 +236,8 @@ BEGIN
     c.tier4_model::TEXT,
     c.temperature,
     c.max_tokens,
-    c.tier5_enabled,
-    c.tier6_enabled
+    COALESCE(c.tier5_enabled, false),
+    COALESCE(c.tier6_enabled, false)
   FROM ai_model_configs c
   WHERE c.capability_key = p_capability_key
     AND c.is_active = true;
@@ -218,7 +246,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION get_ai_config_v2(TEXT) TO authenticated;
 
--- ── 5. به‌روزرسانی usage counter ────────────────────────────
+-- ── 6. تابع شمارش استفاده ────────────────────────────────────────
 CREATE OR REPLACE FUNCTION increment_ai_tier_usage(
   p_capability_key TEXT,
   p_tier           INTEGER
@@ -239,8 +267,8 @@ $$;
 
 GRANT EXECUTE ON FUNCTION increment_ai_tier_usage(TEXT, INTEGER) TO authenticated;
 
--- ─────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────────────────────
 -- ✅ Migration 118 Complete
--- معماری 4 لایه رایگان فعال است
--- Tier 5 و 6 غیرفعال هستند (tier5_enabled = false)
--- ─────────────────────────────────────────────────────────
+-- 12 قابلیت با مدل‌های اختصاصی Google و OpenRouter ثبت شد
+-- Tier 5 و 6 غیرفعال (tier5_enabled = false)
+-- ─────────────────────────────────────────────────────────────

@@ -1,13 +1,16 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { createHash } from 'crypto'
 
 // ═══════════════════════════════════════════════════════════════
 // هوشاگر - سرویس AI با معماری 4 لایه رایگان
 //
-//  Tier 1 → Google Direct  (10 کلید Round-Robin)
-//  Tier 2 → OpenRouter A   (مدل‌های 200B+)
-//  Tier 3 → OpenRouter B   (مدل‌های 32-70B)
-//  Tier 4 → OpenRouter C   (مدل‌های سریع 7-24B)
-//  Tier 5/6 → غیرفعال
+//  Cache      → بررسی کش قبل از هر درخواست
+//  Rate Limit → محدودیت درخواست per user
+//  Tier 1     → Google Direct  (10 کلید Round-Robin)
+//  Tier 2     → OpenRouter A   (مدل‌های 200B+)
+//  Tier 3     → OpenRouter B   (مدل‌های 32-70B)
+//  Tier 4     → OpenRouter C   (مدل‌های سریع 7-24B)
+//  Tier 5/6   → غیرفعال
 // ═══════════════════════════════════════════════════════════════
 
 // ── تعریف تایپ‌ها ──────────────────────────────────────────────
@@ -42,10 +45,133 @@ export interface AICallOptions {
   temperature?: number
   maxTokens?: number
   forceOpenRouter?: boolean
+  userId?: string      // برای Rate Limit
+  skipCache?: boolean  // اجبار به عدم استفاده از Cache
 }
 
-// ── نگاشت هر قابلیت به مدل اختصاصی Google ────────────────────
-// هر capability از مدل متفاوتی استفاده می‌کند تا سقف رایگان تقسیم شود
+// ═══════════════════════════════════════════════════════════════
+// ── Cache — In-Memory با TTL ─────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
+interface CacheEntry {
+  response: AIResponse
+  expiresAt: number
+}
+
+const responseCache = new Map<string, CacheEntry>()
+
+// مدت نگهداری Cache بر اساس نوع قابلیت (ثانیه)
+const CACHE_TTL_SECONDS: Record<AICapability, number> = {
+  student_analyzer:   300,   //  5 دقیقه — داده‌های پویا
+  problem_solver_ocr: 3600,  //  1 ساعت — جواب یک مسئله ثابت است
+  study_buddy:        0,     //  بدون cache — چت interactive
+  story_wizard:       1800,  // 30 دقیقه
+  field_selector:     3600,  //  1 ساعت
+  konkur_predictor:   600,   // 10 دقیقه
+  konkur_roadmap:     3600,  //  1 ساعت
+  content_creator:    7200,  //  2 ساعت — محتوا ثابت می‌ماند
+  exam_generator:     1800,  // 30 دقیقه
+  homework_evaluator: 0,     //  بدون cache — هر تکلیف منحصربه‌فرد
+  talent_analyzer:    600,   // 10 دقیقه
+  summarizer:         3600,  //  1 ساعت — خلاصه یک متن ثابت است
+}
+
+function getCacheKey(capability: AICapability, prompt: string): string {
+  const hash = createHash('sha256')
+    .update(`${capability}::${prompt}`)
+    .digest('hex')
+    .slice(0, 16)
+  return `ai:${capability}:${hash}`
+}
+
+function getFromCache(key: string): AIResponse | null {
+  const entry = responseCache.get(key)
+  if (!entry) return null
+  if (Date.now() > entry.expiresAt) {
+    responseCache.delete(key)
+    return null
+  }
+  return { ...entry.response, cached: true }
+}
+
+function setCache(key: string, response: AIResponse, ttlSeconds: number): void {
+  if (ttlSeconds <= 0) return
+  responseCache.set(key, {
+    response,
+    expiresAt: Date.now() + ttlSeconds * 1000,
+  })
+  // پاکسازی خودکار cache‌های منقضی (هر 100 درخواست یک‌بار)
+  if (responseCache.size % 100 === 0) {
+    const now = Date.now()
+    for (const [k, v] of responseCache) {
+      if (now > v.expiresAt) responseCache.delete(k)
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ── Rate Limiter — Sliding Window per User ───────────────────
+// ═══════════════════════════════════════════════════════════════
+
+interface RateLimitEntry {
+  timestamps: number[]
+}
+
+const rateLimitStore = new Map<string, RateLimitEntry>()
+
+// محدودیت بر اساس نقش کاربر (درخواست در ساعت)
+const RATE_LIMIT_PER_HOUR = {
+  default:        20,   // کاربر عادی
+  student:        30,
+  teacher:        60,
+  admin:         200,
+  platform_admin: 999,
+} as const
+
+export class RateLimitError extends Error {
+  constructor(public retryAfterSeconds: number) {
+    super(`سقف درخواست AI تجاوز شد. ${retryAfterSeconds} ثانیه دیگر تلاش کنید.`)
+    this.name = 'RateLimitError'
+  }
+}
+
+function checkRateLimit(userId: string, role: keyof typeof RATE_LIMIT_PER_HOUR = 'default'): void {
+  const limit = RATE_LIMIT_PER_HOUR[role] ?? RATE_LIMIT_PER_HOUR.default
+  const windowMs = 60 * 60 * 1000 // 1 ساعت
+  const now = Date.now()
+
+  let entry = rateLimitStore.get(userId)
+  if (!entry) {
+    entry = { timestamps: [] }
+    rateLimitStore.set(userId, entry)
+  }
+
+  // حذف timestamp‌های خارج از پنجره زمانی
+  entry.timestamps = entry.timestamps.filter(t => now - t < windowMs)
+
+  if (entry.timestamps.length >= limit) {
+    const oldest = entry.timestamps[0]
+    const retryAfter = Math.ceil((oldest + windowMs - now) / 1000)
+    throw new RateLimitError(retryAfter)
+  }
+
+  entry.timestamps.push(now)
+}
+
+// پاکسازی دوره‌ای rate limit store (حافظه)
+setInterval(() => {
+  const now = Date.now()
+  const windowMs = 60 * 60 * 1000
+  for (const [userId, entry] of rateLimitStore) {
+    entry.timestamps = entry.timestamps.filter(t => now - t < windowMs)
+    if (entry.timestamps.length === 0) rateLimitStore.delete(userId)
+  }
+}, 10 * 60 * 1000) // هر 10 دقیقه
+
+// ═══════════════════════════════════════════════════════════════
+// ── نگاشت مدل‌ها ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
 const GOOGLE_MODEL_MAP: Record<AICapability, string> = {
   student_analyzer:    'gemini-2.5-pro',
   problem_solver_ocr:  'gemini-2.0-flash-exp',
@@ -61,50 +187,52 @@ const GOOGLE_MODEL_MAP: Record<AICapability, string> = {
   summarizer:          'gemini-2.5-flash',
 }
 
-// ── نگاشت هر قابلیت به مدل‌های OpenRouter بر اساس تیر ─────────
 const OPENROUTER_MODEL_MAP: Record<AICapability, { tier2: string; tier3: string; tier4: string }> = {
-  student_analyzer:    { tier2: 'deepseek/deepseek-r1:free',                    tier3: 'qwen/qwen3-235b-a22b:free',                   tier4: 'qwen/qwen3-32b:free' },
-  problem_solver_ocr:  { tier2: 'qwen/qwen2.5-vl-72b-instruct:free',            tier3: 'meta-llama/llama-4-maverick:free',             tier4: 'nvidia/nemotron-nano-12b-v2-vl:free' },
-  study_buddy:         { tier2: 'deepseek/deepseek-chat-v3.1:free',              tier3: 'meta-llama/llama-3.3-70b-instruct:free',       tier4: 'mistralai/mistral-small-3.1-24b-instruct:free' },
-  story_wizard:        { tier2: 'meta-llama/llama-4-maverick:free',              tier3: 'meta-llama/llama-3.3-70b-instruct:free',       tier4: 'google/gemma-3-27b-it:free' },
-  field_selector:      { tier2: 'nvidia/llama-3.1-nemotron-ultra-253b-v1:free',  tier3: 'qwen/qwen3-32b:free',                         tier4: 'deepseek/deepseek-chat-v3.1:free' },
-  konkur_predictor:    { tier2: 'deepseek/deepseek-r1-0528:free',                tier3: 'qwen/qwq-32b:free',                           tier4: 'deepseek/deepseek-r1-distill-qwen-32b:free' },
-  konkur_roadmap:      { tier2: 'nousresearch/hermes-3-llama-3.1-405b:free',     tier3: 'tngtech/deepseek-r1t2-chimera:free',           tier4: 'deepseek/deepseek-r1-distill-llama-70b:free' },
-  content_creator:     { tier2: 'qwen/qwen3-coder:free',                         tier3: 'deepseek/deepseek-r1-distill-llama-70b:free', tier4: 'qwen/qwen3-32b:free' },
-  exam_generator:      { tier2: 'qwen/qwen3-235b-a22b:free',                     tier3: 'deepseek/deepseek-r1:free',                   tier4: 'mistralai/mistral-small-3.1-24b-instruct:free' },
-  homework_evaluator:  { tier2: 'qwen/qwen2.5-vl-72b-instruct:free',             tier3: 'meta-llama/llama-4-maverick:free',             tier4: 'google/gemma-3-27b-it:free' },
+  student_analyzer:    { tier2: 'deepseek/deepseek-r1:free',                    tier3: 'qwen/qwen3-235b-a22b:free',                    tier4: 'qwen/qwen3-32b:free' },
+  problem_solver_ocr:  { tier2: 'qwen/qwen2.5-vl-72b-instruct:free',            tier3: 'meta-llama/llama-4-maverick:free',              tier4: 'nvidia/nemotron-nano-12b-v2-vl:free' },
+  study_buddy:         { tier2: 'deepseek/deepseek-chat-v3.1:free',              tier3: 'meta-llama/llama-3.3-70b-instruct:free',        tier4: 'mistralai/mistral-small-3.1-24b-instruct:free' },
+  story_wizard:        { tier2: 'meta-llama/llama-4-maverick:free',              tier3: 'meta-llama/llama-3.3-70b-instruct:free',        tier4: 'google/gemma-3-27b-it:free' },
+  field_selector:      { tier2: 'nvidia/llama-3.1-nemotron-ultra-253b-v1:free',  tier3: 'qwen/qwen3-32b:free',                          tier4: 'deepseek/deepseek-chat-v3.1:free' },
+  konkur_predictor:    { tier2: 'deepseek/deepseek-r1-0528:free',                tier3: 'qwen/qwq-32b:free',                            tier4: 'deepseek/deepseek-r1-distill-qwen-32b:free' },
+  konkur_roadmap:      { tier2: 'nousresearch/hermes-3-llama-3.1-405b:free',     tier3: 'tngtech/deepseek-r1t2-chimera:free',            tier4: 'deepseek/deepseek-r1-distill-llama-70b:free' },
+  content_creator:     { tier2: 'qwen/qwen3-coder:free',                         tier3: 'deepseek/deepseek-r1-distill-llama-70b:free',  tier4: 'qwen/qwen3-32b:free' },
+  exam_generator:      { tier2: 'qwen/qwen3-235b-a22b:free',                     tier3: 'deepseek/deepseek-r1:free',                    tier4: 'mistralai/mistral-small-3.1-24b-instruct:free' },
+  homework_evaluator:  { tier2: 'qwen/qwen2.5-vl-72b-instruct:free',             tier3: 'meta-llama/llama-4-maverick:free',              tier4: 'google/gemma-3-27b-it:free' },
   talent_analyzer:     { tier2: 'meta-llama/llama-4-scout:free',                 tier3: 'deepseek/deepseek-chat-v3.1:free',             tier4: 'qwen/qwen3-32b:free' },
   summarizer:          { tier2: 'deepseek/deepseek-chat-v3.1:free',              tier3: 'mistralai/mistral-small-3.1-24b-instruct:free', tier4: 'qwen/qwen3-14b:free' },
 }
 
+// ═══════════════════════════════════════════════════════════════
 // ── مدیریت Round-Robin کلیدهای Google ──────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
 const GOOGLE_KEYS: string[] = []
+let googleKeyIndex = 0
 
 function loadGoogleKeys(): string[] {
   if (GOOGLE_KEYS.length > 0) return GOOGLE_KEYS
-  // پشتیبانی از هر دو نام‌گذاری
   for (let i = 1; i <= 10; i++) {
     const key = process.env[`GOOGLE_API_KEY_${i}`] ?? process.env[`GEMINI_API_KEY_${i}`]
     if (key) GOOGLE_KEYS.push(key)
   }
-  // سازگاری با کلید تکی قدیمی
   if (GOOGLE_KEYS.length === 0 && process.env.GOOGLE_API_KEY) {
     GOOGLE_KEYS.push(process.env.GOOGLE_API_KEY)
   }
   return GOOGLE_KEYS
 }
 
-let googleKeyIndex = 0
-
 function getNextGoogleKey(): string {
   const keys = loadGoogleKeys()
-  if (keys.length === 0) throw new Error('هیچ GEMINI_API_KEY_N تعریف نشده')
+  if (keys.length === 0) throw new Error('هیچ GOOGLE_API_KEY_N تعریف نشده')
   const key = keys[googleKeyIndex % keys.length]
   googleKeyIndex++
   return key
 }
 
-// ── فراخوانی Google Gemini (Tier 1) ────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// ── فراخوانی Tier 1: Google ─────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
 async function callGoogleTier1(
   prompt: string,
   capability: AICapability,
@@ -123,12 +251,13 @@ async function callGoogleTier1(
   })
 
   const result = await model.generateContent(prompt)
-  const text = result.response.text()
-
-  return { content: text, provider: 'google', model: modelName, tier: 1, is_fallback: false, cost: 0 }
+  return { content: result.response.text(), provider: 'google', model: modelName, tier: 1, is_fallback: false, cost: 0 }
 }
 
-// ── فراخوانی OpenRouter با کلید مشخص ────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// ── فراخوانی OpenRouter (Tier 2/3/4) ────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
 async function callOpenRouterWithKey(
   prompt: string,
   model: string,
@@ -158,62 +287,71 @@ async function callOpenRouterWithKey(
   }
 
   const data = await response.json()
-  return {
-    content:     data.choices[0]?.message?.content || '',
-    provider:    'openrouter',
-    model,
-    tier,
-    is_fallback: true,
-    cost:        0,
-  }
+  return { content: data.choices[0]?.message?.content || '', provider: 'openrouter', model, tier, is_fallback: true, cost: 0 }
 }
 
-// ── تابع اصلی با Fallback خودکار 4 لایه ─────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// ── تابع اصلی: Cache → Rate Limit → Fallback 4 لایه ─────────
+// ═══════════════════════════════════════════════════════════════
 
 /**
  * فراخوانی AI با قابلیت مشخص
  *
- * ترتیب تلاش:
- *   1. Google Gemini (کلید Round-Robin)
- *   2. OpenRouter Key A  (مدل بزرگ)
- *   3. OpenRouter Key B  (مدل متوسط)
- *   4. OpenRouter Key C  (مدل سریع)
+ * ترتیب اجرا:
+ *   1. Cache Check    — اگر جواب کش شده موجود بود، فوری برگردان
+ *   2. Rate Limit     — بررسی محدودیت کاربر (پرتاب RateLimitError در صورت تجاوز)
+ *   3. Tier 1 Google  — Round-Robin روی 10 کلید
+ *   4. Tier 2 OR-A    — مدل‌های 200B+
+ *   5. Tier 3 OR-B    — مدل‌های 32-70B
+ *   6. Tier 4 OR-C    — مدل‌های سریع 7-24B
  */
 export async function callAI(
   prompt: string,
   options: AICallOptions = {}
 ): Promise<AIResponse> {
   const capability: AICapability = options.capability ?? 'study_buddy'
-  const orModels = OPENROUTER_MODEL_MAP[capability]
 
+  // ── مرحله 1: Cache Check ──────────────────────────────────────
+  const ttl = CACHE_TTL_SECONDS[capability]
+  const cacheKey = getCacheKey(capability, prompt)
+
+  if (!options.skipCache && ttl > 0) {
+    const cached = getFromCache(cacheKey)
+    if (cached) return cached
+  }
+
+  // ── مرحله 2: Rate Limit Check ────────────────────────────────
+  if (options.userId) {
+    checkRateLimit(options.userId)
+  }
+
+  // ── مرحله 3-6: Fallback Chain ────────────────────────────────
+  const orModels = OPENROUTER_MODEL_MAP[capability]
   const keyA = process.env.OPENROUTER_API_KEY
   const keyB = process.env.OPENROUTER_API_KEY_B
   const keyC = process.env.OPENROUTER_API_KEY_C
 
   const tiers: Array<() => Promise<AIResponse>> = []
 
-  // Tier 1: Google
   if (!options.forceOpenRouter) {
     tiers.push(() => callGoogleTier1(prompt, capability, options))
   }
-
-  // Tier 2: OpenRouter A
   if (keyA) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier2, 2, keyA, options))
-
-  // Tier 3: OpenRouter B
   if (keyB) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier3, 3, keyB, options))
-
-  // Tier 4: OpenRouter C
   if (keyC) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier4, 4, keyC, options))
 
   let lastError: unknown
-  for (const attempt of tiers) {
+  for (let i = 0; i < tiers.length; i++) {
     try {
-      return await attempt()
+      const result = await tiers[i]()
+      // ذخیره در Cache فقط در صورت موفقیت
+      if (!options.skipCache && ttl > 0) {
+        setCache(cacheKey, result, ttl)
+      }
+      return result
     } catch (err) {
       lastError = err
-      const tierLabel = tiers.indexOf(attempt) + 1
-      console.warn(`AI Tier ${tierLabel} failed for [${capability}], trying next...`, err)
+      console.warn(`AI Tier ${i + 1} failed for [${capability}], trying next...`, err)
     }
   }
 
@@ -221,7 +359,10 @@ export async function callAI(
   throw new Error('تمام لایه‌های AI در دسترس نیستند. لطفاً بعداً تلاش کنید.')
 }
 
-// ── تابع کمکی برای JSON output ───────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// ── توابع کمکی ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
 export async function callAIForAnalysis<T>(
   prompt: string,
   options: AICallOptions = {}
@@ -238,7 +379,6 @@ export async function callAIForAnalysis<T>(
   }
 }
 
-// ── Vision: اول Gemini، سپس OpenRouter vision-capable ────────────
 export async function callGeminiVision(
   imageBase64: string,
   prompt: string,
@@ -255,21 +395,21 @@ export async function callGeminiVision(
       prompt,
       { inlineData: { data: imageBase64, mimeType: 'image/jpeg' } },
     ])
-    return {
-      content:     result.response.text(),
-      provider:    'google',
-      model:       modelName,
-      tier:        1,
-      is_fallback: false,
-      cost:        0,
-    }
+    return { content: result.response.text(), provider: 'google', model: modelName, tier: 1, is_fallback: false, cost: 0 }
   } catch (err) {
     console.warn('Gemini Vision failed, falling back to OpenRouter Vision...', err)
-
     const keyA = process.env.OPENROUTER_API_KEY
     if (!keyA) throw new Error('هیچ کلید API برای Vision در دسترس نیست')
-
     const visionModel = OPENROUTER_MODEL_MAP[capability].tier2
     return callOpenRouterWithKey(prompt, visionModel, 2, keyA, options)
+  }
+}
+
+/** اطلاعات وضعیت Cache و Rate Limit برای Admin Dashboard */
+export function getAIStats() {
+  return {
+    cacheSize:       responseCache.size,
+    rateLimitUsers:  rateLimitStore.size,
+    googleKeysLoaded: loadGoogleKeys().length,
   }
 }

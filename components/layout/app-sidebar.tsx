@@ -90,6 +90,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'سال تحصیلی', href: '/admin/academic-years', icon: Calendar },
         { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign },
         { title: 'پلن‌های اشتراک', href: '/admin/subscriptions', icon: CreditCard },
+        { title: 'ظرفیت و سهمیه', href: '/admin/quota-settings', icon: Sliders },
         { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
       ]
     },

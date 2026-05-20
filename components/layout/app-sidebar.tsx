@@ -111,6 +111,7 @@ const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'آزمون و محتوا',
       items: [
+        { title: 'آزمون‌ها', href: '/teacher/exams', icon: ClipboardCheck },
         { title: 'آزمون‌ساز', href: '/teacher/exam-generator', icon: PenTool },
         { title: 'بانک سوال', href: '/teacher/question-bank', icon: BookOpen },
         { title: 'تولید محتوا (AI)', href: '/teacher/content-creator', icon: Sparkles },

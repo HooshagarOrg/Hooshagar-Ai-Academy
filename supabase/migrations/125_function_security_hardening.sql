@@ -10,63 +10,62 @@
 -- ═══════════════════════════════════════════════════════════════════
 
 -- ── ① لغو دسترسی anon از توابع حساس ────────────────────────────
+-- هر REVOKE در DO block مستقل — اگر تابع وجود نداشت رد می‌شود
 
-REVOKE EXECUTE ON FUNCTION add_xp(uuid, text, integer, text, jsonb)                    FROM anon;
-REVOKE EXECUTE ON FUNCTION analyze_field_selection_ai(uuid)                             FROM anon;
-REVOKE EXECUTE ON FUNCTION apply_lottery_results(uuid, boolean)                         FROM anon;
-REVOKE EXECUTE ON FUNCTION assign_platform_quota(uuid, uuid, uuid, text)                FROM anon;
-REVOKE EXECUTE ON FUNCTION auto_close_expired_exams()                                   FROM anon;
-REVOKE EXECUTE ON FUNCTION auto_unlock_badges()                                         FROM anon;
-REVOKE EXECUTE ON FUNCTION can_register_for_lottery(uuid, uuid)                         FROM anon;
-REVOKE EXECUTE ON FUNCTION check_and_award_auto_badges(uuid)                            FROM anon;
-REVOKE EXECUTE ON FUNCTION check_and_award_badge(uuid, uuid)                            FROM anon;
-REVOKE EXECUTE ON FUNCTION check_plan_limit(uuid, text)                                 FROM anon;
-REVOKE EXECUTE ON FUNCTION cleanup_expired_otps()                                       FROM anon;
-REVOKE EXECUTE ON FUNCTION cleanup_old_notifications()                                  FROM anon;
-REVOKE EXECUTE ON FUNCTION create_bulk_notifications(uuid[], varchar, text, varchar, text) FROM anon;
-REVOKE EXECUTE ON FUNCTION create_in_app_notification(uuid, varchar, text, varchar, text) FROM anon;
-REVOKE EXECUTE ON FUNCTION delete_user_data(uuid)                                       FROM anon;
-REVOKE EXECUTE ON FUNCTION detect_suspicious_activity(text, integer, integer)           FROM anon;
-REVOKE EXECUTE ON FUNCTION export_user_data(uuid)                                       FROM anon;
-REVOKE EXECUTE ON FUNCTION get_ai_config_v2(text)                                       FROM anon;
-REVOKE EXECUTE ON FUNCTION get_data_flow_stats()                                        FROM anon;
-REVOKE EXECUTE ON FUNCTION get_effective_capacity(uuid)                                 FROM anon;
-REVOKE EXECUTE ON FUNCTION get_lottery_stats(uuid)                                      FROM anon;
-REVOKE EXECUTE ON FUNCTION get_platform_setting(text)                                   FROM anon;
-REVOKE EXECUTE ON FUNCTION get_student_complete_history(uuid)                           FROM anon;
-REVOKE EXECUTE ON FUNCTION get_student_performance_summary(uuid, text)                  FROM anon;
-REVOKE EXECUTE ON FUNCTION get_unread_notification_count(uuid)                          FROM anon;
-REVOKE EXECUTE ON FUNCTION grade_descriptive_answer(uuid, numeric, text)                FROM anon;
-REVOKE EXECUTE ON FUNCTION handle_new_user()                                            FROM anon;
-REVOKE EXECUTE ON FUNCTION increment_ai_tier_usage(text, integer)                       FROM anon;
-REVOKE EXECUTE ON FUNCTION increment_sms_count(uuid)                                    FROM anon;
-REVOKE EXECUTE ON FUNCTION is_ip_blocked(text)                                          FROM anon;
-REVOKE EXECUTE ON FUNCTION log_security_event(text, uuid, jsonb, text, text, boolean, text) FROM anon;
-REVOKE EXECUTE ON FUNCTION manually_progress_student(uuid, integer, uuid, text, uuid)   FROM anon;
-REVOKE EXECUTE ON FUNCTION notify_all_parents(varchar, text, varchar, text)             FROM anon;
-REVOKE EXECUTE ON FUNCTION notify_all_teachers(varchar, text, varchar, text)            FROM anon;
-REVOKE EXECUTE ON FUNCTION notify_class_parents(uuid, varchar, text, varchar, text)     FROM anon;
-REVOKE EXECUTE ON FUNCTION predict_konkur_rank(uuid)                                    FROM anon;
-REVOKE EXECUTE ON FUNCTION promote_students_batch(uuid[], text, uuid, text)             FROM anon;
-REVOKE EXECUTE ON FUNCTION promote_students_end_of_year(uuid, integer, text, numeric)   FROM anon;
-REVOKE EXECUTE ON FUNCTION record_daily_login(uuid)                                     FROM anon;
-REVOKE EXECUTE ON FUNCTION refresh_all_materialized_views()                             FROM anon;
-REVOKE EXECUTE ON FUNCTION revoke_platform_quota(uuid, uuid)                            FROM anon;
-REVOKE EXECUTE ON FUNCTION run_lottery(uuid)                                            FROM anon;
-REVOKE EXECUTE ON FUNCTION send_notification(uuid, text, text, text, jsonb)             FROM anon;
-REVOKE EXECUTE ON FUNCTION submit_exam(uuid, uuid)                                      FROM anon;
-REVOKE EXECUTE ON FUNCTION test_realtime_notification(uuid)                             FROM anon;
-REVOKE EXECUTE ON FUNCTION test_realtime_with_user(uuid)                                FROM anon;
-REVOKE EXECUTE ON FUNCTION update_exam_stats(uuid)                                      FROM anon;
-
--- توابع اضافی
-REVOKE EXECUTE ON FUNCTION get_unread_count()                                           FROM anon;
-REVOKE EXECUTE ON FUNCTION mark_all_read()                                              FROM anon;
-REVOKE EXECUTE ON FUNCTION mark_notification_read(uuid)                                 FROM anon;
-REVOKE EXECUTE ON FUNCTION mark_report_viewed(uuid)                                     FROM anon;
-REVOKE EXECUTE ON FUNCTION generate_parent_report(uuid)                                 FROM anon;
-REVOKE EXECUTE ON FUNCTION publish_report(uuid)                                         FROM anon;
-REVOKE EXECUTE ON FUNCTION cleanup_old_ai_cache()                                       FROM anon;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION add_xp(uuid, text, integer, text, jsonb)                     FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION analyze_field_selection_ai(uuid)                              FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION apply_lottery_results(uuid, boolean)                          FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION assign_platform_quota(uuid, uuid, uuid, text)                 FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION auto_close_expired_exams()                                    FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION auto_unlock_badges()                                          FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION can_register_for_lottery(uuid, uuid)                          FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION check_and_award_auto_badges(uuid)                             FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION check_and_award_badge(uuid, uuid)                             FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION check_plan_limit(uuid, text)                                  FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION cleanup_expired_otps()                                        FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION cleanup_old_notifications()                                   FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION create_bulk_notifications(uuid[], varchar, text, varchar, text) FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION create_in_app_notification(uuid, varchar, text, varchar, text) FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION delete_user_data(uuid)                                        FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION detect_suspicious_activity(text, integer, integer)            FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION export_user_data(uuid)                                        FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION get_ai_config_v2(text)                                        FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION get_data_flow_stats()                                         FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION get_effective_capacity(uuid)                                  FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION get_lottery_stats(uuid)                                       FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION get_platform_setting(text)                                    FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION get_student_complete_history(uuid)                            FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION get_student_performance_summary(uuid, text)                   FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION get_unread_notification_count(uuid)                           FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION grade_descriptive_answer(uuid, numeric, text)                 FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION handle_new_user()                                             FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION increment_ai_tier_usage(text, integer)                        FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION increment_sms_count(uuid)                                     FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION is_ip_blocked(text)                                           FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION log_security_event(text, uuid, jsonb, text, text, boolean, text) FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION manually_progress_student(uuid, integer, uuid, text, uuid)    FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION notify_all_parents(varchar, text, varchar, text)              FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION notify_all_teachers(varchar, text, varchar, text)             FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION notify_class_parents(uuid, varchar, text, varchar, text)      FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION predict_konkur_rank(uuid)                                     FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION promote_students_batch(uuid[], text, uuid, text)              FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION promote_students_end_of_year(uuid, integer, text, numeric)    FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION record_daily_login(uuid)                                      FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION refresh_all_materialized_views()                              FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION revoke_platform_quota(uuid, uuid)                             FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION run_lottery(uuid)                                             FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION send_notification(uuid, text, text, text, jsonb)              FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION submit_exam(uuid, uuid)                                       FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION test_realtime_notification(uuid)                              FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION test_realtime_with_user(uuid)                                 FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION update_exam_stats(uuid)                                       FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION get_unread_count()                                            FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION mark_all_read()                                               FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION mark_notification_read(uuid)                                  FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION mark_report_viewed(uuid)                                      FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION generate_parent_report(uuid)                                  FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION publish_report(uuid)                                          FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
+DO $$ BEGIN REVOKE EXECUTE ON FUNCTION cleanup_old_ai_cache()                                        FROM anon; EXCEPTION WHEN undefined_function THEN NULL; END $$;
 
 
 -- ── ② SET search_path = public برای توابع بدون آن ───────────────

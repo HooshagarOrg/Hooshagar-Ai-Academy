@@ -28,7 +28,7 @@ USING (
 
 
 -- ── 2. attendance ─────────────────────────────────────────────────
--- معلم/مدیر مدرسه خود؛ دانش‌آموز فقط خودش؛ والد فرزندش
+-- attendance.student_id → students; هیچ school_id مستقیمی ندارد
 CREATE POLICY "attendance_staff_select"
 ON attendance FOR SELECT TO authenticated
 USING (
@@ -36,10 +36,9 @@ USING (
     SELECT 1 FROM profiles
     WHERE id = (SELECT auth.uid())
       AND role IN ('platform_admin','admin','principal','teacher')
-      AND (school_id = attendance.school_id OR role = 'platform_admin')
   )
-  OR student_id IN (SELECT id FROM students WHERE user_id = (SELECT auth.uid()))
-  OR student_id IN (SELECT id FROM students WHERE parent_id = (SELECT auth.uid()))
+  OR student_id IN (SELECT id FROM students WHERE user_id    = (SELECT auth.uid()))
+  OR student_id IN (SELECT id FROM students WHERE parent_id  = (SELECT auth.uid()))
 );
 
 CREATE POLICY "attendance_staff_write"
@@ -49,17 +48,16 @@ USING (
     SELECT 1 FROM profiles
     WHERE id = (SELECT auth.uid())
       AND role IN ('platform_admin','admin','principal','teacher')
-      AND (school_id = attendance.school_id OR role = 'platform_admin')
   )
 );
 
 
 -- ── 3. stories ───────────────────────────────────────────────────
--- دانش‌آموز داستان خودش؛ معلم/مدیر همه داستان‌های مدرسه
+-- stories.student_id → students.id
 CREATE POLICY "stories_student_own"
 ON stories FOR SELECT TO authenticated
 USING (
-  user_id = (SELECT auth.uid())
+  student_id IN (SELECT id FROM students WHERE user_id = (SELECT auth.uid()))
   OR EXISTS (
     SELECT 1 FROM profiles
     WHERE id = (SELECT auth.uid())
@@ -69,19 +67,28 @@ USING (
 
 CREATE POLICY "stories_student_insert"
 ON stories FOR INSERT TO authenticated
-WITH CHECK (user_id = (SELECT auth.uid()));
+WITH CHECK (
+  student_id IN (SELECT id FROM students WHERE user_id = (SELECT auth.uid()))
+  OR EXISTS (
+    SELECT 1 FROM profiles WHERE id = (SELECT auth.uid())
+      AND role IN ('platform_admin','admin','principal','teacher')
+  )
+);
 
 CREATE POLICY "stories_student_update"
 ON stories FOR UPDATE TO authenticated
-USING (user_id = (SELECT auth.uid()));
+USING (
+  student_id IN (SELECT id FROM students WHERE user_id = (SELECT auth.uid()))
+);
 
 
 -- ── 4. ai_analyses ───────────────────────────────────────────────
--- هر کاربر تحلیل‌های خودش؛ معلم/مدیر تحلیل‌های دانش‌آموزان مدرسه
+-- ai_analyses.student_id → students.id  |  created_by = auth.uid()
 CREATE POLICY "ai_analyses_own"
 ON ai_analyses FOR SELECT TO authenticated
 USING (
-  user_id = (SELECT auth.uid())
+  created_by = (SELECT auth.uid())
+  OR student_id IN (SELECT id FROM students WHERE user_id = (SELECT auth.uid()))
   OR EXISTS (
     SELECT 1 FROM profiles
     WHERE id = (SELECT auth.uid())
@@ -91,11 +98,17 @@ USING (
 
 CREATE POLICY "ai_analyses_insert"
 ON ai_analyses FOR INSERT TO authenticated
-WITH CHECK (user_id = (SELECT auth.uid()));
+WITH CHECK (
+  created_by = (SELECT auth.uid())
+  OR EXISTS (
+    SELECT 1 FROM profiles WHERE id = (SELECT auth.uid())
+      AND role IN ('platform_admin','admin','principal','teacher')
+  )
+);
 
 
 -- ── 5. activation_logs ───────────────────────────────────────────
--- فقط platform_admin می‌خواند؛ سیستم می‌نویسد
+-- بدون user_id — فقط platform_admin می‌خواند؛ هرکس می‌تواند بنویسد
 CREATE POLICY "activation_logs_admin_select"
 ON activation_logs FOR SELECT TO authenticated
 USING (
@@ -104,7 +117,7 @@ USING (
 
 CREATE POLICY "activation_logs_insert"
 ON activation_logs FOR INSERT TO authenticated
-WITH CHECK (true);  -- سرویس‌های داخلی می‌نویسند
+WITH CHECK (true);
 
 -- ─────────────────────────────────────────────────────────────────
 -- ✅ Migration 124 Complete

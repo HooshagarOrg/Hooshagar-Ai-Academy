@@ -23,10 +23,11 @@ interface ClassQuota {
 }
 
 interface LotteryQuota {
-  max_choices_per_student: number
-  min_choices_per_student: number
-  waitlist_multiplier:     number
-  auto_fill_waitlist:      boolean
+  max_choices_per_student:  number
+  min_choices_per_student:  number
+  default_platform_quota:   number
+  waitlist_enabled:         boolean
+  auto_fill_waitlist:       boolean
 }
 
 interface SchoolLimits {
@@ -52,7 +53,7 @@ export default function QuotaSettingsPage() {
   })
   const [lotteryQuota, setLotteryQuota] = useState<LotteryQuota>({
     max_choices_per_student: 5, min_choices_per_student: 1,
-    waitlist_multiplier: 1.5, auto_fill_waitlist: true,
+    default_platform_quota: 5, waitlist_enabled: false, auto_fill_waitlist: false,
   })
   const [schoolLimits, setSchoolLimits] = useState<SchoolLimits>({
     max_students_free: 50, max_students_basic: 300,
@@ -185,14 +186,14 @@ export default function QuotaSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-1">
               <Label className="text-xs">حداکثر تعداد اولویت انتخابی</Label>
               <Input type="number" min={1} max={20}
                 value={lotteryQuota.max_choices_per_student}
                 onChange={e => setLotteryQuota(p => ({ ...p, max_choices_per_student: +e.target.value }))}
               />
-              <p className="text-xs text-gray-400">تعداد معلمانی که دانش‌آموز می‌تواند انتخاب کند</p>
+              <p className="text-xs text-gray-400">سقف انتخاب معلم (= تعداد معلمان آن پایه)</p>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">حداقل تعداد اولویت الزامی</Label>
@@ -201,31 +202,20 @@ export default function QuotaSettingsPage() {
                 onChange={e => setLotteryQuota(p => ({ ...p, min_choices_per_student: +e.target.value }))}
               />
             </div>
-          </div>
-
-          <div className="space-y-1">
-            <Label className="text-xs">ضریب لیست انتظار</Label>
-            <div className="flex items-center gap-3">
-              <Input type="number" min={1} max={5} step={0.1}
-                className="w-32"
-                value={lotteryQuota.waitlist_multiplier}
-                onChange={e => setLotteryQuota(p => ({ ...p, waitlist_multiplier: +e.target.value }))}
+            <div className="space-y-1">
+              <Label className="text-xs">سهمیه پیش‌فرض مدیرکل (نفر)</Label>
+              <Input type="number" min={0} max={50}
+                value={lotteryQuota.default_platform_quota}
+                onChange={e => setLotteryQuota(p => ({ ...p, default_platform_quota: +e.target.value }))}
               />
-              <p className="text-xs text-gray-500">
-                مثلاً ۱.۵ = لیست انتظار تا ۵۰٪ بیشتر از ظرفیت
-              </p>
+              <p className="text-xs text-gray-400">از ظرفیت کل کسر می‌شود — تخصیص دستی</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Switch
-              checked={lotteryQuota.auto_fill_waitlist}
-              onCheckedChange={v => setLotteryQuota(p => ({ ...p, auto_fill_waitlist: v }))}
-            />
-            <div>
-              <p className="text-sm font-medium">جایگزینی خودکار از لیست انتظار</p>
-              <p className="text-xs text-gray-400">اگر نفری انصراف دهد، نفر اول لیست انتظار جایگزین شود</p>
-            </div>
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+            <strong>فرمول:</strong> ظرفیت قرعه‌کشی = ظرفیت کل − سهمیه مدیرکل
+            &nbsp;|&nbsp; لیست انتظار: <strong>غیرفعال</strong>
+            &nbsp;|&nbsp; جایگزینی انصراف: <strong>دستی توسط مدیرکل</strong>
           </div>
 
           <div className="flex justify-end">

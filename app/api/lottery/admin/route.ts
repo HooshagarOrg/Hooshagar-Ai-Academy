@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { sendSmsBatch, createSmsProvider } from '@/lib/sms/provider'
 
 const lotterySettingSchema = z.object({
   school_id: z.string().uuid(),
@@ -361,22 +362,53 @@ export async function PATCH(request: NextRequest) {
         )
       }
 
-      const res = result?.[0]
-      
-      if (!res?.success) {
+      if (!result?.success) {
         return NextResponse.json(
-          { success: false, error: res?.message || 'خطا در اجرا' },
+          { success: false, error: result?.message || 'خطا در اجرا' },
           { status: 400 }
         )
       }
 
+      // ── ارسال SMS به والدین / دانش‌آموزان ─────────────────────
+      try {
+        const { data: results } = await supabase
+          .from('lottery_results')
+          .select(`
+            status, assignment_type,
+            students!inner(
+              full_name,
+              profiles!inner(phone)
+            ),
+            lottery_classes(class_name, teacher_name)
+          `)
+          .eq('period_id', id)
+          .in('status', ['assigned', 'not_assigned'])
+          .not('students.profiles.phone', 'is', null)
+
+        if (results?.length) {
+          const provider = createSmsProvider()
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const messages = results.map((r: any) => {
+            const name  = r.students?.full_name ?? ''
+            const phone = r.students?.profiles?.phone ?? ''
+            const cls   = r.lottery_classes
+            const text  = r.status === 'assigned'
+              ? `هوشاگر: ${name} عزیز، در قرعه‌کشی کلاس ${cls?.class_name ?? ''} (${cls?.teacher_name ?? ''}) پذیرفته شدید.`
+              : `هوشاگر: ${name} عزیز، متأسفانه در قرعه‌کشی انتخاب نشدید. با مدرسه تماس بگیرید.`
+            return { to: phone, text }
+          }).filter(m => m.to)
+          await sendSmsBatch(provider, messages)
+        }
+      } catch (smsErr) {
+        console.error('SMS send error (non-fatal):', smsErr)
+      }
+
       return NextResponse.json({
         success: true,
-        message: res.message,
+        message: result.message,
         stats: {
-          total: res.total_registrations,
-          successful: res.successful,
-          failed: res.failed,
+          assigned:     result.assigned,
+          not_assigned: result.not_assigned,
         },
       })
     }

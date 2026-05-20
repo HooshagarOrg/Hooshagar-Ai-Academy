@@ -1,33 +1,14 @@
-import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { AUTH_ERRORS } from '@/lib/security/error-handler'
+import { applyRateLimit } from '@/lib/security/rate-limiter'
 import { z } from 'zod'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey  = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const openrouterKey = process.env.OPENROUTER_API_KEY!
-const googleApiKey = process.env.GOOGLE_API_KEY
-
-// Rate limiting
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
-const RATE_LIMIT = 10 // درخواست در دقیقه
-const RATE_LIMIT_WINDOW = 60 * 1000
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const record = rateLimitMap.get(ip)
-
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW })
-    return true
-  }
-
-  if (record.count >= RATE_LIMIT) {
-    return false
-  }
-
-  record.count++
-  return true
-}
+const googleApiKey  = process.env.GOOGLE_API_KEY
 
 const studyBuddySchema = z.object({
   question: z.string().min(3, 'سوال باید حداقل 3 کاراکتر باشد'),
@@ -179,26 +160,21 @@ ${context}
   return 'متأسفانه در حال حاضر نمی‌توانم به سوال شما پاسخ دهم. لطفاً دوباره تلاش کنید.'
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const ip = request.headers.get('x-forwarded-for') || 
-               request.headers.get('x-real-ip') || 
-               'anonymous'
-    
-    if (!checkRateLimit(ip)) {
-      return NextResponse.json(
-        { error: 'تعداد درخواست‌های شما زیاد است. لطفاً یک دقیقه صبر کنید.' },
-        { status: 429 }
-      )
-    }
+    // Rate Limit
+    const rlRes = applyRateLimit(request, 'ai_heavy')
+    if (rlRes) return rlRes
+
+    // احراز هویت اجباری
+    const authClient = await createClient()
+    const { data: { user } } = await authClient.auth.getUser()
+    if (!user) return AUTH_ERRORS.unauthorized()
 
     const body = await request.json()
-    console.log('📚 Study Buddy request:', body)
-
     const { question, studentId, grade, subject } = studyBuddySchema.parse(body)
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createSupabaseClient(supabaseUrl, supabaseKey)
 
     // 1. گرفتن embedding از سوال
     console.log('🔍 Getting embedding...')

@@ -33,11 +33,6 @@ interface UserProfile {
   must_change_password?: boolean
 }
 
-interface StudentProfile extends UserProfile {
-  grade_level: number | null
-  education_stage: EducationStage | null
-}
-
 // مسیرهایی که حداقل پایه تحصیلی نیاز دارند
 const GRADE_RESTRICTED_ROUTES: Record<string, { min_grade: number; stages: EducationStage[] }> = {
   '/student/konkur':         { min_grade: 10, stages: ['high_school', 'vocational', 'technical'] },
@@ -238,19 +233,21 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // 4. دریافت session کاربر
+  // 4. دریافت کاربر — getUser() امن‌تر از getSession() است
+  // getSession() فقط کوکی محلی را می‌خواند و قابل جعل است
+  // getUser() با سرور Supabase تأیید می‌کند
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // 5. مسیرهای عمومی - اگر لاگین است، redirect به داشبورد مربوطه
   if (isPublicRoute(pathname)) {
-    if (session) {
+    if (user) {
       // دریافت پروفایل کاربر
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', session.user.id)
+        .eq('id', user.id)
         .single()
 
       if (profile?.role) {
@@ -261,8 +258,8 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // 6. مسیرهای محافظت شده - بررسی session
-  if (!session) {
+  // 6. مسیرهای محافظت شده - بررسی auth
+  if (!user) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
@@ -272,7 +269,7 @@ export async function middleware(request: NextRequest) {
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('id, role, school_id, must_change_password')
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single()
 
   // اگر پروفایل یافت نشد
@@ -328,7 +325,7 @@ export async function middleware(request: NextRequest) {
     const { data: studentData } = await supabase
       .from('students')
       .select('grade, education_stage')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single()
 
     const gradeAllowed = checkGradeRestriction(

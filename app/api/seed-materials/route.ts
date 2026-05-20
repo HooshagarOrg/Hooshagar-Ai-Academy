@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient as createServerClient } from '@/lib/supabase/server'
+import { AUTH_ERRORS } from '@/lib/security/error-handler'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl   = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey   = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const openrouterKey = process.env.OPENROUTER_API_KEY!
-const googleApiKey = process.env.GOOGLE_API_KEY
+const googleApiKey  = process.env.GOOGLE_API_KEY
 
 // محتوای نمونه
 const sampleMaterials = [
@@ -193,7 +195,19 @@ async function getEmbedding(text: string): Promise<number[] | null> {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // این endpoint فقط در محیط توسعه یا توسط platform_admin قابل استفاده است
+  if (process.env.APP_ENV === 'production') {
+    const authClient = await createServerClient()
+    const { data: { user } } = await authClient.auth.getUser()
+    if (!user) return AUTH_ERRORS.unauthorized()
+    const { data: profile } = await authClient
+      .from('profiles').select('role').eq('id', user.id).single()
+    if (!profile || profile.role !== 'platform_admin') {
+      return AUTH_ERRORS.forbidden()
+    }
+  }
+
   try {
     console.log('🌱 Starting seed process...')
 

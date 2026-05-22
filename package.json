@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "سیستم عامل هوشمند مدیریت مدارس - AI-Native School Management System",
   "private": true,
+  "license": "UNLICENSED",
+  "author": "Hooshagar",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

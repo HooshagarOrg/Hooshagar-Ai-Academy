@@ -276,11 +276,11 @@ export default function LandingPage() {
                   <p className="text-white/60 text-xs mb-2">پشتیبانی از زبان فارسی</p>
                   <p className="text-3xl font-black text-white">۱۰۰٪</p>
                   <p className="text-white/50 text-xs mt-1">بهینه‌شده برای محتوای درسی ایران</p>
-                </div>
+              </div>
                 <div className="bg-white/10 rounded-2xl p-4">
                   <p className="text-white/60 text-xs mb-1">همیشه در دسترس</p>
                   <p className="text-white font-medium">زیرساخت پایدار و مطمئن ✓</p>
-                </div>
+          </div>
               </div>
             </div>
           </div>
@@ -310,10 +310,10 @@ export default function LandingPage() {
               <Link href="/pricing">
                 <Button size="lg" variant="outline" className="px-10 h-12 text-base border-2">
                   مشاهده پلن‌ها
-                </Button>
+            </Button>
               </Link>
             </div>
-          </div>
+        </div>
       </div>
       </section>
 

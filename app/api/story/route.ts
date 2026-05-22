@@ -1,29 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-
-const openrouterKey = process.env.OPENROUTER_API_KEY!
-
-// Rate limiting با Map ساده
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
-const RATE_LIMIT = 5 // درخواست در دقیقه
-const RATE_LIMIT_WINDOW = 60 * 1000 // 1 دقیقه
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const record = rateLimitMap.get(ip)
-
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW })
-    return true
-  }
-
-  if (record.count >= RATE_LIMIT) {
-    return false
-  }
-
-  record.count++
-  return true
-}
+import { AUTH_ERRORS, secureErrorResponse } from '@/lib/security/error-handler'
+import { applyRateLimit } from '@/lib/security/rate-limiter'
 
 const storySchema = z.object({
   topic: z.string().min(2, 'موضوع باید حداقل 2 کاراکتر باشد'),
@@ -37,12 +16,21 @@ const lengthMap = {
   long: '۶۰۰-۸۰۰ کلمه',
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const ip = request.headers.get('x-forwarded-for') || 
-               request.headers.get('x-real-ip') || 
+    const rateLimitRes = applyRateLimit(request, 'ai_generate')
+    if (rateLimitRes) return rateLimitRes
+
+    // احراز هویت اجباری
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return AUTH_ERRORS.unauthorized()
+
+    const ip = request.headers.get('x-forwarded-for') ||
+               request.headers.get('x-real-ip') ||
                'anonymous'
+    void ip // فقط برای سازگاری با کد زیر
     
     if (!checkRateLimit(ip)) {
       return NextResponse.json(

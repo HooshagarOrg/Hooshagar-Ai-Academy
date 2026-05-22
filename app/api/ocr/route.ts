@@ -1,35 +1,62 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { AUTH_ERRORS, secureErrorResponse } from '@/lib/security/error-handler'
 
-const openrouterKey = process.env.OPENROUTER_API_KEY!
+// لیست سفید domain‌های مجاز برای imageUrl (جلوگیری از SSRF)
+const ALLOWED_IMAGE_DOMAINS = [
+  'supabase.co',
+  'supabase.in',
+  'arvanstorage.ir',
+  'cdn.arvanstorage.ir',
+  'storage.googleapis.com',
+  'hooshagar.ir',
+  'hooshagar.com',
+]
+
+function isAllowedImageUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    // فقط HTTPS
+    if (parsed.protocol !== 'https:') return false
+    // بررسی domain در لیست سفید
+    return ALLOWED_IMAGE_DOMAINS.some(d => parsed.hostname === d || parsed.hostname.endsWith('.' + d))
+  } catch {
+    return false
+  }
+}
 
 const ocrSchema = z.object({
-  image: z.string().optional(), // base64
-  imageUrl: z.string().optional(), // URL
+  image:    z.string().optional(),
+  imageUrl: z.string().url().optional(),
   question: z.string().optional(),
 })
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // احراز هویت اجباری
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return AUTH_ERRORS.unauthorized()
+
     const body = await request.json()
-    console.log('📸 OCR request received')
-    
     const { image, imageUrl, question } = ocrSchema.parse(body)
 
-    // باید یکی از image یا imageUrl موجود باشد
     if (!image && !imageUrl) {
-      return NextResponse.json(
-        { error: 'تصویر یا URL تصویر الزامی است' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'تصویر یا URL تصویر الزامی است' }, { status: 400 })
+    }
+
+    // SSRF protection: بررسی URL
+    if (imageUrl && !image) {
+      if (!isAllowedImageUrl(imageUrl)) {
+        return NextResponse.json({ error: 'آدرس تصویر مجاز نیست.' }, { status: 400 })
+      }
     }
 
     let imageBase64 = image
 
-    // اگر imageUrl داریم، دانلود و تبدیل به base64
     if (imageUrl && !imageBase64) {
       try {
-        console.log('📥 Downloading image from:', imageUrl)
         const imageResponse = await fetch(imageUrl)
         
         if (!imageResponse.ok) {
@@ -180,15 +207,13 @@ Example output:
       }
     }
 
-    // اگر همه مدل‌ها fail شدند
-    throw new Error(lastError?.error?.message || 'همه مدل‌ها موقتاً در دسترس نیستند')
+    throw new Error('همه مدل‌ها موقتاً در دسترس نیستند')
 
-  } catch (error: any) {
-    console.error('❌ OCR error:', error)
+  } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: error.errors[0].message }, { status: 400 })
     }
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return secureErrorResponse(error, { context: 'POST /api/ocr' })
   }
 }
 

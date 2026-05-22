@@ -46,6 +46,13 @@ next-env.d.ts
 # IDE
 .vscode
 .idea
+
+# Cursor / local AI dev (do not publish to GitHub)
+.cursor/
+.cursorrules
+CURSOR_PLANNING.md
+PROMPTS.md
+**/agent-transcripts/
 *.swp
 *.swo
 *~

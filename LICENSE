@@ -1,0 +1,77 @@
+Hooshagar — Proprietary Software License
+Copyright (c) 2026 Hooshagar. All Rights Reserved.
+
+================================================================================
+خلاصه (فارسی) — متن قانونی انگلیسی در ادامه معتبر است
+================================================================================
+
+این نرم‌افزار اختصاصی (Proprietary) است و متن‌باز (Open Source) نیست.
+
+ممنوع است (بدون مجوز کتبی صریح از صاحب حق نشر):
+  • استفاده از هر نوع (شخصی، آموزشی، تجاری، SaaS، داخلی سازمانی)
+  • کپی، بازتولید، یا انتشار
+  • تغییر، ویرایش، یا ساخت آثار مشتق (Derivative Works)
+  • فورک، mirror، یا host مجدد
+  • توزیع مجدد (Redistribution) یا sublicensing
+  • مهندسی معکوس (Reverse Engineering)، decompile، disassemble
+  • استخراج promptها، الگوریتم‌ها، یا منطق تجاری
+  • حذف یا دور زدن اعلان‌های حق نشر
+
+مجاز است فقط برای:
+  • صاحب حق نشر (مالک پروژه) و نمایندگان مجاز کتبی او
+
+================================================================================
+ENGLISH — LEGALLY BINDING TERMS
+================================================================================
+
+1. GRANT OF RIGHTS
+   No license is granted to any person or entity except the copyright owner
+   ("Owner") and those explicitly authorized in writing by the Owner.
+   All rights not expressly granted are reserved.
+
+2. RESTRICTIONS
+   You may NOT, without prior written permission from the Owner:
+   (a) use this software in any manner;
+   (b) copy, reproduce, or publish any portion of this software;
+   (c) modify, adapt, translate, or create derivative works;
+   (d) distribute, sublicense, lease, lend, or sell this software;
+   (e) fork, mirror, or make this software available on any platform;
+   (f) reverse engineer, decompile, or disassemble, except where
+       prohibited by applicable law and only to the minimum extent required;
+   (g) remove or alter proprietary notices, license files, or attribution;
+   (h) use the software for commercial purposes, including as part of a
+       product or service offered to third parties;
+   (i) scrape, extract, or replicate business logic, AI prompts, API designs,
+       database schemas, or security configurations disclosed herein.
+
+3. CONFIDENTIALITY
+   This software and all related materials (including source code, prompts,
+   API keys, infrastructure configuration, and documentation marked internal)
+   are confidential and proprietary trade secrets of the Owner.
+
+4. OWNERSHIP
+   The Owner retains all right, title, and interest in and to the software,
+   including all intellectual property rights.
+
+5. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED. THE OWNER SHALL NOT BE LIABLE FOR ANY DAMAGES ARISING FROM USE
+   OR INABILITY TO USE THE SOFTWARE.
+
+6. TERMINATION
+   Any unauthorized use automatically terminates any implied permission and
+   may result in legal action.
+
+7. GOVERNING LAW
+   Unless otherwise agreed in writing, disputes shall be governed by the laws
+   applicable at the Owner's principal place of business, without regard to
+   conflict-of-law principles.
+
+8. CONTACT
+   For licensing inquiries: contact the repository owner or legal representative
+   of Hooshagar before any use.
+
+================================================================================
+
+By accessing, cloning, or possessing this repository you acknowledge that you
+have read this license and agree to be bound by its terms if you are not the Owner.

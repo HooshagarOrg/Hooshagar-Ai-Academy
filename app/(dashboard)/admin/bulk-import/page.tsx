@@ -249,12 +249,12 @@ export default function BulkImportPage() {
     <div className="p-6 space-y-6 max-w-5xl mx-auto" dir="rtl">
 
       {/* ─ Header ─ */}
-      <div>
+            <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Upload className="text-blue-600" /> ثبت دانش‌آموزان
-        </h1>
+              </h1>
         <p className="text-sm text-gray-500 mt-1">آپلود فایل Excel یا CSV برای ثبت چند دانش‌آموز به‌صورت همزمان</p>
-      </div>
+        </div>
 
       {/* ─ نوار مراحل ─ */}
       <div className="flex items-center gap-2 text-sm">
@@ -267,15 +267,15 @@ export default function BulkImportPage() {
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
                 ${done ? 'bg-green-500 text-white' : active ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
                 {done ? '✓' : i + 1}
-              </div>
+                              </div>
               <span className={active ? 'font-semibold text-blue-600' : done ? 'text-green-600' : 'text-gray-400'}>
                 {labels[i]}
               </span>
               {i < 2 && <ArrowLeft className="text-gray-300 w-4 h-4" />}
-            </div>
+                            </div>
           )
         })}
-      </div>
+                      </div>
 
       {/* ══ مرحله ۱: آپلود ══════════════════════════════════ */}
       {step === 'upload' && (
@@ -284,18 +284,18 @@ export default function BulkImportPage() {
             <CardContent className="p-4 flex items-center justify-between">
               <div className="flex items-start gap-3">
                 <FileText className="text-blue-600 mt-0.5 shrink-0" />
-                <div>
+                      <div>
                   <p className="font-semibold text-blue-800">دانلود فایل نمونه</p>
                   <p className="text-sm text-blue-700">
                     فایل نمونه را دانلود، پر کنید و آپلود کنید (CSV یا Excel)
                   </p>
-                </div>
-              </div>
+                              </div>
+                            </div>
               <Button variant="outline" className="border-blue-400 text-blue-700 shrink-0" onClick={downloadTemplate}>
                 <Download size={16} className="ml-1" /> دانلود نمونه
-              </Button>
-            </CardContent>
-          </Card>
+                      </Button>
+                  </CardContent>
+                </Card>
 
           <div
             className="border-2 border-dashed border-gray-300 rounded-xl p-16 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
@@ -310,18 +310,18 @@ export default function BulkImportPage() {
               ref={fileRef} type="file" accept=".csv,.txt,.xlsx,.xls" className="hidden"
               onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]) }}
             />
-          </div>
+                </div>
         </>
-      )}
+              )}
 
       {/* ══ مرحله ۲: تطبیق ستون‌ها ════════════════════════ */}
       {step === 'mapping' && (
-        <Card>
-          <CardHeader>
+                <Card>
+                  <CardHeader>
             <CardTitle>ثبت دانش‌آموزان</CardTitle>
-          </CardHeader>
+                  </CardHeader>
           <CardContent className="space-y-5">
-            <p className="text-sm text-gray-500">
+                              <p className="text-sm text-gray-500">
               برای هر فیلد سیستم، ستون متناظر در فایل Excel را انتخاب کنید
             </p>
 
@@ -330,7 +330,7 @@ export default function BulkImportPage() {
               <div className="grid grid-cols-2 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-600">
                 <span>ستون فایل excel</span>
                 <span>ستون الگو</span>
-              </div>
+                        </div>
               {SYSTEM_FIELDS.map(field => (
                 <div key={field.key} className="grid grid-cols-2 items-center px-4 py-3 border-t hover:bg-gray-50">
                   <span className="text-sm text-gray-700">
@@ -343,19 +343,19 @@ export default function BulkImportPage() {
                   >
                     <SelectTrigger className="text-sm">
                       <SelectValue placeholder="انتخاب کنید" />
-                    </SelectTrigger>
-                    <SelectContent>
+                          </SelectTrigger>
+                          <SelectContent>
                       {!field.required && (
                         <SelectItem value="__none__">— انتخاب نشود —</SelectItem>
                       )}
                       {fileHeaders.map(h => (
                         <SelectItem key={h} value={h}>{h}</SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                          </SelectContent>
+                        </Select>
                 </div>
               ))}
-            </div>
+                      </div>
 
             {/* صرف نظر از تکراری‌ها */}
             <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -367,17 +367,17 @@ export default function BulkImportPage() {
               <label htmlFor="skip-dup" className="text-sm text-blue-800 cursor-pointer font-medium">
                 صرف نظر از خطای ثبت کاربرهای تکراری (ثبت ردیف‌های بدون خطا)
               </label>
-            </div>
+                      </div>
 
             <div className="flex gap-3 justify-end">
               <Button variant="outline" onClick={reset}>بازگشت</Button>
               <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={confirmMapping}>
                 تایید - ادامه
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                          </Button>
+                        </div>
+                  </CardContent>
+                </Card>
+              )}
 
       {/* ══ مرحله ۳: پیش‌نمایش و واردسازی ════════════════ */}
       {step === 'preview' && (
@@ -389,7 +389,7 @@ export default function BulkImportPage() {
                 {!importing && (
                   <Button variant="outline" onClick={reset}>بارگذاری مجدد</Button>
                 )}
-                <Button
+                    <Button
                   onClick={startImport}
                   disabled={importing || pendingCount === 0}
                   className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -399,7 +399,7 @@ export default function BulkImportPage() {
                     : pendingCount === 0
                     ? <><CheckCircle size={16} className="ml-1" /> تکمیل شد</>
                     : `تایید - ادامه (${pendingCount} نفر)`}
-                </Button>
+                    </Button>
               </div>
             </div>
 
@@ -407,8 +407,8 @@ export default function BulkImportPage() {
             {importing && (
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                 <div className="bg-orange-500 h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
-              </div>
-            )}
+                </div>
+              )}
 
             {/* آمار */}
             <div className="flex gap-4 text-sm mt-2 flex-wrap">
@@ -418,10 +418,10 @@ export default function BulkImportPage() {
                 <span className="text-orange-700 font-bold">⚠️ تکراری: {duplicateCount}</span>
               )}
               <span className="text-gray-500">⏳ در انتظار: {pendingCount}</span>
-            </div>
-          </CardHeader>
+                </div>
+              </CardHeader>
 
-          <CardContent>
+              <CardContent>
             <div className="overflow-x-auto max-h-[500px] overflow-y-auto rounded-lg border">
               <table className="w-full text-sm border-collapse">
                 <thead className="bg-gray-100 sticky top-0 z-10">
@@ -467,7 +467,7 @@ export default function BulkImportPage() {
                           {row.grade ? (
                             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                               {Object.entries(GRADE_MAP).find(([, v]) => v === parseInt(row.grade) && !/^\d+$/.test(Object.entries(GRADE_MAP).find(([k]) => k === row.grade)?.[0] || ''))?.[0] || `پایه ${row.grade}`}
-                            </Badge>
+                          </Badge>
                           ) : '—'}
                         </td>
                         <td className="p-3 text-center">
@@ -486,10 +486,10 @@ export default function BulkImportPage() {
             <div className="flex justify-end mt-4">
               <Button variant="outline" onClick={() => setStep('mapping')}>
                 بازگشت
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                            </Button>
+                          </div>
+              </CardContent>
+            </Card>
       )}
 
       {/* Dialog پیام‌ها */}

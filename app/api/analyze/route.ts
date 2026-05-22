@@ -1,29 +1,38 @@
-import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { callAI } from '@/lib/ai-provider'
 import { z } from 'zod'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const openrouterKey = process.env.OPENROUTER_API_KEY!
+import { AUTH_ERRORS, secureErrorResponse } from '@/lib/security/error-handler'
 
 const analyzeSchema = z.object({
   studentId: z.string().uuid(),
   analysisType: z.enum(['academic', 'behavioral', 'comprehensive']).optional().default('comprehensive'),
 })
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    console.log('📥 Analyze request:', body)
-    
-    const { studentId, analysisType } = analyzeSchema.parse(body)
+    // احراز هویت اجباری
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return AUTH_ERRORS.unauthorized()
 
-    // دریافت اطلاعات دانش‌آموز
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const allowedRoles = ['teacher', 'principal', 'admin', 'platform_admin', 'counselor']
+    if (!profile || !allowedRoles.includes(profile.role)) {
+      return AUTH_ERRORS.forbidden()
+    }
+
+    const body = await request.json()
+    const { studentId, analysisType } = analyzeSchema.parse(body)
     
     const { data: student, error: studentError } = await supabase
       .from('students')
-      .select('*')
+      .select('id, grade, profiles!inner(full_name)')
       .eq('id', studentId)
       .single()
 
@@ -61,35 +70,14 @@ export async function POST(request: Request) {
 - فقط JSON برگردانید، بدون markdown یا توضیح اضافی
 `
 
-    console.log('🤖 Calling AI...')
-
-    // فراخوانی AI (Google Gemini رایگان)
-    const aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openrouterKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'http://localhost:3000',
-        'X-Title': 'Hooshagar AI'
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp:free',
-        messages: [
-          { role: 'user', content: prompt }
-        ],
-        response_format: { type: 'json_object' }
-      })
+    const aiResp = await callAI(prompt, {
+      capability: 'student_analyzer',
+      userId: user.id,
+      temperature: 0.4,
+      maxTokens: 800,
     })
-
-    if (!aiResponse.ok) {
-      throw new Error('AI request failed')
-    }
-
-    const aiData = await aiResponse.json()
-    console.log('✅ AI response received')
-
-    const aiText = aiData.choices[0].message.content
-    const analysis = JSON.parse(aiText)
+    const clean = aiResp.content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+    const analysis = JSON.parse(clean)
 
     console.log('📊 Parsed analysis:', analysis)
 
@@ -121,12 +109,11 @@ export async function POST(request: Request) {
       model: 'Google Gemini 2.0 Flash (Free)'
     })
 
-  } catch (error: any) {
-    console.error('❌ Analyze error:', error)
+  } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: error.errors[0].message }, { status: 400 })
     }
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return secureErrorResponse(error, { context: 'POST /api/analyze' })
   }
 }
 

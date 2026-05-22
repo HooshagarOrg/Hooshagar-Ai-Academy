@@ -1,5 +1,21 @@
 # 🎓 هوشاگر - سیستم عامل هوشمند مدیریت مدارس
 
+## ⚖️ مجوز و مالکیت — Proprietary / All Rights Reserved
+
+**Copyright © 2026 Hooshagar. تمامی حقوق محفوظ است.**
+
+| مورد | وضعیت |
+|------|--------|
+| متن‌باز (Open Source) | **خیر** |
+| استفاده توسط دیگران | **ممنوع** (بدون مجوز کتبی) |
+| تغییر / فورک / توزیع | **ممنوع** |
+| استفاده تجاری | **فقط مالک** |
+| مهندسی معکوس / استخراج prompt | **ممنوع** |
+
+متن کامل: [LICENSE](./LICENSE) — راهنمای امنیت: [docs/PROPRIETARY_SECURITY.md](./docs/PROPRIETARY_SECURITY.md)
+
+---
+
 > **AI-Native School Management System** با استراتژی **Gemini First** - ساخته شده با Next.js 14, Supabase, و Google AI
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
@@ -33,7 +49,7 @@
 - [مستندات API](#مستندات-api)
 - [مدیریت هزینه‌ها](#مدیریت-هزینهها)
 - [امنیت و بهترین روش‌ها](#امنیت-و-بهترین-روشها)
-- [توسعه با Cursor AI](#توسعه-با-cursor-ai)
+- [مجوز و محافظت اختصاصی](#️-مجوز-و-مالکیت--proprietary--all-rights-reserved)
 - [Troubleshooting](#troubleshooting)
 - [Deploy](#deploy)
 - [Roadmap](#roadmap)
@@ -380,8 +396,8 @@ hooshagar/
 │   ├── test-openrouter.js
 │   └── verify-env.js
 │
-├── .cursorrules              # قوانین Cursor AI (مهم!)
-├── CURSOR_PLANNING.md        # معماری و دیتابیس
+├── LICENSE                   # مجوز اختصاصی — All Rights Reserved
+├── docs/PROPRIETARY_SECURITY.md
 ├── specification.md          # مشخصات کامل فنی و non-functional requirements
 ├── .env.example              # Environment template
 ├── .gitignore
@@ -704,56 +720,10 @@ export async function POST(req: Request) {
 
 ---
 
-## 🤖 توسعه با Cursor AI
+## 🔒 توسعه داخلی (محرمانه)
 
-### فایل‌های مهم AI
-
-1. **`.cursorrules`** - قوانین کدنویسی، معماری، و security
-2. **`CURSOR_PLANNING.md`** - schema دیتابیس، API structure, AI prompts
-3. **`specification.md`** - مشخصات کامل فنی و non-functional requirements
-
-### نحوه کار با Cursor (الگوی صحیح)
-
-```bash
-# ✅ برای شروع هر feature:
-@.cursorrules @CURSOR_PLANNING.md
-"فاز 2: Student Analyzer API را با استراتژی Gemini First بساز"
-
-# ✅ برای debug:
-@.cursorrules
-"این error را بررسی کن: RLS policy failed for table 'students'"
-
-# ❌ برای جلوگیری از waste:
-# هرگز نگو: "همه چیز رو بساز" → بخش بخش بخواه
-```
-
-### Scratchpad برای مدیریت وظایف
-
-در انتهای `.cursorrules`، پیشرفت پروژه را track کنید:
-
-```
-[✓] Task 1: Setup complete
-[✓] Task 2: Authentication done
-[⏳] Task 3: Student CRUD (در حال کار - 70%)
-[ ] Task 4: AI Provider با fallback
-```
-
-### دستورات مفید برای Cursor
-
-```bash
-# شروع با تمام context
-@README.md @CURSOR_PLANNING.md @.cursorrules
-"فاز 1 Foundation: را شروع کن. اول project structure را بساز.
-مهم: استراتژی Gemini First را در همه جا رعایت کن."
-
-# Debug با context محدود
-@.cursorrules @lib/ai-provider.ts
-"این خطای fallback را fix کن"
-
-# Feature جدید با context مرتبط
-@CURSOR_PLANNING.md @components/features/ai/
-"AIAnalysisModal component را بساز"
-```
+فایل‌های مربوط به ابزارهای توسعه محلی (مثل قوانین IDE) در `.gitignore` هستند و **نباید** در مخزن عمومی منتشر شوند.
+مستندات فنی داخلی: `specification.md` — فقط در repo **Private**.
 
 ---
 
@@ -1032,21 +1002,7 @@ npm run verify-env       # تست همه environment variables
 
 ## 📄 لایسنس
 
-MIT License - مشاهده [LICENSE](LICENSE)
-
----
-
-## 🎯 شروع با Cursor (دستور اولیه)
-
-**برای تیم توسعه با Cursor AI:**
-
-```bash
-# دستور اولیه به Cursor:
-@README.md @CURSOR_PLANNING.md @.cursorrules
-
-"فاز 1 Foundation: را شروع کن. اول project structure را بساز.
-مهم: استراتژی Gemini First را در همه جا رعایت کن."
-```
+**Proprietary** — [LICENSE](LICENSE) — All Rights Reserved © 2026 Hooshagar
 
 ---
 

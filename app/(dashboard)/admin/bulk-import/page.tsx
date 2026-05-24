@@ -7,9 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Upload, Download, CheckCircle, XCircle, Loader2, FileText, AlertCircle, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
@@ -34,7 +31,7 @@ type ColumnMapping = {
 }
 
 // فیلدهای سیستم
-const SYSTEM_FIELDS = [
+const SYSTEM_FIELDS: { key: keyof ColumnMapping; label: string; required: boolean }[] = [
   { key: 'username_col',  label: 'نام کاربری (رمز عبور یکسان خواهد بود)', required: true  },
   { key: 'fullname_col',  label: 'نام',                                    required: true  },
   { key: 'lastname_col',  label: 'نام خانوادگی',                           required: true  },
@@ -89,10 +86,15 @@ export default function BulkImportPage() {
         const { read, utils } = await import('xlsx')
         const buffer = await file.arrayBuffer()
         const wb = read(buffer)
-        const ws = wb.Sheets[wb.SheetNames[0]]
+        const sheetName = wb.SheetNames[0]
+        if (!sheetName) { toast.error('فایل Excel بدون شیت است'); return }
+        const ws = wb.Sheets[sheetName]
+        if (!ws) { toast.error('شیت Excel خوانده نشد'); return }
         const json = utils.sheet_to_json<Record<string, string>>(ws, { defval: '' })
         if (json.length === 0) { toast.error('فایل خالی است'); return }
-        headers = Object.keys(json[0])
+        const firstRow = json[0]
+        if (!firstRow) { toast.error('فایل خالی است'); return }
+        headers = Object.keys(firstRow)
         data = json.map(row => {
           const r: Record<string, string> = {}
           headers.forEach(h => { r[h] = String(row[h] ?? '') })
@@ -103,7 +105,9 @@ export default function BulkImportPage() {
         const text = await file.text()
         const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim())
         if (lines.length < 2) { toast.error('فایل خالی یا فرمت نادرست'); return }
-        headers = lines[0].split(',').map(h => h.trim().replace(/^\uFEFF/, ''))
+        const headerLine = lines[0]
+        if (!headerLine) { toast.error('فایل خالی یا فرمت نادرست'); return }
+        headers = headerLine.split(',').map(h => h.trim().replace(/^\uFEFF/, ''))
         data = lines.slice(1).map(line => {
           const vals = line.split(',').map(v => v.trim())
           const row: Record<string, string> = {}
@@ -145,11 +149,16 @@ export default function BulkImportPage() {
       return
     }
 
+    const usernameCol = mapping.username_col!
+    const fullnameCol = mapping.fullname_col!
+    const lastnameCol = mapping.lastname_col!
+    const gradeCol = mapping.grade_col
+
     const parsed: StudentRow[] = rawData.map(row => {
-      const username  = (row[mapping.username_col!]  || '').trim()
-      const firstName = (row[mapping.fullname_col!]  || '').trim()
-      const lastName  = (row[mapping.lastname_col!]  || '').trim()
-      const gradeRaw  = mapping.grade_col ? (row[mapping.grade_col] || '').trim() : ''
+      const username  = (row[usernameCol]  || '').trim()
+      const firstName = (row[fullnameCol]  || '').trim()
+      const lastName  = (row[lastnameCol]  || '').trim()
+      const gradeRaw  = gradeCol ? (row[gradeCol] || '').trim() : ''
       const gradeNum  = GRADE_MAP[gradeRaw] || parseInt(gradeRaw) || 0
 
       let error = ''
@@ -199,7 +208,7 @@ export default function BulkImportPage() {
     const updated = [...rows]
     for (let i = 0; i < updated.length; i++) {
       const row = updated[i]
-      if (row._status !== 'pending') { done++; continue }
+      if (!row || row._status !== 'pending') { done++; continue }
       try {
         const pass = `Hooshagar@${row.student_number}`
         const res = await fetch('/api/admin/users', {
@@ -269,7 +278,7 @@ export default function BulkImportPage() {
                 {done ? '✓' : i + 1}
                               </div>
               <span className={active ? 'font-semibold text-blue-600' : done ? 'text-green-600' : 'text-gray-400'}>
-                {labels[i]}
+                {labels[i] ?? ''}
               </span>
               {i < 2 && <ArrowLeft className="text-gray-300 w-4 h-4" />}
                             </div>
@@ -338,7 +347,7 @@ export default function BulkImportPage() {
                     {field.required && <span className="text-red-500 mr-1">*</span>}
                   </span>
                   <Select
-                    value={mapping[field.key as keyof ColumnMapping] || ''}
+                    value={mapping[field.key] || ''}
                     onValueChange={val => setMapping(prev => ({ ...prev, [field.key]: val }))}
                   >
                     <SelectTrigger className="text-sm">
@@ -466,8 +475,8 @@ export default function BulkImportPage() {
                         <td className="p-3 text-center">
                           {row.grade ? (
                             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                              {Object.entries(GRADE_MAP).find(([, v]) => v === parseInt(row.grade) && !/^\d+$/.test(Object.entries(GRADE_MAP).find(([k]) => k === row.grade)?.[0] || ''))?.[0] || `پایه ${row.grade}`}
-                          </Badge>
+                              {Object.entries(GRADE_MAP).find(([k, v]) => v === parseInt(row.grade, 10) && !/^\d+$/.test(k))?.[0] ?? `پایه ${row.grade}`}
+                            </Badge>
                           ) : '—'}
                         </td>
                         <td className="p-3 text-center">

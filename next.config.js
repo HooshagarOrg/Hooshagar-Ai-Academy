@@ -110,21 +110,30 @@ const nextConfig = {
   },
 };
 
-// Sentry configuration (if installed)
+// Sentry — فقط وقتی توکن و org تنظیم شده (مثلاً Vercel). در GitHub Actions بدون secret build نشکند.
 const { withSentryConfig } = require('@sentry/nextjs');
 
-module.exports = withSentryConfig(
-  nextConfig,
-  {
-    silent: true,
-    org: process.env.SENTRY_ORG,
-    project: process.env.SENTRY_PROJECT,
-  },
-  {
-    widenClientFileUpload: true,
-    transpileClientSDK: true,
-    tunnelRoute: '/monitoring',
-    hideSourceMaps: true,
-    disableLogger: true,
-  }
-);
+const sentryEnabled =
+  Boolean(process.env.SENTRY_AUTH_TOKEN) &&
+  Boolean(process.env.SENTRY_ORG) &&
+  Boolean(process.env.SENTRY_PROJECT);
+
+module.exports = sentryEnabled
+  ? withSentryConfig(
+      nextConfig,
+      {
+        silent: true,
+        org: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        release: { create: false, finalize: false },
+      },
+      {
+        widenClientFileUpload: true,
+        transpileClientSDK: true,
+        tunnelRoute: '/monitoring',
+        hideSourceMaps: true,
+        disableLogger: true,
+      }
+    )
+  : nextConfig;

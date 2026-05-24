@@ -42,6 +42,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          NEXTAUTH_SECRET: ci-placeholder-secret-minimum-32-chars
+          NEXTAUTH_URL: http://localhost:3000
 
   security-audit:
     runs-on: ubuntu-latest

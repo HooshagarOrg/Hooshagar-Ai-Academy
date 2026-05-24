@@ -173,17 +173,17 @@ export default function TeacherAttendancePage() {
       }))
       const list = fetched.length > 0 ? fetched : sampleStudents
       setStudents(list)
-      const initialAttendance = new Map<string, AttendanceRecord>()
+    const initialAttendance = new Map<string, AttendanceRecord>()
       list.forEach(student => {
         initialAttendance.set(student.id, { student_id: student.id, status: 'present' })
-      })
-      setAttendance(initialAttendance)
-      setIsListLoaded(true)
+    })
+    setAttendance(initialAttendance)
+    setIsListLoaded(true)
       toast.success(`${list.length} دانش‌آموز بارگذاری شد`)
     } catch {
       toast.error('خطا در بارگذاری دانش‌آموزان')
     } finally {
-      setIsLoading(false)
+    setIsLoading(false)
     }
   }
 
@@ -270,7 +270,7 @@ export default function TeacherAttendancePage() {
     } catch (e: unknown) {
       toast.error('خطا در ذخیره: ' + (e instanceof Error ? e.message : 'خطا'))
     } finally {
-      setIsSaving(false)
+    setIsSaving(false)
     }
   }
 

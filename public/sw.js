@@ -51,10 +51,10 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'هوشاگر', {
       body: data.body,
-      icon: '/icons/icon-192x192.png',
+    icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
-      dir: 'rtl',
-      lang: 'fa',
+    dir: 'rtl',
+    lang: 'fa',
       data: data.data,
     })
   )

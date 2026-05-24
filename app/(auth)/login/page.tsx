@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
+import { TermsAcceptanceNotice } from '@/components/auth/terms-acceptance-notice'
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -161,7 +163,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-brand-coral/10 via-white to-brand-orange/10 flex items-center justify-center p-4" dir="rtl">
       <div className="w-full max-w-md">
 
         {/* لوگو و عنوان */}
@@ -174,12 +176,9 @@ export default function LoginPage() {
             بازگشت
           </Link>
 
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 mb-4 shadow-lg">
-            <span className="text-white text-2xl font-bold">ه</span>
+          <div className="flex justify-center mb-4">
+            <HooshagarLogo size="lg" href="/" showWordmark subtitle="سامانه هوشمند مدیریت مدارس" />
           </div>
-
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">هوشاگر</h1>
-          <p className="text-muted-foreground text-sm">سامانه هوشمند مدیریت مدارس</p>
         </div>
 
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
@@ -380,7 +379,8 @@ export default function LoginPage() {
             </Tabs>
           </CardContent>
 
-          <CardFooter className="flex flex-col gap-2 border-t pt-5 bg-gray-50/50 rounded-b-xl">
+          <CardFooter className="flex flex-col gap-3 border-t pt-5 bg-gray-50/50 rounded-b-xl">
+            <TermsAcceptanceNotice />
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <Shield className="w-3 h-3 text-green-500" />
               <span>ورود شما با امنیت بالا محافظت می‌شود</span>

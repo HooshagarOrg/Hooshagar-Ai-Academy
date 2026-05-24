@@ -51,6 +51,7 @@ const PUBLIC_ROUTES = [
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/terms',
 ]
 
 // مسیرهایی که middleware نباید بررسی کند

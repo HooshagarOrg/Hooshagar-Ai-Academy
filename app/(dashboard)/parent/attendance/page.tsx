@@ -90,7 +90,7 @@ export default function ParentAttendancePage() {
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
-        </div>
+              </div>
       ) : children.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
@@ -130,40 +130,40 @@ export default function ParentAttendancePage() {
                     <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-green-700">{activeChild.stats.present}</p>
                     <p className="text-sm text-green-600">روز حاضر</p>
-                  </CardContent>
-                </Card>
+          </CardContent>
+        </Card>
                 <Card className="border-0 shadow-sm bg-red-50">
                   <CardContent className="p-4 text-center">
                     <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-red-700">{activeChild.stats.absent}</p>
                     <p className="text-sm text-red-600">روز غیبت</p>
-                  </CardContent>
-                </Card>
+          </CardContent>
+        </Card>
                 <Card className="border-0 shadow-sm bg-yellow-50">
                   <CardContent className="p-4 text-center">
                     <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-yellow-700">{activeChild.stats.late}</p>
                     <p className="text-sm text-yellow-600">بار تأخیر</p>
-                  </CardContent>
-                </Card>
+          </CardContent>
+        </Card>
                 <Card className="border-0 shadow-sm bg-blue-50">
                   <CardContent className="p-4 text-center">
                     <TrendingUp className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-blue-700">{attendancePercent(activeChild)}%</p>
                     <p className="text-sm text-blue-600">درصد حضور</p>
-                  </CardContent>
-                </Card>
-              </div>
+          </CardContent>
+        </Card>
+      </div>
 
               {/* نوار پیشرفت */}
-              <Card>
-                <CardHeader>
+          <Card>
+            <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-blue-600" />
                     نرخ حضور {activeChild.full_name}
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
+            </CardHeader>
+            <CardContent>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
                       <div
@@ -173,21 +173,21 @@ export default function ParentAttendancePage() {
                         }`}
                         style={{ width: `${attendancePercent(activeChild)}%` }}
                       />
-                    </div>
+              </div>
                     <span className="font-bold text-gray-700 w-12">{attendancePercent(activeChild)}%</span>
-                  </div>
+        </div>
                   <p className="text-xs text-gray-500 mt-2">
                     {activeChild.stats.present} از {activeChild.stats.total} روز تحصیلی
                   </p>
-                </CardContent>
-              </Card>
+            </CardContent>
+          </Card>
 
               {/* جدول تاریخچه */}
-              <Card>
-                <CardHeader>
+          <Card>
+            <CardHeader>
                   <CardTitle className="text-base">تاریخچه حضور و غیاب</CardTitle>
-                </CardHeader>
-                <CardContent>
+            </CardHeader>
+            <CardContent>
                   {activeChild.attendance.length === 0 ? (
                     <p className="text-center text-gray-400 py-8">هنوز اطلاعاتی ثبت نشده</p>
                   ) : (
@@ -215,10 +215,10 @@ export default function ParentAttendancePage() {
                           </Badge>
                         </div>
                       ))}
-                    </div>
+              </div>
                   )}
-                </CardContent>
-              </Card>
+            </CardContent>
+          </Card>
             </>
           )}
         </>

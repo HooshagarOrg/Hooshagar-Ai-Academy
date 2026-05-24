@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { HooshagarLogo, HooshagarMark } from '@/components/brand/hooshagar-logo'
 
 // ============================================
 // تعریف منوهای هر نقش
@@ -328,23 +329,16 @@ export function AppSidebar({
           collapsed ? 'justify-center p-4' : 'justify-between px-4 py-4'
         )}>
           {!collapsed && (
-            <Link href="/dashboard" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                <span className="text-white text-sm font-bold">ه</span>
-              </div>
-              <div>
-                <span className="font-bold text-gray-900 text-sm">هوشاگر</span>
-                {schoolName && (
-                  <p className="text-xs text-gray-400 leading-tight truncate max-w-[120px]">{schoolName}</p>
-                )}
-              </div>
-            </Link>
+            <HooshagarLogo
+              size="sm"
+              href="/dashboard"
+              subtitle={schoolName}
+              showWordmark
+            />
           )}
           {collapsed && (
-            <Link href="/dashboard">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                <span className="text-white text-sm font-bold">ه</span>
-              </div>
+            <Link href="/dashboard" className="rounded-xl focus-visible:ring-2 focus-visible:ring-brand-magenta/30">
+              <HooshagarMark size={32} />
             </Link>
           )}
           {onCollapse && (
@@ -363,8 +357,8 @@ export function AppSidebar({
         {/* ===== پروفایل کاربر ===== */}
         {!collapsed && (
           <div className="px-3 py-3 border-b border-gray-100">
-            <div className="flex items-center gap-3 p-2 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+            <div className="flex items-center gap-3 p-2 rounded-xl bg-gradient-to-r from-brand-coral/20 to-brand-orange/10">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-magenta to-brand-orange flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={userName} className="w-full h-full rounded-xl object-cover" />
                 ) : (
@@ -402,7 +396,7 @@ export function AppSidebar({
                         className={cn(
                           'flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-all',
                           active
-                            ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
+                            ? 'bg-brand-magenta text-white shadow-sm shadow-brand-magenta/25'
                             : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
                         )}
                       >
@@ -420,7 +414,7 @@ export function AppSidebar({
                     className={cn(
                       'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all group',
                       active
-                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
+                        ? 'bg-brand-magenta text-white shadow-sm shadow-brand-magenta/25'
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
                     )}
                   >
@@ -461,7 +455,7 @@ export function AppSidebar({
                   <TooltipTrigger asChild>
                     <Link href={item.href} className={cn(
                       'flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-all',
-                      active ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-100'
+                      active ? 'bg-brand-magenta text-white' : 'text-gray-500 hover:bg-gray-100'
                     )}>
                       <Icon className="w-4.5 h-4.5" />
                     </Link>
@@ -471,7 +465,7 @@ export function AppSidebar({
               ) : (
                 <Link key={item.href} href={item.href} className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all group',
-                  active ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                  active ? 'bg-brand-magenta text-white' : 'text-gray-600 hover:bg-gray-100'
                 )}>
                   <Icon className={cn('w-4 h-4 flex-shrink-0', active ? 'text-white' : 'text-gray-400')} />
                   <span className="font-medium">{item.title}</span>

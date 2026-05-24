@@ -5,6 +5,7 @@ import {
   BarChart3, MessageSquare, Trophy, Target, Smartphone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
 
 // ============================================
 // داده‌های ثابت
@@ -95,18 +96,16 @@ export default function LandingPage() {
       {/* ===== Navbar ===== */}
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">ه</span>
-            </div>
-            <span className="font-bold text-gray-900">هوشاگر</span>
-          </div>
+          <HooshagarLogo size="sm" href="/" priority showWordmark />
           <div className="flex items-center gap-3">
             <Link href="/login">
               <Button variant="ghost" size="sm">ورود</Button>
             </Link>
             <Link href="/login">
-              <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-brand-magenta to-brand-orange hover:from-brand-magenta-dark hover:to-brand-orange text-white border-0 shadow-md shadow-brand-magenta/20"
+              >
                 شروع رایگان
               </Button>
             </Link>
@@ -115,28 +114,31 @@ export default function LandingPage() {
       </nav>
 
       {/* ===== Hero ===== */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-purple-950 text-white">
-        {/* Background decoration */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 right-20 w-72 h-72 rounded-full bg-blue-500 blur-3xl" />
-          <div className="absolute bottom-10 left-20 w-96 h-96 rounded-full bg-purple-500 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-[#4c1d95] to-[#831843] text-white">
+        <div className="absolute inset-0 opacity-25">
+          <div className="absolute top-20 right-20 w-72 h-72 rounded-full bg-brand-magenta blur-3xl" />
+          <div className="absolute bottom-10 left-20 w-96 h-96 rounded-full bg-brand-orange blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-brand-blue blur-3xl opacity-60" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="text-center max-w-4xl mx-auto">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-white/10 border border-white/20 text-sm">
-              <Sparkles className="w-4 h-4 text-yellow-400" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/10 border border-white/20 text-sm">
+              <Sparkles className="w-4 h-4 text-brand-yellow" />
               <span>نسل جدید مدیریت آموزشی در ایران</span>
             </div>
 
+            <div className="flex justify-center mb-6">
+              <HooshagarLogo size="hero" href="/" showWordmark={false} inverted className="justify-center" />
+            </div>
+
             <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
-              <span className="bg-gradient-to-l from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-l from-brand-coral via-brand-magenta to-brand-orange bg-clip-text text-transparent">
                 هوشاگر
               </span>
-        </h1>
-            
-            <p className="text-xl md:text-2xl text-blue-100 mb-4 font-medium">
+            </h1>
+
+            <p className="text-xl md:text-2xl text-white/90 mb-4 font-medium">
               سیستم‌عامل هوشمند مدیریت مدارس
             </p>
             <p className="text-base text-white/60 mb-10 max-w-2xl mx-auto leading-relaxed">
@@ -146,7 +148,7 @@ export default function LandingPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/login">
-                <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 h-12 text-base shadow-lg shadow-blue-500/30">
+                <Button size="lg" className="bg-gradient-to-r from-brand-magenta to-brand-orange hover:opacity-95 text-white px-8 h-12 text-base shadow-lg shadow-brand-magenta/30 border-0">
                   <Zap className="w-5 h-5 ml-2" />
                   شروع رایگان
                 </Button>
@@ -291,8 +293,8 @@ export default function LandingPage() {
       <section className="py-20 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-100">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center mx-auto mb-6">
-              <span className="text-white text-2xl font-black">ه</span>
+            <div className="flex justify-center mb-6">
+              <HooshagarLogo size="lg" href="/login" showWordmark={false} />
             </div>
             <h2 className="text-3xl font-black text-gray-900 mb-4">
               مدرسه خود را متحول کنید
@@ -302,7 +304,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/auth/login">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-10 h-12 text-base shadow-lg shadow-blue-200">
+                <Button size="lg" className="bg-gradient-to-r from-brand-magenta to-brand-orange hover:opacity-95 px-10 h-12 text-base shadow-lg shadow-brand-magenta/25 border-0 text-white">
                   <GraduationCap className="w-5 h-5 ml-2" />
                   شروع رایگان
                 </Button>
@@ -320,11 +322,8 @@ export default function LandingPage() {
       {/* ===== Footer ===== */}
       <footer className="bg-gray-900 text-white py-10">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">ه</span>
-            </div>
-            <span className="font-bold">هوشاگر</span>
+          <div className="flex justify-center mb-4">
+            <HooshagarLogo size="sm" href="/" inverted showWordmark />
           </div>
           <p className="text-gray-400 text-sm">
             سیستم‌عامل هوشمند مدیریت مدارس ایران

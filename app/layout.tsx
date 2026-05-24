@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#7c3aed" />
+        <meta name="theme-color" content="#E6007E" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="هوشاگر" />

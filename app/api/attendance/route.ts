@@ -33,10 +33,10 @@ export async function GET(request: NextRequest) {
     } else if (studentId) {
       query = query.eq('student_id', studentId)
     }
-
+    
     if (dateFrom) query = query.gte('date', dateFrom)
     if (dateTo) query = query.lte('date', dateTo)
-
+    
     const { data, error } = await query
     if (error) return NextResponse.json({ attendance: [], error: error.message })
     return NextResponse.json({ attendance: data || [] })
@@ -82,8 +82,8 @@ export async function POST(request: NextRequest) {
           .from('students')
           .select('full_name, parent_id')
           .eq('id', rec.student_id)
-          .single()
-
+      .single()
+    
         if (student?.parent_id) {
           await supabase.from('messages_direct').insert({
             sender_id: ctx.userId,
@@ -98,9 +98,9 @@ export async function POST(request: NextRequest) {
         }
       }
     }
-
-    return NextResponse.json({
-      success: true,
+    
+    return NextResponse.json({ 
+      success: true, 
       saved: rows.length,
       notified: absentRecords.length,
     })

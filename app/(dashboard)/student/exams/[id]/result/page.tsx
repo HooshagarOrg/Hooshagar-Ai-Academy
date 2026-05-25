@@ -44,7 +44,6 @@ import {
   FileText,
   TrendingUp,
   Award,
-  Clock,
   Users,
   Sparkles,
   ChevronDown,

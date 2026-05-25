@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import {
-  Settings2, Users, GraduationCap, Shuffle, Save,
+  Settings2, GraduationCap, Shuffle, Save,
   Loader2, AlertCircle, Info, Building2,
 } from 'lucide-react'
 import { toast } from 'sonner'

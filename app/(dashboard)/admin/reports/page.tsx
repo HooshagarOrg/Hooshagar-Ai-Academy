@@ -12,7 +12,6 @@ import {
   FileText, 
   Plus, 
   Filter, 
-  Calendar,
   Search,
   Send,
   Sparkles

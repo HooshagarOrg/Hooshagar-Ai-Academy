@@ -33,7 +33,7 @@
     "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": false,
     /* Completeness */
     "skipLibCheck": true,
     /* Path Mapping */

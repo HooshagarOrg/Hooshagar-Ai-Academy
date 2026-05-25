@@ -26,12 +26,13 @@ type LotteryResult = {
   lottery_classes: { class_name: string; teacher_name: string }
 }
 
-const STATUS_LABEL: Record<string, { label: string; color: string }> = {
+const STATUS_LABEL: { [key: string]: { label: string; color: string } | undefined } = {
   pending: { label: 'در انتظار', color: 'bg-gray-100 text-gray-700' },
   open: { label: 'باز برای ثبت', color: 'bg-blue-100 text-blue-700' },
   closed: { label: 'بسته', color: 'bg-orange-100 text-orange-700' },
   done: { label: 'قرعه‌کشی انجام شد', color: 'bg-green-100 text-green-700' },
 }
+const DEFAULT_STATUS = { label: 'در انتظار', color: 'bg-gray-100 text-gray-700' }
 const RESULT_LABEL: Record<string, { label: string; color: string }> = {
   assigned: { label: 'تخصیص یافت', color: 'text-green-700' },
   waitlisted: { label: 'لیست انتظار', color: 'text-orange-700' },
@@ -193,7 +194,7 @@ export default function AdminLotteryPage() {
         </CardContent></Card>
       ) : (
         periods.map(period => {
-          const st = STATUS_LABEL[period.status] ?? STATUS_LABEL['pending']
+          const st = STATUS_LABEL[period.status] ?? DEFAULT_STATUS
           const isOpen = expandedPeriod === period.id
           const cls = classes[period.id] || []
           const res = results[period.id] || []

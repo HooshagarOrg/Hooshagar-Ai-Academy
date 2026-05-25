@@ -232,7 +232,7 @@ export default function SecurityDashboard() {
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge className={cn('text-xs', eventCfg.color)}>{eventCfg.label}</Badge>
                       <Badge className={cn('text-xs', riskCfg.color)}>{riskCfg.label}</Badge>
-                      {log.details?.method && (
+                      {log.details?.method != null && (
                         <span className="text-xs text-gray-400">
                           روش: {String(log.details.method)}
                         </span>

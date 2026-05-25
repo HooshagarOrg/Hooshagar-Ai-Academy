@@ -277,8 +277,8 @@ export default function SurveyResultsPage() {
   const comparisonData = results.questions
     .filter((q) => q.average_rating !== null)
     .slice(0, 5)
-    .map((i) => ({
-      name: `سوال ${i + 1}`,
+    .map((q, index) => ({
+      name: `سوال ${index + 1}`,
       والدین: 3.8 + Math.random() * 1.2,
       'دانش‌آموزان': 4 + Math.random() * 1,
     }));

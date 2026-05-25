@@ -1,47 +1,41 @@
 import { toast as sonnerToast, type ExternalToast } from 'sonner'
 
-/** سازگاری با فراخوانی‌های shadcn/ui: toast({ title, description, variant }) */
-export type ShadcnToastProps = {
+/** فرم shadcn/ui: toast({ title, description, variant }) */
+interface ShadcnToastOptions {
   title?: string
   description?: string
   variant?: 'default' | 'destructive'
-} & Omit<ExternalToast, 'title' | 'description'>
-
-function isShadcnToast(value: unknown): value is ShadcnToastProps {
-  if (typeof value !== 'object' || value === null) return false
-  if ('variant' in value) return true
-  if ('title' in value || 'description' in value) {
-    return !('message' in value)
-  }
-  return false
 }
 
-function shadcnToast(props: ShadcnToastProps) {
-  const { title, description, variant, ...rest } = props
-  const opts: ExternalToast = { ...rest, description }
-
-  if (variant === 'destructive') {
-    return sonnerToast.error(title ?? description ?? 'خطا', opts)
+function toast(options: ShadcnToastOptions): void
+function toast(message: string, options?: ExternalToast): void
+function toast(
+  messageOrOptions: string | ShadcnToastOptions,
+  data?: ExternalToast,
+): void {
+  if (typeof messageOrOptions === 'object') {
+    const { title, description, variant } = messageOrOptions
+    const opts: ExternalToast = description && title ? { description } : {}
+    if (variant === 'destructive') {
+      sonnerToast.error(title ?? description ?? 'خطا', opts)
+    } else {
+      sonnerToast(title ?? description ?? '', opts)
+    }
+    return
   }
-  if (title) {
-    return sonnerToast(title, opts)
-  }
-  return sonnerToast(description ?? '', rest)
+  sonnerToast(messageOrOptions, data)
 }
 
-type ToastFn = typeof sonnerToast
+toast.error   = sonnerToast.error
+toast.success = sonnerToast.success
+toast.warning = sonnerToast.warning
+toast.info    = sonnerToast.info
+toast.loading = sonnerToast.loading
+toast.dismiss = sonnerToast.dismiss
+toast.promise = sonnerToast.promise
+toast.custom  = sonnerToast.custom
+toast.message = sonnerToast.message
 
-const toastCompat = ((message: unknown, data?: unknown) => {
-  if (isShadcnToast(message)) {
-    return shadcnToast(message)
-  }
-  return sonnerToast(message as Parameters<ToastFn>[0], data as Parameters<ToastFn>[1])
-}) as ToastFn
+export { toast }
 
-Object.assign(toastCompat, sonnerToast)
-
-export const toast = toastCompat
-
-export const useToast = () => ({
-  toast: toastCompat,
-})
+export const useToast = () => ({ toast })

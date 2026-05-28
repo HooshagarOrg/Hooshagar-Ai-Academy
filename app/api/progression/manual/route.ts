@@ -73,7 +73,20 @@ export async function POST(req: NextRequest) {
 
       parentId = newParent.id
 
-      // TODO: ارسال SMS دعوت به والد
+      try {
+        const { createSmsProvider, sendSmsWithRetry } = await import('@/lib/sms/provider')
+        if (process.env.KAVENEGAR_API_KEY || process.env.MELIPAYAMAK_USERNAME) {
+          const provider = createSmsProvider()
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.hooshagar.com'
+          await sendSmsWithRetry(
+            provider,
+            validatedData.parent_phone,
+            `${validatedData.parent_name} عزیز، فرزند شما ${validatedData.full_name} در هوشاگر ثبت شد. ورود: ${appUrl}/login`
+          )
+        }
+      } catch (smsErr) {
+        console.warn('SMS دعوت والد ارسال نشد:', smsErr)
+      }
     }
 
     // 2. ایجاد دانش‌آموز

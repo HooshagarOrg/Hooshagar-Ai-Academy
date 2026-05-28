@@ -153,18 +153,48 @@ export default function ParentCounselingPage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    // TODO: Replace with API call
-    setTimeout(() => {
-      setData(mockCounselingData)
-      setIsLoading(false)
-    }, 500)
+    const fetchData = async () => {
+      try {
+        const res = await fetch('/api/counseling/parent-view')
+        if (!res.ok) throw new Error('fetch failed')
+        const json = await res.json()
+        setData(json.data)
+      } catch {
+        setData(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
   }, [])
 
-  const handleSendMessage = () => {
-    // TODO: Implement message sending
-    alert('پیام شما ارسال شد')
-    setMessage('')
-    setShowMessageDialog(false)
+  const handleSendMessage = async () => {
+    if (!message.trim() || !data) return
+    try {
+      const meRes = await fetch('/api/parent/dashboard')
+      const meJson = await meRes.json()
+      const childId = meJson.activeChild?.id
+      if (!childId) throw new Error('no child')
+
+      const res = await fetch('/api/counseling/parent-contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: childId,
+          counseling_record_id: data.id,
+          contact_date: new Date().toISOString(),
+          contact_type: 'message',
+          purpose: 'پیام والد از پورتال',
+          discussion_summary: message.trim(),
+        }),
+      })
+      if (!res.ok) throw new Error('send failed')
+      setMessage('')
+      setShowMessageDialog(false)
+      alert('پیام شما ثبت شد')
+    } catch {
+      alert('خطا در ارسال پیام')
+    }
   }
 
   if (isLoading) {

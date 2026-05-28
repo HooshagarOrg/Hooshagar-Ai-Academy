@@ -661,9 +661,12 @@ export default function AIModelsPage() {
                                     setSelectedFeature(config)
                                     setSelectedModelsForCompare([
                                       `${config.primaryProvider}/${config.primaryModel}`,
-                                    ])
+                                      config.fallbackProvider && config.fallbackModel
+                                        ? `${config.fallbackProvider}/${config.fallbackModel}`
+                                        : '',
+                                    ].filter(Boolean))
                                     setCompareResults([])
-                                    // TODO: Implement compare dialog
+                                    setActiveTab('compare')
                                   }}
                                 >
                                   <GitCompare className="w-4 h-4" />

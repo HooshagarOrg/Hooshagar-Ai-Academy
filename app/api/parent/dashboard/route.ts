@@ -138,6 +138,19 @@ export async function GET() {
       count: data.count,
     }));
 
+    const { count: recentReportsCount } = await supabase
+      .from('parent_reports')
+      .select('id', { count: 'exact', head: true })
+      .eq('student_id', activeChild.id)
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+    const { data: recentMessages } = await supabase
+      .from('messages_direct')
+      .select('id, subject, body, created_at, is_read, sender:profiles!messages_direct_sender_id_fkey(full_name)')
+      .eq('receiver_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
     // 10. پاسخ نهایی
     return NextResponse.json({
       success: true,
@@ -162,10 +175,17 @@ export async function GET() {
         averageGrade: Math.round(averageGrade * 10) / 10,
         attendanceRate: Math.round(attendanceRate),
         totalGrades,
-        recentReports: 0, // TODO: link to parent_reports
+        recentReports: recentReportsCount || 0,
       },
       recentGrades,
-      messages: [], // پیام‌ها از /api/messages دریافت می‌شود
+      messages: (recentMessages || []).map((m) => ({
+        id: m.id,
+        subject: m.subject,
+        preview: m.body?.slice(0, 80),
+        date: m.created_at,
+        isRead: m.is_read,
+        from: (m.sender as { full_name?: string })?.full_name,
+      })),
     });
 
   } catch (error: any) {

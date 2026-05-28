@@ -136,8 +136,8 @@ export default function LandingPage() {
               <span className="bg-gradient-to-l from-brand-coral via-brand-magenta to-brand-orange bg-clip-text text-transparent">
                 هوشاگر
               </span>
-            </h1>
-
+        </h1>
+            
             <p className="text-xl md:text-2xl text-white/90 mb-4 font-medium">
               سیستم‌عامل هوشمند مدیریت مدارس
             </p>

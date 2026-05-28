@@ -208,13 +208,65 @@ export default function SurveyResultsPage() {
     fetchResults();
   }, [params.id, toast]);
 
-  // اکسپورت
   const handleExport = async (format: 'excel' | 'pdf') => {
-    toast({
-      title: 'در حال آماده‌سازی',
-      description: `فایل ${format.toUpperCase()} در حال ساخته شدن است...`,
-    });
-    // TODO: Implement export
+    if (!survey || !results) return
+
+    if (format === 'pdf') {
+      toast({
+        title: 'به‌زودی',
+        description: 'خروجی PDF در نسخه بعدی اضافه می‌شود',
+      })
+      return
+    }
+
+    try {
+      const { utils, writeFile } = await import('xlsx')
+      const rows: Record<string, string | number>[] = []
+
+      results.questions?.forEach((q) => {
+        if (q.type === 'multiple_choice' || q.type === 'single_choice') {
+          q.options?.forEach((opt) => {
+            rows.push({
+              سوال: q.question_text,
+              گزینه: opt.text,
+              تعداد: opt.count ?? 0,
+              درصد: opt.percentage ?? 0,
+            })
+          })
+        } else if (q.type === 'rating' || q.type === 'scale') {
+          rows.push({
+            سوال: q.question_text,
+            میانگین: q.average ?? 0,
+            پاسخ: q.total_responses ?? 0,
+          })
+        }
+      })
+
+      if (rows.length === 0) {
+        rows.push({
+          نظرسنجی: survey.title,
+          پاسخ‌ها: results.total_responses ?? 0,
+          نرخ: `${results.response_rate ?? 0}%`,
+        })
+      }
+
+      const ws = utils.json_to_sheet(rows)
+      const wb = utils.book_new()
+      utils.book_append_sheet(wb, ws, 'نتایج')
+      writeFile(wb, `survey-${params.id}-results.xlsx`)
+
+      toast({
+        title: 'موفق',
+        description: 'فایل Excel دانلود شد',
+      })
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: 'خطا',
+        description: 'خروجی Excel با مشکل مواجه شد',
+        variant: 'destructive',
+      })
+    }
   };
 
   if (loading) {
@@ -618,7 +670,7 @@ export default function SurveyResultsPage() {
                   paddingAngle={5}
                   dataKey="value"
                   label={({ name, percent }) =>
-                    `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                    `${name} ${(percent * 100).toFixed(0)}%`
                   }
                 >
                   <Cell fill={SENTIMENT_COLORS.positive} />

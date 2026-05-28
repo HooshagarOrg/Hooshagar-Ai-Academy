@@ -30,7 +30,7 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     const formData = new FormData(e.currentTarget)
-
+    
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -42,7 +42,7 @@ export default function LoginPage() {
         }),
       })
       const data = await response.json()
-
+      
       if (response.ok && data.success) {
         toast.success('ورود موفق')
         const redirect = new URLSearchParams(window.location.search).get('redirect')
@@ -65,7 +65,7 @@ export default function LoginPage() {
     setIsLoading(true)
     const formData = new FormData(e.currentTarget)
     const phone = formData.get('phone') as string
-
+    
     try {
       const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
@@ -73,7 +73,7 @@ export default function LoginPage() {
         body: JSON.stringify({ phoneNumber: phone, purpose: 'login' }),
       })
       const data = await response.json()
-
+      
       if (response.ok && data.success) {
         toast.success('کد تأیید ارسال شد')
         setOtpSent(true)
@@ -103,7 +103,7 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     const formData = new FormData(e.currentTarget)
-
+    
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -115,7 +115,7 @@ export default function LoginPage() {
         }),
       })
       const data = await response.json()
-
+      
       if (response.ok && data.success) {
         toast.success('ورود موفق')
         window.location.replace(data.redirect || '/dashboard')
@@ -136,7 +136,7 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     const formData = new FormData(e.currentTarget)
-
+    
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -148,7 +148,7 @@ export default function LoginPage() {
         }),
       })
       const data = await response.json()
-
+      
       if (response.ok && data.success) {
         toast.success(`خوش آمدید! ${data.student_info?.full_name || ''}`)
         window.location.replace('/student')
@@ -175,7 +175,7 @@ export default function LoginPage() {
             <ArrowLeft className="w-4 h-4" />
             بازگشت
           </Link>
-
+          
           <div className="flex justify-center mb-4">
             <HooshagarLogo size="lg" href="/" showWordmark subtitle="سامانه هوشمند مدیریت مدارس" />
           </div>
@@ -205,40 +205,40 @@ export default function LoginPage() {
                   مدیران، معلمان و کارکنان مدرسه از این بخش وارد شوند.
                 </p>
                 <form onSubmit={handleStaffLogin} className="space-y-4">
-                  <div className="space-y-2">
+          <div className="space-y-2">
                     <Label htmlFor="username">نام کاربری</Label>
-                    <Input
+            <Input
                       id="username"
                       name="username"
                       type="text"
                       placeholder="نام کاربری تعریف‌شده توسط ادمین"
-                      required
-                      disabled={isLoading}
+              required
+              disabled={isLoading}
                       autoComplete="username"
                       className="text-left"
                       dir="ltr"
-                    />
-                  </div>
+            />
+          </div>
 
-                  <div className="space-y-2">
+          <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password">رمز عبور</Label>
+            <Label htmlFor="password">رمز عبور</Label>
                       <Link href="/help" className="text-xs text-muted-foreground hover:text-primary">
                         فراموشی رمز؟
                       </Link>
                     </div>
                     <div className="relative">
-                      <Input
-                        id="password"
-                        name="password"
+            <Input
+              id="password"
+              name="password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
-                        required
-                        disabled={isLoading}
+              placeholder="••••••••"
+              required
+              disabled={isLoading}
                         autoComplete="current-password"
                         className="text-left pl-10"
-                        dir="ltr"
-                      />
+                      dir="ltr"
+            />
                       <button
                         type="button"
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
@@ -248,7 +248,7 @@ export default function LoginPage() {
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
-                  </div>
+          </div>
 
                   <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" disabled={isLoading}>
                     {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
@@ -373,7 +373,7 @@ export default function LoginPage() {
 
                   <Button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600" disabled={isLoading}>
                     {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
-                  </Button>
+          </Button>
                 </form>
               </TabsContent>
             </Tabs>
@@ -381,17 +381,17 @@ export default function LoginPage() {
 
           <CardFooter className="flex flex-col gap-3 border-t pt-5 bg-gray-50/50 rounded-b-xl">
             <TermsAcceptanceNotice />
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <Shield className="w-3 h-3 text-green-500" />
               <span>ورود شما با امنیت بالا محافظت می‌شود</span>
-            </div>
+          </div>
             <div className="text-center">
               <Link href="/help" className="text-xs text-muted-foreground hover:text-primary transition-colors">
                 راهنما و پشتیبانی
               </Link>
             </div>
-          </CardFooter>
-        </Card>
+        </CardFooter>
+    </Card>
       </div>
     </div>
   )

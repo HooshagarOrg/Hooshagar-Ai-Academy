@@ -89,6 +89,15 @@ export async function GET() {
       .eq('date', today)
       .single();
 
+    // تکالیف در انتظار
+    const { data: homeworkRows } = await supabase
+      .from('homework_submissions')
+      .select('id, subject, title, due_date, submission_status')
+      .eq('student_id', student.id)
+      .in('submission_status', ['pending', 'late', 'not_submitted'])
+      .order('due_date', { ascending: true })
+      .limit(5);
+
     // 7. محاسبه میانگین نمرات
     const totalGrades = grades?.length || 0;
     const averageGrade =
@@ -153,8 +162,14 @@ export async function GET() {
       attendance: {
         today: todayAttendance?.status || 'unknown',
       },
-      homework: [], // TODO: add homework table
-      schedule: [], // TODO: add schedule table
+      homework: (homeworkRows || []).map((h) => ({
+        id: h.id,
+        subject: h.subject,
+        title: h.title,
+        due_date: h.due_date,
+        status: h.submission_status,
+      })),
+      schedule: [],
     });
 
   } catch (error: any) {

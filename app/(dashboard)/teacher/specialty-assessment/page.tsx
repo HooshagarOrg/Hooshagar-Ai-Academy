@@ -399,9 +399,21 @@ export default function SpecialtyAssessmentPage() {
     setIsSubmitting(true)
     
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      const payload =
+        activeTab === 'music'
+          ? { ...musicData, student_id: selectedStudent.id, assessment_date: assessmentDate, semester: selectedSemester, academic_year: '1403-1404' }
+          : { student_id: selectedStudent.id, assessment_date: assessmentDate, semester: selectedSemester, academic_year: '1403-1404' }
+
+      const res = await fetch(`/api/specialty-assessments?type=${activeTab}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'save failed')
+      }
+
       alert('ارزیابی با موفقیت ذخیره شد')
       setShowAssessmentDialog(false)
     } catch (error) {

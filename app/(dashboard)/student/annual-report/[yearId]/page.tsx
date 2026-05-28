@@ -16,6 +16,14 @@ export default function AnnualReportPage({ params }: { params: { yearId: string 
   const [report, setReport] = useState<AnnualReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
+  const [studentId, setStudentId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => setStudentId(d.student?.id ?? null))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     fetchReport()
@@ -43,13 +51,18 @@ export default function AnnualReportPage({ params }: { params: { yearId: string 
   const handleGenerateReport = async () => {
     setGenerating(true)
 
+    if (!studentId) {
+      toast.error('شناسه دانش‌آموز یافت نشد')
+      setGenerating(false)
+      return
+    }
+
     try {
-      // TODO: باید student_id و academic_year_id را از context یا props دریافت کنیم
       const response = await fetch('/api/reports/annual/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          student_id: 'STUDENT_ID', // باید از session یا props دریافت شود
+          student_id: studentId,
           academic_year_id: params.yearId,
         }),
       })
@@ -242,17 +255,28 @@ export default function AnnualReportPage({ params }: { params: { yearId: string 
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex justify-center">
-                <div className="w-48 h-48 relative">
-                  {/* TODO: Gauge Chart از Recharts */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-4xl font-bold text-green-600">
-                        {summary.attendance?.percentage || 0}%
-                      </p>
-                      <p className="text-sm text-muted-foreground">حضور</p>
-                    </div>
-                  </div>
-                </div>
+                <GaugeContainer
+                  width={200}
+                  height={120}
+                  startAngle={180}
+                  endAngle={0}
+                  innerRadius={60}
+                  outerRadius={90}
+                >
+                  <GaugeReferenceArc />
+                  <GaugeValueArc
+                    value={summary.attendance?.percentage || 0}
+                    fill="#22c55e"
+                  />
+                  <text
+                    x="50%"
+                    y="70%"
+                    textAnchor="middle"
+                    className="fill-foreground text-2xl font-bold"
+                  >
+                    {summary.attendance?.percentage || 0}%
+                  </text>
+                </GaugeContainer>
               </div>
 
               <div className="grid grid-cols-4 gap-4">

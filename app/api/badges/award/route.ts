@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { user_id, badge_id, reason } = validation.data
+    const { user_id, badge_id, reason, notify_parent } = validation.data
 
     // فراخوانی تابع اعطا
     const { data, error } = await supabase
@@ -93,7 +93,23 @@ export async function POST(request: NextRequest) {
       .eq('id', user_id)
       .single()
 
-    // TODO: ارسال نوتیفیکیشن به والدین اگر notify_parent = true
+    if (notify_parent) {
+      const { data: studentRow } = await supabase
+        .from('students')
+        .select('id, parent_id, full_name')
+        .eq('user_id', user_id)
+        .maybeSingle()
+
+      if (studentRow?.parent_id) {
+        await supabase.from('notifications').insert({
+          user_id: studentRow.parent_id,
+          title: 'نشان جدید برای فرزند شما',
+          body: `${studentRow.full_name} نشان «${badgeData?.name || 'جدید'}» ${badgeData?.icon_emoji || '🏅'} دریافت کرد.`,
+          type: 'badge',
+          metadata: { student_id: studentRow.id, badge_id },
+        })
+      }
+    }
 
     return NextResponse.json({
       success: true,

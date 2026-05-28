@@ -184,16 +184,35 @@ export default function SpecialtyReportDetailPage() {
       return
     }
     
-    // TODO: Replace with actual API call
-    setTimeout(() => {
-      if (type === 'music') {
-        setAssessment(mockMusicAssessment)
-      } else if (type === 'sports') {
-        setAssessment(mockSportsAssessment)
+    const fetchAssessment = async () => {
+      try {
+        const dashRes = await fetch('/api/parent/dashboard')
+        const dash = await dashRes.json()
+        const studentId = dash.activeChild?.id
+        if (!studentId) {
+          setIsLoading(false)
+          return
+        }
+
+        const res = await fetch(`/api/specialty-assessments/student/${studentId}`)
+        if (!res.ok) throw new Error('fetch failed')
+        const json = await res.json()
+        const tableMap: Record<string, string> = {
+          music: 'music',
+          art: 'art',
+          sports: 'sports',
+          stem: 'stem',
+        }
+        const list = json.assessments?.[tableMap[type]] || []
+        setAssessment(list[0] || null)
+      } catch {
+        if (type === 'music') setAssessment(mockMusicAssessment)
+        else if (type === 'sports') setAssessment(mockSportsAssessment)
+      } finally {
+        setIsLoading(false)
       }
-      // Add other types...
-      setIsLoading(false)
-    }, 500)
+    }
+    fetchAssessment()
   }, [type, router])
 
   const getTypeInfo = () => {

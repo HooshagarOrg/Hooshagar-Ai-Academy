@@ -173,6 +173,23 @@ export async function GET(request: NextRequest) {
       totalXp: data.totalXp,
     }))
 
+    const { data: studentBadges } = await supabase
+      .from('student_badges')
+      .select(`
+        id,
+        unlocked_at,
+        badges (id, name, name_fa, description_fa, icon, color, rarity, xp_reward)
+      `)
+      .eq('student_id', studentId)
+      .order('unlocked_at', { ascending: false })
+      .limit(20)
+
+    const badges = (studentBadges || []).map((sb) => ({
+      id: sb.id,
+      unlocked_at: sb.unlocked_at,
+      ...(sb.badges as object),
+    }))
+
     return NextResponse.json({
       success: true,
       student: {
@@ -193,7 +210,7 @@ export async function GET(request: NextRequest) {
           next: currentLevelThreshold,
         },
       },
-      badges: [], // TODO: implement badges system
+      badges,
       recentTransactions: formattedTransactions,
       stats: stats,
     })

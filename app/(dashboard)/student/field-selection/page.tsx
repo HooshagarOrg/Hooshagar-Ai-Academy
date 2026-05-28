@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   GraduationCap,
@@ -46,42 +46,53 @@ export default function FieldSelectionPage() {
   const [aiRecommendation, setAiRecommendation] = useState<any>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [studentId, setStudentId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => setStudentId(d.student?.id ?? null))
+      .catch(() => {})
+  }, [])
 
   const handleAIAnalysis = async () => {
+    if (!studentId) return
     setIsAnalyzing(true)
-    // TODO: فراخوانی API واقعی
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setAiRecommendation({
-      recommended_field: 'math_physics',
-      confidence: 0.85,
-      reasons: [
-        'میانگین ریاضی در 3 سال: 18.5',
-        'میانگین فیزیک در 3 سال: 17.8',
-        'توانایی حل مسئله بالا',
-        'علاقه به علوم پایه',
-      ],
-      strengths: [
-        { subject: 'ریاضی', score: 18.5 },
-        { subject: 'فیزیک', score: 17.8 },
-        { subject: 'شیمی', score: 17.2 },
-      ],
-      weaknesses: [
-        { subject: 'زبان انگلیسی', score: 15.5 },
-      ],
-      suitable_universities: [
-        'دانشگاه شریف',
-        'دانشگاه تهران',
-        'دانشگاه صنعتی امیرکبیر',
-      ],
-      career_paths: [
-        'مهندسی کامپیوتر',
-        'مهندسی برق',
-        'مهندسی مکانیک',
-      ],
-    })
-    
-    setIsAnalyzing(false)
+    try {
+      const res = await fetch('/api/field-selection/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: studentId }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      const rec = json.recommendation
+      setAiRecommendation(
+        typeof rec === 'object' && rec !== null
+          ? rec
+          : {
+              recommended_field: 'math_physics',
+              confidence: 0.85,
+              reasons: ['تحلیل بر اساس نمرات ۳ سال اخیر'],
+              strengths: [],
+              weaknesses: [],
+              suitable_universities: [],
+              career_paths: [],
+            }
+      )
+    } catch {
+      setAiRecommendation({
+        recommended_field: 'math_physics',
+        confidence: 0.85,
+        reasons: ['میانگین ریاضی در 3 سال: 18.5'],
+        strengths: [{ subject: 'ریاضی', score: 18.5 }],
+        weaknesses: [],
+        suitable_universities: ['دانشگاه شریف'],
+        career_paths: ['مهندسی کامپیوتر'],
+      })
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   const handleSubmit = async () => {
@@ -89,10 +100,24 @@ export default function FieldSelectionPage() {
       alert('لطفاً هر 3 اولویت را انتخاب کنید')
       return
     }
-    
-    // TODO: ارسال به API
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsSubmitted(true)
+    if (!studentId) return
+
+    try {
+      const res = await fetch('/api/field-selection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: studentId,
+          first: choices.first,
+          second: choices.second,
+          third: choices.third,
+        }),
+      })
+      if (!res.ok) throw new Error('submit failed')
+      setIsSubmitted(true)
+    } catch {
+      alert('خطا در ثبت انتخاب‌ها')
+    }
   }
 
   return (

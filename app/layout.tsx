@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import { Toaster } from 'sonner'
+import { CookieConsent } from '@/components/cookie-consent'
 // TEMPORARY: Disabled reCAPTCHA due to React 18 compatibility issue
 // import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3'
 
@@ -48,6 +49,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         {children}
+        <CookieConsent />
         <Toaster position="top-center" richColors />
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {

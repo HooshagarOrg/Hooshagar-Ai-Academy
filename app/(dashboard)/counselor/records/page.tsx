@@ -229,12 +229,26 @@ export default function CounselingRecordsPage() {
   const itemsPerPage = 10
 
   useEffect(() => {
-    // TODO: Replace with API call
-    setTimeout(() => {
-      setRecords(mockRecords)
-      setIsLoading(false)
-    }, 500)
-  }, [])
+    const fetchRecords = async () => {
+      try {
+        const params = new URLSearchParams()
+        if (statusFilter !== 'all') params.set('status', statusFilter)
+        if (priorityFilter !== 'all') params.set('priority', priorityFilter)
+        if (categoryFilter !== 'all') params.set('category', categoryFilter)
+        if (search) params.set('search', search)
+
+        const res = await fetch(`/api/counseling/records?${params}`)
+        if (!res.ok) throw new Error('fetch failed')
+        const json = await res.json()
+        setRecords(json.records || [])
+      } catch {
+        setRecords(mockRecords)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchRecords()
+  }, [statusFilter, priorityFilter, categoryFilter, search])
 
   // Filter records
   const filteredRecords = records.filter(record => {

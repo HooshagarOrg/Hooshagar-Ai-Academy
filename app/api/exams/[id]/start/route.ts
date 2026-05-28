@@ -113,15 +113,9 @@ export async function POST(
       .select('*')
       .eq('exam_id', params.id);
 
-    // ترتیب تصادفی اگر فعال باشد
-    const config = exam.exam_config as Record<string, unknown> | null;
-    if (config?.shuffle_questions) {
-      query = query.order('question_order', { ascending: true }); // TODO: implement shuffle
-    } else {
-      query = query.order('question_order', { ascending: true });
-    }
+    query = query.order('question_order', { ascending: true });
 
-    const { data: questions, error: questionsError } = await query;
+    const { data: questionsRaw, error: questionsError } = await query;
 
     if (questionsError) {
       console.error('خطا در دریافت سوالات:', questionsError);
@@ -129,6 +123,16 @@ export async function POST(
         { error: 'خطا در دریافت سوالات' },
         { status: 500 }
       );
+    }
+
+    const config = exam.exam_config as Record<string, unknown> | null;
+    let questions = questionsRaw ?? [];
+    if (config?.shuffle_questions && questions.length > 1) {
+      questions = [...questions];
+      for (let i = questions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questions[i], questions[j]] = [questions[j], questions[i]];
+      }
     }
 
     return NextResponse.json({

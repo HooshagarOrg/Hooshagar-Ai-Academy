@@ -74,12 +74,37 @@ export default function AISettingsPage() {
     loadData()
   }, [])
 
+  const [tierEEnabled, setTierEEnabled] = useState(false)
+  const [tierFEnabled, setTierFEnabled] = useState(false)
+  const [usageStats, setUsageStats] = useState<{
+    totalRequests?: number
+    cacheRate?: string
+    tokensSaved?: string
+  } | null>(null)
+
   const loadData = async () => {
     _setIsLoading(true)
     try {
-      // TODO: ایجاد API routes برای دریافت داده‌ها
-      toast.info('در حال بارگذاری...')
-    } catch (error) {
+      const [settingsRes, statsRes] = await Promise.all([
+        fetch('/api/admin/ai-settings'),
+        fetch('/api/admin/ai-usage-stats'),
+      ])
+      if (settingsRes.ok) {
+        const { settings } = await settingsRes.json()
+        if (settings) {
+          setTierEEnabled(!!settings.tier_e_enabled)
+          setTierFEnabled(!!settings.tier_f_enabled)
+        }
+      }
+      if (statsRes.ok) {
+        const statsJson = await statsRes.json()
+        setUsageStats({
+          totalRequests: statsJson.summary?.month?.usage,
+          cacheRate: '—',
+          tokensSaved: '—',
+        })
+      }
+    } catch {
       toast.error('خطا در بارگذاری داده‌ها')
     } finally {
       _setIsLoading(false)
@@ -91,30 +116,44 @@ export default function AISettingsPage() {
       toast.error('لطفاً نام و کلید را وارد کنید')
       return
     }
-
-    // TODO: API call
-    toast.success(`کلید ${_newKeyName} اضافه شد`)
+    toast.info('کلیدها از متغیرهای محیطی (GOOGLE_API_KEY_*) مدیریت می‌شوند')
     _setNewKeyName('')
     _setNewKeyValue('')
   }
 
   const handleToggleKey = async (_keyId: string, active: boolean) => {
-    // TODO: API call
-    toast.success(active ? 'کلید فعال شد' : 'کلید غیرفعال شد')
+    toast.info('مدیریت کلید از پنل env / Supabase انجام می‌شود')
   }
 
-  // TODO: Implement when needed
-  // const handleToggleTier = async (configId: string, tier: number, enabled: boolean) => {
-  //   // TODO: API call
-  //   toast.success(`Tier ${tier} ${enabled ? 'فعال' : 'غیرفعال'} شد`)
-  // }
+  const handleToggleTier = async (tier: 'E' | 'F', enabled: boolean) => {
+    try {
+      const res = await fetch('/api/admin/ai-settings/toggle-tier', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier, enabled }),
+      })
+      if (!res.ok) throw new Error('failed')
+      if (tier === 'E') setTierEEnabled(enabled)
+      else setTierFEnabled(enabled)
+      toast.success(`Tier ${tier} ${enabled ? 'فعال' : 'غیرفعال'} شد`)
+    } catch {
+      toast.error('خطا در تغییر لایه')
+    }
+  }
 
   const handleClearCache = async () => {
     if (!confirm('آیا مطمئن هستید که می‌خواهید کل Cache را پاک کنید؟')) {
       return
     }
-    // TODO: API call
-    toast.success('Cache پاک شد')
+    try {
+      const res = await fetch('/api/admin/ai-settings/cache', { method: 'DELETE' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      toast.success(`Cache پاک شد (${json.deleted ?? 0} رکورد)`)
+      loadData()
+    } catch {
+      toast.error('خطا در پاک‌سازی Cache')
+    }
   }
 
   return (
@@ -160,7 +199,7 @@ export default function AISettingsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">12,547</div>
+                <div className="text-3xl font-bold">{usageStats?.totalRequests?.toLocaleString('fa-IR') ?? '—'}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   از ابتدای راه‌اندازی
                 </p>
@@ -429,8 +468,8 @@ export default function AISettingsPage() {
                       </p>
                     </div>
                     <Switch 
-                      checked={false}
-                      onCheckedChange={(_checked) => {}}
+                      checked={tierEEnabled}
+                      onCheckedChange={(checked) => handleToggleTier('E', checked)}
                     />
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">
@@ -452,8 +491,8 @@ export default function AISettingsPage() {
                       </p>
                     </div>
                     <Switch 
-                      checked={false}
-                      onCheckedChange={(_checked) => {}}
+                      checked={tierFEnabled}
+                      onCheckedChange={(checked) => handleToggleTier('F', checked)}
                     />
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">

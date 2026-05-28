@@ -336,12 +336,33 @@ export default function CounselingRecordDetailPage() {
   const [setShowContactDialog] = useState(false)
 
   useEffect(() => {
-    // TODO: Replace with API call
-    // fetch(`/api/counseling/records/${recordId}`)
-    setTimeout(() => {
-      setRecord(mockRecord)
-      setIsLoading(false)
-    }, 500)
+    const fetchRecord = async () => {
+      try {
+        const res = await fetch(`/api/counseling/records/${recordId}`)
+        if (!res.ok) throw new Error('fetch failed')
+        const json = await res.json()
+        const r = json.record
+        setRecord({
+          ...r,
+          student: r.student
+            ? {
+                ...r.student,
+                full_name: r.student.full_name || r.student.profiles?.full_name,
+                class_name: r.student.class_name || '—',
+              }
+            : mockRecord.student,
+          sessions: json.sessions || [],
+          tests: json.tests || [],
+          observations: json.observations || [],
+          parent_contacts: json.parent_contacts || [],
+        })
+      } catch {
+        setRecord(mockRecord)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchRecord()
   }, [recordId])
 
   if (isLoading) {

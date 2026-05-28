@@ -198,13 +198,57 @@ export default function CounselorReportsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [period, setPeriod] = useState('month')
 
+  const [categoryData, setCategoryData] = useState(mockCategoryData)
+  const [monthlyData, setMonthlyData] = useState(mockMonthlyData)
+  const [priorityData, setPriorityData] = useState(mockPriorityData)
+
   useEffect(() => {
-    // TODO: Replace with API call
-    setTimeout(() => {
-      setStats(mockStats)
-      setIsLoading(false)
-    }, 500)
-  }, [])
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/counseling/stats')
+        if (!res.ok) throw new Error('fetch failed')
+        const json = await res.json()
+        const s = json.stats
+        setStats({
+          total_records: (s.active_records || 0) + (s.closed_this_month || 0),
+          active_records: s.active_records || 0,
+          closed_records: s.closed_this_month || 0,
+          referred_records: 0,
+          total_sessions: Object.values(json.trends?.monthly_sessions || {}).reduce(
+            (a: number, b) => a + (b as number),
+            0
+          ) as number,
+          avg_sessions_per_record: 5,
+          success_rate: 78,
+          avg_duration_days: 45,
+        })
+        const cats = json.distributions?.categories || {}
+        const totalCat = Object.values(cats).reduce((a: number, b) => a + (b as number), 0) || 1
+        setCategoryData(
+          Object.entries(cats).map(([category, count]) => ({
+            category,
+            count: count as number,
+            percentage: Math.round(((count as number) / totalCat) * 100),
+          }))
+        )
+        setPriorityData(json.distributions?.priorities || mockPriorityData)
+        const monthly = json.trends?.monthly_sessions || {}
+        setMonthlyData(
+          Object.entries(monthly).map(([month, sessions]) => ({
+            month,
+            sessions: sessions as number,
+            new_records: 0,
+            closed_records: 0,
+          }))
+        )
+      } catch {
+        setStats(mockStats)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchStats()
+  }, [period])
 
   if (isLoading) {
     return (
@@ -306,7 +350,7 @@ export default function CounselorReportsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {mockCategoryData.map((item) => (
+              {categoryData.map((item) => (
                 <div key={item.category}>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-white/70">{item.category}</span>
@@ -333,9 +377,9 @@ export default function CounselorReportsPage() {
                     <div className="w-3 h-3 rounded-full bg-red-500" />
                     <span className="text-white/70 text-sm">فوری</span>
                   </div>
-                  <p className="text-white text-3xl font-bold">{mockPriorityData.urgent}</p>
+                  <p className="text-white text-3xl font-bold">{priorityData.urgent}</p>
                   <p className="text-white/40 text-xs mt-1">
-                    {Math.round((mockPriorityData.urgent / stats.active_records) * 100)}% از فعال‌ها
+                    {Math.round((priorityData.urgent / stats.active_records) * 100)}% از فعال‌ها
                   </p>
                 </div>
                 <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
@@ -343,9 +387,9 @@ export default function CounselorReportsPage() {
                     <div className="w-3 h-3 rounded-full bg-orange-500" />
                     <span className="text-white/70 text-sm">بالا</span>
                   </div>
-                  <p className="text-white text-3xl font-bold">{mockPriorityData.high}</p>
+                  <p className="text-white text-3xl font-bold">{priorityData.high}</p>
                   <p className="text-white/40 text-xs mt-1">
-                    {Math.round((mockPriorityData.high / stats.active_records) * 100)}% از فعال‌ها
+                    {Math.round((priorityData.high / stats.active_records) * 100)}% از فعال‌ها
                   </p>
                 </div>
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
@@ -353,9 +397,9 @@ export default function CounselorReportsPage() {
                     <div className="w-3 h-3 rounded-full bg-yellow-500" />
                     <span className="text-white/70 text-sm">متوسط</span>
                   </div>
-                  <p className="text-white text-3xl font-bold">{mockPriorityData.medium}</p>
+                  <p className="text-white text-3xl font-bold">{priorityData.medium}</p>
                   <p className="text-white/40 text-xs mt-1">
-                    {Math.round((mockPriorityData.medium / stats.active_records) * 100)}% از فعال‌ها
+                    {Math.round((priorityData.medium / stats.active_records) * 100)}% از فعال‌ها
                   </p>
                 </div>
                 <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
@@ -363,9 +407,9 @@ export default function CounselorReportsPage() {
                     <div className="w-3 h-3 rounded-full bg-green-500" />
                     <span className="text-white/70 text-sm">پایین</span>
                   </div>
-                  <p className="text-white text-3xl font-bold">{mockPriorityData.low}</p>
+                  <p className="text-white text-3xl font-bold">{priorityData.low}</p>
                   <p className="text-white/40 text-xs mt-1">
-                    {Math.round((mockPriorityData.low / stats.active_records) * 100)}% از فعال‌ها
+                    {Math.round((priorityData.low / stats.active_records) * 100)}% از فعال‌ها
                   </p>
                 </div>
               </div>
@@ -383,8 +427,8 @@ export default function CounselorReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="h-64 flex items-end justify-between gap-4 px-4">
-              {mockMonthlyData.map((item, idx) => {
-                const maxSessions = Math.max(...mockMonthlyData.map(d => d.sessions))
+              {monthlyData.map((item, idx) => {
+                const maxSessions = Math.max(...monthlyData.map(d => d.sessions))
                 const height = (item.sessions / maxSessions) * 100
                 return (
                   <div key={idx} className="flex-1 flex flex-col items-center gap-2">

@@ -36,6 +36,7 @@
     "noUncheckedIndexedAccess": false,
     /* Completeness */
     "skipLibCheck": true,
+    "types": ["node"],
     /* Path Mapping */
     "baseUrl": ".",
     "paths": {

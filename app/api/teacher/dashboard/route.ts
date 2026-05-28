@@ -201,6 +201,14 @@ export async function GET() {
       })
       .filter((a) => a !== null);
 
+    const todayStr = new Date().toISOString().split('T')[0];
+    const { count: upcomingExamsCount } = await supabase
+      .from('exams')
+      .select('id', { count: 'exact', head: true })
+      .eq('class_id', teacherClass.id)
+      .gte('exam_date', todayStr)
+      .in('status', ['scheduled', 'published', 'active']);
+
     // 13. پاسخ نهایی
     return NextResponse.json({
       success: true,
@@ -221,7 +229,7 @@ export async function GET() {
           ? Math.round((presentToday / totalStudents) * 100) 
           : 0,
         averageGrade: Math.round(averageGrade * 10) / 10,
-        upcomingExams: 0, // TODO: اضافه کردن exams table
+        upcomingExams: upcomingExamsCount || 0,
       },
       recentGrades,
       alerts,

@@ -73,48 +73,6 @@ interface DashboardData {
 }
 
 // ==========================================
-// Mock Data (تا زمان اتصال به API)
-// ==========================================
-const mockData: DashboardData = {
-  stats: {
-    active_records: 45,
-    urgent_records: 8,
-    high_priority_records: 12,
-    today_sessions: 6,
-    closed_this_month: 12,
-    pending_follow_ups: 5,
-  },
-  distributions: {
-    categories: {
-      'رفتاری': 18,
-      'تحصیلی': 25,
-      'خانوادگی': 12,
-      'اجتماعی': 8,
-      'اضطراب': 15,
-      'افسردگی': 5,
-    },
-    priorities: {
-      low: 10,
-      medium: 15,
-      high: 12,
-      urgent: 8,
-    },
-  },
-  lists: {
-    upcoming_sessions: [
-      { id: '1', session_date: new Date().toISOString(), session_type: 'individual', student_name: 'علی رضایی' },
-      { id: '2', session_date: new Date(Date.now() + 3600000).toISOString(), session_type: 'family', student_name: 'سارا احمدی' },
-      { id: '3', session_date: new Date(Date.now() + 7200000).toISOString(), session_type: 'individual', student_name: 'محمد کریمی' },
-    ],
-    urgent_records: [
-      { id: '1', priority_level: 'urgent', issue_categories: ['رفتاری', 'خانوادگی'], updated_at: new Date().toISOString(), student: { id: '1', full_name: 'علی رضایی', grade: 6 } },
-      { id: '2', priority_level: 'urgent', issue_categories: ['اضطراب'], updated_at: new Date(Date.now() - 86400000).toISOString(), student: { id: '2', full_name: 'زهرا حسینی', grade: 5 } },
-      { id: '3', priority_level: 'high', issue_categories: ['تحصیلی'], updated_at: new Date(Date.now() - 172800000).toISOString(), student: { id: '3', full_name: 'امیر صادقی', grade: 4 } },
-    ],
-  },
-}
-
-// ==========================================
 // Helper Functions
 // ==========================================
 const getPriorityColor = (priority: PriorityLevel): string => {
@@ -150,12 +108,23 @@ export default function CounselorDashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Replace with actual API call
-    // fetchDashboardData()
-    setTimeout(() => {
-      setData(mockData)
-      setIsLoading(false)
-    }, 500)
+    const fetchDashboardData = async () => {
+      try {
+        const res = await fetch('/api/counseling/stats')
+        if (!res.ok) throw new Error('fetch failed')
+        const json = await res.json()
+        setData({
+          stats: json.stats,
+          distributions: json.distributions,
+          lists: json.lists,
+        })
+      } catch {
+        setData(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchDashboardData()
   }, [])
 
   const formatPersianDate = (): string => {

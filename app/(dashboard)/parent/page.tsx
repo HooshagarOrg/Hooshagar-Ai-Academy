@@ -211,23 +211,38 @@ export default function ParentDashboardPage() {
   const childClass = dashboardData.activeChild.className
   const averageGrade = dashboardData.stats.averageGrade.toFixed(2)
 
+  type MessageItem = { id: string; from: string; title: string; preview: string; date: string; isRead: boolean }
+  const messages: MessageItem[] =
+    dashboardData.messages?.length > 0
+      ? dashboardData.messages.map((m) => ({
+          id: m.id,
+          from: m.from || 'مدرسه',
+          title: m.subject || 'پیام',
+          preview: m.preview || '',
+          date: m.date ? new Date(m.date).toLocaleDateString('fa-IR') : '—',
+          isRead: !!m.isRead,
+        }))
+      : mockMessages
+
+  const unreadCount = messages.filter((m) => !m.isRead).length
+
   // آمار کلی
   const lastGrade = dashboardData.recentGrades[0]
   const stats = [
     { label: 'میانگین نمرات', value: averageGrade, icon: <Star className="w-6 h-6" />, color: 'bg-yellow-500', subtext: `از ${dashboardData.stats.totalGrades} نمره` },
     { label: 'حضور ماه جاری', value: `${dashboardData.stats.attendanceRate}%`, icon: <CheckCircle2 className="w-6 h-6" />, color: 'bg-green-500', subtext: '30 روز اخیر' },
-    { label: 'پیام‌های جدید', value: mockMessages.filter(m => !m.isRead).length, icon: <MessageSquare className="w-6 h-6" />, color: 'bg-blue-500', subtext: 'از مدرسه' },
+    { label: 'پیام‌های جدید', value: unreadCount, icon: <MessageSquare className="w-6 h-6" />, color: 'bg-blue-500', subtext: 'از مدرسه' },
     { label: 'گزارش‌ها', value: dashboardData.stats.recentReports, icon: <FileText className="w-6 h-6" />, color: 'bg-purple-500', subtext: 'گزارش جدید' },
   ]
 
   // دسترسی سریع
   const quickAccess = [
-    { label: 'گزارش پیشرفت', href: '#', icon: <TrendingUp className="w-5 h-5" />, color: 'bg-blue-500', enabled: false },
-    { label: 'ارسال پیام به معلم', href: '#', icon: <Send className="w-5 h-5" />, color: 'bg-green-500', enabled: false },
-    { label: 'نظرسنجی', href: '#', icon: <ClipboardList className="w-5 h-5" />, color: 'bg-purple-500', enabled: false },
-    { label: 'امور مالی', href: '#', icon: <CreditCard className="w-5 h-5" />, color: 'bg-orange-500', enabled: false },
-    { label: 'پروفایل فرزندم', href: '#', icon: <GraduationCap className="w-5 h-5" />, color: 'bg-pink-500', enabled: false },
-    { label: 'آموزش هوشاگر', href: '/test-study-buddy', icon: <Sparkles className="w-5 h-5" />, color: 'bg-indigo-500', enabled: true },
+    { label: 'گزارش‌ها', href: '/parent/reports', icon: <TrendingUp className="w-5 h-5" />, color: 'bg-blue-500', enabled: true },
+    { label: 'مشاوره فرزند', href: '/parent/counseling', icon: <Send className="w-5 h-5" />, color: 'bg-green-500', enabled: true },
+    { label: 'نظرسنجی', href: '/parent/survey', icon: <ClipboardList className="w-5 h-5" />, color: 'bg-purple-500', enabled: true },
+    { label: 'امور مالی', href: '/parent/financials', icon: <CreditCard className="w-5 h-5" />, color: 'bg-orange-500', enabled: true },
+    { label: 'گزارش تخصصی', href: '/parent/specialty-reports', icon: <GraduationCap className="w-5 h-5" />, color: 'bg-pink-500', enabled: true },
+    { label: 'حریم خصوصی', href: '/account/privacy', icon: <Sparkles className="w-5 h-5" />, color: 'bg-indigo-500', enabled: true },
   ]
 
   return (
@@ -254,7 +269,7 @@ export default function ParentDashboardPage() {
               <button className="relative p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
                 <Bell className="w-5 h-5 text-white" />
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {mockMessages.filter(m => !m.isRead).length}
+                  {unreadCount}
                 </span>
               </button>
               <Link
@@ -387,16 +402,16 @@ export default function ParentDashboardPage() {
                 <MessageSquare className="w-5 h-5 text-blue-400" />
                 پیام‌ها
               </h2>
-              {mockMessages.filter(m => !m.isRead).length > 0 && (
+              {unreadCount > 0 && (
                 <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                  {mockMessages.filter(m => !m.isRead).length} جدید
+                  {unreadCount} جدید
                 </span>
               )}
             </div>
 
             {/* لیست پیام‌ها */}
             <div className="space-y-3 mb-4">
-              {mockMessages.map((message) => (
+              {messages.map((message) => (
                 <div
                   key={message.id}
                   className={`bg-white/5 rounded-xl p-4 border transition-all hover:bg-white/10 cursor-pointer ${

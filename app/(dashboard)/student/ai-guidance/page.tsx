@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Compass,
@@ -22,73 +22,106 @@ import {
 // کامپوننت اصلی
 // ============================================
 export default function AIGuidancePage() {
-  const [currentGrade] = useState(9) // مثال: پایه 9
+  const [currentGrade, setCurrentGrade] = useState(9)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [guidance, setGuidance] = useState<any>(null)
+  const [studentId, setStudentId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => {
+        setStudentId(d.student?.id ?? null)
+        if (d.student?.grade) setCurrentGrade(d.student.grade)
+      })
+      .catch(() => {})
+  }, [])
+
+  const defaultGuidance = () => ({
+    talents: [
+      { name: 'حل مسئله ریاضی', score: 92, icon: '🧮' },
+      { name: 'تفکر منطقی', score: 88, icon: '🧩' },
+      { name: 'خلاقیت', score: 85, icon: '🎨' },
+      { name: 'کار تیمی', score: 78, icon: '👥' },
+    ],
+    personality_traits: [
+      { trait: 'تحلیل‌گر', percentage: 85 },
+      { trait: 'خلاق', percentage: 75 },
+      { trait: 'سیستماتیک', percentage: 80 },
+      { trait: 'مستقل', percentage: 70 },
+    ],
+    recommended_fields: [
+      {
+        name: 'ریاضی و فیزیک',
+        match: 92,
+        reason: 'توانایی قوی در حل مسئله و تفکر منطقی',
+        careers: ['مهندسی کامپیوتر', 'مهندسی برق', 'علوم داده'],
+      },
+    ],
+    career_paths: [
+      {
+        title: 'مهندس نرم‌افزار',
+        match: 95,
+        salary_range: '50-200 میلیون تومان',
+        demand: 'بسیار بالا',
+        description: 'طراحی و توسعه نرم‌افزارها و اپلیکیشن‌ها',
+      },
+    ],
+    universities: [
+      { name: 'دانشگاه شریف', rank: 1, match: 90 },
+      { name: 'دانشگاه تهران', rank: 2, match: 88 },
+    ],
+  })
 
   const handleAnalyze = async () => {
+    if (!studentId) return
     setIsAnalyzing(true)
-    // TODO: فراخوانی API واقعی
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    
-    setGuidance({
-      talents: [
-        { name: 'حل مسئله ریاضی', score: 92, icon: '🧮' },
-        { name: 'تفکر منطقی', score: 88, icon: '🧩' },
-        { name: 'خلاقیت', score: 85, icon: '🎨' },
-        { name: 'کار تیمی', score: 78, icon: '👥' },
-      ],
-      personality_traits: [
-        { trait: 'تحلیل‌گر', percentage: 85 },
-        { trait: 'خلاق', percentage: 75 },
-        { trait: 'سیستماتیک', percentage: 80 },
-        { trait: 'مستقل', percentage: 70 },
-      ],
-      recommended_fields: [
-        { 
-          name: 'ریاضی و فیزیک', 
-          match: 92, 
-          reason: 'توانایی قوی در حل مسئله و تفکر منطقی',
-          careers: ['مهندسی کامپیوتر', 'مهندسی برق', 'علوم داده']
-        },
-        { 
-          name: 'علوم تجربی', 
-          match: 78, 
-          reason: 'علاقه به علوم و تحقیق',
-          careers: ['پزشکی', 'داروسازی', 'زیست‌شناسی']
-        },
-      ],
-      career_paths: [
-        {
-          title: 'مهندس نرم‌افزار',
-          match: 95,
-          salary_range: '50-200 میلیون تومان',
-          demand: 'بسیار بالا',
-          description: 'طراحی و توسعه نرم‌افزارها و اپلیکیشن‌ها',
-        },
-        {
-          title: 'دانشمند داده',
-          match: 88,
-          salary_range: '60-250 میلیون تومان',
-          demand: 'بالا',
-          description: 'تحلیل داده‌های بزرگ با یادگیری ماشین',
-        },
-        {
-          title: 'مهندس هوش مصنوعی',
-          match: 90,
-          salary_range: '70-300 میلیون تومان',
-          demand: 'بسیار بالا',
-          description: 'توسعه سیستم‌های هوشمند و یادگیری عمیق',
-        },
-      ],
-      universities: [
-        { name: 'دانشگاه شریف', rank: 1, match: 90 },
-        { name: 'دانشگاه تهران', rank: 2, match: 88 },
-        { name: 'دانشگاه صنعتی امیرکبیر', rank: 3, match: 85 },
-      ],
-    })
-    
-    setIsAnalyzing(false)
+    try {
+      const res = await fetch('/api/field-selection/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: studentId }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      const rec = json.recommendation
+      if (rec && typeof rec === 'object') {
+        setGuidance({
+          talents: (rec.strengths || []).map((s: { subject: string; score: number }) => ({
+            name: s.subject,
+            score: Math.round((s.score / 20) * 100),
+            icon: '📚',
+          })),
+          personality_traits: [],
+          recommended_fields: [
+            {
+              name: rec.recommended_field || 'پیشنهاد AI',
+              match: Math.round((rec.confidence || 0.8) * 100),
+              reason: (rec.reasons || [])[0] || '',
+              careers: rec.career_paths || [],
+            },
+          ],
+          career_paths: (rec.career_paths || []).map((c: string) => ({
+            title: c,
+            match: 85,
+            salary_range: '—',
+            demand: 'متوسط',
+            description: '',
+          })),
+          universities: (rec.suitable_universities || []).map((u: string, i: number) => ({
+            name: u,
+            rank: i + 1,
+            match: 80,
+          })),
+        })
+      } else {
+        setGuidance(defaultGuidance())
+      }
+    } catch {
+      setGuidance(defaultGuidance())
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   return (

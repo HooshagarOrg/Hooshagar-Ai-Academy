@@ -13,7 +13,7 @@ export function TermsAcceptanceNotice({ className }: { className?: string }) {
       </Link>
       {' '}و{' '}
       <Link
-        href="/terms#privacy"
+        href="/privacy"
         className="text-brand-magenta font-medium hover:underline underline-offset-2"
       >
         حریم خصوصی

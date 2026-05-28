@@ -306,8 +306,17 @@ export default function FamilyInsightPage() {
     setIsSaving(true)
 
     try {
-      // TODO: API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const res = await fetch('/api/counseling/family-insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: selectedStudent.id,
+          form_data: formData,
+          ai_analysis: aiAnalysis,
+          status: 'draft',
+        }),
+      })
+      if (!res.ok) throw new Error('save failed')
       setLastSaved(new Date())
       if (!silent) toast.success('پیش‌نویس ذخیره شد')
     } catch (error) {
@@ -332,44 +341,40 @@ export default function FamilyInsightPage() {
     setIsAnalyzing(true)
 
     try {
-      // TODO: API call to AI
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      const prompt = `تحلیل خانواده دانش‌آموز ${selectedStudent.full_name} (پایه ${selectedStudent.grade}):
+زمان با والدین: ${formData.timeWithParents}, صفحه‌نمایش: ${formData.screenTime}h, خواب: ${formData.sleepHours}h
+مشکلات رفتاری: ${formData.behaviorIssues.join(', ') || 'ندارد'}
+استعدادها: ${formData.talents.join(', ')}
+پاسخ JSON با کلیدهای: summary, strengths (آرایه), concerns (آرایه), counselorSuggestions, parentSuggestions, interventionPlan (اختیاری)`
 
-      // نمونه تحلیل
-      setAiAnalysis({
-        summary: `${selectedStudent.full_name} دانش‌آموزی با محیط خانوادگی ${formData.timeWithParents === 'high' ? 'پایدار' : 'نیازمند توجه'} است. ${formData.screenTime > 4 ? 'زمان استفاده از صفحه نمایش بالاست و نیاز به مدیریت دارد.' : ''} ${formData.behaviorIssues.length > 2 ? 'برخی مسائل رفتاری نیاز به پیگیری دارند.' : ''}`,
-        strengths: [
-          formData.talents.includes('math') ? 'استعداد ریاضی' : '',
-          formData.talents.includes('art') ? 'استعداد هنری' : '',
-          formData.groupParticipation === 'active' ? 'مشارکت فعال در گروه' : '',
-          formData.closeFriendsCount >= 3 ? 'روابط اجتماعی خوب' : '',
-          formData.hasStudySpace === 'yes' ? 'فضای مطالعه مناسب' : '',
-        ].filter(Boolean),
-        concerns: [
-          formData.screenTime > 5 ? 'استفاده زیاد از صفحه نمایش' : '',
-          formData.sleepHours < 8 ? 'کمبود خواب' : '',
-          formData.behaviorIssues.includes('anxiety') ? 'نشانه‌های اضطراب' : '',
-          formData.behaviorIssues.includes('isolation') ? 'گوشه‌گیری' : '',
-          formData.hasPeerIssues === 'yes' ? 'مشکلات ارتباطی با همسالان' : '',
-        ].filter(Boolean),
-        counselorSuggestions: [
-          'جلسات هفتگی با دانش‌آموز برای پیگیری وضعیت',
-          'ارتباط منظم با والدین از طریق پیام‌رسان مدرسه',
-          formData.behaviorIssues.includes('anxiety') ? 'آموزش تکنیک‌های آرام‌سازی' : '',
-          formData.hasPeerIssues === 'yes' ? 'برنامه مهارت‌های اجتماعی' : '',
-        ].filter(Boolean),
-        parentSuggestions: [
-          formData.screenTime > 4 ? 'تعیین محدودیت زمانی برای استفاده از گوشی و تبلت' : '',
-          formData.timeWithParents === 'low' ? 'افزایش زمان با کیفیت با فرزند' : '',
-          'تشویق فعالیت‌های فیزیکی و هوای آزاد',
-          formData.sleepHours < 8 ? 'تنظیم ساعت خواب منظم' : '',
-        ].filter(Boolean),
-        interventionPlan: formData.behaviorIssues.length > 2 || formData.hasPeerIssues === 'yes'
-          ? 'توصیه می‌شود برنامه مداخله‌ای شامل:\n1. ارجاع به روان‌شناس تربیتی\n2. برنامه تقویت مهارت‌های اجتماعی\n3. جلسات مشاوره خانواده'
-          : undefined,
+      const res = await fetch('/api/ai/universal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feature: 'family_insight', prompt }),
       })
-
-      toast.success('تحلیل هوشمند انجام شد')
+      const json = await res.json()
+      const aiText = json.content || json.text
+      if (res.ok && aiText) {
+        try {
+          const parsed = JSON.parse(aiText.replace(/```json\n?|\n?```/g, '').trim())
+          setAiAnalysis(parsed)
+          toast.success('تحلیل هوشمند انجام شد')
+          setIsAnalyzing(false)
+          return
+        } catch {
+          setAiAnalysis({
+            summary: aiText,
+            strengths: [],
+            concerns: [],
+            counselorSuggestions: [],
+            parentSuggestions: [],
+          })
+          toast.success('تحلیل هوشمند انجام شد')
+          setIsAnalyzing(false)
+          return
+        }
+      }
+      throw new Error('AI failed')
     } catch (error) {
       toast.error('خطا در تحلیل فرم')
     } finally {
@@ -392,8 +397,17 @@ export default function FamilyInsightPage() {
     setIsSaving(true)
 
     try {
-      // TODO: API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const res = await fetch('/api/counseling/family-insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: selectedStudent.id,
+          form_data: formData,
+          ai_analysis: aiAnalysis,
+          status: 'completed',
+        }),
+      })
+      if (!res.ok) throw new Error('save failed')
       toast.success('فرم با موفقیت ذخیره شد')
 
       // اضافه به لیست

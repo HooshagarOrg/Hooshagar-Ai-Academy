@@ -241,7 +241,9 @@ function CheckoutContent() {
                     className="mt-1 accent-purple-600"
                   />
                   <span className="text-sm text-gray-600">
-                    <Link href="/terms" className="text-purple-600 hover:underline">قوانین و مقررات</Link> هوشاگر را می‌پذیرم
+                    <Link href="/terms" className="text-purple-600 hover:underline">قوانین و مقررات</Link>
+                    {' '}و{' '}
+                    <Link href="/privacy" className="text-purple-600 hover:underline">حریم خصوصی</Link> هوشاگر را می‌پذیرم
                   </span>
                 </label>
 

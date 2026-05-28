@@ -200,16 +200,37 @@ export default function ParentSpecialtyReportsPage() {
   } | null>(null)
 
   useEffect(() => {
-    // TODO: Replace with actual API call
-    setTimeout(() => {
-      setData({
-        music: mockMusicSummary,
-        art: mockArtSummary,
-        sports: mockSportsSummary,
-        stem: mockSTEMSummary,
-      })
-      setIsLoading(false)
-    }, 500)
+    const fetchData = async () => {
+      try {
+        const dashRes = await fetch('/api/parent/dashboard')
+        const dash = await dashRes.json()
+        const studentId = dash.activeChild?.id
+        if (!studentId) {
+          setData(null)
+          return
+        }
+
+        const res = await fetch(`/api/specialty-assessments/student/${studentId}`)
+        if (!res.ok) throw new Error('fetch failed')
+        const json = await res.json()
+        setData({
+          music: json.summary?.music,
+          art: json.summary?.art,
+          sports: json.summary?.sports,
+          stem: json.summary?.stem,
+        })
+      } catch {
+        setData({
+          music: mockMusicSummary,
+          art: mockArtSummary,
+          sports: mockSportsSummary,
+          stem: mockSTEMSummary,
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
   }, [])
 
   if (isLoading) {

@@ -111,6 +111,22 @@ const SETTINGS_GROUPS: { title: string; cards: SettingsCard[] }[] = [
     title: 'امنیت و نظارت',
     cards: [
       {
+        title: 'حریم خصوصی حساب',
+        description: 'صادرات یا حذف داده شخصی (GDPR)',
+        icon: Lock,
+        href: '/account/privacy',
+        color: 'text-violet-600',
+        bg: 'bg-violet-50',
+      },
+      {
+        title: 'سیاست حریم خصوصی',
+        description: 'سند عمومی حریم خصوصی و کوکی‌ها',
+        icon: Shield,
+        href: '/privacy',
+        color: 'text-violet-600',
+        bg: 'bg-violet-50',
+      },
+      {
         title: 'مرکز امنیت',
         description: 'لاگ‌های امنیتی، IP‌های مسدود و فعالیت مشکوک',
         icon: Shield,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Building2,
@@ -118,8 +118,58 @@ const serviceStatus = [
 // ============================================
 // کامپوننت اصلی
 // ============================================
+interface SchoolRow {
+  id: string
+  name: string
+  city?: string
+  students: number
+  staff: number
+  status: string
+  type?: string
+  aiUsageToday: number
+}
+
 export default function AdminDashboardPage() {
   const [currentTime] = useState(new Date())
+  const [schools, setSchools] = useState<SchoolRow[]>(mockSchools)
+  const [overview, setOverview] = useState({
+    students: 0,
+    teachers: 0,
+    parents: 0,
+    schools: mockSchools.length,
+  })
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/admin/schools').then((r) => r.json()),
+      fetch('/api/admin/analytics').then((r) => r.json()),
+    ])
+      .then(([schoolsRes, analyticsRes]) => {
+        if (schoolsRes.schools?.length) {
+          setSchools(
+            schoolsRes.schools.map((s: { id: string; name: string; city?: string; type?: string }) => ({
+              id: s.id,
+              name: s.name,
+              city: s.city || '—',
+              students: 0,
+              staff: 0,
+              status: 'active',
+              type: s.type || 'مدرسه',
+              aiUsageToday: 0,
+            }))
+          )
+        }
+        if (analyticsRes.overview) {
+          setOverview({
+            students: analyticsRes.overview.total_students ?? 0,
+            teachers: analyticsRes.overview.total_teachers ?? 0,
+            parents: analyticsRes.overview.total_parents ?? 0,
+            schools: analyticsRes.overview.total_schools ?? schoolsRes.schools?.length ?? mockSchools.length,
+          })
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   // فرمت تاریخ شمسی
   const formatPersianDate = () => {
@@ -132,15 +182,17 @@ export default function AdminDashboardPage() {
   }
 
   // آمار کلی
-  const totalStudents = mockSchools.reduce((sum, s) => sum + s.students, 0)
-  const totalStaff = mockSchools.reduce((sum, s) => sum + s.staff, 0)
-  const totalAIToday = mockSchools.reduce((sum, s) => sum + s.aiUsageToday, 0)
+  const totalStudents =
+    overview.students || schools.reduce((sum, s) => sum + s.students, 0)
+  const totalStaff =
+    overview.teachers + overview.parents || schools.reduce((sum, s) => sum + s.staff, 0)
+  const totalAIToday = schools.reduce((sum, s) => sum + s.aiUsageToday, 0)
 
   const stats = [
     { 
       label: 'مدارس فعال', 
-      value: mockSchools.filter(s => s.status === 'active').length, 
-      total: mockSchools.length,
+      value: schools.filter(s => s.status === 'active').length, 
+      total: overview.schools || schools.length,
       icon: <Building2 className="w-6 h-6" />, 
       color: 'bg-blue-500',
       trend: '+2 این ماه'
@@ -288,7 +340,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-              {mockSchools.map((school) => (
+              {schools.map((school) => (
                 <div
                   key={school.id}
                   className={`bg-white/5 rounded-xl p-4 border transition-all hover:bg-white/10 ${

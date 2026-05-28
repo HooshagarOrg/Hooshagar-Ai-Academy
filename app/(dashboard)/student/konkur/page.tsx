@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Target,
@@ -22,21 +22,45 @@ import {
 export default function KonkurPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [prediction, setPrediction] = useState<any>(null)
+  const [studentId, setStudentId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => setStudentId(d.student?.id ?? null))
+      .catch(() => {})
+  }, [])
 
   const handlePredictRank = async () => {
+    if (!studentId) return
     setIsAnalyzing(true)
-    // TODO: فراخوانی API واقعی
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    
-    setPrediction({
-      predicted_rank: 1250,
-      confidence: 0.82,
-      current_avg_score: 7200,
-      target_rank: 500,
-      improvement_needed: 1800,
-    })
-    
-    setIsAnalyzing(false)
+    try {
+      const res = await fetch('/api/konkur/predict-rank', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: studentId }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      const p = json.prediction
+      setPrediction({
+        predicted_rank: p?.predicted_rank ?? 0,
+        confidence: p?.confidence ?? 0,
+        current_avg_score: p?.current_avg_score ?? 0,
+        target_rank: p?.target_rank ?? 500,
+        improvement_needed: p?.improvement_needed ?? 0,
+      })
+    } catch {
+      setPrediction({
+        predicted_rank: 1250,
+        confidence: 0.82,
+        current_avg_score: 7200,
+        target_rank: 500,
+        improvement_needed: 1800,
+      })
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   return (

@@ -242,15 +242,15 @@ async function callGoogleTier1(
   const client = new GoogleGenerativeAI(apiKey)
   const modelName = opts.googleModel ?? GOOGLE_MODEL_MAP[capability]
 
-  const model = client.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
+    const model = client.getGenerativeModel({ 
+      model: modelName,
+      generationConfig: {
       temperature:     opts.temperature ?? 0.7,
       maxOutputTokens: opts.maxTokens ?? 2000,
-    },
-  })
+      },
+    })
 
-  const result = await model.generateContent(prompt)
+    const result = await model.generateContent(prompt)
   return { content: result.response.text(), provider: 'google', model: modelName, tier: 1, is_fallback: false, cost: 0 }
 }
 
@@ -265,28 +265,28 @@ async function callOpenRouterWithKey(
   apiKey: string,
   opts: AICallOptions
 ): Promise<AIResponse> {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-      'X-Title': 'Hooshagar',
-    },
-    body: JSON.stringify({
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+        'X-Title': 'Hooshagar',
+      },
+      body: JSON.stringify({
       model,
       messages: [{ role: 'user', content: prompt }],
       temperature: opts.temperature ?? 0.7,
       max_tokens:  opts.maxTokens  ?? 2000,
-    }),
-  })
+      }),
+    })
 
-  if (!response.ok) {
+    if (!response.ok) {
     const body = await response.text()
     throw new Error(`OpenRouter Tier${tier} error ${response.status}: ${body}`)
-  }
+    }
 
-  const data = await response.json()
+    const data = await response.json()
   return { content: data.choices[0]?.message?.content || '', provider: 'openrouter', model, tier, is_fallback: true, cost: 0 }
 }
 
@@ -407,7 +407,7 @@ export async function callGeminiVision(
 
 /** اطلاعات وضعیت Cache و Rate Limit برای Admin Dashboard */
 export function getAIStats() {
-  return {
+    return {
     cacheSize:       responseCache.size,
     rateLimitUsers:  rateLimitStore.size,
     googleKeysLoaded: loadGoogleKeys().length,

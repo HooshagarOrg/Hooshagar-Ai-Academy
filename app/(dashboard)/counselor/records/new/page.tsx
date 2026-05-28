@@ -108,7 +108,6 @@ export default function NewCounselingRecordPage() {
     setIsSubmitting(true)
 
     try {
-      // TODO: Replace with actual API call
       const response = await fetch('/api/counseling/records', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

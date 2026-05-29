@@ -48,7 +48,9 @@ next-env.d.ts
 .idea
 
 # Cursor / local AI dev (do not publish to GitHub)
-.cursor/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 .cursorrules
 CURSOR_PLANNING.md
 PROMPTS.md

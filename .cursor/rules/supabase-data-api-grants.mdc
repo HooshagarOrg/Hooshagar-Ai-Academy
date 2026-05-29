@@ -1,0 +1,62 @@
+---
+description: الزام GRANT و RLS برای هر جدول Supabase جدید (Data API)
+globs: supabase/migrations/**/*.sql
+alwaysApply: false
+---
+
+# Supabase Data API — GRANT و RLS اجباری
+
+این پروژه از `supabase-js` (Data API) استفاده می‌کند. از **۳۰ اکتبر ۲۰۲۶** جداول `public` بدون GRANT صریح از API در دسترس نیستند.
+
+## هر migration با CREATE TABLE باید شامل این موارد باشد
+
+1. `ENABLE ROW LEVEL SECURITY`
+2. حداقل یک policy برای هر عملیات مورد نیاز (SELECT برای UPDATE الزامی است)
+3. GRANT صریح برای roleهای Data API
+
+## الگوی اجباری
+
+```sql
+CREATE TABLE public.your_table (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.your_table ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "your_table_select_own"
+  ON public.your_table FOR SELECT TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "your_table_insert_own"
+  ON public.your_table FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+-- GRANT صریح — بدون این خطوط Data API خطای 42501 می‌دهد
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.your_table TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.your_table TO service_role;
+-- فقط برای داده مرجع عمومی (مدارس، پلن‌ها، badges):
+-- GRANT SELECT ON public.your_table TO anon;
+```
+
+## نقش‌ها
+
+| Role | کاربرد |
+|------|--------|
+| `authenticated` | کاربران لاگین‌شده — RLS دسترسی را محدود می‌کند |
+| `service_role` | API routes سمت سرور — RLS را bypass می‌کند |
+| `anon` | فقط داده مرجع عمومی — هرگز برای داده کاربری |
+
+## مرجع پروژه
+
+- الگوی کامل: `supabase/migrations/_TEMPLATE_new_table.sql`
+- Migration جامع موجود: `supabase/migrations/126_data_api_explicit_grants.sql`
+
+## چک‌لیست قبل از اتمام کار
+
+- [ ] RLS فعال است
+- [ ] Policy برای SELECT/INSERT/UPDATE/DELETE (در صورت نیاز) تعریف شده
+- [ ] `GRANT ... TO authenticated` وجود دارد
+- [ ] `GRANT ... TO service_role` وجود دارد
+- [ ] `anon` فقط برای جداول مرجع عمومی grant شده

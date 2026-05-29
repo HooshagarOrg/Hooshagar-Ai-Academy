@@ -1,0 +1,166 @@
+﻿##admin##24
+POST	/api/admin/activation-codes/issue
+GET	/api/admin/activation-codes
+GET, POST, PUT	/api/admin/ai-access
+POST	/api/admin/ai-alerts/[id]/acknowledge
+GET	/api/admin/ai-alerts
+GET, POST, DELETE	/api/admin/ai-limits
+GET	/api/admin/ai-models
+POST, PUT	/api/admin/ai-models/test
+POST	/api/admin/ai-settings/budget
+DELETE	/api/admin/ai-settings/cache
+GET	/api/admin/ai-settings
+POST	/api/admin/ai-settings/toggle-tier
+GET, POST	/api/admin/ai-usage-stats
+GET	/api/admin/analytics
+POST, GET	/api/admin/bulk-import
+GET	/api/admin/data-flow
+POST	/api/admin/issue-credentials
+GET, POST	/api/admin/progression
+GET, POST, PATCH, DELETE	/api/admin/schools
+GET	/api/admin/security/logs
+GET, POST, PUT	/api/admin/user-credits
+GET, POST, PATCH, DELETE	/api/admin/users
+GET, POST	/api/platform-admin/quota-assign
+GET, POST	/api/platform-admin/quota
+##ai##5
+GET, POST	/api/ai/check-access
+GET	/api/ai/check-all-limits
+GET, POST	/api/ai/check-limit
+POST, GET	/api/ai/test
+POST, GET	/api/ai/universal
+##auth##9
+POST	/api/auth/activate
+POST	/api/auth/change-password
+POST	/api/auth/login
+GET, POST	/api/auth/logout
+GET	/api/auth/me
+POST, GET, PUT, DELETE	/api/auth/reset-password
+POST, GET, PUT, DELETE	/api/auth/send-otp
+POST	/api/auth/validate-code
+POST, GET, PUT, DELETE	/api/auth/verify-otp
+##counseling##9
+GET, POST	/api/counseling/family-insight
+GET, POST	/api/counseling/observations
+GET, POST	/api/counseling/parent-contacts
+GET	/api/counseling/parent-view
+GET, PUT, DELETE	/api/counseling/records/[id]
+GET, POST	/api/counseling/records
+GET, POST	/api/counseling/sessions
+GET	/api/counseling/stats
+GET, POST	/api/counseling/tests
+##exams##9
+POST	/api/exams/[id]/answer
+GET	/api/exams/[id]/result
+GET, PATCH, DELETE	/api/exams/[id]
+GET	/api/exams/[id]/sessions
+POST	/api/exams/[id]/start
+POST	/api/exams/[id]/submit
+POST	/api/exams/grade-descriptive
+POST	/api/exams/ocr-import
+GET, POST	/api/exams
+##gamification##21
+POST, PUT	/api/badges/award
+GET	/api/badges
+GET	/api/badges/student
+POST	/api/badges/unlock
+GET, PUT, PATCH	/api/badges/user
+POST	/api/gamification/daily-xp
+GET	/api/leaderboard
+POST, GET	/api/shop/equip
+GET, POST	/api/shop/items
+GET	/api/shop/my-items
+POST	/api/shop/purchase
+GET	/api/shop/transactions
+POST	/api/streak/activity
+GET, POST	/api/streak/calendar
+POST, PUT	/api/streak/freeze
+GET	/api/streak
+POST	/api/xp/add
+GET	/api/xp/balance
+GET	/api/xp/history
+GET	/api/xp/leaderboard
+GET	/api/xp/profile
+##health##5
+GET, POST, PATCH	/api/health/checkups
+GET, POST, PATCH	/api/health/records
+GET	/api/health
+GET	/api/health/stats
+GET, POST, PATCH	/api/health/visits
+##lottery##6
+GET, POST, PUT, PATCH	/api/lottery/admin
+GET	/api/lottery/audit
+GET	/api/lottery/available-classes
+POST, PUT, DELETE	/api/lottery/register
+GET	/api/lottery/result
+GET, POST, DELETE	/api/lottery
+##notifications##10
+PATCH, DELETE	/api/notifications/[id]
+POST, GET	/api/notifications/broadcast
+POST	/api/notifications/create
+POST	/api/notifications/financial
+POST	/api/notifications/lottery/send
+POST	/api/notifications/mark-all-read
+GET, PUT	/api/notifications/preferences
+POST	/api/notifications/read
+GET	/api/notifications
+GET	/api/notifications/unread-count
+##other##33
+GET, PATCH, DELETE	/api/academic-years/[id]
+POST	/api/academic-years/promote
+GET, POST	/api/academic-years
+POST	/api/analytics/monitoring
+POST	/api/analytics/vitals
+POST	/api/analyze
+GET, POST	/api/attendance
+GET	/api/attendance/stats
+POST	/api/field-selection/analyze
+GET, POST	/api/field-selection
+POST	/api/gdpr/delete
+POST	/api/gdpr/export
+GET, POST, PATCH, DELETE	/api/grades
+POST	/api/konkur/predict-rank
+GET, POST, PATCH, DELETE	/api/messages
+POST	/api/ocr
+POST, GET	/api/payment
+POST	/api/progression/bulk
+GET	/api/progression/history
+POST	/api/progression/manual
+GET	/api/qr
+GET, PATCH, DELETE	/api/question-bank/[id]
+GET, POST	/api/question-bank
+GET	/api/seed-materials
+GET, PUT, DELETE	/api/specialty-assessments/[id]
+GET, POST	/api/specialty-assessments
+GET	/api/specialty-assessments/student/[student_id]
+POST	/api/story
+POST	/api/study-buddy
+GET, POST	/api/subscription
+POST	/api/transfers/[id]/approve
+GET, POST	/api/transfers
+POST, GET, DELETE	/api/upload
+##parent##2
+GET	/api/parent/attendance
+GET	/api/parent/dashboard
+##reports##8
+GET, DELETE	/api/reports/[id]
+POST	/api/reports/ai-insights
+GET	/api/reports/annual/[id]
+POST	/api/reports/annual/generate
+POST	/api/reports/auto-generate
+POST	/api/reports/generate
+GET	/api/reports/list
+POST	/api/reports/publish
+##student##4
+GET	/api/student/dashboard
+PATCH	/api/students/[id]/edit
+GET, DELETE	/api/students/[id]
+GET, POST	/api/students
+##surveys##5
+POST, GET	/api/surveys/[id]/responses
+GET	/api/surveys/[id]/results
+GET, PATCH, DELETE	/api/surveys/[id]
+POST	/api/surveys/[id]/submit
+GET, POST	/api/surveys
+##teacher##1
+GET	/api/teacher/dashboard

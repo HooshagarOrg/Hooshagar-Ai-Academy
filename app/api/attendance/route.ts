@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
               rec.status === 'late' ? 'تأخیر داشت' : 'وضعیت خاص داشت'
             }.${rec.notes ? ` توضیح: ${rec.notes}` : ''}`,
             is_read: false,
-          }).catch(() => {}) // بدون خطای بلاک‌کننده
+          })
         }
       }
     }

@@ -68,7 +68,7 @@ export default function CounselorAttendanceCard({ schoolId }: CounselorAttendanc
             <AlertTriangle className="w-5 h-5 text-orange-500" />
             دانش‌آموزان پرغیبت
           </CardTitle>
-          <Badge variant="warning" className="gap-1">
+          <Badge variant="secondary" className="gap-1">
             <UserX className="w-3 h-3" />
             {students.length} نفر
           </Badge>

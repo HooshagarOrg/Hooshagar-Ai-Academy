@@ -204,7 +204,7 @@ export default function ParentHealthPage() {
                         <p className="text-sm text-gray-500">{studentHealth.vaccinations.pending.join(', ')}</p>
                       </div>
                     </div>
-                    <Badge variant="warning">در انتظار</Badge>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">در انتظار</Badge>
                   </div>
                 )}
                 
@@ -250,7 +250,7 @@ export default function ParentHealthPage() {
                       </div>
                       <Badge variant={
                         checkup.status === 'normal' ? 'outline' :
-                        checkup.status === 'completed' ? 'secondary' : 'warning'
+                        checkup.status === 'completed' ? 'secondary' : 'secondary'
                       } className={
                         checkup.status === 'normal' ? 'text-green-600 border-green-300' : ''
                       }>
@@ -441,7 +441,7 @@ export default function ParentHealthPage() {
                         <TableCell>
                           <Badge variant={
                             checkup.status === 'normal' ? 'outline' :
-                            checkup.status === 'completed' ? 'secondary' : 'warning'
+                            checkup.status === 'completed' ? 'secondary' : 'secondary'
                           } className={
                             checkup.status === 'normal' ? 'text-green-600 border-green-300' : ''
                           }>

@@ -148,8 +148,8 @@ export async function POST(request: NextRequest) {
           })
 
         if (studentError) {
-          await admin.from('profiles').delete().eq('id', userId).catch(() => {})
-          await admin.auth.admin.deleteUser(userId).catch(() => {})
+          await admin.from('profiles').delete().eq('id', userId)
+          await admin.auth.admin.deleteUser(userId)
           return NextResponse.json({
             error: 'خطا در ساخت رکورد دانش‌آموز: ' + studentError.message
           }, { status: 400 })

@@ -13,7 +13,13 @@ export async function GET(request: NextRequest) {
     const studentId = searchParams.get('studentId')
     const schoolId = searchParams.get('schoolId')
     
-    let query = supabase.from('student_health_records').select(`
+    let data
+    let error
+
+    if (studentId) {
+      const result = await supabase
+        .from('student_health_records')
+        .select(`
       *,
       students (
         id,
@@ -22,14 +28,38 @@ export async function GET(request: NextRequest) {
         classes (name)
       )
     `)
-    
-    if (studentId) {
-      query = query.eq('student_id', studentId).single()
+        .eq('student_id', studentId)
+        .single()
+      data = result.data
+      error = result.error
     } else if (schoolId) {
-      query = query.eq('school_id', schoolId)
+      const result = await supabase
+        .from('student_health_records')
+        .select(`
+      *,
+      students (
+        id,
+        full_name,
+        class_id,
+        classes (name)
+      )
+    `)
+        .eq('school_id', schoolId)
+      data = result.data
+      error = result.error
+    } else {
+      const result = await supabase.from('student_health_records').select(`
+      *,
+      students (
+        id,
+        full_name,
+        class_id,
+        classes (name)
+      )
+    `)
+      data = result.data
+      error = result.error
     }
-    
-    const { data, error } = await query
     
     if (error) {
       console.error('Error fetching health records:', error)

@@ -421,7 +421,6 @@ export async function hasReachedLimit(userId: string, featureName: string): Prom
 // Hook برای استفاده در کامپوننت‌ها
 // ============================================
 
-export type { FeatureInfo }
 
 
 

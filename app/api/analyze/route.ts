@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { asOne } from '@/lib/supabase/relation'
 import { callAI } from '@/lib/ai-provider'
 import { z } from 'zod'
 import { AUTH_ERRORS, secureErrorResponse } from '@/lib/security/error-handler'
@@ -40,14 +41,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'دانش‌آموز یافت نشد' }, { status: 404 })
     }
 
-    console.log('👤 Student:', student.full_name)
+    const studentProfile = asOne(student.profiles)
+    const studentName = studentProfile?.full_name ?? 'دانش‌آموز'
+
+    console.log('👤 Student:', studentName)
 
     // ساخت Prompt برای AI
     const prompt = `
 شما یک مشاور تحصیلی و روانشناس تربیتی حرفه‌ای هستید.
 
 **اطلاعات دانش‌آموز:**
-- نام: ${student.full_name}
+- نام: ${studentName}
 - پایه تحصیلی: ${student.grade}
 
 **وظیفه شما:**
@@ -102,7 +106,7 @@ export async function POST(request: NextRequest) {
       success: true,
       student: {
         id: student.id,
-        full_name: student.full_name,
+        full_name: studentName,
         grade: student.grade
       },
       analysis,

@@ -585,7 +585,7 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
  * دریافت آمار کاربر
  */
 export async function getUserAIStats(userId: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('user_ai_limits')
@@ -611,7 +611,7 @@ export async function getUserAIStats(userId: string) {
  * لیست قابلیت‌ها
  */
 export async function listAICapabilities() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('ai_model_configs')
@@ -633,7 +633,7 @@ export async function listAICapabilities() {
  * آمار کلی سیستم AI
  */
 export async function getAISystemStats() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: configs } = await supabase
     .from('ai_model_configs')

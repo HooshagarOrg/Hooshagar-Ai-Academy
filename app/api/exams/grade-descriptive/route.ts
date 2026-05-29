@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     let gradedCount = 0
 
     for (const answer of answers) {
-      const question = answer.exam_questions as {
+      const question = answer.exam_questions as unknown as {
         question_text: string
         question_type: string
         correct_answer: string | null

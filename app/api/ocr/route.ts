@@ -127,6 +127,11 @@ Example output:
       'google/gemini-pro-vision',
     ]
 
+    const openrouterKey = process.env.OPENROUTER_API_KEY
+    if (!openrouterKey) {
+      return NextResponse.json({ error: 'OPENROUTER_API_KEY تنظیم نشده' }, { status: 500 })
+    }
+
     let lastError = null
 
     for (const model of modelsToTry) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
+import { asOne } from '@/lib/supabase/relation';
 
 /**
  * GET /api/student/dashboard
@@ -64,12 +65,16 @@ export async function GET() {
       .eq('user_id', user.id)
       .single();
 
-    const xp = xpData || {
-      total_xp: 0,
-      level: 1,
-      coins: 0,
-      current_streak: 0,
-      longest_streak: 0,
+    const xp = {
+      ...(xpData || {
+        total_xp: 0,
+        level: 1,
+        coins: 0,
+        current_streak: 0,
+        longest_streak: 0,
+      }),
+      rank: 0,
+      total_students: 0,
     };
 
     // 5. دریافت نمرات (20 نمره اخیر)
@@ -130,7 +135,8 @@ export async function GET() {
           .in('user_id', userIds)
           .order('total_xp', { ascending: false });
 
-        const rank = classRanks?.findIndex((r) => r.user_id === user.id) + 1 || 0;
+        const rankIndex = classRanks?.findIndex((r) => r.user_id === user.id) ?? -1;
+        const rank = rankIndex >= 0 ? rankIndex + 1 : 0;
         xp.rank = rank;
         xp.total_students = classRanks?.length || 0;
       }
@@ -143,7 +149,7 @@ export async function GET() {
         id: student.id,
         name: student.full_name,
         grade: student.grade,
-        class: student.classes?.name || 'نامشخص',
+        class: asOne(student.classes)?.name || 'نامشخص',
       },
       xp: {
         total: xp.total_xp,

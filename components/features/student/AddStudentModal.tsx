@@ -42,10 +42,7 @@ const addStudentFormSchema = z.object({
     .string()
     .min(2, 'نام باید حداقل 2 کاراکتر باشد')
     .max(100, 'نام نباید بیشتر از 100 کاراکتر باشد'),
-  grade: z
-    .string()
-    .min(1, 'لطفاً پایه تحصیلی را انتخاب کنید')
-    .transform((val) => parseInt(val, 10)),
+  grade: z.coerce.number().min(1, 'لطفاً پایه تحصیلی را انتخاب کنید').max(12),
   parent_email: z
     .string()
     .email('ایمیل نامعتبر است')
@@ -92,7 +89,7 @@ export default function AddStudentModal({
     resolver: zodResolver(addStudentFormSchema),
     defaultValues: {
       full_name: '',
-      grade: '',
+      grade: 1,
       parent_email: '',
       class_id: classId || '',
     },
@@ -237,8 +234,8 @@ export default function AddStudentModal({
                     پایه تحصیلی <span className="text-destructive">*</span>
                   </FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={(value) => field.onChange(Number(value))}
+                    value={field.value ? String(field.value) : undefined}
                     disabled={isSubmitting}
                   >
                     <FormControl>

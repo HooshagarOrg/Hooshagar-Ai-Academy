@@ -112,16 +112,15 @@ export async function POST(request: NextRequest) {
 `;
 
     // فراخوانی AI
-    const aiResponse = await callAI(
-      'student_analyzer',
+    const aiResponse = await callAI({
+      capability: 'student_analyzer',
       prompt,
-      user.id,
-      { report_id, student_id: report.student_id }
-    );
+      userId: user.id,
+    });
 
-    if (!aiResponse.success) {
+    if (!aiResponse.success || !aiResponse.content) {
       return NextResponse.json(
-        { success: false, error: 'تولید تحلیل هوشمند ناموفق بود' },
+        { success: false, error: aiResponse.error || 'تولید تحلیل هوشمند ناموفق بود' },
         { status: 500 }
       );
     }
@@ -129,11 +128,11 @@ export async function POST(request: NextRequest) {
     // پردازش پاسخ AI
     let aiData;
     try {
-      aiData = JSON.parse(aiResponse.response);
+      aiData = JSON.parse(aiResponse.content);
     } catch {
       // اگر JSON نبود، فقط متن را برمی‌گردانیم
       aiData = {
-        insights: aiResponse.response,
+        insights: aiResponse.content,
         recommendations: [],
         risk_level: 'low',
       };
@@ -160,7 +159,6 @@ export async function POST(request: NextRequest) {
       recommendations: aiData.recommendations || [],
       risk_level: aiData.risk_level || 'low',
       model_used: aiResponse.model_used,
-      cost: aiResponse.cost,
     });
   } catch (error) {
     console.error('خطای غیرمنتظره در تولید تحلیل هوشمند:', error);

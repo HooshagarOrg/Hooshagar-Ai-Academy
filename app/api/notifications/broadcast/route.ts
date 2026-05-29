@@ -22,7 +22,7 @@ const BroadcastSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
     
     // Check auth
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
 // GET: List broadcasts
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {

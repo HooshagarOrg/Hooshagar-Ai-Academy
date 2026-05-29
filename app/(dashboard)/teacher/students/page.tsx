@@ -129,7 +129,7 @@ export default async function TeacherStudentsPage() {
               <p className="text-muted-foreground text-lg">{message}</p>
             </div>
           ) : (
-            <StudentsTable initialStudents={students} />
+            <StudentsTable initialStudents={students as Parameters<typeof StudentsTable>[0]['initialStudents']} />
           )}
         </CardContent>
       </Card>

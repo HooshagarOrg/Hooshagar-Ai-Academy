@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server'
+import { asOne } from '@/lib/supabase/relation';
 
 /**
  * GET /api/parent/dashboard
@@ -161,13 +162,13 @@ export async function GET() {
         id: c.id,
         name: c.full_name,
         grade: c.grade,
-        className: c.classes?.name || 'نامشخص',
+        className: asOne(c.classes)?.name || 'نامشخص',
       })),
       activeChild: {
         id: activeChild.id,
         name: activeChild.full_name,
         grade: activeChild.grade,
-        className: activeChild.classes?.name || 'نامشخص',
+        className: asOne(activeChild.classes)?.name || 'نامشخص',
       },
       grades: subjectGrades,
       attendance: attendance || [],

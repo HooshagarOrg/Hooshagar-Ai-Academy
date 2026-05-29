@@ -78,6 +78,7 @@ export function BadgeNotification({
         clearInterval(interval)
       }
     }
+    return undefined
   }, [autoCheck, checkInterval, checkForNewBadges])
 
   // استفاده از نشان‌های خارجی

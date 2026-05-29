@@ -174,7 +174,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
         resolve(event.data.size || 0)
       }
 
-      swRegistration.active.postMessage(
+      swRegistration.active?.postMessage(
         { type: 'GET_CACHE_SIZE' },
         [messageChannel.port2]
       )

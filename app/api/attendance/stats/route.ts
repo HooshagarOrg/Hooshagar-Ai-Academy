@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 // GET: دریافت آمار حضور و غیاب
 export async function GET(request: Request) {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     const { searchParams } = new URL(request.url)
     
     const studentId = searchParams.get('studentId')

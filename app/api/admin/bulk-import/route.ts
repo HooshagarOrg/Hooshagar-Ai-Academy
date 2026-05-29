@@ -276,7 +276,7 @@ async function sendSMS(phone: string, message: string): Promise<boolean> {
  * Create user in Supabase Auth
  */
 async function createAuthUser(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   email: string,
   password: string,
   metadata: Record<string, unknown>

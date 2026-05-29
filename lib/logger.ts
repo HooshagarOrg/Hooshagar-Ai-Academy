@@ -1,25 +1,16 @@
 /**
- * Structured Logger با Pino
- * جایگزین console.log برای Production
- * 
- * استفاده:
- * import logger from '@/lib/logger'
- * logger.info({ userId: '123' }, 'User logged in')
- * logger.error({ error: err.message }, 'Failed to process')
+ * Logger — supports both `logger.info('msg', data)` and `logger.info(data, 'msg')` (Pino style).
  */
 
-import pino from 'pino';
+import pino from 'pino'
 
-// در Development از console استفاده کن (Pino worker thread با Next.js مشکل دارد)
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = process.env.NODE_ENV !== 'production'
 
-// Logger برای Production با Secret Redaction
-const logger = isDev ? null : pino({
+type LogData = Record<string, unknown>
+
+const productionPino = pino({
   level: 'info',
-  browser: {
-    asObject: true
-  },
-  // حذف خودکار اطلاعات حساس
+  browser: { asObject: true },
   redact: {
     paths: [
       'password',
@@ -42,117 +33,69 @@ const logger = isDev ? null : pino({
       'KAVENEGAR_API_KEY',
       'RECAPTCHA_SECRET_KEY',
     ],
-    censor: '***REDACTED***'
+    censor: '***REDACTED***',
+  },
+})
+
+function write(level: 'info' | 'error' | 'warn' | 'debug', payload: LogData, message: string) {
+  if (isDev) {
+    const fn =
+      level === 'info'
+        ? console.log
+        : level === 'error'
+          ? console.error
+          : level === 'warn'
+            ? console.warn
+            : console.debug
+    fn(`[${level}] ${message}`, payload)
+    return
   }
-});
+  productionPino[level](payload, message)
+}
 
-export default logger;
+function normalizeArgs(
+  a: string | LogData,
+  b?: string | LogData
+): { message: string; data: LogData } {
+  if (typeof a === 'string') {
+    return { message: a, data: (typeof b === 'object' && b !== null ? b : {}) as LogData }
+  }
+  return {
+    message: typeof b === 'string' ? b : 'log',
+    data: a,
+  }
+}
 
-// Named export برای سازگاری
-export { logger };
+function makeLevel(level: 'info' | 'error' | 'warn' | 'debug') {
+  return (a: string | LogData, b?: string | LogData) => {
+    const { message, data } = normalizeArgs(a, b)
+    write(level, data, message)
+  }
+}
 
-/**
- * Helper functions برای استفاده راحت‌تر
- */
+export const logger = {
+  info: makeLevel('info'),
+  error: makeLevel('error'),
+  warn: makeLevel('warn'),
+  debug: makeLevel('debug'),
+}
+
+export default logger
+
 export const log = {
-  info: (message: string, data?: Record<string, any>) => {
-    if (isDev) {
-      console.log(`ℹ️ ${message}`, data || '');
-    } else {
-      logger?.info(data || {}, message);
-    }
+  info: (message: string, data?: LogData) => logger.info(message, data),
+  error: (message: string, error?: Error | unknown, data?: LogData) => {
+    const errorData =
+      error instanceof Error
+        ? { error: error.message, stack: error.stack, ...data }
+        : { error: String(error), ...data }
+    logger.error(message, errorData)
   },
-  
-  error: (message: string, error?: Error | unknown, data?: Record<string, any>) => {
-    const errorData = error instanceof Error 
-      ? { error: error.message, stack: error.stack, ...data }
-      : { error: String(error), ...data };
-    
-    if (isDev) {
-      console.error(`❌ ${message}`, errorData);
-    } else {
-      logger?.error(errorData, message);
-    }
-  },
-  
-  warn: (message: string, data?: Record<string, any>) => {
-    if (isDev) {
-      console.warn(`⚠️ ${message}`, data || '');
-    } else {
-      logger?.warn(data || {}, message);
-    }
-  },
-  
-  debug: (message: string, data?: Record<string, any>) => {
-    if (isDev) {
-      console.debug(`🔍 ${message}`, data || '');
-    } else {
-      logger?.debug(data || {}, message);
-    }
-  },
-};
+  warn: (message: string, data?: LogData) => logger.warn(message, data),
+  debug: (message: string, data?: LogData) => logger.debug(message, data),
+}
 
-// Export های مستقیم برای راحتی استفاده
-export const logInfo = (message: string, data?: Record<string, any>) => {
-  if (isDev) {
-    console.log(`ℹ️ ${message}`, data || '');
-  } else {
-    logger?.info(data || {}, message);
-  }
-};
-
-export const logError = (message: string, error?: Error | unknown, data?: Record<string, any>) => {
-  const errorData = error instanceof Error 
-    ? { error: error.message, stack: error.stack, ...data }
-    : { error: String(error), ...data };
-  
-  if (isDev) {
-    console.error(`❌ ${message}`, errorData);
-  } else {
-    logger?.error(errorData, message);
-  }
-};
-
-export const logWarn = (message: string, data?: Record<string, any>) => {
-  if (isDev) {
-    console.warn(`⚠️ ${message}`, data || '');
-  } else {
-    logger?.warn(data || {}, message);
-  }
-};
-
-export const logDebug = (message: string, data?: Record<string, any>) => {
-  if (isDev) {
-    console.debug(`🔍 ${message}`, data || '');
-  } else {
-    logger?.debug(data || {}, message);
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export const logInfo = log.info
+export const logError = log.error
+export const logWarn = log.warn
+export const logDebug = log.debug

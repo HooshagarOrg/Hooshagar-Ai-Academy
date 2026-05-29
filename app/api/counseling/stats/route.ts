@@ -3,6 +3,7 @@
 // =====================================
 
 import { NextRequest, NextResponse } from 'next/server'
+import { asOne } from '@/lib/supabase/relation'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -196,19 +197,29 @@ export async function GET(req: NextRequest) {
         monthly_sessions: monthlyCount,
       },
       lists: {
-        upcoming_sessions: upcomingSessions?.map(s => ({
-          ...s,
-          student_name: s.student?.profiles?.full_name || 'نامشخص',
-        })) || [],
-        urgent_records: urgentList?.map(r => ({
-          ...r,
-          student: r.student ? {
-            id: r.student.id,
-            full_name: r.student.profiles?.full_name || 'نامشخص',
-            grade: r.student.grade,
-            avatar_url: r.student.profiles?.avatar_url,
-          } : null,
-        })) || [],
+        upcoming_sessions: upcomingSessions?.map(s => {
+          const student = asOne(s.student)
+          const profile = asOne(student?.profiles)
+          return {
+            ...s,
+            student_name: profile?.full_name || 'نامشخص',
+          }
+        }) || [],
+        urgent_records: urgentList?.map(r => {
+          const student = asOne(r.student)
+          const profile = asOne(student?.profiles)
+          return {
+            ...r,
+            student: student
+              ? {
+                  id: student.id,
+                  full_name: profile?.full_name || 'نامشخص',
+                  grade: student.grade,
+                  avatar_url: profile?.avatar_url,
+                }
+              : null,
+          }
+        }) || [],
       },
     })
   } catch (error) {

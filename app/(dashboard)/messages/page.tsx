@@ -565,6 +565,7 @@ export default function MessagesPage() {
         return () => clearTimeout(timer)
       }
     }
+    return undefined
   }, [selectedConversation, messages])
 
   // Check scroll position for scroll-to-bottom button

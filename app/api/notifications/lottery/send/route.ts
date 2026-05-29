@@ -6,12 +6,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { asOne } from '@/lib/supabase/relation'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
     
     // Check auth
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -84,10 +85,10 @@ export async function POST(req: NextRequest) {
     let skipped = 0
 
     for (const result of results || []) {
-      const student = result.students
-      const parent = student.profiles
+      const student = asOne(result.students)
+      const parent = asOne(student?.profiles)
 
-      if (!parent || !parent.phone) {
+      if (!student || !parent?.phone) {
         skipped++
         continue
       }
@@ -111,7 +112,7 @@ export async function POST(req: NextRequest) {
       let smsText = ''
 
       if (result.status === 'accepted') {
-        const className = result.classes?.name || 'کلاس مشخص نشده'
+        const className = asOne(result.classes)?.name || 'کلاس مشخص نشده'
         smsText = `🎉 نتیجه قرعه‌کشی\n${studentName} در کلاس ${className} پذیرفته شد.\nمشاهده: hooshagar.com`
       } else if (result.status === 'waitlist') {
         smsText = `⏳ نتیجه قرعه‌کشی\n${studentName} در لیست انتظار قرار گرفت.\nمشاهده: hooshagar.com`
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
           parent_id: parent.id,
           student_id: student.id,
           result_type: result.status,
-          assigned_class_name: result.classes?.name,
+          assigned_class_name: asOne(result.classes)?.name,
           sms_text: smsText,
           scheduled_at: new Date().toISOString(), // Send now
           status: 'pending'

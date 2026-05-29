@@ -12,6 +12,7 @@ import {
   TrendingDown,
   Minus
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ReportStatsProps {
   stats: IReportStats;
@@ -95,8 +96,7 @@ export default function ReportStats({ stats, showDetails = false }: ReportStatsP
                 </div>
                 <Progress 
                   value={percentage} 
-                  className="mt-2"
-                  indicatorClassName={getScoreColor(parseFloat(stat.value), stat.max)}
+                  className={cn('mt-2', getScoreColor(parseFloat(stat.value), stat.max))}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   {percentage.toFixed(0)}% از حداکثر

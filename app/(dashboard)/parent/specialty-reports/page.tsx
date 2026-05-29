@@ -21,8 +21,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import {
   FINAL_GRADE_LABELS,
   STEM_SUBJECT_LABELS,
-  
-  type 
 } from '@/lib/types/specialty-assessment.types'
 
 // ==========================================

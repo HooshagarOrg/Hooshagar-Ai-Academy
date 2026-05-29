@@ -120,14 +120,10 @@ export function errorResponse(
   code?: string,
   details?: unknown
 ): NextResponse {
-  return NextResponse.json(
-    {
-      error: message,
-      ...(code && { error_code: code }),
-      ...(details && { details }),
-    },
-    { status }
-  )
+  const body: Record<string, unknown> = { error: message }
+  if (code) body.error_code = code
+  if (details !== undefined) body.details = details
+  return NextResponse.json(body, { status })
 }
 
 export function successResponse(data: unknown, status = 200): NextResponse {

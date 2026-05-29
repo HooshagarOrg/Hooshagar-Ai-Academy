@@ -8,9 +8,48 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Download, Mail, Printer, BookOpen, Users, Heart, Activity, Sparkles, TrendingUp, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import { Bar, BarChart, Gauge, GaugeContainer, GaugeValueArc, GaugeReferenceArc, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts'
+import { Bar, BarChart, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import type { AnnualReport } from '@/lib/types/academic.types'
+
+function AttendanceGauge({ value }: { value: number }) {
+  const pct = Math.min(100, Math.max(0, value))
+  const rotation = (pct / 100) * 180 - 90
+
+  return (
+    <div className="relative w-[200px] h-[120px] mx-auto">
+      <svg viewBox="0 0 200 100" className="w-full h-full">
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          stroke="#e5e7eb"
+          strokeWidth="16"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          stroke="#22c55e"
+          strokeWidth="16"
+          strokeLinecap="round"
+          strokeDasharray={`${pct * 2.51} 251`}
+        />
+        <line
+          x1="100"
+          y1="100"
+          x2="100"
+          y2="32"
+          stroke="#1f2937"
+          strokeWidth="3"
+          strokeLinecap="round"
+          transform={`rotate(${rotation} 100 100)`}
+        />
+        <circle cx="100" cy="100" r="6" fill="#1f2937" />
+      </svg>
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-2xl font-bold">{pct}%</div>
+    </div>
+  )
+}
 
 export default function AnnualReportPage({ params }: { params: { yearId: string } }) {
   const [report, setReport] = useState<AnnualReport | null>(null)
@@ -255,28 +294,7 @@ export default function AnnualReportPage({ params }: { params: { yearId: string 
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex justify-center">
-                <GaugeContainer
-                  width={200}
-                  height={120}
-                  startAngle={180}
-                  endAngle={0}
-                  innerRadius={60}
-                  outerRadius={90}
-                >
-                  <GaugeReferenceArc />
-                  <GaugeValueArc
-                    value={summary.attendance?.percentage || 0}
-                    fill="#22c55e"
-                  />
-                  <text
-                    x="50%"
-                    y="70%"
-                    textAnchor="middle"
-                    className="fill-foreground text-2xl font-bold"
-                  >
-                    {summary.attendance?.percentage || 0}%
-                  </text>
-                </GaugeContainer>
+                <AttendanceGauge value={summary.attendance?.percentage || 0} />
               </div>
 
               <div className="grid grid-cols-4 gap-4">

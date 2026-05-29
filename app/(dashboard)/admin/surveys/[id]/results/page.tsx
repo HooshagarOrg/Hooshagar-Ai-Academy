@@ -224,19 +224,18 @@ export default function SurveyResultsPage() {
       const rows: Record<string, string | number>[] = []
 
       results.questions?.forEach((q) => {
-        if (q.type === 'multiple_choice' || q.type === 'single_choice') {
-          q.options?.forEach((opt) => {
+        if (q.distribution) {
+          Object.entries(q.distribution).forEach(([label, count]) => {
             rows.push({
               سوال: q.question_text,
-              گزینه: opt.text,
-              تعداد: opt.count ?? 0,
-              درصد: opt.percentage ?? 0,
+              گزینه: label,
+              تعداد: count,
             })
           })
-        } else if (q.type === 'rating' || q.type === 'scale') {
+        } else if (q.average_rating != null) {
           rows.push({
             سوال: q.question_text,
-            میانگین: q.average ?? 0,
+            میانگین: q.average_rating,
             پاسخ: q.total_responses ?? 0,
           })
         }
@@ -670,7 +669,7 @@ export default function SurveyResultsPage() {
                   paddingAngle={5}
                   dataKey="value"
                   label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
+                    `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
                   }
                 >
                   <Cell fill={SENTIMENT_COLORS.positive} />

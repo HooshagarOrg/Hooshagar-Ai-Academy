@@ -33,19 +33,7 @@ export async function GET(
     
     const { data: assessment, error } = await supabase
       .from(tableName)
-      .select(`
-        *,
-        student:students!${tableName}_student_id_fkey(
-          id,
-          grade,
-          profiles:profiles!students_user_id_fkey(full_name, avatar_url, phone)
-        ),
-        teacher:profiles!${tableName}_teacher_id_fkey(
-          id,
-          full_name,
-          avatar_url
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single()
     
@@ -56,18 +44,7 @@ export async function GET(
       )
     }
     
-    // Transform data
-    const transformedAssessment = {
-      ...assessment,
-      student: assessment.student ? {
-        id: assessment.student.id,
-        full_name: assessment.student.profiles?.full_name || 'نامشخص',
-        grade: assessment.student.grade,
-        avatar_url: assessment.student.profiles?.avatar_url,
-      } : null,
-    }
-    
-    return NextResponse.json({ assessment: transformedAssessment })
+    return NextResponse.json({ assessment })
   } catch (error) {
     console.error('خطای سرور:', error)
     return NextResponse.json(

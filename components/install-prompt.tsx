@@ -52,7 +52,9 @@ export default function InstallPrompt() {
 
     // تشخیص iOS
     const userAgent = window.navigator.userAgent.toLowerCase()
-    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent) && !window.MSStream
+    const isIOSDevice =
+      /iphone|ipad|ipod/.test(userAgent) &&
+      !(window as Window & { MSStream?: unknown }).MSStream
     setIsIOS(isIOSDevice)
 
     // بررسی standalone mode

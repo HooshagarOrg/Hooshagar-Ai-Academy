@@ -92,7 +92,7 @@ async function callOpenRouter(
  * دریافت تنظیمات مدل از دیتابیس
  */
 async function getModelConfig(capability: string, preferredTier: number = 1): Promise<ModelConfig> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase.rpc('get_ai_model_for_capability', {
     p_capability_key: capability,
@@ -124,7 +124,7 @@ async function logAIRequest(
   totalTokens?: number,
   errorMessage?: string
 ): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   await supabase.rpc('log_ai_request', {
     p_capability_key: capability,
@@ -142,7 +142,7 @@ async function logAIRequest(
  * بروزرسانی rate limit
  */
 async function updateRateLimit(modelName: string): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createClient()
   await supabase.rpc('update_rate_limit', { p_model_name: modelName })
 }
 
@@ -235,7 +235,7 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
  * دریافت آمار استفاده از AI برای یک قابلیت
  */
 export async function getAIStats(capability: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('ai_model_configs')
@@ -266,7 +266,7 @@ export async function getAIStats(capability: string) {
  * لیست تمام قابلیت‌های AI
  */
 export async function listAICapabilities() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('ai_model_configs')

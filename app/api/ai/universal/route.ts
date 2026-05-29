@@ -13,6 +13,7 @@ import { log } from '@/lib/logger';
 import * as Sentry from '@sentry/nextjs';
 
 export async function POST(request: NextRequest) {
+  let body: { feature?: string; prompt?: string; image?: string } | undefined
   try {
     const supabase = await createClient();
     
@@ -32,16 +33,15 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
     
-    const body = await request.json();
-    const { feature, prompt, image } = body;
-    
-    // اعتبارسنجی ورودی
-    if (!feature || typeof feature !== 'string') {
+    body = await request.json();
+    if (!body?.feature || typeof body.feature !== 'string') {
       return NextResponse.json(
         { error: 'پارامتر feature الزامی است' },
         { status: 400 }
       );
     }
+
+    const { feature, prompt, image } = body;
     
     // ✅ چک Rate Limit per User
     const rateLimitConfig = RATE_LIMITS[feature as keyof typeof RATE_LIMITS] || RATE_LIMITS.ai_universal;

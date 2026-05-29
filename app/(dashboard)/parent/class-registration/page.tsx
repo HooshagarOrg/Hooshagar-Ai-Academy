@@ -117,13 +117,13 @@ export default function ClassRegistrationPage() {
   // وضعیت
   const [canRegister, setCanRegister] = useState(false)
   const [canEdit, setCanEdit] = useState(false)
-  const [setRegistrationStatus] = useState<'not_started' | 'open' | 'closed'>('open')
+  const [registrationStatus, setRegistrationStatus] = useState<'not_started' | 'open' | 'closed'>('open')
   
   // عملیات
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [setShowResultDialog] = useState(false)
+  const [showResultDialog, setShowResultDialog] = useState(false)
   
   // تایمر
   const [timeRemaining, setTimeRemaining] = useState({ days: 0, hours: 0, minutes: 0, expired: false })

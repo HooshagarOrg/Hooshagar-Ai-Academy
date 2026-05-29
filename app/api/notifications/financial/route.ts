@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { asOne } from '@/lib/supabase/relation'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
@@ -20,7 +21,7 @@ const FinancialSmsSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
     
     // Check auth
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -92,8 +93,8 @@ export async function POST(req: NextRequest) {
         continue
       }
 
-      const parent = student.profiles
-      if (!parent.phone) {
+      const parent = asOne(student.profiles)
+      if (!parent?.phone) {
         skipped++
         continue
       }

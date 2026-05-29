@@ -13,17 +13,15 @@ export async function GET(request: NextRequest) {
     // تولید QR Code
     const qrCodeBuffer = await QRCode.toBuffer(data, {
       errorCorrectionLevel: 'H',
-      type: 'png',
-      quality: 0.95,
       margin: 1,
       width: 300,
       color: {
         dark: '#000000',
-        light: '#FFFFFF'
-      }
+        light: '#FFFFFF',
+      },
     })
     
-    return new NextResponse(qrCodeBuffer, {
+    return new NextResponse(new Uint8Array(qrCodeBuffer), {
       headers: {
         'Content-Type': 'image/png',
         'Cache-Control': 'public, max-age=31536000',

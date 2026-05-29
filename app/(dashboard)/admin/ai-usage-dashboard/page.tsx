@@ -303,10 +303,10 @@ export default function AIUsageDashboardPage() {
                       borderRadius: '8px',
                       direction: 'rtl',
                     }}
-                    formatter={(value: number, name: string) => [
-                      value.toLocaleString('fa-IR'),
-                      name === 'usage' ? 'استفاده' : 'اعتبار'
-                    ]}
+                    formatter={(value) => {
+                      const n = typeof value === 'number' ? value : Number(value ?? 0)
+                      return [n.toLocaleString('fa-IR'), 'مقدار']
+                    }}
                   />
                   <Legend
                     formatter={(value) => value === 'usage' ? 'تعداد استفاده' : 'Credit مصرفی'}
@@ -356,7 +356,10 @@ export default function AIUsageDashboardPage() {
                       borderRadius: '8px',
                       direction: 'rtl',
                     }}
-                    formatter={(value: number) => [value.toLocaleString('fa-IR'), 'تعداد']}
+                    formatter={(value) => {
+                      const n = typeof value === 'number' ? value : Number(value ?? 0)
+                      return [n.toLocaleString('fa-IR'), 'تعداد']
+                    }}
                   />
                   <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                     {FEATURE_USAGE_DATA.map((entry, index) => (
@@ -397,10 +400,11 @@ export default function AIUsageDashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number, name: string, entry: any) => [
-                      `${value}% (${entry.payload.count.toLocaleString('fa-IR')})`,
-                      name
-                    ]}
+                    formatter={(value, name, item) => {
+                      const n = typeof value === 'number' ? value : Number(value ?? 0)
+                      const count = (item?.payload as { count?: number })?.count ?? 0
+                      return [`${n}% (${count.toLocaleString('fa-IR')})`, String(name ?? '')]
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>

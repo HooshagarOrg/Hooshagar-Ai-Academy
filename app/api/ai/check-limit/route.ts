@@ -48,7 +48,20 @@ export async function GET(request: Request) {
     const mockMonthlyUsed = Math.floor(Math.random() * (feature.monthlyLimit || 50))
     const mockCredits = 100 - Math.floor(Math.random() * 50)
 
-    const response = {
+    const response: {
+      allowed: boolean
+      reason: string | null
+      dailyUsed: number
+      dailyLimit: number | null | undefined
+      weeklyUsed: number
+      weeklyLimit: number | null | undefined
+      monthlyUsed: number
+      monthlyLimit: number | null | undefined
+      creditsAvailable: number
+      creditCost: number
+      featureLabel: string
+      resetTime: string
+    } = {
       allowed: true,
       reason: null,
       dailyUsed: mockDailyUsed,

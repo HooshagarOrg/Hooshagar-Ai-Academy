@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { asOne } from '@/lib/supabase/relation'
 import { createClient } from '@/lib/supabase/server'
 
 // ============================================
@@ -103,10 +104,10 @@ export async function GET(request: NextRequest) {
     const result = (students || []).map(s => ({
       id: s.id,
       student_number: s.student_number,
-      full_name: (s.profiles as { full_name: string } | null)?.full_name || 'نامشخص',
-      phone: (s.profiles as { full_name: string; phone?: string } | null)?.phone,
+      full_name: asOne(s.profiles)?.full_name || 'نامشخص',
+      phone: asOne(s.profiles)?.phone as string | undefined,
       grade: s.grade,
-      class_name: (s.classes as { name: string } | null)?.name,
+      class_name: asOne(s.classes)?.name,
       avg_grade: gradesData[s.id] || 0,
       eligible: (gradesData[s.id] || 0) >= 10,
     }))

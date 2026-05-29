@@ -35,19 +35,7 @@ export async function GET(req: NextRequest) {
     
     let query = supabase
       .from(tableName)
-      .select(`
-        *,
-        student:students!${tableName}_student_id_fkey(
-          id,
-          grade,
-          profiles:profiles!students_user_id_fkey(full_name, avatar_url)
-        ),
-        teacher:profiles!${tableName}_teacher_id_fkey(
-          id,
-          full_name,
-          avatar_url
-        )
-      `)
+      .select('*')
       .order('assessment_date', { ascending: false })
       .limit(limit)
     
@@ -74,16 +62,7 @@ export async function GET(req: NextRequest) {
       )
     }
     
-    // Transform data
-    const assessments = data?.map(assessment => ({
-      ...assessment,
-      student: assessment.student ? {
-        id: assessment.student.id,
-        full_name: assessment.student.profiles?.full_name || 'نامشخص',
-        grade: assessment.student.grade,
-        avatar_url: assessment.student.profiles?.avatar_url,
-      } : null,
-    })) || []
+    const assessments = data ?? []
     
     return NextResponse.json({ assessments })
   } catch (error) {

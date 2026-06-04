@@ -1,3 +1,13 @@
+/** مسیرهای رسمی لوگو و آیکون */
+export const brandAssets = {
+  logo: '/logo.png',
+  logoFull: '/brand/logo-full.png',
+  favicon: '/favicon.ico',
+  appleTouchIcon: '/apple-touch-icon.png',
+  icon192: '/icons/icon-192x192.png',
+  icon512: '/icons/icon-512x512.png',
+} as const
+
 /** پالت برند هوشاگر — Soft Futurism / Smart Soft Dark */
 export const brandColors = {
   space: '#10131A',

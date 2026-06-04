@@ -55,3 +55,26 @@ transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
 **موبایل:** `100dvh` · `safe-area-inset` · حداقل لمس `44px` · `touch-action: manipulation`
 
 **دسترسی:** `prefers-reduced-motion` انیمیشن‌ها را خاموش می‌کند.
+
+## لوگو و آیکون‌ها
+
+| فایل | ابعاد | کاربرد |
+|------|--------|--------|
+| `public/logo.png` | 1024×1024 | UI، `HooshagarLogo`، Open Graph |
+| `public/brand/logo-full.png` | 1024×1024 | نسخهٔ آرشیو/برند |
+| `public/icons/icon-*` | 72–512 | PWA |
+| `public/icons/*-maskable.png` | 192، 512 | Android adaptive |
+| `public/apple-touch-icon.png` | 180 | iOS home screen |
+| `public/favicon.ico` | 16، 32 | تب مرورگر |
+
+**به‌روزرسانی لوگو:**
+
+```bash
+# فایل منبع را در assets بگذارید یا مسیر را بدهید:
+npm run prepare-logo -- path/to/logo.png
+npm run generate-icons
+# یا یکجا:
+npm run logo:all
+```
+
+لوگوی رسمی: حرف **H** رنگی با سیلوئت انسان در فضای منفی؛ پس‌زمینهٔ شفاف در UI، `#10131A` برای maskable و apple-touch.

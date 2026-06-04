@@ -1,10 +1,22 @@
+import { createElement, isValidElement, type ReactNode } from 'react'
+import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+type EmptyStateIcon = ReactNode | LucideIcon
+
+function renderIcon(icon: EmptyStateIcon) {
+  if (isValidElement(icon)) return icon
+  return createElement(icon as LucideIcon, {
+    className: 'h-7 w-7',
+    'aria-hidden': true,
+  })
+}
+
 interface EmptyStateProps {
-  icon?: React.ReactNode
+  icon?: EmptyStateIcon
   title: string
   description?: string
-  action?: React.ReactNode
+  action?: ReactNode
   className?: string
 }
 
@@ -17,7 +29,9 @@ export function EmptyState({ icon, title, description, action, className }: Empt
       )}
     >
       {icon && (
-        <div className="mb-3 p-3 rounded-2xl bg-muted/80 text-muted-foreground">{icon}</div>
+        <div className="mb-3 p-3 rounded-2xl bg-muted/80 text-muted-foreground">
+          {renderIcon(icon)}
+        </div>
       )}
       <p className="font-medium text-foreground">{title}</p>
       {description && (

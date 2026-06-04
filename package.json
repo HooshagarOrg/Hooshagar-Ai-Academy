@@ -25,7 +25,9 @@
     "test-google": "node scripts/test-google.js",
     "test-openrouter": "node scripts/test-openrouter.js",
     "verify-env": "node scripts/verify-env.js",
+    "prepare-logo": "node scripts/prepare-logo.js",
     "generate-icons": "node scripts/generate-pwa-icons.js",
+    "logo:all": "node scripts/prepare-logo.js && node scripts/generate-pwa-icons.js",
     "test:recaptcha": "node scripts/test-recaptcha.js"
   },
   "dependencies": {

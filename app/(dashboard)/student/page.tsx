@@ -68,7 +68,11 @@ export default function StudentDashboardPage() {
   const [homework, setHomework] = useState<
     { id: string; subject: string; title: string; dueDate: string; done: boolean }[]
   >([])
-  const [currentTime] = useState(new Date())
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
+
+  useEffect(() => {
+    setCurrentTime(new Date())
+  }, [])
   const [recentGrades, setRecentGrades] = useState<RealGrade[]>([])
   const [upcomingExams, setUpcomingExams] = useState<RealExam[]>([])
   const [profileName, setProfileName] = useState('')
@@ -121,13 +125,13 @@ export default function StudentDashboardPage() {
         ).toFixed(1)
       : '—'
 
-  const formatPersianDate = () =>
+  const formatPersianDate = (date: Date) =>
     new Intl.DateTimeFormat('fa-IR', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    }).format(currentTime)
+    }).format(date)
 
   const levelProgress =
     xpData.xp_progress.needed > 0
@@ -184,7 +188,7 @@ export default function StudentDashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        meta={formatPersianDate()}
+        meta={currentTime ? formatPersianDate(currentTime) : '\u00a0'}
         title={
           <>
             سلام، <span className="gradient-text">{profileName || 'دانش‌آموز'}</span>

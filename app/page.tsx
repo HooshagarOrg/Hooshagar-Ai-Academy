@@ -189,17 +189,19 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {features.map((f, i) => (
+            {features.map((f, i) => {
+              const FeatureIcon = f.icon
+              return (
               <GlassCard key={i} hover className="p-6 group">
                 <div
                   className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${f.accent} flex items-center justify-center mb-4 border border-white/[0.06] group-hover:scale-105 transition-transform`}
                 >
-                  <f.icon className={`w-6 h-6 ${f.iconColor}`} />
+                  <FeatureIcon className={`w-6 h-6 ${f.iconColor}`} />
                 </div>
                 <h3 className="text-lg font-bold mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.description}</p>
               </GlassCard>
-            ))}
+            )})}
           </div>
         </div>
       </section>
@@ -213,10 +215,12 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {userTypes.map((u, i) => (
+            {userTypes.map((u, i) => {
+              const RoleIcon = u.icon
+              return (
               <GlassCard key={i} className="overflow-hidden p-0" hover>
                 <div className={`bg-gradient-to-br ${u.gradient} p-6`}>
-                  <u.icon className="w-8 h-8 mb-3 text-white/90" />
+                  <RoleIcon className="w-8 h-8 mb-3 text-white/90" />
                   <h3 className="text-lg font-bold text-white">{u.role}</h3>
                 </div>
                 <ul className="p-4 space-y-2.5">
@@ -228,7 +232,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
               </GlassCard>
-            ))}
+            )})}
           </div>
         </div>
       </section>

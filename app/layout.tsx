@@ -27,6 +27,14 @@ export const metadata: Metadata = {
   keywords: ['مدرسه', 'مدیریت', 'هوش مصنوعی', 'آموزش'],
   authors: [{ name: 'تیم هوشاگر' }],
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -38,6 +46,7 @@ export const metadata: Metadata = {
     description: 'سیستم عامل هوشمند مدیریت مدارس با قدرت هوش مصنوعی',
     locale: 'fa_IR',
     type: 'website',
+    images: [{ url: '/logo.png', width: 1024, height: 1024, alt: 'آرم هوشاگر' }],
   },
 }
 
@@ -54,7 +63,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="هوشاگر" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className="font-sans antialiased min-h-app">
         {children}

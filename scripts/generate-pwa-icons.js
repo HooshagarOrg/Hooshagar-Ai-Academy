@@ -21,7 +21,9 @@ const path = require('path')
 const CONFIG = {
   inputFile: 'public/logo.png',
   outputDir: 'public/icons',
-  backgroundColor: { r: 59, g: 130, b: 246, alpha: 1 }, // آبی #3b82f6
+  /** Smart Soft Dark — Deep Space */
+  backgroundColor: { r: 16, g: 19, b: 26, alpha: 1 },
+  themeHex: '#10131A',
 }
 
 // سایزهای آیکون PWA
@@ -218,12 +220,25 @@ async function main() {
   // تولید Favicon
   console.log('\n🔖 Generating favicon...')
   if (inputExists) {
-    await generateIcon(
-      CONFIG.inputFile,
-      'public/favicon.ico',
-      32,
-      { padding: 0 }
-    )
+    await sharp(CONFIG.inputFile)
+      .resize(32, 32, {
+        fit: 'contain',
+        background: CONFIG.backgroundColor,
+      })
+      .flatten({ background: CONFIG.backgroundColor })
+      .png()
+      .toFile('public/icons/favicon-32x32.png')
+
+    await sharp(CONFIG.inputFile)
+      .resize(16, 16, {
+        fit: 'contain',
+        background: CONFIG.backgroundColor,
+      })
+      .flatten({ background: CONFIG.backgroundColor })
+      .toFile('public/favicon.ico')
+
+    console.log('   ✅ public/favicon.ico')
+    console.log('   ✅ public/icons/favicon-32x32.png')
   } else {
     await generateLetterIcon('public/favicon.ico', 32, 'ه')
   }
@@ -231,11 +246,14 @@ async function main() {
   // تولید Apple Touch Icon
   console.log('\n🍎 Generating Apple Touch Icon...')
   const appleTouchPath = path.join(CONFIG.outputDir, 'apple-touch-icon.png')
+  const appleTouchPublic = 'public/apple-touch-icon.png'
   if (inputExists) {
     await generateIcon(CONFIG.inputFile, appleTouchPath, 180, {
-      padding: 0.1,
-      background: { r: 255, g: 255, b: 255, alpha: 1 },
+      padding: 0.12,
+      background: CONFIG.backgroundColor,
     })
+    fs.copyFileSync(appleTouchPath, appleTouchPublic)
+    console.log(`   ✅ ${appleTouchPublic}`)
   } else {
     await generateLetterIcon(appleTouchPath, 180, 'ه')
   }

@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { brandAssets } from '@/lib/brand'
 import { cn } from '@/lib/utils'
 
 const SIZES = {
@@ -45,7 +46,7 @@ export function HooshagarLogo({
         style={{ width: box, height: box }}
       >
         <Image
-          src="/logo.png"
+          src={brandAssets.logo}
           alt="آرم هوشاگر"
           width={box}
           height={box}
@@ -111,7 +112,7 @@ export function HooshagarMark({
       style={{ width: size, height: size }}
     >
       <Image
-        src="/logo.png"
+        src={brandAssets.logo}
         alt="هوشاگر"
         width={size}
         height={size}

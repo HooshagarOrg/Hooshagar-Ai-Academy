@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { AmbientBackground } from '@/components/ui/ambient-background'
 
 export const metadata: Metadata = {
   title: 'ورود و ثبت‌نام | هوشاگر',
@@ -11,81 +12,9 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
-      <div className="w-full max-w-md">
-        {children}
-      </div>
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden ui-canvas" data-ui-tone="balanced">
+      <AmbientBackground tone="balanced" />
+      <div className="relative z-10 w-full max-w-md">{children}</div>
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

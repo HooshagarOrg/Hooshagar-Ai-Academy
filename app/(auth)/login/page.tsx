@@ -163,37 +163,35 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-coral/10 via-white to-brand-orange/10 flex items-center justify-center p-4" dir="rtl">
-      <div className="w-full max-w-md">
-
-        {/* لوگو و عنوان */}
+    <div className="w-full" dir="rtl">
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 text-sm"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 text-sm cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            بازگشت
+            بازگشت به خانه
           </Link>
-          
+
           <div className="flex justify-center mb-4">
-            <HooshagarLogo size="lg" href="/" showWordmark subtitle="سامانه هوشمند مدیریت مدارس" />
+            <HooshagarLogo size="lg" href="/" showWordmark subtitle="همراه هوشمند یادگیری" />
           </div>
+          <p className="text-sm text-muted-foreground">به آینده آموزش خوش آمدید</p>
         </div>
 
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+        <Card className="glass-panel-elevated border-white/[0.1] shadow-glow">
           <CardContent className="pt-6">
             <Tabs defaultValue="staff" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-6 bg-gray-100 p-1 rounded-xl">
-                <TabsTrigger value="staff" className="rounded-lg text-xs gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsList className="grid w-full grid-cols-3 mb-6 bg-muted/80 p-1 rounded-xl border border-white/[0.06]">
+                <TabsTrigger value="staff" className="rounded-lg text-xs gap-1 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground">
                   <User className="w-3.5 h-3.5" />
                   کارکنان
                 </TabsTrigger>
-                <TabsTrigger value="otp" className="rounded-lg text-xs gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <TabsTrigger value="otp" className="rounded-lg text-xs gap-1 data-[state=active]:bg-card data-[state=active]:shadow-sm">
                   <Smartphone className="w-3.5 h-3.5" />
                   والدین
                 </TabsTrigger>
-                <TabsTrigger value="student" className="rounded-lg text-xs gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <TabsTrigger value="student" className="rounded-lg text-xs gap-1 data-[state=active]:bg-card data-[state=active]:shadow-sm">
                   <GraduationCap className="w-3.5 h-3.5" />
                   دانش‌آموز
                 </TabsTrigger>
@@ -201,7 +199,7 @@ export default function LoginPage() {
 
               {/* ===== تب کارکنان ===== */}
               <TabsContent value="staff" className="space-y-1">
-                <p className="text-xs text-muted-foreground mb-4 bg-blue-50 rounded-lg p-3 border border-blue-100">
+                <p className="text-xs text-muted-foreground mb-4 bg-brand-cyan/10 rounded-xl p-3 border border-brand-cyan/20">
                   مدیران، معلمان و کارکنان مدرسه از این بخش وارد شوند.
                 </p>
                 <form onSubmit={handleStaffLogin} className="space-y-4">
@@ -250,7 +248,7 @@ export default function LoginPage() {
                     </div>
           </div>
 
-                  <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" disabled={isLoading}>
+                  <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>
                     {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
                   </Button>
                 </form>
@@ -258,7 +256,7 @@ export default function LoginPage() {
 
               {/* ===== تب والدین (OTP) ===== */}
               <TabsContent value="otp" className="space-y-1">
-                <p className="text-xs text-muted-foreground mb-4 bg-green-50 rounded-lg p-3 border border-green-100">
+                <p className="text-xs text-muted-foreground mb-4 bg-brand-green/10 rounded-xl p-3 border border-brand-green/20">
                   والدین با شماره موبایل ثبت‌شده وارد شوند. کد تأیید پیامک می‌شود.
                 </p>
                 {!otpSent ? (
@@ -278,7 +276,7 @@ export default function LoginPage() {
                         maxLength={11}
                       />
                     </div>
-                    <Button type="submit" className="w-full bg-gradient-to-r from-green-600 to-teal-600" disabled={isLoading}>
+                    <Button type="submit" className="w-full bg-gradient-to-l from-brand-green to-brand-cyan text-white hover:opacity-95" disabled={isLoading}>
                       {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />ارسال کد...</> : 'دریافت کد تأیید'}
                     </Button>
                   </form>
@@ -312,7 +310,7 @@ export default function LoginPage() {
                       </p>
                     </div>
 
-                    <Button type="submit" className="w-full bg-gradient-to-r from-green-600 to-teal-600" disabled={isLoading}>
+                    <Button type="submit" className="w-full bg-gradient-to-l from-brand-green to-brand-cyan text-white hover:opacity-95" disabled={isLoading}>
                       {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال تأیید...</> : 'تأیید و ورود'}
                     </Button>
 
@@ -330,7 +328,7 @@ export default function LoginPage() {
 
               {/* ===== تب دانش‌آموز ===== */}
               <TabsContent value="student" className="space-y-1">
-                <p className="text-xs text-muted-foreground mb-4 bg-orange-50 rounded-lg p-3 border border-orange-100">
+                <p className="text-xs text-muted-foreground mb-4 bg-brand-orange/10 rounded-xl p-3 border border-brand-orange/20">
                   دانش‌آموزان با کد دانش‌آموزی و رمز (PIN) خود وارد شوند.
                 </p>
                 <form onSubmit={handleStudentLogin} className="space-y-4">
@@ -371,7 +369,7 @@ export default function LoginPage() {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600" disabled={isLoading}>
+                  <Button type="submit" className="w-full bg-gradient-to-l from-brand-orange to-brand-yellow text-space font-medium hover:opacity-95" disabled={isLoading}>
                     {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
           </Button>
                 </form>
@@ -379,10 +377,10 @@ export default function LoginPage() {
             </Tabs>
           </CardContent>
 
-          <CardFooter className="flex flex-col gap-3 border-t pt-5 bg-gray-50/50 rounded-b-xl">
+          <CardFooter className="flex flex-col gap-3 border-t border-white/[0.06] pt-5 bg-muted/30 rounded-b-2xl">
             <TermsAcceptanceNotice />
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <Shield className="w-3 h-3 text-green-500" />
+              <Shield className="w-3 h-3 text-brand-green" />
               <span>ورود شما با امنیت بالا محافظت می‌شود</span>
           </div>
             <div className="text-center">
@@ -392,7 +390,6 @@ export default function LoginPage() {
             </div>
         </CardFooter>
     </Card>
-      </div>
     </div>
   )
 }

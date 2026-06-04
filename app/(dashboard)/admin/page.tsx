@@ -260,63 +260,43 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-blue-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                پنل مدیریت پلتفرم 🎛️
-              </h1>
-              <p className="text-white/70">
-                <span className="bg-gradient-to-r from-blue-500 to-purple-500 px-3 py-1 rounded-full text-sm ml-2">
-                  👨‍💼 مدیر کل پلتفرم
-                </span>
-                {adminName}
-              </p>
-              <p className="text-white/50 text-sm mt-2">{formatPersianDate()}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Service Status Indicator */}
-              <div className="hidden md:flex items-center gap-2 bg-white/5 rounded-xl px-4 py-2 border border-white/10">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-white/70 text-sm">سیستم عملیاتی</span>
-              </div>
-              <button className="relative p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
-                <Bell className="w-5 h-5 text-white" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {mockAlerts.length}
-                </span>
-              </button>
-              <Link
-                href="/test-session"
-                className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <Settings className="w-5 h-5 text-white" />
-              </Link>
-            </div>
+    <div className="space-y-8">
+        <header className="space-y-1">
+          <p className="text-sm text-muted-foreground">{formatPersianDate()}</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">مرکز فرمان پلتفرم</h1>
+          <p className="text-muted-foreground text-sm md:text-base max-w-2xl">
+            نظارت حرفه‌ای بر مدارس، کاربران و زیرساخت هوش مصنوعی — {adminName}
+          </p>
+          <div className="flex items-center gap-2 pt-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-brand-green/10 text-brand-green border border-brand-green/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
+              سیستم عملیاتی
+            </span>
+            {mockAlerts.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                {mockAlerts.length} هشدار فعال
+              </span>
+            )}
           </div>
         </header>
 
-        {/* ==================== Stats Cards ==================== */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
             <div
               key={index}
-              className="bg-white/5 backdrop-blur-lg rounded-2xl p-5 border border-white/10 hover:bg-white/10 transition-all"
+              className="glass-panel-quiet p-5 transition-colors hover:border-white/[0.12]"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className={`${stat.color} p-3 rounded-xl shadow-lg text-white`}>
+                <div className={`${stat.color} p-3 rounded-xl text-white opacity-90`}>
                   {stat.icon}
                 </div>
                 {stat.total && (
-                  <span className="text-white/40 text-sm">از {stat.total}</span>
+                  <span className="text-muted-foreground text-sm">از {stat.total}</span>
                 )}
               </div>
-              <p className="text-white/60 text-sm mb-1">{stat.label}</p>
-              <p className="text-white text-2xl md:text-3xl font-bold">{stat.value}</p>
-              <p className="text-green-400 text-xs mt-1 flex items-center gap-1">
+              <p className="text-muted-foreground text-sm mb-1">{stat.label}</p>
+              <p className="text-2xl md:text-3xl font-bold tabular-nums">{stat.value}</p>
+              <p className="text-brand-green text-xs mt-1 flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" />
                 {stat.trend}
               </p>
@@ -638,11 +618,10 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-4">
+        <footer className="text-center text-muted-foreground text-sm py-4">
           <p>پنل مدیریت پلتفرم هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰ | آخرین بروزرسانی: {formatPersianDate()}</p>
         </footer>
-      </div>
     </div>
   )
 }

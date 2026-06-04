@@ -59,6 +59,7 @@ const EXCLUDED_ROUTES = [
   '/api',
   '/_next',
   '/favicon.ico',
+  '/manifest.json',
   '/images',
   '/fonts',
   '/_vercel',

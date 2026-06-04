@@ -3,10 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  BookOpen,
-  Bell,
-  Settings,
-  Trophy,
   Star,
   Clock,
   CheckCircle2,
@@ -18,24 +14,46 @@ import {
   Gamepad2,
   Calendar,
   Award,
-  TrendingUp,
   Target,
   Zap,
   Medal,
-  GraduationCap,
   FileText,
   Compass,
+  Trophy,
+  GraduationCap,
 } from 'lucide-react'
+import { GlassCard } from '@/components/ui/glass-card'
+import { PageHeader } from '@/components/layout/page-header'
+import { StatCard } from '@/components/ui/stat-card'
+import { ToolTile } from '@/components/ui/tool-tile'
+import { EmptyState } from '@/components/ui/empty-state'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-// ============================================
-// ============================================
-// تایپ‌ها
-// ============================================
-type RealGrade = { id: string; subject: string; score: number; max_score: number; exam_date: string; exam_type: string }
-type RealExam  = { id: string; title: string; subject: string; status: string; start_time: string }
-type XPData    = { xp: number; level: number; coins: number; current_streak: number; longest_streak: number; xp_progress: { current: number; needed: number } }
+type RealGrade = {
+  id: string
+  subject: string
+  score: number
+  max_score: number
+  exam_date: string
+  exam_type: string
+}
+type RealExam = { id: string; title: string; subject: string; status: string; start_time: string }
+type XPData = {
+  xp: number
+  level: number
+  coins: number
+  current_streak: number
+  longest_streak: number
+  xp_progress: { current: number; needed: number }
+}
 
-const todaySchedule: {id:string;subject:string;time:string;teacher:string;icon:string;color:string}[] = []
+const todaySchedule: {
+  id: string
+  subject: string
+  time: string
+  teacher: string
+}[] = []
 
 function getLevelTitle(level: number): string {
   if (level <= 1) return 'تازه‌کار'
@@ -46,33 +64,39 @@ function getLevelTitle(level: number): string {
   return 'نابغه'
 }
 
-// ============================================
-// کامپوننت اصلی
-// ============================================
 export default function StudentDashboardPage() {
-  const [homework, setHomework] = useState<{id:string;subject:string;title:string;dueDate:string;done:boolean}[]>([])
+  const [homework, setHomework] = useState<
+    { id: string; subject: string; title: string; dueDate: string; done: boolean }[]
+  >([])
   const [currentTime] = useState(new Date())
   const [recentGrades, setRecentGrades] = useState<RealGrade[]>([])
-  const [upcomingExams, setUpcomingExams]  = useState<RealExam[]>([])
+  const [upcomingExams, setUpcomingExams] = useState<RealExam[]>([])
   const [profileName, setProfileName] = useState('')
   const [xpData, setXpData] = useState<XPData>({
-    xp: 0, level: 1, coins: 0, current_streak: 0, longest_streak: 0,
-    xp_progress: { current: 0, needed: 100 }
+    xp: 0,
+    level: 1,
+    coins: 0,
+    current_streak: 0,
+    longest_streak: 0,
+    xp_progress: { current: 0, needed: 100 },
   })
-  const studentAvatar = '🧑‍🎓'
-  const studentGrade  = '—'
-  const studentClass  = '—'
 
   useEffect(() => {
-    // ورود روزانه + دریافت XP
     fetch('/api/gamification/daily-xp', { method: 'POST' }).catch(() => {})
 
-    // بارگذاری موازی داده‌ها
     Promise.all([
-      fetch('/api/grades').then(r => r.json()).catch(() => ({ grades: [] })),
-      fetch('/api/exams?filter=upcoming').then(r => r.json()).catch(() => ({ exams: [] })),
-      fetch('/api/profile').then(r => r.json()).catch(() => ({})),
-      fetch('/api/xp/balance').then(r => r.json()).catch(() => null),
+      fetch('/api/grades')
+        .then((r) => r.json())
+        .catch(() => ({ grades: [] })),
+      fetch('/api/exams?filter=upcoming')
+        .then((r) => r.json())
+        .catch(() => ({ exams: [] })),
+      fetch('/api/profile')
+        .then((r) => r.json())
+        .catch(() => ({})),
+      fetch('/api/xp/balance')
+        .then((r) => r.json())
+        .catch(() => null),
     ]).then(([gData, eData, pData, xData]) => {
       setRecentGrades((gData.grades || []).slice(0, 5))
       setUpcomingExams((eData.exams || []).slice(0, 3))
@@ -82,444 +106,367 @@ export default function StudentDashboardPage() {
   }, [])
 
   const toggleHomework = (id: string) => {
-    setHomework(prev => prev.map(hw => hw.id === id ? { ...hw, done: !hw.done } : hw))
+    setHomework((prev) => prev.map((hw) => (hw.id === id ? { ...hw, done: !hw.done } : hw)))
   }
 
-  const homeworkProgress = homework.length > 0
-    ? Math.round((homework.filter(hw => hw.done).length / homework.length) * 100)
-    : 0
+  const homeworkProgress =
+    homework.length > 0
+      ? Math.round((homework.filter((hw) => hw.done).length / homework.length) * 100)
+      : 0
 
-  const averageGrade = recentGrades.length > 0
-    ? (recentGrades.reduce((sum, g) => sum + (g.score / g.max_score) * 20, 0) / recentGrades.length).toFixed(1)
-    : '—'
+  const averageGrade =
+    recentGrades.length > 0
+      ? (
+          recentGrades.reduce((sum, g) => sum + (g.score / g.max_score) * 20, 0) / recentGrades.length
+        ).toFixed(1)
+      : '—'
 
-  // فرمت تاریخ شمسی
-  const formatPersianDate = () => {
-    return new Intl.DateTimeFormat('fa-IR', {
+  const formatPersianDate = () =>
+    new Intl.DateTimeFormat('fa-IR', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     }).format(currentTime)
-  }
 
-  const levelProgress = xpData.xp_progress.needed > 0
-    ? Math.round((xpData.xp_progress.current / xpData.xp_progress.needed) * 100)
-    : 0
+  const levelProgress =
+    xpData.xp_progress.needed > 0
+      ? Math.round((xpData.xp_progress.current / xpData.xp_progress.needed) * 100)
+      : 0
   const levelTitle = getLevelTitle(xpData.level)
 
-  // ابزارهای یادگیری
   const learningTools = [
-    { 
-      label: 'دستیار مطالعه', 
-      href: '/test-study-buddy', 
-      icon: <Brain className="w-8 h-8" />, 
-      color: 'from-purple-500 to-indigo-600',
-      emoji: '🤖',
-      description: 'سوالاتت رو بپرس!'
+    {
+      label: 'دستیار مطالعه',
+      href: '/student/study-buddy',
+      icon: <Brain className="w-6 h-6" />,
+      description: 'سوالاتت را بپرس',
+      accent: 'pink' as const,
+      featured: true,
     },
-    { 
-      label: 'حل مسئله', 
-      href: '/test-ocr', 
-      icon: <Lightbulb className="w-8 h-8" />, 
-      color: 'from-yellow-500 to-orange-600',
-      emoji: '📸',
-      description: 'عکس بگیر، جواب بگیر!'
+    {
+      label: 'حل مسئله',
+      href: '/student/problem-solver',
+      icon: <Lightbulb className="w-5 h-5" />,
+      description: 'عکس بگیر، جواب بگیر',
+      accent: 'orange' as const,
     },
-    { 
-      label: 'داستان جادویی', 
-      href: '/test-story', 
-      icon: <Sparkles className="w-8 h-8" />, 
-      color: 'from-pink-500 to-rose-600',
-      emoji: '✨',
-      description: 'داستان بساز!'
+    {
+      label: 'زمین بازی',
+      href: '/student/practice-playground',
+      icon: <Gamepad2 className="w-5 h-5" />,
+      description: 'تمرین بازی‌گونه',
+      accent: 'green' as const,
     },
-    { 
-      label: 'زمین بازی', 
-      href: '/student/practice-playground', 
-      icon: <Gamepad2 className="w-8 h-8" />, 
-      color: 'from-green-500 to-emerald-600',
-      emoji: '🎮',
-      description: 'تمرین بازی‌گونه!'
+    {
+      label: 'باغ استعداد',
+      href: '/student/talent-garden',
+      icon: <Trophy className="w-5 h-5" />,
+      description: 'امتیاز جمع کن',
+      accent: 'orange' as const,
     },
-    { 
-      label: 'باغ استعداد', 
-      href: '/student/talent-garden', 
-      icon: <Trophy className="w-8 h-8" />, 
-      color: 'from-amber-500 to-yellow-600',
-      emoji: '🏆',
-      description: 'امتیاز جمع کن!'
+    {
+      label: 'قطب‌نمای آینده',
+      href: '/student/future-compass',
+      icon: <Compass className="w-5 h-5" />,
+      description: 'مسیر آینده',
+      accent: 'cyan' as const,
     },
-    { 
-      label: 'قطب‌نمای آینده', 
-      href: '/student/future-compass', 
-      icon: <Compass className="w-8 h-8" />, 
-      color: 'from-indigo-500 to-purple-600',
-      emoji: '🧭',
-      description: 'آینده‌ات رو بساز!'
-    },
-  ]
-
-  const stats = [
-    { 
-      label: 'امتیاز XP', 
-      value: xpData.xp.toLocaleString('fa-IR'), 
-      icon: <Zap className="w-6 h-6" />, 
-      color: 'bg-yellow-500',
-      subtext: `سطح ${xpData.level} - ${levelTitle}`,
-      badge: `Lv.${xpData.level}`
-    },
-    { 
-      label: 'میانگین نمرات', 
-      value: averageGrade, 
-      icon: <Star className="w-6 h-6" />, 
-      color: 'bg-green-500',
-      subtext: 'از ۲۰ نمره'
-    },
-    { 
-      label: 'تکالیف امروز', 
-      value: `${homework.filter(hw => hw.done).length}/${homework.filter(hw => hw.dueDate === 'امروز').length}`, 
-      icon: <FileText className="w-6 h-6" />, 
-      color: 'bg-blue-500',
-      subtext: 'انجام شده'
-    },
-    { 
-      label: 'روزهای متوالی', 
-      value: `${xpData.current_streak} 🔥`, 
-      icon: <Medal className="w-6 h-6" />, 
-      color: 'bg-purple-500',
-      subtext: `بیشترین: ${xpData.longest_streak} روز`
+    {
+      label: 'انتخاب رشته',
+      href: '/student/field-selection',
+      icon: <Target className="w-5 h-5" />,
+      description: 'رشته مناسب',
+      accent: 'purple' as const,
     },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-pink-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              {/* Avatar */}
-              <div className="relative">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-4xl shadow-lg ring-4 ring-yellow-400/30">
-                  {studentAvatar}
-                </div>
-                <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                  Lv.{xpData.level} {levelTitle}
-                </div>
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                  سلام، {profileName || 'دانش‌آموز'}! 👋
-                </h1>
-                <p className="text-white/70">
-                  <span className="bg-white/20 px-3 py-1 rounded-full text-sm ml-2">
-                    🎓 {studentClass}
-                  </span>
-                  <span className="bg-purple-500/30 px-3 py-1 rounded-full text-sm">
-                    پایه {studentGrade}
-                  </span>
-                </p>
-                <p className="text-white/50 text-sm mt-2">{formatPersianDate()}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* XP Mini Display */}
-              <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl px-4 py-2 border border-yellow-500/30">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-yellow-400" />
-                  <span className="text-yellow-400 font-bold">{xpData.xp.toLocaleString('fa-IR')} XP</span>
-                </div>
-                <div className="h-1.5 bg-white/20 rounded-full mt-1 w-24 overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full"
-                    style={{ width: `${levelProgress}%` }}
-                  />
-                </div>
-              </div>
-              <button className="relative p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
-                <Bell className="w-5 h-5 text-white" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  2
-                </span>
-              </button>
-              <Link
-                href="/test-session"
-                className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <Settings className="w-5 h-5 text-white" />
-              </Link>
-            </div>
-          </div>
-        </header>
-
-        {/* ==================== Stats Cards ==================== */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all hover:scale-[1.02] group"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`${stat.color} p-3 rounded-xl shadow-lg text-white group-hover:scale-110 transition-transform`}>
-                  {stat.icon}
-                </div>
-                {stat.badge && (
-                  <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold">
-                    {stat.badge}
-                  </span>
-                )}
-              </div>
-              <p className="text-white/60 text-sm mb-1">{stat.label}</p>
-              <p className="text-white text-2xl md:text-3xl font-bold">{stat.value}</p>
-              <p className="text-white/40 text-xs mt-1">{stat.subtext}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* ==================== Main Grid ==================== */}
-        <div className="grid lg:grid-cols-3 gap-6 mb-6">
-          {/* ========== تکالیف من ========== */}
-          <div className="lg:col-span-2 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-400" />
-                تکالیف من
-                <span className="bg-blue-500/20 text-blue-300 text-xs px-2 py-1 rounded-full">
-                  {homework.length} تکلیف
-                </span>
-              </h2>
-              <div className="flex items-center gap-2">
-                <span className="text-white/60 text-sm">{homeworkProgress}%</span>
-                <div className="w-20 h-2 bg-white/20 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"
-                    style={{ width: `${homeworkProgress}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {homework.map((hw) => (
-                <div
-                  key={hw.id}
-                  className={`bg-white/5 rounded-xl p-4 border transition-all cursor-pointer hover:bg-white/10 ${
-                    hw.done ? 'border-green-500/30' : 'border-white/10'
-                  }`}
-                  onClick={() => toggleHomework(hw.id)}
-                >
-                  <div className="flex items-center gap-3">
-                    <button className="flex-shrink-0">
-                      {hw.done ? (
-                        <CheckCircle2 className="w-6 h-6 text-green-400" />
-                      ) : (
-                        <Circle className="w-6 h-6 text-white/40" />
-                      )}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-sm font-medium ${hw.done ? 'text-white/50 line-through' : 'text-white'}`}>
-                          {hw.title}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-0.5 rounded">
-                          {hw.subject}
-                        </span>
-                        <span className={`text-xs ${hw.dueDate === 'امروز' ? 'text-orange-400' : 'text-white/50'}`}>
-                          📅 {hw.dueDate}
-                        </span>
-                      </div>
-                    </div>
-                    {hw.done && (
-                      <span className="text-green-400 text-sm">✓ انجام شد!</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Progress Summary */}
-            <div className="mt-4 p-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl border border-green-500/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-green-400" />
-                  <span className="text-white font-medium">پیشرفت امروز</span>
-                </div>
-                <span className="text-green-400 font-bold text-lg">{homeworkProgress}%</span>
-              </div>
-              <div className="h-3 bg-white/10 rounded-full mt-2 overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"
-                  style={{ width: `${homeworkProgress}%` }}
-                />
-              </div>
-              <p className="text-white/50 text-xs mt-2">
-                {homework.filter(hw => hw.done).length} از {homework.length} تکلیف انجام شده
+    <div className="space-y-8">
+      <PageHeader
+        meta={formatPersianDate()}
+        title={
+          <>
+            سلام، <span className="gradient-text">{profileName || 'دانش‌آموز'}</span>
+          </>
+        }
+        description="همراه هوشمند یادگیری آماده است — امروز روی یک هدف تمرکز کن."
+        actions={
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl glass-panel-quiet text-sm">
+            <Zap className="w-4 h-4 text-brand-yellow shrink-0" />
+            <div>
+              <p className="font-bold tabular-nums">{xpData.xp.toLocaleString('fa-IR')} XP</p>
+              <p className="text-xs text-muted-foreground">
+                سطح {xpData.level} · {levelTitle}
               </p>
             </div>
           </div>
+        }
+      />
 
-          {/* ========== برنامه امروز ========== */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
-              <Calendar className="w-5 h-5 text-pink-400" />
-              برنامه امروز
-            </h2>
-
-            <div className="space-y-3">
-              {todaySchedule.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="bg-white/5 rounded-xl p-3 flex items-center gap-3 hover:bg-white/10 transition-all"
-                >
-                  <div className={`w-12 h-12 ${item.color} rounded-xl flex items-center justify-center text-2xl shadow-lg`}>
-                    {item.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium">{item.subject}</p>
-                    <p className="text-white/50 text-xs">{item.teacher}</p>
-                  </div>
-                  <div className="text-left">
-                    <p className="text-white/70 text-sm font-mono">{item.time}</p>
-                    {index === 0 && (
-                      <span className="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded">
-                        الان
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+      {/* تمرکز اصلی: پیشرفت سطح */}
+      <GlassCard className="p-6 md:p-7 overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-l from-brand-pink/10 via-transparent to-brand-purple/5 pointer-events-none" />
+        <div className="relative flex flex-col md:flex-row md:items-center gap-6">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-pink to-brand-orange flex items-center justify-center ring-2 ring-white/10">
+              <GraduationCap className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <p className="section-label mb-1">پیشرفت امروز</p>
+              <p className="text-lg font-semibold">مسیر رشد تو</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {xpData.xp_progress.current.toLocaleString('fa-IR')} از{' '}
+                {xpData.xp_progress.needed.toLocaleString('fa-IR')} XP تا سطح بعد
+              </p>
+            </div>
+          </div>
+          <div className="md:w-64 w-full">
+            <div className="flex justify-between text-xs text-muted-foreground mb-2">
+              <span>سطح {xpData.level}</span>
+              <span className="text-brand-yellow font-medium">{levelProgress}%</span>
+            </div>
+            <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-l from-brand-yellow to-brand-orange transition-all duration-500"
+                style={{ width: `${levelProgress}%` }}
+              />
             </div>
           </div>
         </div>
+      </GlassCard>
 
-        {/* ==================== نمرات اخیر ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          label="امتیاز XP"
+          value={xpData.xp.toLocaleString('fa-IR')}
+          hint={levelTitle}
+          icon={<Zap className="w-5 h-5" />}
+          accentClass="text-brand-yellow"
+        />
+        <StatCard
+          label="میانگین نمرات"
+          value={averageGrade}
+          hint="از ۲۰"
+          icon={<Star className="w-5 h-5" />}
+          accentClass="text-brand-green"
+        />
+        <StatCard
+          label="تکالیف"
+          value={`${homework.filter((h) => h.done).length}/${homework.length || 0}`}
+          hint={`${homeworkProgress}% انجام‌شده`}
+          icon={<FileText className="w-5 h-5" />}
+          accentClass="text-brand-cyan"
+        />
+        <StatCard
+          label="استریک"
+          value={xpData.current_streak}
+          hint={`رکورد ${xpData.longest_streak} روز`}
+          icon={<Medal className="w-5 h-5" />}
+          accentClass="text-brand-pink"
+        />
+      </div>
+
+      <section>
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="w-5 h-5 text-brand-pink" />
+          <h2 className="text-lg font-bold">ابزارهای یادگیری</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {learningTools.map((tool) => (
+            <ToolTile
+              key={tool.href}
+              href={tool.href}
+              label={tool.label}
+              description={tool.description}
+              icon={tool.icon}
+              featured={tool.featured}
+              accent={tool.accent}
+            />
+          ))}
+        </div>
+      </section>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        <GlassCard quiet className="lg:col-span-2 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-400" />
-              نمرات اخیر
+            <h2 className="font-bold flex items-center gap-2">
+              <FileText className="w-5 h-5 text-brand-cyan" />
+              تکالیف من
             </h2>
-            <div className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-sm">
-              میانگین: {averageGrade}
-            </div>
+            {homework.length > 0 && (
+              <span className="text-sm text-brand-green font-medium">{homeworkProgress}%</span>
+            )}
           </div>
+          {homework.length === 0 ? (
+            <EmptyState
+              icon={<FileText className="w-6 h-6" />}
+              title="تکلیفی برای امروز نیست"
+              description="می‌توانی از دستیار مطالعه یا زمین بازی شروع کنی."
+              action={
+                <Link href="/student/study-buddy">
+                  <Button variant="gradient" size="sm">
+                    دستیار مطالعه
+                  </Button>
+                </Link>
+              }
+            />
+          ) : (
+            <div className="space-y-2">
+              {homework.map((hw) => (
+                <button
+                  key={hw.id}
+                  type="button"
+                  onClick={() => toggleHomework(hw.id)}
+                  className={cn(
+                    'w-full flex items-center gap-3 p-3 rounded-xl border transition-colors cursor-pointer text-right focus-ring',
+                    hw.done
+                      ? 'border-brand-green/30 bg-brand-green/5'
+                      : 'border-white/[0.06] hover:bg-white/[0.03]',
+                  )}
+                >
+                  {hw.done ? (
+                    <CheckCircle2 className="w-5 h-5 text-brand-green shrink-0" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-muted-foreground shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0 text-right">
+                    <p
+                      className={cn(
+                        'text-sm font-medium truncate',
+                        hw.done && 'line-through text-muted-foreground',
+                      )}
+                    >
+                      {hw.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{hw.subject}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </GlassCard>
 
+        <GlassCard quiet className="p-6">
+          <h2 className="font-bold flex items-center gap-2 mb-4">
+            <Calendar className="w-5 h-5 text-brand-purple" />
+            برنامه امروز
+          </h2>
+          {todaySchedule.length === 0 ? (
+            <EmptyState
+              title="برنامه‌ای ثبت نشده"
+              description="برنامه کلاس‌ها از مدرسه همگام می‌شود."
+            />
+          ) : (
+            <div className="space-y-2">
+              {todaySchedule.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]"
+                >
+                  <p className="text-sm font-medium">{item.subject}</p>
+                  <p className="text-xs text-muted-foreground">{item.time}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </GlassCard>
+      </div>
+
+      <GlassCard quiet className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold flex items-center gap-2">
+            <Star className="w-5 h-5 text-brand-yellow" />
+            نمرات اخیر
+          </h2>
+          <Link href="/student/grades">
+            <Button variant="ghost" size="sm">
+              همه
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
+        {recentGrades.length === 0 ? (
+          <EmptyState title="هنوز نمره‌ای ثبت نشده" />
+        ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="text-white/50 text-sm border-b border-white/10">
+                <tr className="text-muted-foreground border-b border-white/[0.06]">
                   <th className="text-right pb-3 font-medium">درس</th>
                   <th className="text-center pb-3 font-medium">نوع</th>
                   <th className="text-center pb-3 font-medium">نمره</th>
                   <th className="text-center pb-3 font-medium">تاریخ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-white/[0.04]">
                 {recentGrades.map((grade) => (
-                  <tr key={grade.id} className="hover:bg-white/5 transition-colors">
-                    <td className="py-3">
-                      <span className="text-white font-medium">{grade.subject}</span>
+                  <tr key={grade.id}>
+                    <td className="py-3 font-medium">{grade.subject}</td>
+                    <td className="py-3 text-center text-muted-foreground">
+                      {grade.exam_type || '—'}
                     </td>
-                    <td className="py-3 text-center">
-                      <span className="bg-white/10 text-white/70 text-xs px-2 py-1 rounded">
-                        {grade.exam_type || '—'}
-                      </span>
-                    </td>
-                    <td className="py-3 text-center">
-                      <span className={`font-bold text-lg ${
-                        grade.score >= 17 ? 'text-green-400' : 
-                        grade.score >= 14 ? 'text-yellow-400' : 'text-red-400'
-                      }`}>
-                        {grade.score}
-                      </span>
-                      <span className="text-white/40 text-xs">/{grade.max_score || 20}</span>
-                    </td>
-                    <td className="py-3 text-center text-white/60 text-sm">
-                      {grade.exam_date ? new Date(grade.exam_date).toLocaleDateString('fa-IR') : '—'}
+                    <td className="py-3 text-center font-bold tabular-nums">{grade.score}</td>
+                    <td className="py-3 text-center text-muted-foreground text-xs">
+                      {grade.exam_date
+                        ? new Date(grade.exam_date).toLocaleDateString('fa-IR')
+                        : '—'}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
+        )}
+      </GlassCard>
 
-        {/* ==================== ابزارهای یادگیری ==================== */}
-        <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-3xl p-6 border border-purple-500/30 mb-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-white">ابزارهای جادویی یادگیری ✨</h3>
-              <p className="text-white/60 text-sm">با هوش مصنوعی بهتر یاد بگیر!</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {learningTools.map((tool, index) => (
-            <Link
-              key={index}
-              href={tool.href}
-              className={`bg-gradient-to-br ${tool.color} rounded-2xl p-4 text-center transition-all group relative overflow-hidden hover:scale-105 hover:shadow-xl cursor-pointer`}
+      {upcomingExams.length > 0 && (
+        <GlassCard quiet className="p-6">
+          <h2 className="font-bold flex items-center gap-2 mb-4">
+            <Clock className="w-5 h-5 text-brand-orange" />
+            آزمون‌های پیش‌رو
+          </h2>
+          <div className="grid sm:grid-cols-3 gap-3">
+            {upcomingExams.map((exam) => (
+              <div
+                key={exam.id}
+                className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]"
               >
-                {/* Background decoration */}
-                <div className="absolute top-0 left-0 w-full h-full opacity-20">
-                  <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-white/30" />
-                  <div className="absolute -bottom-4 -left-4 w-12 h-12 rounded-full bg-white/20" />
-                </div>
-                
-                <div className="relative z-10">
-                  <div className="text-4xl mb-2 group-hover:scale-110 transition-transform">
-                    {tool.emoji}
-                  </div>
-                  <p className="text-white font-bold text-sm mb-1">{tool.label}</p>
-                  <p className="text-white/70 text-xs">{tool.description}</p>
-                </div>
-              </Link>
+                <p className="font-medium text-sm">{exam.title}</p>
+                <p className="text-xs text-muted-foreground mt-1">{exam.subject}</p>
+              </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
+      )}
 
-        {/* ==================== دکمه باغ استعداد ==================== */}
-        <Link
-          href="/student/talent-garden"
-          className="block bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-2xl p-6 mb-6 hover:shadow-2xl hover:shadow-orange-500/30 transition-all group"
-        >
-          <div className="flex items-center justify-between">
+      <Link href="/student/talent-garden" className="block cursor-pointer">
+        <GlassCard hover className="p-6 border-brand-orange/15">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">
-                🏆
+              <div className="w-12 h-12 rounded-2xl bg-brand-orange/20 flex items-center justify-center">
+                <Trophy className="w-6 h-6 text-brand-orange" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">باغ استعداد</h3>
-              <p className="text-white/80">امتیاز جمع کن، سطح بالا ببر، نشان بگیر!</p>
+                <h3 className="font-bold">باغ استعداد</h3>
+                <p className="text-sm text-muted-foreground">امتیاز، سطح و نشان‌ها</p>
+              </div>
+            </div>
+            <div className="text-left flex items-center gap-2">
+              <div>
+                <p className="text-xl font-bold gradient-text">
+                  {xpData.xp.toLocaleString('fa-IR')} XP
+                </p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
+                  <Award className="w-3.5 h-3.5 text-brand-yellow" />
+                  {levelTitle}
+                </p>
+              </div>
+              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
             </div>
           </div>
-          <div className="text-left">
-            <p className="text-white/80 text-sm">امتیاز فعلی</p>
-            <p className="text-white text-3xl font-bold">{xpData.xp.toLocaleString('fa-IR')} XP</p>
-            <div className="flex items-center gap-1 mt-1">
-              <Award className="w-4 h-4 text-yellow-300" />
-              <span className="text-yellow-300 text-sm">{levelTitle}</span>
-            </div>
-            </div>
-            <ChevronLeft className="w-8 h-8 text-white/50 group-hover:translate-x-[-4px] transition-transform" />
-          </div>
-        </Link>
-
-        {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-4">
-          <p>🎓 یادگیری با هوشاگر، لذت‌بخش و هوشمند!</p>
-          <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
-        </footer>
-      </div>
+        </GlassCard>
+      </Link>
     </div>
   )
 }
-
-
-

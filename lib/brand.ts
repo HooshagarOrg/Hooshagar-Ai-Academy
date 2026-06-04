@@ -1,18 +1,32 @@
-/** پالت برند هوشاگر — هم‌راستا با لوگوی رسمی */
+/** پالت برند هوشاگر — Soft Futurism / Smart Soft Dark */
 export const brandColors = {
-  magenta: '#E6007E',
-  magentaDark: '#BE185D',
-  orange: '#FF8C00',
-  orangeLight: '#FB923C',
-  blue: '#38BDF8',
-  blueDeep: '#0EA5E9',
-  yellow: '#FFD700',
-  coral: '#F4A7B9',
-  slate: '#0F172A',
+  space: '#10131A',
+  surface: '#171B24',
+  elevated: '#1D2330',
+  pink: '#FF4DA6',
+  orange: '#FF9B54',
+  purple: '#8B7CFF',
+  cyan: '#54D2FF',
+  green: '#39D98A',
+  yellow: '#FFD166',
+  textPrimary: '#F5F7FA',
+  textSecondary: '#B5BED1',
+  /* legacy */
+  magenta: '#FF4DA6',
+  magentaDark: '#E03D8F',
+  orangeLight: '#FFB07A',
+  blue: '#54D2FF',
+  blueDeep: '#3BB8E8',
+  coral: '#FF9B54',
+  slate: '#10131A',
 } as const
 
 export const brandGradient = {
-  primary: 'linear-gradient(135deg, #E6007E 0%, #FF8C00 55%, #FFD700 100%)',
-  hero: 'linear-gradient(145deg, #0f172a 0%, #4c1d95 35%, #831843 70%, #7c2d12 100%)',
-  soft: 'linear-gradient(135deg, rgba(230,0,126,0.08) 0%, rgba(255,140,0,0.08) 100%)',
+  primary: 'linear-gradient(135deg, #FF4DA6 0%, #8B7CFF 50%, #54D2FF 100%)',
+  warm: 'linear-gradient(135deg, #FF4DA6 0%, #FF9B54 55%, #FFD166 100%)',
+  hero:
+    'radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,77,166,0.25), transparent 50%), radial-gradient(ellipse 80% 60% at 100% 50%, rgba(139,124,255,0.15), transparent 45%), #10131A',
+  soft: 'linear-gradient(135deg, rgba(255,77,166,0.12) 0%, rgba(84,210,255,0.08) 100%)',
+  glass:
+    'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
 } as const

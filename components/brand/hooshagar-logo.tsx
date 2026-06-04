@@ -39,8 +39,8 @@ export function HooshagarLogo({
       <span
         className={cn(
           'relative flex-shrink-0 rounded-2xl overflow-hidden',
-          'ring-1 ring-black/5 shadow-sm transition-transform duration-200 group-hover:scale-[1.02]',
-          size === 'hero' && 'shadow-lg shadow-brand-magenta/25',
+          'ring-1 ring-white/10 shadow-glass transition-transform duration-200 group-hover:scale-[1.02]',
+          size === 'hero' && 'shadow-lg shadow-brand-pink/30 glow-pink',
         )}
         style={{ width: box, height: box }}
       >
@@ -59,7 +59,7 @@ export function HooshagarLogo({
             className={cn(
               'font-bold tracking-tight block truncate',
               text,
-              inverted ? 'text-white' : 'text-gray-900',
+              inverted ? 'text-white' : 'text-foreground',
             )}
           >
             هوشاگر
@@ -68,7 +68,7 @@ export function HooshagarLogo({
             <span
               className={cn(
                 'text-xs block truncate mt-0.5',
-                inverted ? 'text-white/70' : 'text-gray-500',
+                inverted ? 'text-white/70' : 'text-muted-foreground',
               )}
             >
               {subtitle}
@@ -83,7 +83,7 @@ export function HooshagarLogo({
     return (
       <Link
         href={href}
-        className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-magenta/40"
+        className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-pink/40"
       >
         {content}
       </Link>
@@ -105,7 +105,7 @@ export function HooshagarMark({
   return (
     <span
       className={cn(
-        'relative inline-flex flex-shrink-0 rounded-2xl overflow-hidden ring-1 ring-black/5',
+        'relative inline-flex flex-shrink-0 rounded-2xl overflow-hidden ring-1 ring-white/10',
         className,
       )}
       style={{ width: size, height: size }}

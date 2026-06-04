@@ -1,100 +1,40 @@
 import { cn } from '@/lib/utils'
-import { LucideIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { GlassCard } from '@/components/ui/glass-card'
 
 interface StatCardProps {
-  title: string
+  label: string
   value: string | number
-  subtitle?: string
-  icon: LucideIcon
-  iconColor?: string
-  iconBg?: string
-  trend?: { value: number; label?: string }
-  variant?: 'default' | 'gradient' | 'outline'
+  hint?: string
+  icon?: React.ReactNode
+  accentClass?: string
   className?: string
-  onClick?: () => void
 }
 
 export function StatCard({
-  title,
+  label,
   value,
-  subtitle,
-  icon: Icon,
-  iconColor = 'text-blue-600',
-  iconBg = 'bg-blue-50',
-  trend,
-  variant = 'default',
+  hint,
+  icon,
+  accentClass = 'text-brand-cyan',
   className,
-  onClick,
 }: StatCardProps) {
-  const TrendIcon = trend
-    ? trend.value > 0 ? TrendingUp : trend.value < 0 ? TrendingDown : Minus
-    : null
-
-  const trendColor = trend
-    ? trend.value > 0 ? 'text-green-600' : trend.value < 0 ? 'text-red-500' : 'text-gray-400'
-    : ''
-
   return (
-    <div
-      className={cn(
-        'rounded-2xl p-5 transition-all duration-200',
-        variant === 'default' && 'bg-white border border-gray-100 shadow-sm hover:shadow-md',
-        variant === 'outline' && 'bg-transparent border-2 border-gray-200 hover:border-blue-200',
-        variant === 'gradient' && 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-200',
-        onClick && 'cursor-pointer',
-        className
-      )}
-      onClick={onClick}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className={cn(
-          'p-2.5 rounded-xl',
-          variant === 'gradient' ? 'bg-white/20' : iconBg
-        )}>
-          <Icon className={cn('w-5 h-5', variant === 'gradient' ? 'text-white' : iconColor)} />
-        </div>
-        {trend && TrendIcon && (
-          <div className={cn(
-            'flex items-center gap-1 text-xs font-medium',
-            variant === 'gradient' ? 'text-white/80' : trendColor
-          )}>
-            <TrendIcon className="w-3.5 h-3.5" />
-            <span>{Math.abs(trend.value)}%</span>
+    <GlassCard className={cn('p-5', className)}>
+      <div className="flex items-start justify-between gap-3 mb-3">
+        {icon && (
+          <div
+            className={cn(
+              'p-2.5 rounded-xl bg-white/[0.05] border border-white/[0.08]',
+              accentClass,
+            )}
+          >
+            {icon}
           </div>
         )}
       </div>
-
-      <p className={cn(
-        'text-xs font-medium mb-1',
-        variant === 'gradient' ? 'text-white/70' : 'text-gray-500'
-      )}>
-        {title}
-      </p>
-
-      <p className={cn(
-        'text-2xl font-bold leading-tight',
-        variant === 'gradient' ? 'text-white' : 'text-gray-900'
-      )}>
-        {value}
-      </p>
-
-      {subtitle && (
-        <p className={cn(
-          'text-xs mt-1',
-          variant === 'gradient' ? 'text-white/60' : 'text-gray-400'
-        )}>
-          {subtitle}
-        </p>
-      )}
-
-      {trend?.label && (
-        <p className={cn(
-          'text-xs mt-1',
-          variant === 'gradient' ? 'text-white/60' : trendColor
-        )}>
-          {trend.label}
-        </p>
-      )}
-    </div>
+      <p className="text-xs text-muted-foreground mb-1">{label}</p>
+      <p className="text-2xl font-bold tabular-nums tracking-tight">{value}</p>
+      {hint && <p className="text-xs text-muted-foreground mt-1.5">{hint}</p>}
+    </GlassCard>
   )
 }

@@ -4,48 +4,65 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 330 100% 45%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 199 89% 48%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 33 100% 50%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 330 100% 45%;
-    --radius: 0.5rem;
-  }
+    /* Smart Soft Dark — هوشاگر */
+    --background: 222 25% 8%;
+    --foreground: 220 27% 97%;
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 142.1 70.6% 45.3%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 37.7 92.1% 50.2%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --card: 222 21% 12%;
+    --card-foreground: 220 27% 97%;
+
+    --popover: 222 22% 15%;
+    --popover-foreground: 220 27% 97%;
+
+    --primary: 330 100% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 195 100% 66%;
+    --secondary-foreground: 222 25% 8%;
+
+    --muted: 222 18% 16%;
+    --muted-foreground: 222 17% 76%;
+
+    --accent: 28 100% 66%;
+    --accent-foreground: 222 25% 8%;
+
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 65% 54%;
+    --success-foreground: 222 25% 8%;
+
+    --border: 0 0% 100% / 0.08;
+    --input: 222 18% 18%;
+    --ring: 330 100% 65%;
+
+    --radius: 1rem;
+
+    /* Brand accents */
+    --brand-pink: 330 100% 65%;
+    --brand-orange: 28 100% 66%;
+    --brand-purple: 246 100% 74%;
+    --brand-cyan: 195 100% 66%;
+    --brand-green: 152 65% 54%;
+    --brand-yellow: 43 100% 70%;
+
+    --surface-elevated: 222 22% 15%;
+    --glass-bg: 222 21% 12% / 0.72;
+    --glass-border: 0 0% 100% / 0.1;
+
+    /* Motion System */
+    --motion-duration: 220ms;
+    --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --motion-standard: var(--motion-duration) var(--motion-ease);
+
+    /* Safe area (موبایل / PWA) */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+
+    /* ارتفاع مؤثر viewport موبایل */
+    --app-height: 100dvh;
   }
 }
 
@@ -53,98 +70,307 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-vazirmatn), sans-serif;
-    font-feature-settings: 'rlig' 1, 'calt' 1;
-    /* بهبود خوانایی فارسی */
-    line-height: 1.8;
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
-  
-  /* بهینه‌سازی برای زبان فارسی */
-  p, span, div {
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-vazirmatn), system-ui, sans-serif;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    line-height: 1.75;
+    min-height: var(--app-height);
+    padding-top: var(--safe-top);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  /* لمس راحت‌تر روی موبایل */
+  button,
+  a,
+  [role='button'],
+  label[for],
+  summary {
+    touch-action: manipulation;
+  }
+
+  p,
+  span,
+  div {
     text-align: right;
   }
-  
-  /* جلوگیری از justify برای متن فارسی */
+
   .no-justify {
     text-align: right !important;
   }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.35);
+    color: hsl(var(--foreground));
+  }
 }
 
-/* Scrollbar styling */
+@layer components {
+  /* پس‌زمینهٔ محیطی — شدت بر اساس نقش (data-ui-tone روی shell) */
+  .ui-canvas {
+    @apply relative min-h-full;
+  }
+
+  .ui-canvas[data-ui-tone='vivid'] {
+    background-image:
+      radial-gradient(ellipse 70% 45% at 100% 0%, hsl(var(--brand-pink) / 0.14), transparent 52%),
+      radial-gradient(ellipse 55% 35% at 0% 100%, hsl(var(--brand-cyan) / 0.1), transparent 48%);
+  }
+
+  .ui-canvas[data-ui-tone='balanced'] {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 100% -5%, hsl(var(--brand-purple) / 0.08), transparent 50%),
+      radial-gradient(ellipse 50% 30% at 0% 100%, hsl(var(--brand-cyan) / 0.05), transparent 45%);
+  }
+
+  .ui-canvas[data-ui-tone='calm'] {
+    background-image:
+      radial-gradient(ellipse 50% 30% at 100% 0%, hsl(var(--brand-cyan) / 0.04), transparent 55%);
+  }
+
+  .glass-panel {
+    @apply rounded-2xl border border-white/10 backdrop-blur-xl shadow-lg shadow-black/15;
+    background-color: hsl(var(--card) / 0.88);
+  }
+
+  .glass-panel-elevated {
+    @apply rounded-2xl border border-white/10 backdrop-blur-xl shadow-xl shadow-black/20;
+    background-color: hsl(var(--surface-elevated) / 0.92);
+  }
+
+  .glass-panel-quiet {
+    @apply rounded-2xl border border-white/[0.08] backdrop-blur-md shadow-md shadow-black/10;
+    background-color: hsl(var(--card) / 0.95);
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-l from-brand-pink via-brand-purple to-brand-orange bg-clip-text text-transparent;
+  }
+
+  .glow-pink {
+    box-shadow: 0 0 32px -10px hsl(var(--brand-pink) / 0.35);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 32px -10px hsl(var(--brand-cyan) / 0.28);
+  }
+
+  .nav-item-active-vivid {
+    @apply text-white shadow-md;
+    background-image: linear-gradient(to left, rgb(255 77 166 / 0.85), rgb(139 124 255 / 0.75));
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(255 77 166 / 0.15);
+  }
+
+  .nav-item-active-balanced {
+    @apply text-foreground shadow-sm;
+    background-color: rgb(139 124 255 / 0.18);
+    border: 1px solid rgb(139 124 255 / 0.25);
+  }
+
+  .nav-item-active-calm {
+    @apply text-foreground border-r-2 shadow-none;
+    background-color: rgb(255 255 255 / 0.07);
+    border-right-color: #54d2ff;
+  }
+
+  .nav-item-active {
+    @apply nav-item-active-balanced;
+  }
+
+  .ambient-blob {
+    @apply absolute rounded-full blur-3xl pointer-events-none animate-blob;
+  }
+
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground;
+  }
+
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* Motion System — استاندارد برند */
+  .motion-standard {
+    transition: all var(--motion-standard);
+  }
+
+  .motion-interactive {
+    transition:
+      color var(--motion-standard),
+      background-color var(--motion-standard),
+      border-color var(--motion-standard),
+      opacity var(--motion-standard),
+      box-shadow var(--motion-standard),
+      transform var(--motion-standard),
+      filter var(--motion-standard);
+  }
+
+  .motion-interactive:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .motion-page-enter {
+    animation: motion-fade-up var(--motion-standard) both;
+  }
+
+  .motion-overlay {
+    transition: opacity var(--motion-standard);
+  }
+
+  .motion-drawer {
+    transition: transform var(--motion-standard);
+  }
+
+  /* هدف لمسی حداقل ۴۴px (WCAG / موبایل) */
+  .touch-target {
+    @apply min-h-11 min-w-11 inline-flex items-center justify-center;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .h-app {
+    height: var(--app-height);
+  }
+
+  .min-h-app {
+    min-height: var(--app-height);
+  }
+
+  .pb-safe {
+    padding-bottom: max(0.75rem, var(--safe-bottom));
+  }
+
+  .pt-safe {
+    padding-top: max(0px, var(--safe-top));
+  }
+
+  .px-safe {
+    padding-left: max(0px, var(--safe-left));
+    padding-right: max(0px, var(--safe-right));
+  }
+
+  .mb-nav-safe {
+    margin-bottom: calc(4.5rem + var(--safe-bottom));
+  }
+
+  @keyframes motion-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-muted;
+  background-color: hsl(var(--muted) / 0.5);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/50 rounded-full;
+  @apply rounded-full;
+  background-color: hsl(var(--primary) / 0.4);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary;
+  background-color: hsl(var(--primary) / 0.6);
 }
 
-/* ============================================ */
-/* CSS مخصوص چاپ رسید */
-/* ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .motion-interactive:active:not(:disabled) {
+    transform: none !important;
+  }
+
+  .ambient-blob {
+    animation: none !important;
+  }
+
+  .motion-page-enter {
+    animation: none !important;
+  }
+}
+
 @media print {
-  /* مخفی کردن همه چیز به جز modal رسید */
   body > :not(.print\:bg-white) {
     display: none !important;
   }
-  
-  /* نمایش فقط محتوای رسید */
+
   .print\:bg-white {
     position: static !important;
     background: white !important;
     padding: 0 !important;
     box-shadow: none !important;
   }
-  
-  /* حذف پس‌زمینه modal */
+
   .print\:bg-white::before {
     display: none !important;
   }
-  
-  /* مخفی کردن دکمه‌های عملیات */
+
   .print\:hidden {
     display: none !important;
   }
-  
-  /* تنظیمات صفحه */
+
   @page {
     size: A4;
     margin: 1cm;
   }
-  
-  /* بهینه‌سازی برای چاپ */
+
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  
-  /* جلوگیری از شکستن در وسط المان‌ها */
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     page-break-after: avoid;
     break-after: avoid;
   }
-  
-  /* فونت مناسب برای چاپ */
+
   body {
     font-size: 12pt;
     line-height: 1.6;
+    background: white !important;
   }
-  
-  /* لینک‌ها */
+
   a {
     text-decoration: none;
     color: inherit;
   }
 }
-

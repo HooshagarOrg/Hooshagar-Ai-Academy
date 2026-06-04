@@ -36,6 +36,10 @@ const config: Config = {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
@@ -53,18 +57,37 @@ const config: Config = {
           foreground: 'hsl(var(--card-foreground))',
         },
         brand: {
-          magenta: '#E6007E',
-          'magenta-dark': '#BE185D',
-          orange: '#FF8C00',
-          blue: '#38BDF8',
-          yellow: '#FFD700',
-          coral: '#F4A7B9',
+          pink: '#FF4DA6',
+          orange: '#FF9B54',
+          purple: '#8B7CFF',
+          cyan: '#54D2FF',
+          green: '#39D98A',
+          yellow: '#FFD166',
+          /* legacy aliases */
+          magenta: '#FF4DA6',
+          'magenta-dark': '#E03D8F',
+          blue: '#54D2FF',
+          coral: '#FF9B54',
+        },
+        space: {
+          DEFAULT: '#10131A',
+          surface: '#171B24',
+          elevated: '#1D2330',
         },
       },
       borderRadius: {
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        md: 'calc(var(--radius) - 4px)',
+        sm: 'calc(var(--radius) - 8px)',
+        xl: 'calc(var(--radius) + 4px)',
+        '2xl': 'calc(var(--radius) + 8px)',
+        '3xl': '1.5rem',
+      },
+      transitionDuration: {
+        motion: '220ms',
+      },
+      transitionTimingFunction: {
+        motion: 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
       keyframes: {
         'accordion-down': {
@@ -75,13 +98,43 @@ const config: Config = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
+        blob: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '33%': { transform: 'translate(8px, -12px) scale(1.03)' },
+          '66%': { transform: 'translate(-6px, 8px) scale(0.98)' },
+        },
+        'fade-up': {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        pulseSoft: {
+          '0%, 100%': { opacity: '0.6' },
+          '50%': { opacity: '1' },
+        },
       },
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+        'accordion-down': 'accordion-down 220ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'accordion-up': 'accordion-up 220ms cubic-bezier(0.16, 1, 0.3, 1)',
+        blob: 'blob 18s ease-in-out infinite',
+        'fade-up': 'fade-up 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        shimmer: 'shimmer 3s linear infinite',
+        'pulse-soft': 'pulseSoft 3s ease-in-out infinite',
       },
       fontFamily: {
-        sans: ['var(--font-vazir)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-vazirmatn)', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        glass: '0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
+        glow: '0 0 48px -12px rgba(255, 77, 166, 0.4)',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'brand-gradient': 'linear-gradient(135deg, #FF4DA6 0%, #8B7CFF 50%, #54D2FF 100%)',
+        'brand-warm': 'linear-gradient(135deg, #FF4DA6 0%, #FF9B54 55%, #FFD166 100%)',
       },
     },
   },
@@ -89,4 +142,3 @@ const config: Config = {
 }
 
 export default config
-

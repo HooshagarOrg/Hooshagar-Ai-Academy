@@ -195,10 +195,10 @@ export default function TeacherDashboardPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
-          <p className="text-white text-lg">در حال بارگذاری...</p>
+      <div className="flex items-center justify-center py-24">
+        <div className="text-center glass-panel-quiet p-8">
+          <Loader2 className="w-10 h-10 text-brand-cyan animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">در حال بارگذاری...</p>
         </div>
       </div>
     )
@@ -207,14 +207,15 @@ export default function TeacherDashboardPage() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
-        <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-          <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <p className="text-white text-xl font-bold mb-2">خطا در بارگذاری</p>
-          <p className="text-white/70 mb-4">{error}</p>
+      <div className="flex items-center justify-center py-24">
+        <div className="text-center glass-panel-quiet p-8 max-w-md">
+          <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <p className="text-lg font-bold mb-2">خطا در بارگذاری</p>
+          <p className="text-muted-foreground mb-4">{error}</p>
           <button
+            type="button"
             onClick={fetchDashboardData}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl transition-all"
+            className="bg-brand-cyan hover:opacity-90 text-space px-6 py-3 rounded-xl transition-all cursor-pointer"
           >
             تلاش مجدد
           </button>
@@ -234,58 +235,28 @@ export default function TeacherDashboardPage() {
   const alerts = dashboardData.alerts
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                سلام، {teacherName} 👋
-              </h1>
-              <p className="text-white/70">
-                <span className="bg-white/20 px-3 py-1 rounded-full text-sm ml-2">
-                  🧑‍🏫 معلم
-                </span>
-                <span className="bg-blue-500/30 px-3 py-1 rounded-full text-sm ml-2">
-                  {className}
-                </span>
-                {formatPersianDate()}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="relative p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
-                <Bell className="w-5 h-5 text-white" />
-                {alerts.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {alerts.length}
-                  </span>
-                )}
-              </button>
-              <Link
-                href="/notifications"
-                className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <Settings className="w-5 h-5 text-white" />
-              </Link>
-            </div>
-          </div>
+    <div className="space-y-8">
+        <header className="space-y-2">
+          <p className="text-sm text-muted-foreground">{formatPersianDate()}</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            سلام، <span className="text-brand-cyan">{teacherName}</span>
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            کلاس {className}
+            {alerts.length > 0 && (
+              <span className="mr-2 text-brand-orange"> · {alerts.length} هشدار</span>
+            )}
+          </p>
         </header>
 
-        {/* ==================== Stats Cards ==================== */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`${stat.color} p-3 rounded-xl shadow-lg text-white`}>
-                  {stat.icon}
-                </div>
+            <div key={index} className="glass-panel-quiet p-5">
+              <div className={`${stat.color} p-3 rounded-xl text-white w-fit mb-3 opacity-90`}>
+                {stat.icon}
               </div>
-              <p className="text-white/60 text-sm mb-1">{stat.label}</p>
-              <p className="text-white text-2xl md:text-3xl font-bold">{stat.value}</p>
+              <p className="text-muted-foreground text-sm mb-1">{stat.label}</p>
+              <p className="text-2xl font-bold tabular-nums">{stat.value}</p>
             </div>
           ))}
         </div>
@@ -582,11 +553,10 @@ export default function TeacherDashboardPage() {
         </div>
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-4">
+        <footer className="text-center text-muted-foreground text-sm py-4">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import { Toaster } from 'sonner'
@@ -12,6 +12,14 @@ const vazirmatn = localFont({
   variable: '--font-vazirmatn',
   display: 'swap',
 })
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#10131A',
+  interactiveWidget: 'resizes-content',
+}
 
 export const metadata: Metadata = {
   title: 'هوشاگر - سیستم مدیریت هوشمند مدارس',
@@ -41,16 +49,25 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#E6007E" />
+        <meta name="theme-color" content="#10131A" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="هوشاگر" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased min-h-app">
         {children}
         <CookieConsent />
-        <Toaster position="top-center" richColors />
+        <Toaster
+          position="top-center"
+          richColors
+          toastOptions={{
+            classNames: {
+              toast: 'glass-panel border-white/10 text-foreground',
+            },
+          }}
+        />
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {

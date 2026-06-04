@@ -3,9 +3,17 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import type { UiTone } from '@/lib/ui/role-tone'
 import {
-  Home, Users, Brain, BarChart3, Bell, BookOpen,
-  Trophy, Target, MessageSquare, Settings,
+  Home,
+  Users,
+  Brain,
+  BarChart3,
+  Bell,
+  BookOpen,
+  Trophy,
+  Target,
+  MessageSquare,
 } from 'lucide-react'
 
 type MobileNavItem = { title: string; href: string; icon: React.ElementType }
@@ -20,7 +28,7 @@ const mobileNavs: Record<string, MobileNavItem[]> = {
   ],
   teacher: [
     { title: 'خانه', href: '/teacher', icon: Home },
-    { title: 'دانش‌آموزان', href: '/teacher/students', icon: Users },
+    { title: 'کلاس', href: '/teacher/students', icon: Users },
     { title: 'آزمون', href: '/teacher/exam-generator', icon: Brain },
     { title: 'پیام', href: '/messages', icon: MessageSquare },
     { title: 'اعلان', href: '/notifications', icon: Bell },
@@ -34,8 +42,8 @@ const mobileNavs: Record<string, MobileNavItem[]> = {
   ],
   student: [
     { title: 'خانه', href: '/student', icon: Home },
-    { title: 'درس', href: '/student/study-buddy', icon: BookOpen },
-    { title: 'امتیاز', href: '/student/talent-garden', icon: Trophy },
+    { title: 'یادگیری', href: '/student/study-buddy', icon: BookOpen },
+    { title: 'استعداد', href: '/student/talent-garden', icon: Trophy },
     { title: 'آینده', href: '/student/field-selection', icon: Target },
     { title: 'اعلان', href: '/notifications', icon: Bell },
   ],
@@ -43,37 +51,54 @@ const mobileNavs: Record<string, MobileNavItem[]> = {
 
 interface MobileNavProps {
   role: string
+  tone?: UiTone
 }
 
-export function MobileNav({ role }: MobileNavProps) {
+export function MobileNav({ role, tone = 'balanced' }: MobileNavProps) {
   const pathname = usePathname()
   const items = mobileNavs[role] || mobileNavs.admin
+  const activeAccent =
+    tone === 'calm'
+      ? 'text-brand-cyan'
+      : tone === 'vivid'
+        ? 'text-brand-pink'
+        : 'text-brand-purple'
+  const activeBg =
+    tone === 'calm'
+      ? 'bg-brand-cyan/12'
+      : tone === 'vivid'
+        ? 'bg-brand-pink/12'
+        : 'bg-brand-purple/12'
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 right-0 left-0 z-50 bg-white border-t border-gray-100 shadow-lg"
+      className="lg:hidden fixed bottom-0 right-0 left-0 z-50 pt-1 pb-safe px-safe motion-interactive"
       dir="rtl"
+      aria-label="ناوبری اصلی"
     >
-      <div className="flex items-center justify-around h-16 px-2">
+      <div className="glass-panel-quiet flex items-center justify-around h-16 min-h-[4rem] px-1">
         {items.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + '/')
+          const active =
+            pathname === item.href || pathname.startsWith(item.href + '/')
           const Icon = item.icon
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center gap-0.5 flex-1 py-1 px-2 rounded-xl transition-all',
-                active ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'
+                'flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl motion-interactive cursor-pointer focus-ring min-h-[3rem]',
+                active ? activeAccent : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              <div className={cn(
-                'w-9 h-9 rounded-xl flex items-center justify-center transition-all',
-                active ? 'bg-blue-50' : ''
-              )}>
-                <Icon className={cn('w-5 h-5', active ? 'text-blue-600' : '')} />
+              <div
+                className={cn(
+                  'touch-target w-11 h-11 rounded-xl flex items-center justify-center motion-interactive',
+                  active && activeBg,
+                )}
+              >
+                <Icon className="w-5 h-5" />
               </div>
-              <span className={cn('text-[10px] font-medium', active ? 'text-blue-600' : '')}>
+              <span className={cn('text-[10px] font-medium', active && activeAccent)}>
                 {item.title}
               </span>
             </Link>

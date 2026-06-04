@@ -16,6 +16,20 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { HooshagarLogo, HooshagarMark } from '@/components/brand/hooshagar-logo'
+import type { UiTone } from '@/lib/ui/role-tone'
+
+function navActiveClass(tone: UiTone, active: boolean) {
+  if (!active) return 'text-muted-foreground hover:bg-white/[0.06] hover:text-foreground'
+  if (tone === 'vivid') return 'nav-item-active-vivid'
+  if (tone === 'calm') return 'nav-item-active-calm'
+  return 'nav-item-active-balanced'
+}
+
+function navIconClass(tone: UiTone, active: boolean) {
+  if (!active) return 'text-muted-foreground group-hover:text-foreground'
+  if (tone === 'vivid') return 'text-white'
+  return 'text-foreground'
+}
 
 // ============================================
 // تعریف منوهای هر نقش
@@ -287,6 +301,7 @@ const commonItems: NavItem[] = [
 // ============================================
 interface AppSidebarProps {
   role: string
+  tone?: UiTone
   userName: string
   schoolName?: string
   avatarUrl?: string
@@ -299,6 +314,7 @@ interface AppSidebarProps {
 // ============================================
 export function AppSidebar({
   role,
+  tone = 'balanced',
   userName,
   schoolName,
   avatarUrl,
@@ -318,14 +334,14 @@ export function AppSidebar({
     <TooltipProvider delayDuration={300}>
       <aside
         className={cn(
-          'flex flex-col h-full bg-white border-l border-gray-100 shadow-sm transition-all duration-300 ease-in-out',
-          collapsed ? 'w-16' : 'w-64'
+          'flex flex-col h-full bg-card/80 backdrop-blur-xl border-l border-white/[0.06] shadow-glass motion-standard',
+          collapsed ? 'w-[4.5rem]' : 'w-64'
         )}
         dir="rtl"
       >
         {/* ===== لوگو و هدر ===== */}
         <div className={cn(
-          'flex items-center border-b border-gray-100 transition-all',
+          'flex items-center border-b border-white/[0.06] transition-all',
           collapsed ? 'justify-center p-4' : 'justify-between px-4 py-4'
         )}>
           {!collapsed && (
@@ -343,8 +359,9 @@ export function AppSidebar({
           )}
           {onCollapse && (
             <button
+              type="button"
               onClick={() => onCollapse(!collapsed)}
-              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/[0.06] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               {collapsed
                 ? <ChevronLeft className="w-4 h-4" />
@@ -356,9 +373,25 @@ export function AppSidebar({
 
         {/* ===== پروفایل کاربر ===== */}
         {!collapsed && (
-          <div className="px-3 py-3 border-b border-gray-100">
-            <div className="flex items-center gap-3 p-2 rounded-xl bg-gradient-to-r from-brand-coral/20 to-brand-orange/10">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-magenta to-brand-orange flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+          <div className="px-3 py-3 border-b border-white/[0.06]">
+            <div
+              className={cn(
+                'flex items-center gap-3 p-2.5 rounded-2xl border border-white/[0.06]',
+                tone === 'calm'
+                  ? 'bg-white/[0.04]'
+                  : 'bg-gradient-to-l from-brand-pink/15 to-brand-purple/10',
+              )}
+            >
+              <div
+                className={cn(
+                  'w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0',
+                  tone === 'calm'
+                    ? 'bg-brand-cyan/80'
+                    : tone === 'vivid'
+                      ? 'bg-gradient-to-br from-brand-pink to-brand-orange shadow-glow'
+                      : 'bg-gradient-to-br from-brand-purple to-brand-cyan',
+                )}
+              >
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={userName} className="w-full h-full rounded-xl object-cover" />
                 ) : (
@@ -366,8 +399,8 @@ export function AppSidebar({
                 )}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-800 truncate">{userName}</p>
-                <p className="text-xs text-gray-400">{getRoleLabel(role)}</p>
+                <p className="text-sm font-semibold text-foreground truncate">{userName}</p>
+                <p className="text-xs text-muted-foreground">{getRoleLabel(role)}</p>
               </div>
             </div>
           </div>
@@ -378,12 +411,12 @@ export function AppSidebar({
           {groups.map((group, gi) => (
             <div key={gi} className={gi > 0 ? 'mt-3' : ''}>
               {!collapsed && group.title && (
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-3 py-1.5 mb-0.5">
+                <p className="text-[10px] font-semibold text-muted-foreground/80 uppercase tracking-wider px-3 py-1.5 mb-0.5">
                   {group.title}
                 </p>
               )}
               {collapsed && group.title && gi > 0 && (
-                <div className="h-px bg-gray-100 mx-2 my-2" />
+                <div className="h-px bg-white/[0.06] mx-2 my-2" />
               )}
               {group.items.map((item) => {
                 const active = isActive(item.href)
@@ -394,10 +427,8 @@ export function AppSidebar({
                       <Link
                         href={item.href}
                         className={cn(
-                          'flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-all',
-                          active
-                            ? 'bg-brand-magenta text-white shadow-sm shadow-brand-magenta/25'
-                            : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                          'flex items-center justify-center w-10 h-10 mx-auto rounded-xl motion-interactive cursor-pointer touch-target',
+                          navActiveClass(tone, active)
                         )}
                       >
                         <Icon className="w-4.5 h-4.5" />
@@ -412,15 +443,13 @@ export function AppSidebar({
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all group',
-                      active
-                        ? 'bg-brand-magenta text-white shadow-sm shadow-brand-magenta/25'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm motion-interactive group cursor-pointer min-h-[44px]',
+                      navActiveClass(tone, active)
                     )}
                   >
                     <Icon className={cn(
                       'w-4 h-4 flex-shrink-0 transition-transform',
-                      active ? 'text-white' : 'text-gray-400 group-hover:text-gray-600',
+                      navIconClass(tone, active),
                     )} />
                     <span className="font-medium truncate">{item.title}</span>
                     {item.badge !== undefined && (
@@ -442,11 +471,11 @@ export function AppSidebar({
           {/* مسیرهای مشترک */}
           <div className="mt-3">
             {!collapsed && (
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-3 py-1.5">
+              <p className="text-[10px] font-semibold text-muted-foreground/80 uppercase tracking-wider px-3 py-1.5">
                 عمومی
               </p>
             )}
-            {collapsed && <div className="h-px bg-gray-100 mx-2 my-2" />}
+            {collapsed && <div className="h-px bg-white/[0.06] mx-2 my-2" />}
             {commonItems.map((item) => {
               const active = isActive(item.href)
               const Icon = item.icon
@@ -454,8 +483,8 @@ export function AppSidebar({
                 <Tooltip key={item.href}>
                   <TooltipTrigger asChild>
                     <Link href={item.href} className={cn(
-                      'flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-all',
-                      active ? 'bg-brand-magenta text-white' : 'text-gray-500 hover:bg-gray-100'
+                      'flex items-center justify-center w-10 h-10 mx-auto rounded-xl motion-interactive touch-target',
+                      navActiveClass(tone, active)
                     )}>
                       <Icon className="w-4.5 h-4.5" />
                     </Link>
@@ -464,10 +493,10 @@ export function AppSidebar({
                 </Tooltip>
               ) : (
                 <Link key={item.href} href={item.href} className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all group',
-                  active ? 'bg-brand-magenta text-white' : 'text-gray-600 hover:bg-gray-100'
+                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm motion-interactive group min-h-[44px]',
+                  navActiveClass(tone, active)
                 )}>
-                  <Icon className={cn('w-4 h-4 flex-shrink-0', active ? 'text-white' : 'text-gray-400')} />
+                  <Icon className={cn('w-4 h-4 flex-shrink-0', navIconClass(tone, active))} />
                   <span className="font-medium">{item.title}</span>
                 </Link>
               )
@@ -476,12 +505,12 @@ export function AppSidebar({
         </nav>
 
         {/* ===== تنظیمات و خروج ===== */}
-        <div className="border-t border-gray-100 p-2 space-y-0.5">
+        <div className="border-t border-white/[0.06] p-2 space-y-0.5">
           {collapsed ? (
             <>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link href="/settings" className="flex items-center justify-center w-10 h-10 mx-auto rounded-xl text-gray-400 hover:bg-gray-100 transition-all">
+                  <Link href="/settings" className="flex items-center justify-center touch-target rounded-xl text-muted-foreground hover:bg-white/[0.06] motion-interactive cursor-pointer">
                     <Settings className="w-4.5 h-4.5" />
                   </Link>
                 </TooltipTrigger>
@@ -491,7 +520,7 @@ export function AppSidebar({
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => { window.location.href = '/api/auth/logout' }}
-                    className="flex items-center justify-center w-10 h-10 mx-auto rounded-xl text-red-400 hover:bg-red-50 transition-all"
+                    className="flex items-center justify-center touch-target rounded-xl text-red-400 hover:bg-red-500/10 motion-interactive"
                   >
                     <LogOut className="w-4.5 h-4.5" />
                   </button>
@@ -501,13 +530,13 @@ export function AppSidebar({
             </>
           ) : (
             <>
-              <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition-all group">
-                <Settings className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+              <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-white/[0.06] hover:text-foreground motion-interactive group cursor-pointer min-h-[44px]">
+                <Settings className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
                 <span className="font-medium">تنظیمات</span>
               </Link>
               <button
                 onClick={() => { window.location.href = '/api/auth/logout' }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-all group"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-500/10 motion-interactive group min-h-[44px]"
               >
                 <LogOut className="w-4 h-4" />
                 <span className="font-medium">خروج از حساب</span>

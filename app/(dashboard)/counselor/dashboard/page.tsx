@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePersianDateString } from '@/lib/hooks/use-persian-date'
 import Link from 'next/link'
 import {
   FileText,
@@ -127,14 +128,7 @@ export default function CounselorDashboardPage() {
     fetchDashboardData()
   }, [])
 
-  const formatPersianDate = (): string => {
-    return new Intl.DateTimeFormat('fa-IR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }).format(new Date())
-  }
+  const persianDate = usePersianDateString()
 
   if (isLoading) {
     return (
@@ -168,7 +162,7 @@ export default function CounselorDashboardPage() {
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
                 داشبورد مشاوره 🧠
               </h1>
-              <p className="text-white/60 text-sm">{formatPersianDate()}</p>
+              <p className="text-white/60 text-sm">{persianDate}</p>
             </div>
             <div className="flex items-center gap-3">
               <Button variant="outline" size="icon" className="bg-white/5 border-white/20 text-white hover:bg-white/10">

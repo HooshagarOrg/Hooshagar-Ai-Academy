@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePersianDateString } from '@/lib/hooks/use-persian-date'
 import Link from 'next/link'
 import {
   MessageSquare,
@@ -143,17 +144,9 @@ const recentReports = 5
 // کامپوننت اصلی
 // ============================================
 export default function CounselorDashboardPage() {
-  const [currentTime] = useState(new Date())
+  const persianDate = usePersianDateString()
 
   // فرمت تاریخ شمسی
-  const formatPersianDate = () => {
-    return new Intl.DateTimeFormat('fa-IR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }).format(currentTime)
-  }
 
   // آمار کارت‌ها
   const stats = [
@@ -249,7 +242,7 @@ export default function CounselorDashboardPage() {
                   {schoolName}
                 </span>
               </p>
-              <p className="text-white/50 text-sm mt-2">{formatPersianDate()}</p>
+              <p className="text-white/50 text-sm mt-2">{persianDate}</p>
             </div>
             <div className="flex items-center gap-3">
               <button className="relative p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">

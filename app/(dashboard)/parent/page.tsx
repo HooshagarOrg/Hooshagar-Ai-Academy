@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePersianDateString } from '@/lib/hooks/use-persian-date'
 import Link from 'next/link'
 import {
   User,
@@ -114,7 +115,7 @@ const financialStatus = {
 // کامپوننت اصلی
 // ============================================
 export default function ParentDashboardPage() {
-  const [currentTime] = useState(new Date())
+  const persianDate = usePersianDateString()
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string>('')
@@ -147,14 +148,6 @@ export default function ParentDashboardPage() {
   }
 
   // فرمت تاریخ شمسی
-  const formatPersianDate = () => {
-    return new Intl.DateTimeFormat('fa-IR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }).format(currentTime)
-  }
 
   // فرمت پول
   const formatCurrency = (amount: number) => {
@@ -263,7 +256,7 @@ export default function ParentDashboardPage() {
                   فرزند: {childName} ({childClass})
                 </span>
               </p>
-              <p className="text-white/50 text-sm mt-2">{formatPersianDate()}</p>
+              <p className="text-white/50 text-sm mt-2">{persianDate}</p>
             </div>
             <div className="flex items-center gap-3">
               <button className="relative p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePersianDateString } from '@/lib/hooks/use-persian-date'
 import Link from 'next/link'
 import {
   Building2,
@@ -130,7 +131,7 @@ interface SchoolRow {
 }
 
 export default function AdminDashboardPage() {
-  const [currentTime] = useState(new Date())
+  const persianDate = usePersianDateString()
   const [schools, setSchools] = useState<SchoolRow[]>(mockSchools)
   const [overview, setOverview] = useState({
     students: 0,
@@ -170,16 +171,6 @@ export default function AdminDashboardPage() {
       })
       .catch(() => {})
   }, [])
-
-  // فرمت تاریخ شمسی
-  const formatPersianDate = () => {
-    return new Intl.DateTimeFormat('fa-IR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }).format(currentTime)
-  }
 
   // آمار کلی
   const totalStudents =
@@ -262,7 +253,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-8">
         <header className="space-y-1">
-          <p className="text-sm text-muted-foreground">{formatPersianDate()}</p>
+          <p className="text-sm text-muted-foreground">{persianDate}</p>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">مرکز فرمان پلتفرم</h1>
           <p className="text-muted-foreground text-sm md:text-base max-w-2xl">
             نظارت حرفه‌ای بر مدارس، کاربران و زیرساخت هوش مصنوعی — {adminName}
@@ -620,7 +611,7 @@ export default function AdminDashboardPage() {
         {/* ==================== Footer ==================== */}
         <footer className="text-center text-muted-foreground text-sm py-4">
           <p>پنل مدیریت پلتفرم هوشاگر</p>
-          <p className="text-xs mt-1">نسخه ۱.۰.۰ | آخرین بروزرسانی: {formatPersianDate()}</p>
+          <p className="text-xs mt-1">نسخه ۱.۰.۰ | آخرین بروزرسانی: {persianDate}</p>
         </footer>
     </div>
   )

@@ -609,7 +609,9 @@ export default function OralQuestionsPage() {
               { step: 1, label: 'انتخاب متن', icon: FileText },
               { step: 2, label: 'تنظیمات تولید', icon: Target },
               { step: 3, label: 'سوالات تولید شده', icon: HelpCircle },
-            ].map((item, index) => (
+            ].map((item, index) => {
+              const StepIcon = item.icon
+              return (
               <div key={item.step} className="flex items-center flex-1">
                 <button
                   onClick={() => setCurrentStep(item.step)}
@@ -635,7 +637,7 @@ export default function OralQuestionsPage() {
                     {currentStep > item.step ? (
                       <Check className="w-4 h-4" />
                     ) : (
-                      <item.icon className="w-4 h-4" />
+                      <StepIcon className="w-4 h-4" />
                     )}
                   </div>
                   <span className="font-medium hidden sm:inline">{item.label}</span>
@@ -651,7 +653,7 @@ export default function OralQuestionsPage() {
                   </div>
                 )}
               </div>
-            ))}
+            )})}
           </div>
         </div>
 

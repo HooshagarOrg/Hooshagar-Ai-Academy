@@ -39,7 +39,7 @@ export function HooshagarLogo({
     <div className={cn('inline-flex items-center gap-2.5 min-w-0 group', className)}>
       <span
         className={cn(
-          'relative flex-shrink-0 rounded-2xl overflow-hidden',
+          'relative flex-shrink-0 rounded-2xl overflow-hidden bg-background',
           'ring-1 ring-white/10 shadow-glass transition-transform duration-200 group-hover:scale-[1.02]',
           size === 'hero' && 'shadow-lg shadow-brand-pink/30 glow-pink',
         )}
@@ -106,7 +106,7 @@ export function HooshagarMark({
   return (
     <span
       className={cn(
-        'relative inline-flex flex-shrink-0 rounded-2xl overflow-hidden ring-1 ring-white/10',
+        'relative inline-flex flex-shrink-0 rounded-2xl overflow-hidden bg-background ring-1 ring-white/10',
         className,
       )}
       style={{ width: size, height: size }}

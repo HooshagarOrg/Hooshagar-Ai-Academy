@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePersianDateString } from '@/lib/hooks/use-persian-date'
 import Link from 'next/link'
 import {
   Users,
@@ -96,7 +97,7 @@ const mockExams = [
 // کامپوننت اصلی
 // ============================================
 export default function TeacherDashboardPage() {
-  const [currentTime] = useState(new Date())
+  const persianDate = usePersianDateString()
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string>('')
@@ -126,16 +127,6 @@ export default function TeacherDashboardPage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  // فرمت تاریخ شمسی
-  const formatPersianDate = () => {
-    return new Intl.DateTimeFormat('fa-IR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }).format(currentTime)
   }
 
   // وضعیت حضور
@@ -237,7 +228,7 @@ export default function TeacherDashboardPage() {
   return (
     <div className="space-y-8">
         <header className="space-y-2">
-          <p className="text-sm text-muted-foreground">{formatPersianDate()}</p>
+          <p className="text-sm text-muted-foreground">{persianDate}</p>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
             سلام، <span className="text-brand-cyan">{teacherName}</span>
           </h1>

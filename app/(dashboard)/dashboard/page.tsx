@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
+import { usePersianDateString } from '@/lib/hooks/use-persian-date'
 import {
   Users,
   BookOpen,
@@ -411,7 +412,7 @@ export default function DashboardPage() {
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [userName, setUserName] = useState<string>('کاربر')
   const [isLoading, setIsLoading] = useState(true)
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const persianDate = usePersianDateString()
 
   // Fetch user profile
   useEffect(() => {
@@ -469,22 +470,6 @@ export default function DashboardPage() {
     }
   }
 
-  // Update time every minute
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000)
-    return () => clearInterval(timer)
-  }, [])
-
-  // Format date in Persian
-  const formatPersianDate = () => {
-    return new Intl.DateTimeFormat('fa-IR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }).format(currentTime)
-  }
-
   // Loading state
   if (isLoading || !userRole) {
     return (
@@ -513,7 +498,7 @@ export default function DashboardPage() {
                 <span className="bg-white/20 px-3 py-1 rounded-full text-sm ml-2">
                   {getRoleDisplayName(userRole)}
                 </span>
-                {formatPersianDate()}
+                {persianDate}
               </p>
             </div>
             <div className="flex items-center gap-3">

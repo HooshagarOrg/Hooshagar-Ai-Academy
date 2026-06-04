@@ -3,6 +3,7 @@ import localFont from 'next/font/local'
 import './globals.css'
 import { Toaster } from 'sonner'
 import { CookieConsent } from '@/components/cookie-consent'
+import { ServiceWorkerRegister } from '@/components/service-worker-register'
 // TEMPORARY: Disabled reCAPTCHA due to React 18 compatibility issue
 // import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3'
 
@@ -65,9 +66,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="هوشاگر" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body className="font-sans antialiased min-h-app">
+      <body className="font-sans antialiased min-h-app" suppressHydrationWarning>
         {children}
         <CookieConsent />
+        <ServiceWorkerRegister />
         <Toaster
           position="top-center"
           richColors
@@ -77,13 +79,6 @@ export default function RootLayout({
             },
           }}
         />
-        <script dangerouslySetInnerHTML={{ __html: `
-          if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js').catch(function() {});
-            });
-          }
-        `}} />
       </body>
     </html>
   )

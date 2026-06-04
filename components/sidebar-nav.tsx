@@ -274,6 +274,7 @@ export function SidebarNav({ role }: SidebarNavProps) {
     <nav className="space-y-1" dir="rtl">
       {navItems.map((item) => {
         const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+        const Icon = item.icon
         return (
           <Link
             key={item.href}
@@ -285,7 +286,7 @@ export function SidebarNav({ role }: SidebarNavProps) {
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             )}
           >
-            <item.icon className="h-4 w-4" />
+            <Icon className="h-4 w-4" />
             <span>{item.title}</span>
           </Link>
         )

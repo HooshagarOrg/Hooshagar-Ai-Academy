@@ -29,6 +29,7 @@ import { ToolTile } from '@/components/ui/tool-tile'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { usePersianDateString } from '@/lib/hooks/use-persian-date'
 
 type RealGrade = {
   id: string
@@ -68,11 +69,7 @@ export default function StudentDashboardPage() {
   const [homework, setHomework] = useState<
     { id: string; subject: string; title: string; dueDate: string; done: boolean }[]
   >([])
-  const [currentTime, setCurrentTime] = useState<Date | null>(null)
-
-  useEffect(() => {
-    setCurrentTime(new Date())
-  }, [])
+  const persianDate = usePersianDateString()
   const [recentGrades, setRecentGrades] = useState<RealGrade[]>([])
   const [upcomingExams, setUpcomingExams] = useState<RealExam[]>([])
   const [profileName, setProfileName] = useState('')
@@ -124,14 +121,6 @@ export default function StudentDashboardPage() {
           recentGrades.reduce((sum, g) => sum + (g.score / g.max_score) * 20, 0) / recentGrades.length
         ).toFixed(1)
       : '—'
-
-  const formatPersianDate = (date: Date) =>
-    new Intl.DateTimeFormat('fa-IR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }).format(date)
 
   const levelProgress =
     xpData.xp_progress.needed > 0
@@ -188,7 +177,7 @@ export default function StudentDashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        meta={currentTime ? formatPersianDate(currentTime) : '\u00a0'}
+        meta={persianDate}
         title={
           <>
             سلام، <span className="gradient-text">{profileName || 'دانش‌آموز'}</span>

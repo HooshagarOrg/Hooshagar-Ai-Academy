@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/ui/page-header'
+import { GlassCard } from '@/components/ui/glass-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -48,28 +49,28 @@ interface UserData {
 }
 
 const ROLES = [
-  { value: 'platform_admin', label: 'ادمین کل پلتفرم', color: 'bg-red-100 text-red-700', icon: Shield },
-  { value: 'admin', label: 'مدیر سیستم', color: 'bg-orange-100 text-orange-700', icon: Shield },
-  { value: 'principal', label: 'مدیر مدرسه', color: 'bg-purple-100 text-purple-700', icon: Briefcase },
-  { value: 'teacher', label: 'معلم', color: 'bg-blue-100 text-blue-700', icon: GraduationCap },
-  { value: 'counselor', label: 'مشاور', color: 'bg-teal-100 text-teal-700', icon: Heart },
-  { value: 'parent', label: 'والد', color: 'bg-green-100 text-green-700', icon: Users },
-  { value: 'student', label: 'دانش‌آموز', color: 'bg-yellow-100 text-yellow-700', icon: GraduationCap },
-  { value: 'health_vp', label: 'معاون بهداشت', color: 'bg-pink-100 text-pink-700', icon: Heart },
-  { value: 'educational_vp', label: 'معاون آموزشی', color: 'bg-indigo-100 text-indigo-700', icon: Briefcase },
-  { value: 'financial_vp', label: 'معاون مالی', color: 'bg-emerald-100 text-emerald-700', icon: Briefcase },
-  { value: 'disciplinary_vp', label: 'معاون انضباطی', color: 'bg-red-100 text-red-600', icon: Shield },
-  { value: 'evaluation_vp', label: 'معاون ارزیابی', color: 'bg-cyan-100 text-cyan-700', icon: Briefcase },
-  { value: 'art_teacher', label: 'معلم هنر', color: 'bg-fuchsia-100 text-fuchsia-700', icon: GraduationCap },
-  { value: 'sports_teacher', label: 'معلم ورزش', color: 'bg-lime-100 text-lime-700', icon: GraduationCap },
-  { value: 'secretary', label: 'منشی', color: 'bg-gray-100 text-gray-700', icon: Briefcase },
-  { value: 'librarian', label: 'کتابدار', color: 'bg-amber-100 text-amber-700', icon: Briefcase },
-  { value: 'security', label: 'حراست', color: 'bg-stone-100 text-stone-700', icon: Shield },
-  { value: 'maintenance', label: 'تأسیسات', color: 'bg-zinc-100 text-zinc-700', icon: Briefcase },
+  { value: 'platform_admin', label: 'ادمین کل پلتفرم', color: 'bg-red-500/15 text-red-300', icon: Shield },
+  { value: 'admin', label: 'مدیر سیستم', color: 'bg-orange-500/15 text-orange-300', icon: Shield },
+  { value: 'principal', label: 'مدیر مدرسه', color: 'bg-brand-purple/15 text-brand-purple', icon: Briefcase },
+  { value: 'teacher', label: 'معلم', color: 'bg-brand-cyan/15 text-brand-cyan', icon: GraduationCap },
+  { value: 'counselor', label: 'مشاور', color: 'bg-teal-500/15 text-teal-300', icon: Heart },
+  { value: 'parent', label: 'والد', color: 'bg-brand-green/15 text-brand-green', icon: Users },
+  { value: 'student', label: 'دانش‌آموز', color: 'bg-brand-yellow/15 text-brand-yellow', icon: GraduationCap },
+  { value: 'health_vp', label: 'معاون بهداشت', color: 'bg-brand-pink/15 text-brand-pink', icon: Heart },
+  { value: 'educational_vp', label: 'معاون آموزشی', color: 'bg-indigo-500/15 text-indigo-300', icon: Briefcase },
+  { value: 'financial_vp', label: 'معاون مالی', color: 'bg-emerald-500/15 text-emerald-300', icon: Briefcase },
+  { value: 'disciplinary_vp', label: 'معاون انضباطی', color: 'bg-red-500/15 text-red-300', icon: Shield },
+  { value: 'evaluation_vp', label: 'معاون ارزیابی', color: 'bg-cyan-500/15 text-cyan-300', icon: Briefcase },
+  { value: 'art_teacher', label: 'معلم هنر', color: 'bg-fuchsia-500/15 text-fuchsia-300', icon: GraduationCap },
+  { value: 'sports_teacher', label: 'معلم ورزش', color: 'bg-lime-500/15 text-lime-300', icon: GraduationCap },
+  { value: 'secretary', label: 'منشی', color: 'bg-white/10 text-muted-foreground', icon: Briefcase },
+  { value: 'librarian', label: 'کتابدار', color: 'bg-amber-500/15 text-amber-300', icon: Briefcase },
+  { value: 'security', label: 'حراست', color: 'bg-stone-500/15 text-stone-300', icon: Shield },
+  { value: 'maintenance', label: 'تأسیسات', color: 'bg-zinc-500/15 text-zinc-300', icon: Briefcase },
 ]
 
 const getRoleConfig = (role: string) =>
-  ROLES.find(r => r.value === role) || { label: role, color: 'bg-gray-100 text-gray-600', icon: Users }
+  ROLES.find(r => r.value === role) || { label: role, color: 'bg-white/10 text-muted-foreground', icon: Users }
 
 // ============================================
 // صفحه اصلی
@@ -202,14 +203,14 @@ export default function AdminUsersPage() {
         title="مدیریت کاربران"
         description={`${users.length} کاربر در سیستم`}
         icon={Users}
-        iconColor="text-blue-600"
-        iconBg="bg-blue-50"
+        iconColor="text-brand-cyan"
+        iconBg="bg-brand-cyan/15 border border-brand-cyan/20"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={fetchUsers}>
               <RefreshCw className="w-4 h-4" />
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 gap-2" onClick={openCreate}>
+            <Button className="bg-brand-cyan hover:opacity-90 text-space gap-2" onClick={openCreate}>
               <Plus className="w-4 h-4" />
               کاربر جدید
             </Button>
@@ -226,17 +227,17 @@ export default function AdminUsersPage() {
               key={r.value}
               onClick={() => setRoleFilter(r.value)}
               className={cn(
-                'p-3 rounded-2xl border text-right transition-all',
+                'p-3 rounded-2xl border text-right transition-all cursor-pointer',
                 roleFilter === r.value
-                  ? 'border-blue-300 bg-blue-50 shadow-sm'
-                  : 'border-gray-100 bg-white hover:border-gray-300'
+                  ? 'border-brand-cyan/40 bg-brand-cyan/10'
+                  : 'glass-panel-quiet hover:border-white/[0.12]'
               )}
             >
               <div className="flex items-center justify-between">
-                <Icon className="w-4 h-4 text-gray-400" />
-                <span className="text-xl font-bold text-gray-700">{stats[r.value] || 0}</span>
+                <Icon className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xl font-bold tabular-nums">{stats[r.value] || 0}</span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">{r.label}</p>
+              <p className="text-xs text-muted-foreground mt-1">{r.label}</p>
             </button>
           )
         })}
@@ -245,7 +246,7 @@ export default function AdminUsersPage() {
       {/* جستجو */}
       <div className="flex gap-3 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="جستجو در نام، ایمیل یا نام کاربری..."
             value={search}
@@ -270,7 +271,7 @@ export default function AdminUsersPage() {
       {/* لیست کاربران */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-brand-cyan" />
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
@@ -279,33 +280,31 @@ export default function AdminUsersPage() {
           description="با فیلتر فعلی هیچ کاربری وجود ندارد"
         />
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="divide-y divide-gray-50">
+        <GlassCard className="overflow-hidden p-0">
+          <div className="divide-y divide-white/[0.06]">
             {filtered.map(user => {
               const roleCfg = getRoleConfig(user.role)
               const RoleIcon = roleCfg.icon
               return (
-                <div key={user.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                  {/* آواتار */}
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-bold text-gray-600">
+                <div key={user.id} className="flex items-center gap-3 px-5 py-3 hover:bg-white/[0.03] transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-cyan/30 to-brand-purple/30 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-foreground">
                       {user.full_name?.charAt(0) || '?'}
                     </span>
                   </div>
 
-                  {/* اطلاعات */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-gray-900 text-sm">{user.full_name || 'بدون نام'}</p>
-                      <Badge className={cn('text-xs gap-1', roleCfg.color)}>
+                      <p className="font-medium text-sm">{user.full_name || 'بدون نام'}</p>
+                      <Badge className={cn('text-xs gap-1 border-0', roleCfg.color)}>
                         <RoleIcon className="w-3 h-3" />
                         {roleCfg.label}
                       </Badge>
                       {user.must_change_password && (
-                        <Badge className="text-xs bg-amber-100 text-amber-700">رمز موقت</Badge>
+                        <Badge className="text-xs bg-amber-500/15 text-amber-300 border-0">رمز موقت</Badge>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-500">
+                    <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
                       {user.email && (
                         <span className="flex items-center gap-1">
                           <Mail className="w-3 h-3" />{user.email}
@@ -325,7 +324,7 @@ export default function AdminUsersPage() {
                   </div>
 
                   {/* تاریخ */}
-                  <div className="text-xs text-gray-400 hidden md:block">
+                  <div className="text-xs text-muted-foreground hidden md:block">
                     <p>عضویت: {formatDate(user.created_at)}</p>
                     {user.last_login_at && <p>آخرین ورود: {formatDate(user.last_login_at)}</p>}
                   </div>
@@ -356,7 +355,7 @@ export default function AdminUsersPage() {
               )
             })}
           </div>
-        </div>
+        </GlassCard>
       )}
 
       {/* دیالوگ ساخت کاربر */}

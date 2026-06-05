@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/ui/page-header'
+import { GlassCard } from '@/components/ui/glass-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
@@ -153,12 +154,12 @@ export default function AdminSchoolsPage() {
         title="مدیریت مدارس"
         description={`${schools.length} مدرسه ثبت شده`}
         icon={Building}
-        iconColor="text-purple-600"
-        iconBg="bg-purple-50"
+        iconColor="text-brand-purple"
+        iconBg="bg-brand-purple/15 border border-brand-purple/20"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={fetchSchools}><RefreshCw className="w-4 h-4" /></Button>
-            <Button className="bg-purple-600 hover:bg-purple-700 gap-2" onClick={openCreate}>
+            <Button className="bg-brand-purple hover:opacity-90 text-space gap-2" onClick={openCreate}>
               <Plus className="w-4 h-4" />
               مدرسه جدید
             </Button>
@@ -167,7 +168,7 @@ export default function AdminSchoolsPage() {
       />
 
       <div className="relative mb-6">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="جستجو در نام یا کد مدرسه..."
           value={search}
@@ -178,7 +179,7 @@ export default function AdminSchoolsPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
@@ -186,7 +187,7 @@ export default function AdminSchoolsPage() {
           title="مدرسه‌ای ثبت نشده"
           description="اولین مدرسه را ایجاد کنید"
           action={
-            <Button className="bg-purple-600 hover:bg-purple-700 gap-2" onClick={openCreate}>
+            <Button className="bg-brand-purple hover:opacity-90 text-space gap-2" onClick={openCreate}>
               <Plus className="w-4 h-4" />
               ایجاد مدرسه
             </Button>
@@ -195,10 +196,10 @@ export default function AdminSchoolsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(school => (
-            <div key={school.id} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-all">
+            <GlassCard key={school.id} hover className="p-5">
               <div className="flex items-start justify-between mb-3">
-                <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center">
-                  <Building className="w-6 h-6 text-purple-600" />
+                <div className="w-12 h-12 rounded-xl bg-brand-purple/15 border border-brand-purple/20 flex items-center justify-center">
+                  <Building className="w-6 h-6 text-brand-purple" />
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -219,9 +220,9 @@ export default function AdminSchoolsPage() {
                 </DropdownMenu>
               </div>
 
-              <h3 className="font-bold text-gray-900 mb-2">{school.name}</h3>
+              <h3 className="font-bold mb-2">{school.name}</h3>
 
-              <div className="space-y-1.5 text-sm text-gray-500">
+              <div className="space-y-1.5 text-sm text-muted-foreground">
                 {school.code && (
                   <div className="flex items-center gap-2">
                     <Hash className="w-3.5 h-3.5" />
@@ -249,11 +250,11 @@ export default function AdminSchoolsPage() {
               </div>
 
               {school.type && (
-                <Badge className="mt-3 text-xs bg-purple-100 text-purple-700">
+                <Badge className="mt-3 text-xs bg-brand-purple/15 text-brand-purple border-0">
                   {TYPES.find(t => t.value === school.type)?.label}
                 </Badge>
               )}
-            </div>
+            </GlassCard>
           ))}
         </div>
       )}

@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/ui/page-header'
+import { GlassCard } from '@/components/ui/glass-card'
+import { StatCard } from '@/components/ui/stat-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
   DropdownMenu,
@@ -51,10 +53,10 @@ interface Exam {
 }
 
 const STATUS_CONFIG = {
-  draft: { label: 'پیش‌نویس', color: 'bg-gray-100 text-gray-600', icon: Edit },
-  published: { label: 'منتشر شده', color: 'bg-blue-100 text-blue-700', icon: Send },
-  active: { label: 'در حال برگزاری', color: 'bg-green-100 text-green-700', icon: PlayCircle },
-  closed: { label: 'پایان یافته', color: 'bg-red-100 text-red-600', icon: Lock },
+  draft: { label: 'پیش‌نویس', color: 'bg-white/10 text-muted-foreground', icon: Edit },
+  published: { label: 'منتشر شده', color: 'bg-brand-cyan/15 text-brand-cyan', icon: Send },
+  active: { label: 'در حال برگزاری', color: 'bg-brand-green/15 text-brand-green', icon: PlayCircle },
+  closed: { label: 'پایان یافته', color: 'bg-destructive/15 text-destructive', icon: Lock },
 }
 
 // ============================================
@@ -141,8 +143,8 @@ export default function TeacherExamsPage() {
         title="آزمون‌های من"
         description="مدیریت و برگزاری آزمون‌های آنلاین"
         icon={ClipboardList}
-        iconColor="text-indigo-600"
-        iconBg="bg-indigo-50"
+        iconColor="text-brand-purple"
+        iconBg="bg-brand-purple/15 border border-brand-purple/20"
         actions={
           <div className="flex gap-2">
             <Link href="/teacher/exams/upload">
@@ -152,7 +154,7 @@ export default function TeacherExamsPage() {
               </Button>
             </Link>
             <Link href="/teacher/exams/create">
-              <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2">
+              <Button className="bg-brand-purple hover:opacity-90 text-space gap-2">
                 <Plus className="w-4 h-4" />
                 آزمون جدید
               </Button>
@@ -163,23 +165,16 @@ export default function TeacherExamsPage() {
 
       {/* آمار */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: 'کل آزمون‌ها', value: stats.total, color: 'text-gray-700', bg: 'bg-gray-50' },
-          { label: 'فعال / منتشر', value: stats.active, color: 'text-blue-700', bg: 'bg-blue-50' },
-          { label: 'پایان یافته', value: stats.closed, color: 'text-purple-700', bg: 'bg-purple-50' },
-          { label: 'کل شرکت‌کنندگان', value: stats.submissions, color: 'text-green-700', bg: 'bg-green-50' },
-        ].map((s, i) => (
-          <div key={i} className={`${s.bg} rounded-2xl p-4`}>
-            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
-          </div>
-        ))}
+        <StatCard label="کل آزمون‌ها" value={stats.total} accentClass="text-brand-cyan" />
+        <StatCard label="فعال / منتشر" value={stats.active} accentClass="text-brand-green" />
+        <StatCard label="پایان یافته" value={stats.closed} accentClass="text-brand-purple" />
+        <StatCard label="کل شرکت‌کنندگان" value={stats.submissions} accentClass="text-brand-yellow" />
       </div>
 
       {/* جستجو و فیلتر */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="جستجو در آزمون‌ها..."
             value={search}
@@ -211,14 +206,14 @@ export default function TeacherExamsPage() {
       {/* لیست آزمون‌ها */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
         </div>
       ) : error ? (
-        <div className="bg-red-50 rounded-2xl p-6 text-center border border-red-100">
-          <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-          <p className="text-red-600 font-medium">{error}</p>
+        <GlassCard className="p-6 text-center border-destructive/30">
+          <AlertCircle className="w-8 h-8 text-destructive mx-auto mb-2" />
+          <p className="text-destructive font-medium">{error}</p>
           <Button variant="outline" size="sm" className="mt-3" onClick={fetchExams}>تلاش مجدد</Button>
-        </div>
+        </GlassCard>
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
@@ -226,7 +221,7 @@ export default function TeacherExamsPage() {
           description="اولین آزمون خود را ایجاد کنید"
           action={
             <Link href="/teacher/exams/create">
-              <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2">
+              <Button className="bg-brand-purple hover:opacity-90 text-space gap-2">
                 <Plus className="w-4 h-4" />
                 ایجاد آزمون
               </Button>
@@ -240,24 +235,22 @@ export default function TeacherExamsPage() {
             const StatusIcon = statusCfg.icon
 
             return (
-              <div key={exam.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all p-5">
+              <GlassCard key={exam.id} hover className="p-5">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  {/* آیکون */}
-                  <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                    <ClipboardList className="w-6 h-6 text-indigo-600" />
+                  <div className="w-12 h-12 rounded-xl bg-brand-purple/15 border border-brand-purple/20 flex items-center justify-center flex-shrink-0">
+                    <ClipboardList className="w-6 h-6 text-brand-purple" />
                   </div>
 
-                  {/* اطلاعات */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <h3 className="font-bold text-gray-900 text-base">{exam.title}</h3>
-                      <Badge className={cn('text-xs gap-1', statusCfg.color)}>
+                      <h3 className="font-bold text-base">{exam.title}</h3>
+                      <Badge className={cn('text-xs gap-1 border-0', statusCfg.color)}>
                         <StatusIcon className="w-3 h-3" />
                         {statusCfg.label}
                       </Badge>
                     </div>
 
-                    <div className="flex flex-wrap gap-3 text-sm text-gray-500">
+                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <BookOpen className="w-3.5 h-3.5" />
                         {exam.subject} - پایه {exam.grade}
@@ -361,7 +354,7 @@ export default function TeacherExamsPage() {
                     </DropdownMenu>
                   </div>
                 </div>
-              </div>
+              </GlassCard>
             )
           })}
         </div>

@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
 import { usePersianDateString } from '@/lib/hooks/use-persian-date'
+import { DashboardPage as PremiumDashboardLayout } from '@/components/layout/dashboard-page'
+import { StatCard } from '@/components/ui/stat-card'
+import { GlassCard } from '@/components/ui/glass-card'
+import { getRoleExperienceLabel } from '@/lib/ui/role-tone'
+import { cn } from '@/lib/utils'
 import {
   Users,
   BookOpen,
@@ -23,8 +28,8 @@ import {
   Music,
   Brain,
   Sparkles,
-  TrendingUp,
   Bell,
+  TrendingUp,
   Lightbulb,
   Target,
   Award,
@@ -408,6 +413,25 @@ const getRoleDisplayName = (role: UserRole): string => {
   return names[role] || role
 }
 
+const roleAccentClass: Partial<Record<UserRole, string>> = {
+  student: 'text-brand-cyan',
+  parent: 'text-brand-green',
+  counselor: 'text-brand-pink',
+  teacher: 'text-brand-cyan',
+  admin: 'text-brand-cyan',
+  platform_admin: 'text-brand-cyan',
+  principal: 'text-brand-purple',
+  financial_vp: 'text-brand-orange',
+  health_vp: 'text-brand-pink',
+  disciplinary_vp: 'text-brand-orange',
+  educational_vp: 'text-brand-purple',
+  evaluation_vp: 'text-brand-yellow',
+}
+
+function getRoleAccent(role: UserRole) {
+  return roleAccentClass[role] || 'text-brand-cyan'
+}
+
 export default function DashboardPage() {
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [userName, setUserName] = useState<string>('کاربر')
@@ -473,92 +497,79 @@ export default function DashboardPage() {
   // Loading state
   if (isLoading || !userRole) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 flex items-center justify-center" dir="rtl">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
-          <p className="text-white text-lg">در حال بارگذاری...</p>
+      <div className="flex items-center justify-center py-24" dir="rtl">
+        <div className="text-center glass-panel-quiet p-8">
+          <Loader2 className="w-10 h-10 text-brand-cyan animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">در حال بارگذاری...</p>
         </div>
       </div>
     )
   }
 
   const config = roleConfigs[userRole]
+  const accent = getRoleAccent(userRole)
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${config.gradient} p-4 md:p-6 lg:p-8`} dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                سلام، {userName} 👋
-              </h1>
-              <p className="text-white/70">
-                <span className="bg-white/20 px-3 py-1 rounded-full text-sm ml-2">
-                  {getRoleDisplayName(userRole)}
-                </span>
-                {persianDate}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="relative p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
-                <Bell className="w-5 h-5 text-white" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  3
-                </span>
-              </button>
-              <Link
-                href="/test-session"
-                className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <Settings className="w-5 h-5 text-white" />
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="p-3 bg-red-500/20 rounded-xl hover:bg-red-500/30 transition-all group"
-                title="خروج"
-              >
-                <LogOut className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Page Title */}
-        <div className="mb-6">
-          <h2 className="text-xl md:text-2xl font-bold text-white">{config.title}</h2>
-          <p className="text-white/60">{config.subtitle}</p>
+    <PremiumDashboardLayout
+      meta={persianDate}
+      title={
+        <>
+          سلام، <span className={accent}>{userName}</span>
+        </>
+      }
+      description={`${getRoleDisplayName(userRole)} · ${getRoleExperienceLabel(userRole)} — ${config.subtitle}`}
+      actions={
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="relative p-3 rounded-xl glass-panel-quiet hover:border-white/[0.12] transition-colors cursor-pointer"
+            aria-label="اعلان‌ها"
+          >
+            <Bell className="w-5 h-5 text-foreground" />
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+              3
+            </span>
+          </button>
+          <Link
+            href="/test-session"
+            className="p-3 rounded-xl glass-panel-quiet hover:border-white/[0.12] transition-colors"
+            aria-label="تنظیمات"
+          >
+            <Settings className="w-5 h-5 text-foreground" />
+          </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="p-3 rounded-xl bg-destructive/15 border border-destructive/25 hover:bg-destructive/25 transition-colors group cursor-pointer"
+            title="خروج"
+          >
+            <LogOut className="w-5 h-5 text-destructive group-hover:scale-110 transition-transform" />
+          </button>
+        </div>
+      }
+      animatedSections={false}
+    >
+        <div>
+          <h2 className="text-lg font-semibold mb-1">{config.title}</h2>
+          <p className="text-sm text-muted-foreground">{config.subtitle}</p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {config.stats.map((stat, index) => (
-            <div
+            <StatCard
               key={index}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all hover:scale-[1.02] group"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`${stat.color} p-3 rounded-xl shadow-lg`}>
-                  {stat.icon}
-                </div>
-                {stat.trend && (
-                  <span className="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    {stat.trend}
-                  </span>
-                )}
-              </div>
-              <p className="text-white/60 text-sm mb-1">{stat.label}</p>
-              <p className="text-white text-2xl md:text-3xl font-bold">{stat.value}</p>
-            </div>
+              label={stat.label}
+              value={stat.value}
+              hint={stat.trend ? `روند: ${stat.trend}` : undefined}
+              icon={stat.icon}
+              accentClass={accent}
+            />
           ))}
         </div>
 
-        {/* Quick Links */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-yellow-400" />
+        <div>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-brand-yellow" />
             دسترسی سریع
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -566,69 +577,66 @@ export default function DashboardPage() {
               <Link
                 key={index}
                 href={link.enabled ? link.href : '#'}
-                className={`bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/20 transition-all group
-                  ${link.enabled 
-                    ? 'hover:bg-white/20 hover:scale-[1.02] cursor-pointer' 
-                    : 'opacity-50 cursor-not-allowed'
-                  }`}
+                className={cn('block', !link.enabled && 'pointer-events-none')}
                 onClick={(e) => !link.enabled && e.preventDefault()}
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`${link.color} p-2.5 rounded-xl shadow-lg group-hover:scale-110 transition-transform`}>
-                    {link.icon}
+                <GlassCard
+                  hover={link.enabled}
+                  className={cn('p-5 h-full', !link.enabled && 'opacity-50')}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={cn(`${link.color} p-2.5 rounded-xl text-white`, link.enabled && 'group-hover:scale-110 transition-transform')}>
+                      {link.icon}
+                    </div>
+                    {link.enabled && (
+                      <ChevronLeft className="w-4 h-4 text-muted-foreground mr-auto" />
+                    )}
                   </div>
-                  {link.enabled && (
-                    <ChevronLeft className="w-4 h-4 text-white/40 mr-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <p className="font-medium text-sm">{link.label}</p>
+                  {!link.enabled && (
+                    <p className="text-muted-foreground text-xs mt-1">به زودی...</p>
                   )}
-                </div>
-                <p className="text-white font-medium">{link.label}</p>
-                {!link.enabled && (
-                  <p className="text-white/40 text-xs mt-1">به زودی...</p>
-                )}
+                </GlassCard>
               </Link>
             ))}
           </div>
         </div>
 
-        {/* AI Features Highlight (for roles that have access) */}
         {['teacher', 'student', 'counselor', 'principal'].includes(userRole) && (
-          <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 mb-8">
+          <GlassCard className="p-6 border-brand-purple/25 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-pink/10">
             <div className="flex items-center gap-3 mb-4">
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl">
+              <div className="bg-gradient-to-r from-brand-purple to-brand-pink p-3 rounded-xl">
                 <Brain className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">ابزارهای هوشمند AI</h3>
-                <p className="text-white/60 text-sm">قدرت هوش مصنوعی در اختیار شما</p>
+                <h3 className="text-lg font-bold">ابزارهای هوشمند AI</h3>
+                <p className="text-muted-foreground text-sm">قدرت هوش مصنوعی در اختیار شما</p>
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Link href="/test-ocr" className="bg-white/10 rounded-xl p-3 text-center hover:bg-white/20 transition-all">
-                <Lightbulb className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-                <p className="text-white text-sm font-medium">حل مسئله</p>
-              </Link>
-              <Link href="/test-story" className="bg-white/10 rounded-xl p-3 text-center hover:bg-white/20 transition-all">
-                <Sparkles className="w-8 h-8 text-pink-400 mx-auto mb-2" />
-                <p className="text-white text-sm font-medium">داستان‌ساز</p>
-              </Link>
-              <Link href="/test-study-buddy" className="bg-white/10 rounded-xl p-3 text-center hover:bg-white/20 transition-all">
-                <Brain className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                <p className="text-white text-sm font-medium">دستیار مطالعه</p>
-              </Link>
-              <Link href="/test-students-list" className="bg-white/10 rounded-xl p-3 text-center hover:bg-white/20 transition-all">
-                <BarChart3 className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                <p className="text-white text-sm font-medium">تحلیل دانش‌آموز</p>
-              </Link>
+              {[
+                { href: '/test-ocr', label: 'حل مسئله', icon: <Lightbulb className="w-8 h-8 text-brand-yellow mx-auto mb-2" /> },
+                { href: '/test-story', label: 'داستان‌ساز', icon: <Sparkles className="w-8 h-8 text-brand-pink mx-auto mb-2" /> },
+                { href: '/test-study-buddy', label: 'دستیار مطالعه', icon: <Brain className="w-8 h-8 text-brand-purple mx-auto mb-2" /> },
+                { href: '/test-students-list', label: 'تحلیل دانش‌آموز', icon: <BarChart3 className="w-8 h-8 text-brand-cyan mx-auto mb-2" /> },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="glass-panel-quiet rounded-xl p-3 text-center hover:border-white/[0.12] transition-colors"
+                >
+                  {item.icon}
+                  <p className="text-sm font-medium">{item.label}</p>
+                </Link>
+              ))}
             </div>
-          </div>
+          </GlassCard>
         )}
 
-        {/* Footer */}
-        <footer className="text-center text-white/40 text-sm py-4">
+        <footer className="text-center text-muted-foreground text-sm py-4">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </PremiumDashboardLayout>
   )
 }

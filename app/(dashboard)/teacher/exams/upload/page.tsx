@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PageHeader } from '@/components/ui/page-header'
+import { GlassCard } from '@/components/ui/glass-card'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
@@ -44,9 +45,9 @@ const QUESTION_TYPE_LABELS = {
 }
 
 const DIFFICULTY_CONFIG = {
-  easy: { label: 'آسان', color: 'bg-green-100 text-green-700' },
-  medium: { label: 'متوسط', color: 'bg-yellow-100 text-yellow-700' },
-  hard: { label: 'سخت', color: 'bg-red-100 text-red-600' },
+  easy: { label: 'آسان', color: 'bg-brand-green/15 text-brand-green' },
+  medium: { label: 'متوسط', color: 'bg-brand-yellow/15 text-brand-yellow' },
+  hard: { label: 'سخت', color: 'bg-destructive/15 text-destructive' },
 }
 
 const SUBJECTS = [
@@ -222,8 +223,8 @@ export default function ExamUploadPage() {
         title="آپلود آزمون از PDF/عکس"
         description="سوالات را از برگه آزمون استخراج کنید"
         icon={Upload}
-        iconColor="text-purple-600"
-        iconBg="bg-purple-50"
+        iconColor="text-brand-purple"
+        iconBg="bg-brand-purple/15 border border-brand-purple/20"
         actions={
           step !== 'upload' && (
             <Button variant="outline" onClick={() => setStep('upload')}>
@@ -244,16 +245,16 @@ export default function ExamUploadPage() {
           <div key={s.key} className="flex items-center gap-3 flex-1">
             <div className={cn(
               'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all flex-1',
-              step === s.key ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500'
+              step === s.key ? 'bg-brand-purple text-white' : 'glass-panel-quiet text-muted-foreground'
             )}>
               <span className={cn(
                 'w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold',
-                step === s.key ? 'bg-white text-purple-600' : 'bg-gray-200 text-gray-400'
+                step === s.key ? 'bg-white text-brand-purple' : 'bg-white/10 text-muted-foreground'
               )}>{s.num}</span>
               <span className="hidden sm:inline">{s.label}</span>
             </div>
             {i < arr.length - 1 && (
-              <div className="w-6 h-0.5 bg-gray-200 flex-shrink-0" />
+              <div className="w-6 h-0.5 bg-white/10 flex-shrink-0" />
             )}
           </div>
         ))}
@@ -263,8 +264,8 @@ export default function ExamUploadPage() {
       {step === 'upload' && (
         <div className="max-w-2xl mx-auto space-y-6">
           {/* تنظیمات */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            <h3 className="font-bold text-gray-800 mb-4">اطلاعات آزمون</h3>
+          <GlassCard className="p-5">
+            <h3 className="font-bold mb-4">اطلاعات آزمون</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>درس</Label>
@@ -293,14 +294,14 @@ export default function ExamUploadPage() {
                 </Select>
               </div>
             </div>
-          </div>
+          </GlassCard>
 
           {/* ناحیه آپلود */}
           <div
             className={cn(
               'border-2 border-dashed rounded-2xl p-10 text-center transition-all cursor-pointer',
-              isDragging ? 'border-purple-400 bg-purple-50' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/30',
-              file ? 'border-green-300 bg-green-50' : ''
+              isDragging ? 'border-brand-purple/50 bg-brand-purple/10' : 'border-white/15 hover:border-brand-purple/40 hover:bg-brand-purple/5',
+              file ? 'border-brand-green/40 bg-brand-green/10' : ''
             )}
             onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
             onDragLeave={() => setIsDragging(false)}
@@ -318,8 +319,8 @@ export default function ExamUploadPage() {
             {file ? (
               <div className="space-y-2">
                 <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
-                <p className="font-bold text-green-700">{file.name}</p>
-                <p className="text-sm text-gray-500">{(file.size / 1024).toFixed(0)} KB</p>
+                <p className="font-bold text-brand-green">{file.name}</p>
+                <p className="text-sm text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</p>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -333,17 +334,17 @@ export default function ExamUploadPage() {
             ) : (
               <div className="space-y-3">
                 <div className="flex justify-center gap-3">
-                  <FileText className="w-10 h-10 text-gray-300" />
-                  <Image className="w-10 h-10 text-gray-300" />
+                  <FileText className="w-10 h-10 text-muted-foreground" />
+                  <Image className="w-10 h-10 text-muted-foreground" />
                 </div>
-                <p className="text-lg font-medium text-gray-600">فایل را اینجا رها کنید</p>
-                <p className="text-sm text-gray-400">یا کلیک کنید تا فایل انتخاب کنید</p>
+                <p className="text-lg font-medium">فایل را اینجا رها کنید</p>
+                <p className="text-sm text-muted-foreground">یا کلیک کنید تا فایل انتخاب کنید</p>
                 <div className="flex justify-center gap-2">
                   {['PDF', 'JPEG', 'PNG', 'WebP'].map(f => (
                     <Badge key={f} variant="outline" className="text-xs">{f}</Badge>
                   ))}
                 </div>
-                <p className="text-xs text-gray-400">حداکثر ۱۰ مگابایت</p>
+                <p className="text-xs text-muted-foreground">حداکثر ۱۰ مگابایت</p>
               </div>
             )}
           </div>
@@ -352,7 +353,7 @@ export default function ExamUploadPage() {
           <Button
             onClick={handleExtract}
             disabled={!file || isExtracting}
-            className="w-full bg-purple-600 hover:bg-purple-700 gap-2 py-6 text-base"
+            className="w-full bg-brand-purple hover:opacity-90 text-space gap-2 py-6 text-base"
           >
             {isExtracting ? (
               <>
@@ -368,10 +369,10 @@ export default function ExamUploadPage() {
           </Button>
 
           {isExtracting && (
-            <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-100">
-              <p className="text-purple-700 text-sm font-medium">هوش مصنوعی در حال پردازش تصویر...</p>
-              <p className="text-purple-500 text-xs mt-1">این عملیات ممکن است ۱۰ تا ۳۰ ثانیه طول بکشد</p>
-            </div>
+            <GlassCard quiet className="p-4 text-center border-brand-purple/25">
+              <p className="text-brand-purple text-sm font-medium">هوش مصنوعی در حال پردازش تصویر...</p>
+              <p className="text-muted-foreground text-xs mt-1">این عملیات ممکن است ۱۰ تا ۳۰ ثانیه طول بکشد</p>
+            </GlassCard>
           )}
         </div>
       )}
@@ -380,11 +381,11 @@ export default function ExamUploadPage() {
       {step === 'review' && (
         <div className="space-y-4">
           {/* خلاصه */}
-          <div className="bg-purple-50 rounded-2xl p-4 flex flex-wrap items-center gap-4 border border-purple-100">
-            <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0" />
+          <GlassCard className="p-4 flex flex-wrap items-center gap-4 border-brand-purple/25">
+            <Sparkles className="w-5 h-5 text-brand-purple flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-purple-800 font-bold">{questions.length} سوال استخراج شد</p>
-              <p className="text-purple-600 text-sm">زمان تخمینی: {estimatedTime} دقیقه</p>
+              <p className="font-bold">{questions.length} سوال استخراج شد</p>
+              <p className="text-muted-foreground text-sm">زمان تخمینی: {estimatedTime} دقیقه</p>
             </div>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={addBlankQuestion} className="gap-1">
@@ -393,21 +394,20 @@ export default function ExamUploadPage() {
               </Button>
               <Button
                 size="sm"
-                className="bg-purple-600 hover:bg-purple-700 gap-1"
+                className="bg-brand-purple hover:opacity-90 text-space gap-1"
                 onClick={() => setStep('save')}
               >
                 ادامه
                 <ChevronRight className="w-3.5 h-3.5" />
               </Button>
             </div>
-          </div>
+          </GlassCard>
 
           {/* لیست سوالات */}
           {questions.map((q, idx) => (
-            <div key={idx} className="bg-white rounded-2xl border border-gray-100 p-5">
+            <GlassCard key={idx} className="p-5">
               <div className="flex items-start gap-3">
-                {/* شماره */}
-                <span className="w-7 h-7 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                <span className="w-7 h-7 rounded-full bg-brand-purple/15 text-brand-purple flex items-center justify-center text-sm font-bold flex-shrink-0">
                   {idx + 1}
                 </span>
 
@@ -420,7 +420,7 @@ export default function ExamUploadPage() {
                     <Badge className={cn('text-xs', DIFFICULTY_CONFIG[q.difficulty].color)}>
                       {DIFFICULTY_CONFIG[q.difficulty].label}
                     </Badge>
-                    <span className="text-xs text-gray-500">{q.points} نمره</span>
+                    <span className="text-xs text-muted-foreground">{q.points} نمره</span>
                   </div>
 
                   {q.editing ? (
@@ -473,13 +473,13 @@ export default function ExamUploadPage() {
                   ) : (
                     // حالت نمایش
                     <div>
-                      <p className="text-gray-800 text-sm leading-relaxed">{q.text}</p>
+                      <p className="text-sm leading-relaxed">{q.text}</p>
                       {q.options && (
                         <div className="mt-2 space-y-1">
                           {q.options.map((opt, oIdx) => (
                             <div key={oIdx} className={cn(
                               'flex items-center gap-2 text-xs px-2 py-1 rounded',
-                              opt === q.correct_answer ? 'bg-green-50 text-green-700' : 'text-gray-600'
+                              opt === q.correct_answer ? 'bg-brand-green/15 text-brand-green' : 'text-muted-foreground'
                             )}>
                               <span className="font-medium">{['الف', 'ب', 'ج', 'د'][oIdx]})</span>
                               <span>{opt}</span>
@@ -489,7 +489,7 @@ export default function ExamUploadPage() {
                         </div>
                       )}
                       {q.correct_answer && q.type !== 'multiple_choice' && (
-                        <p className="mt-1 text-xs text-green-600">پاسخ: {q.correct_answer}</p>
+                        <p className="mt-1 text-xs text-brand-green">پاسخ: {q.correct_answer}</p>
                       )}
                     </div>
                   )}
@@ -499,7 +499,7 @@ export default function ExamUploadPage() {
                 {!q.editing && (
                   <div className="flex gap-1 flex-shrink-0">
                     <Button variant="ghost" size="sm" className="w-7 h-7 p-0" onClick={() => updateQuestion(idx, { editing: true })}>
-                      <Edit3 className="w-3.5 h-3.5 text-gray-500" />
+                      <Edit3 className="w-3.5 h-3.5 text-muted-foreground" />
                     </Button>
                     <Button variant="ghost" size="sm" className="w-7 h-7 p-0" onClick={() => removeQuestion(idx)}>
                       <Trash2 className="w-3.5 h-3.5 text-red-400" />
@@ -507,7 +507,7 @@ export default function ExamUploadPage() {
                   </div>
                 )}
               </div>
-            </div>
+            </GlassCard>
           ))}
         </div>
       )}
@@ -515,9 +515,9 @@ export default function ExamUploadPage() {
       {/* ===== مرحله ۳: ذخیره ===== */}
       {step === 'save' && (
         <div className="max-w-lg mx-auto space-y-5">
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-            <h3 className="font-bold text-gray-800 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-purple-600" />
+          <GlassCard className="p-6 space-y-4">
+            <h3 className="font-bold flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-brand-purple" />
               اطلاعات نهایی آزمون
             </h3>
 
@@ -534,11 +534,11 @@ export default function ExamUploadPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>درس</Label>
-                <Input value={subject} readOnly className="mt-1 bg-gray-50" />
+                <Input value={subject} readOnly className="mt-1 opacity-80" />
               </div>
               <div>
                 <Label>پایه</Label>
-                <Input value={`پایه ${grade}`} readOnly className="mt-1 bg-gray-50" />
+                <Input value={`پایه ${grade}`} readOnly className="mt-1 opacity-80" />
               </div>
             </div>
 
@@ -566,7 +566,7 @@ export default function ExamUploadPage() {
             </div>
 
             {/* خلاصه */}
-            <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-600 space-y-1">
+            <div className="glass-panel-quiet rounded-xl p-3 text-sm text-muted-foreground space-y-1">
               <div className="flex justify-between">
                 <span>تعداد سوالات:</span>
                 <span className="font-bold">{questions.length} سوال</span>
@@ -576,7 +576,7 @@ export default function ExamUploadPage() {
                 <span className="font-bold">{questions.reduce((s, q) => s + q.points, 0)}</span>
               </div>
             </div>
-          </div>
+          </GlassCard>
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => setStep('review')} className="flex-1">
@@ -585,7 +585,7 @@ export default function ExamUploadPage() {
             <Button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 gap-2"
+              className="flex-1 bg-brand-purple hover:opacity-90 text-space gap-2"
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -314,7 +314,7 @@ export default function TeacherExamsPage() {
                         )}
                         {exam.status !== 'draft' && (
                           <DropdownMenuItem onClick={() => handleStatusChange(exam.id, 'draft')}>
-                            <Edit className="w-4 h-4 ml-2 text-gray-500" />
+                            <Edit className="w-4 h-4 ml-2 text-muted-foreground" />
                             برگشت به پیش‌نویس
                           </DropdownMenuItem>
                         )}

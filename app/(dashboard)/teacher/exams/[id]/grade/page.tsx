@@ -8,12 +8,12 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeader } from '@/components/ui/page-header'
+import { GlassCard } from '@/components/ui/glass-card'
+import { StatCard } from '@/components/ui/stat-card'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
-// ────────────────────────────────────────────────
-// تایپ‌ها
-// ────────────────────────────────────────────────
 interface ExamSession {
   id: string
   status: 'in_progress' | 'submitted' | 'graded' | 'expired'
@@ -35,31 +35,26 @@ interface ExamInfo {
   total_questions: number
 }
 
-// ────────────────────────────────────────────────
-// رنگ‌ها
-// ────────────────────────────────────────────────
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  in_progress: { label: 'در حال انجام', className: 'bg-blue-100 text-blue-700' },
-  submitted:   { label: 'ارسال‌شده',    className: 'bg-yellow-100 text-yellow-700' },
-  graded:      { label: 'تصحیح‌شده',   className: 'bg-green-100 text-green-700' },
-  expired:     { label: 'منقضی',        className: 'bg-gray-100 text-gray-500' },
+  in_progress: { label: 'در حال انجام', className: 'bg-brand-cyan/15 text-brand-cyan' },
+  submitted: { label: 'ارسال‌شده', className: 'bg-brand-yellow/15 text-brand-yellow' },
+  graded: { label: 'تصحیح‌شده', className: 'bg-brand-green/15 text-brand-green' },
+  expired: { label: 'منقضی', className: 'bg-white/10 text-muted-foreground' },
 }
 
 function ScoreBadge({ pct }: { pct: number }) {
-  const color = pct >= 75 ? 'text-green-700' : pct >= 50 ? 'text-yellow-700' : 'text-red-600'
-  return <span className={`font-bold text-lg ${color}`}>{pct.toFixed(0)}٪</span>
+  const color =
+    pct >= 75 ? 'text-brand-green' : pct >= 50 ? 'text-brand-yellow' : 'text-destructive'
+  return <span className={`font-bold text-lg tabular-nums ${color}`}>{pct.toFixed(0)}٪</span>
 }
 
-// ────────────────────────────────────────────────
-// صفحه اصلی
-// ────────────────────────────────────────────────
 export default function ExamGradePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
 
-  const [exam, setExam]         = useState<ExamInfo | null>(null)
+  const [exam, setExam] = useState<ExamInfo | null>(null)
   const [sessions, setSessions] = useState<ExamSession[]>([])
-  const [loading, setLoading]   = useState(true)
-  const [grading, setGrading]   = useState<string | null>(null)   // session_id در حال تصحیح
+  const [loading, setLoading] = useState(true)
+  const [grading, setGrading] = useState<string | null>(null)
   const [gradingAll, setGradingAll] = useState(false)
 
   const fetchData = async () => {
@@ -80,7 +75,9 @@ export default function ExamGradePage({ params }: { params: Promise<{ id: string
     }
   }
 
-  useEffect(() => { fetchData() }, [id])
+  useEffect(() => {
+    fetchData()
+  }, [id])
 
   const gradeSession = async (sessionId: string) => {
     setGrading(sessionId)
@@ -95,15 +92,18 @@ export default function ExamGradePage({ params }: { params: Promise<{ id: string
       toast.success(`${data.graded} پاسخ با AI تصحیح شد`)
       fetchData()
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : 'خطا در تصحیح'))
+      toast.error(e instanceof Error ? e.message : 'خطا در تصحیح')
     } finally {
       setGrading(null)
     }
   }
 
   const gradeAllPending = async () => {
-    const pending = sessions.filter(s => s.status === 'submitted' && s.pending_descriptive > 0)
-    if (pending.length === 0) { toast.info('جلسه‌ای برای تصحیح وجود ندارد'); return }
+    const pending = sessions.filter((s) => s.status === 'submitted' && s.pending_descriptive > 0)
+    if (pending.length === 0) {
+      toast.info('جلسه‌ای برای تصحیح وجود ندارد')
+      return
+    }
 
     setGradingAll(true)
     let total = 0
@@ -116,118 +116,125 @@ export default function ExamGradePage({ params }: { params: Promise<{ id: string
         })
         const data = await res.json()
         if (res.ok) total += data.graded || 0
-      } catch { /* ادامه با بقیه */ }
+      } catch {
+        /* ادامه با بقیه */
+      }
     }
     toast.success(`${total} پاسخ تشریحی با AI تصحیح شد`)
     fetchData()
     setGradingAll(false)
   }
 
-  // ────────────────────────────────────────────────
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-64">
-      <Loader2 className="animate-spin w-8 h-8 text-purple-500" />
-    </div>
-  )
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <Loader2 className="animate-spin w-8 h-8 text-brand-purple" />
+      </div>
+    )
+  }
 
-  const pendingSessions = sessions.filter(s => s.status === 'submitted' && s.pending_descriptive > 0)
-  const gradedSessions  = sessions.filter(s => s.status === 'graded')
+  const pendingSessions = sessions.filter((s) => s.status === 'submitted' && s.pending_descriptive > 0)
+  const gradedSessions = sessions.filter((s) => s.status === 'graded')
+  const avgScore =
+    gradedSessions.length > 0
+      ? Math.round(gradedSessions.reduce((s, g) => s + g.percentage, 0) / gradedSessions.length) + '٪'
+      : '—'
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto" dir="rtl">
+    <div className="space-y-6 max-w-5xl mx-auto" dir="rtl">
+      <PageHeader
+        title={`تصحیح آزمون — ${exam?.title || ''}`}
+        description={
+          exam
+            ? `${exam.subject} · پایه ${exam.grade} · ${exam.total_questions} سوال`
+            : undefined
+        }
+        icon={Brain}
+        iconColor="text-brand-purple"
+        iconBg="bg-brand-purple/15 border border-brand-purple/20"
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/teacher/exams"
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowRight className="w-4 h-4" />
+              بازگشت به آزمون‌ها
+            </Link>
+            {pendingSessions.length > 0 && (
+              <Button
+                onClick={gradeAllPending}
+                disabled={gradingAll}
+                className="bg-brand-purple hover:opacity-90 text-space gap-2"
+              >
+                {gradingAll ? (
+                  <Loader2 className="animate-spin w-4 h-4" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                تصحیح همه با AI ({pendingSessions.length})
+              </Button>
+            )}
+          </div>
+        }
+      />
 
-      {/* هدر */}
-      <div className="flex items-start justify-between">
-        <div>
-          <Link href={`/teacher/exams`} className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 mb-2">
-            <ArrowRight className="w-4 h-4" /> بازگشت به آزمون‌ها
-          </Link>
-          <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            <Brain className="text-purple-500" />
-            تصحیح آزمون — {exam?.title}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {exam?.subject} | پایه {exam?.grade} | {exam?.total_questions} سوال
-          </p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard label="کل شرکت‌کننده" value={sessions.length} accentClass="text-brand-cyan" />
+        <StatCard label="در انتظار تصحیح" value={pendingSessions.length} accentClass="text-brand-yellow" />
+        <StatCard label="تصحیح‌شده" value={gradedSessions.length} accentClass="text-brand-green" />
+        <StatCard label="میانگین نمره" value={avgScore} accentClass="text-brand-purple" />
+      </div>
+
+      <GlassCard className="overflow-hidden p-0">
+        <div className="p-4 border-b border-white/[0.06]">
+          <h2 className="text-base font-bold flex items-center gap-2">
+            <FileText className="w-4 h-4 text-brand-purple" />
+            جلسات دانش‌آموزان
+          </h2>
         </div>
-
-        {pendingSessions.length > 0 && (
-          <Button
-            onClick={gradeAllPending}
-            disabled={gradingAll}
-            className="bg-purple-600 hover:bg-purple-700 text-white gap-2"
-          >
-            {gradingAll ? <Loader2 className="animate-spin w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-            تصحیح همه با AI ({pendingSessions.length})
-          </Button>
-        )}
-      </div>
-
-      {/* آمار خلاصه */}
-      <div className="grid grid-cols-4 gap-4">
-        {[
-          { label: 'کل شرکت‌کننده', value: sessions.length,          color: 'text-blue-600' },
-          { label: 'در انتظار تصحیح', value: pendingSessions.length, color: 'text-yellow-600' },
-          { label: 'تصحیح‌شده',       value: gradedSessions.length,  color: 'text-green-600' },
-          { label: 'میانگین نمره',
-            value: gradedSessions.length > 0
-              ? Math.round(gradedSessions.reduce((s, g) => s + g.percentage, 0) / gradedSessions.length) + '٪'
-              : '—',
-            color: 'text-purple-600' },
-        ].map((s, i) => (
-          <Card key={i}><CardContent className="p-4">
-            <p className="text-xs text-gray-500">{s.label}</p>
-            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-          </CardContent></Card>
-        ))}
-      </div>
-
-      {/* جدول جلسات */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <FileText className="w-4 h-4" /> جلسات دانش‌آموزان
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {sessions.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <User className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              هنوز هیچ دانش‌آموزی در این آزمون شرکت نکرده
-            </div>
-          ) : (
+        {sessions.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <User className="w-10 h-10 mx-auto mb-2 opacity-30" />
+            هنوز هیچ دانش‌آموزی در این آزمون شرکت نکرده
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
+              <thead className="border-b border-white/[0.06] bg-white/[0.02]">
                 <tr>
-                  <th className="p-3 text-right font-medium text-gray-600">دانش‌آموز</th>
-                  <th className="p-3 text-right font-medium text-gray-600">وضعیت</th>
-                  <th className="p-3 text-right font-medium text-gray-600">نمره</th>
-                  <th className="p-3 text-right font-medium text-gray-600">زمان ارسال</th>
-                  <th className="p-3 text-right font-medium text-gray-600">عملیات</th>
+                  <th className="p-3 text-right font-medium text-muted-foreground">دانش‌آموز</th>
+                  <th className="p-3 text-right font-medium text-muted-foreground">وضعیت</th>
+                  <th className="p-3 text-right font-medium text-muted-foreground">نمره</th>
+                  <th className="p-3 text-right font-medium text-muted-foreground">زمان ارسال</th>
+                  <th className="p-3 text-right font-medium text-muted-foreground">عملیات</th>
                 </tr>
               </thead>
               <tbody>
-                {sessions.map(session => {
+                {sessions.map((session) => {
                   const badge = STATUS_BADGE[session.status] || STATUS_BADGE.submitted
                   return (
-                    <tr key={session.id} className="border-b hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={session.id}
+                      className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors"
+                    >
                       <td className="p-3 font-medium">{session.student_name || 'نامشخص'}</td>
                       <td className="p-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
-                          {badge.label}
-                        </span>
+                        <Badge className={cn('text-xs border-0', badge.className)}>{badge.label}</Badge>
                         {session.pending_descriptive > 0 && (
-                          <span className="mr-1 text-xs text-orange-500">
+                          <span className="mr-1 text-xs text-brand-orange">
                             ({session.pending_descriptive} تشریحی)
                           </span>
                         )}
                       </td>
                       <td className="p-3">
-                        {session.status === 'graded'
-                          ? <ScoreBadge pct={session.percentage} />
-                          : <span className="text-gray-400 text-sm">—</span>}
+                        {session.status === 'graded' ? (
+                          <ScoreBadge pct={session.percentage} />
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
                       </td>
-                      <td className="p-3 text-gray-400 text-xs">
+                      <td className="p-3 text-muted-foreground text-xs">
                         {session.submitted_at
                           ? new Date(session.submitted_at).toLocaleString('fa-IR')
                           : '—'}
@@ -240,23 +247,31 @@ export default function ExamGradePage({ params }: { params: Promise<{ id: string
                               variant="outline"
                               disabled={grading === session.id}
                               onClick={() => gradeSession(session.id)}
-                              className="text-purple-600 border-purple-200 hover:bg-purple-50 gap-1 h-7 text-xs"
+                              className="text-brand-purple border-brand-purple/30 hover:bg-brand-purple/10 gap-1 h-7 text-xs"
                             >
-                              {grading === session.id
-                                ? <Loader2 className="animate-spin w-3 h-3" />
-                                : <Brain className="w-3 h-3" />}
+                              {grading === session.id ? (
+                                <Loader2 className="animate-spin w-3 h-3" />
+                              ) : (
+                                <Brain className="w-3 h-3" />
+                              )}
                               تصحیح AI
                             </Button>
                           )}
                           {session.status === 'graded' && (
-                            <span className="flex items-center gap-1 text-xs text-green-600">
+                            <span
+                              className={cn(
+                                'text-xs flex items-center gap-1',
+                                session.passed ? 'text-brand-green' : 'text-destructive',
+                              )}
+                            >
                               <CheckCircle2 className="w-3 h-3" />
                               {session.passed ? 'قبول' : 'مردود'}
                             </span>
                           )}
                           {session.status === 'in_progress' && (
-                            <span className="flex items-center gap-1 text-xs text-blue-500">
-                              <Clock className="w-3 h-3" /> در جریان
+                            <span className="flex items-center gap-1 text-xs text-brand-cyan">
+                              <Clock className="w-3 h-3" />
+                              در جریان
                             </span>
                           )}
                         </div>
@@ -266,24 +281,23 @@ export default function ExamGradePage({ params }: { params: Promise<{ id: string
                 })}
               </tbody>
             </table>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </GlassCard>
 
-      {/* راهنما */}
-      <Card className="border-purple-100 bg-purple-50">
-        <CardContent className="p-4 flex items-start gap-3">
-          <Star className="w-5 h-5 text-purple-500 shrink-0 mt-0.5" />
-          <div className="text-sm text-purple-800">
+      <GlassCard quiet className="p-4 border-brand-purple/25">
+        <div className="flex items-start gap-3">
+          <Star className="w-5 h-5 text-brand-purple shrink-0 mt-0.5" />
+          <div className="text-sm">
             <p className="font-bold mb-1">تصحیح هوشمند با AI</p>
-            <p className="text-purple-600">
-              سوالات چندگزینه‌ای و صحیح/غلط بلافاصله پس از ارسال تصحیح می‌شوند.
-              سوالات <strong>کوتاه‌پاسخ</strong> و <strong>تشریحی</strong> توسط AI هوشاگر بررسی و نمره‌دهی می‌شوند.
-              در صورت نیاز، نمره AI را می‌توانید ویرایش کنید.
+            <p className="text-muted-foreground leading-relaxed">
+              سوالات چندگزینه‌ای و صحیح/غلط بلافاصله پس از ارسال تصحیح می‌شوند. سوالات{' '}
+              <strong>کوتاه‌پاسخ</strong> و <strong>تشریحی</strong> توسط AI هوشاگر بررسی و نمره‌دهی
+              می‌شوند.
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </GlassCard>
     </div>
   )
 }

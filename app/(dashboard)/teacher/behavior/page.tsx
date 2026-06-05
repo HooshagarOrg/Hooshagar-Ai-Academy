@@ -17,6 +17,9 @@ import {
   Sparkles,
   Save,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -317,33 +320,25 @@ export default function BehaviorGuidancePage() {
   }))
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-600 via-rose-700 to-red-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-6xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/teacher"
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </Link>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  <Heart className="w-8 h-8 text-pink-300" />
-                  ثبت هدایت رفتاری
-                </h1>
-                <p className="text-white/60 mt-1">
-                  ارزیابی و ثبت رفتار دانش‌آموزان
-                </p>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* ==================== فرم اصلی ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+    <DashboardPage
+      className="max-w-6xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Heart className="w-8 h-8 text-brand-pink" />
+          ثبت هدایت رفتاری
+        </span>
+      }
+      description="ارزیابی و ثبت رفتار دانش‌آموزان"
+      actions={
+        <Link href="/teacher">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
+        <GlassCard className="p-6 mb-6">
           {/* انتخاب دانش‌آموز و تاریخ */}
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             <div>
@@ -480,10 +475,9 @@ export default function BehaviorGuidancePage() {
               انصراف
             </button>
           </div>
-        </div>
+        </GlassCard>
 
-        {/* ==================== گزارش‌های اخیر ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+        <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-yellow-400" />
@@ -587,15 +581,13 @@ export default function BehaviorGuidancePage() {
               <p className="text-white/50">هنوز گزارشی ثبت نشده است</p>
             </div>
           )}
-        </div>
+        </GlassCard>
 
-        {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

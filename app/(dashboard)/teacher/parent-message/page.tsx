@@ -24,6 +24,9 @@ import {
   Lightbulb,
   Check,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -326,35 +329,30 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-5xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/teacher"
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-            >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </Link>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <MessageSquareText className="w-8 h-8 text-blue-400" />
-                دستیار ارتباط با والدین
-              </h1>
-              <p className="text-white/60 mt-1">
-                پیش‌نویس پیام‌های حرفه‌ای برای ارتباط با خانواده‌ها
-              </p>
-            </div>
-          </div>
-        </header>
-
+    <DashboardPage
+      className="max-w-5xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <MessageSquareText className="w-8 h-8 text-brand-cyan" />
+          دستیار ارتباط با والدین
+        </span>
+      }
+      description="پیش‌نویس پیام‌های حرفه‌ای برای ارتباط با خانواده‌ها"
+      actions={
+        <Link href="/teacher">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
         <div className="grid lg:grid-cols-2 gap-6">
           {/* ==================== فرم ورودی ==================== */}
           <div className="space-y-6">
             {/* انتخاب دانش‌آموز */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <User className="w-5 h-5 text-blue-400" />
                 انتخاب دانش‌آموز
               </h2>
@@ -370,11 +368,11 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                   </option>
                 ))}
               </select>
-            </div>
+            </GlassCard>
 
             {/* نوع پیام */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h2 className="text-lg font-bold text-white mb-4">نوع پیام</h2>
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-bold mb-4">نوع پیام</h2>
               <div className="grid grid-cols-2 gap-3">
                 {messageTypes.map((type) => {
                   const Icon = type.icon
@@ -394,11 +392,11 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                   )
                 })}
               </div>
-            </div>
+            </GlassCard>
 
             {/* موضوع پیام */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h2 className="text-lg font-bold text-white mb-4">موضوع پیام</h2>
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-bold mb-4">موضوع پیام</h2>
               <div className="grid grid-cols-2 gap-3 mb-4">
                 {messageSubjects.map((subject) => {
                   const Icon = subject.icon
@@ -433,7 +431,7 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                 rows={3}
                 className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none leading-relaxed"
               />
-            </div>
+            </GlassCard>
 
             {/* دکمه تولید */}
             <button
@@ -463,7 +461,7 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
           <div className="space-y-6">
             {/* پیام تولید شده */}
             {generatedMessage && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <GlassCard className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
                     <FileText className="w-5 h-5 text-green-400" />
@@ -529,12 +527,12 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                     )}
                   </button>
                 </div>
-              </div>
+              </GlassCard>
             )}
 
             {/* الگوهای آماده */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <Lightbulb className="w-5 h-5 text-yellow-400" />
                 الگوهای آماده
               </h2>
@@ -567,15 +565,14 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                   )
                 })}
               </div>
-            </div>
+            </GlassCard>
 
-            {/* راهنما */}
             {!generatedMessage && (
-              <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl p-6 border border-blue-500/20">
-                <h3 className="text-white font-bold mb-3 flex items-center gap-2">
+              <GlassCard className="p-6 border-brand-cyan/25 bg-gradient-to-bl from-brand-cyan/15 via-card/90 to-brand-purple/10">
+                <h3 className="font-bold mb-3 flex items-center gap-2">
                   💡 راهنمای استفاده
                 </h3>
-                <ul className="text-white/70 text-sm space-y-2 leading-relaxed">
+                <ul className="text-muted-foreground text-sm space-y-2 leading-relaxed">
                   <li>• ابتدا دانش‌آموز مورد نظر را انتخاب کنید</li>
                   <li>• نوع پیام را مشخص کنید (تشویقی، انتقادی، ...)</li>
                   <li>• حداقل یک موضوع پیام را انتخاب کنید</li>
@@ -583,18 +580,16 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                   <li>• دکمه "تولید پیش‌نویس" را بزنید</li>
                   <li>• پیام را ویرایش کرده و ارسال کنید</li>
                 </ul>
-              </div>
+              </GlassCard>
             )}
           </div>
         </div>
 
-        {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

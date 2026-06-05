@@ -26,6 +26,9 @@ import {
   Hash,
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -378,7 +381,7 @@ function ResultCard({ content, onCopy, onDownload, onSave, copied }: ResultCardP
   const typeInfo = getTypeInfo(content.type)
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+    <GlassCard className="p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={`${typeInfo.color}`}>{typeInfo.icon}</div>
@@ -418,7 +421,7 @@ function ResultCard({ content, onCopy, onDownload, onSave, copied }: ResultCardP
           {content.content}
         </pre>
       </div>
-    </div>
+    </GlassCard>
   )
 }
 
@@ -510,34 +513,26 @@ export default function ContentCreatorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-6xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/teacher"
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </Link>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  <Sparkles className="w-8 h-8 text-yellow-400" />
-                  دستیار محتوای خلاق
-                </h1>
-                <p className="text-white/60 mt-1">
-                  تولید طرح درس، سوالات آزمون و ایده‌های فعالیت با هوش مصنوعی
-                </p>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* ==================== Tabs ==================== */}
+    <DashboardPage
+      className="max-w-6xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Sparkles className="w-8 h-8 text-brand-yellow" />
+          دستیار محتوای خلاق
+        </span>
+      }
+      description="تولید طرح درس، سوالات آزمون و ایده‌های فعالیت با هوش مصنوعی"
+      actions={
+        <Link href="/teacher">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="w-full bg-white/10 backdrop-blur-lg rounded-2xl p-2 border border-white/20 h-auto flex-wrap">
+          <TabsList className="w-full glass-panel rounded-2xl p-2 h-auto flex-wrap">
             <TabsTrigger
               value="lesson-plan"
               className="flex-1 min-w-[120px] data-[state=active]:bg-green-500 data-[state=active]:text-white text-white/70 rounded-xl py-3 gap-2 transition-all"
@@ -563,7 +558,7 @@ export default function ContentCreatorPage() {
 
           {/* ========== تب طرح درس ========== */}
           <TabsContent value="lesson-plan" className="mt-6">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <GlassCard className="p-6">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-green-400" />
                 تولید طرح درس
@@ -635,12 +630,12 @@ export default function ContentCreatorPage() {
                   </>
                 )}
               </button>
-            </div>
+            </GlassCard>
           </TabsContent>
 
           {/* ========== تب سوال آزمون ========== */}
           <TabsContent value="exam-questions" className="mt-6">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <GlassCard className="p-6">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <FileQuestion className="w-5 h-5 text-yellow-400" />
                 تولید سوالات آزمون
@@ -736,12 +731,12 @@ export default function ContentCreatorPage() {
                   </>
                 )}
               </button>
-            </div>
+            </GlassCard>
           </TabsContent>
 
           {/* ========== تب ایده فعالیت ========== */}
           <TabsContent value="activity-idea" className="mt-6">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <GlassCard className="p-6">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <Lightbulb className="w-5 h-5 text-purple-400" />
                 تولید ایده فعالیت
@@ -816,7 +811,7 @@ export default function ContentCreatorPage() {
                   </>
                 )}
               </button>
-            </div>
+            </GlassCard>
           </TabsContent>
         </Tabs>
 
@@ -840,7 +835,7 @@ export default function ContentCreatorPage() {
         )}
 
         {/* ==================== تاریخچه ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+        <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Clock className="w-5 h-5 text-blue-400" />
@@ -929,15 +924,14 @@ export default function ContentCreatorPage() {
               <p className="text-white/50">هنوز محتوایی تولید نشده است</p>
             </div>
           )}
-        </div>
+        </GlassCard>
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

@@ -15,6 +15,10 @@ import {
   Download,
   Banknote,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { StatCard } from '@/components/ui/stat-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -98,84 +102,61 @@ export default function ParentFinancialsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-4xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/parent"
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-            >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </Link>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <Wallet className="w-8 h-8 text-purple-400" />
-                امور مالی
-              </h1>
-              <p className="text-white/60 mt-1">
-                وضعیت مالی {studentName} - {className}
-              </p>
-            </div>
-          </div>
-        </header>
-
-        {/* ==================== کارت‌های خلاصه مالی ==================== */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/20">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <FileText className="w-5 h-5 text-blue-400" />
-              </div>
-            </div>
-            <p className="text-white/50 text-sm">شهریه کل</p>
-            <p className="text-white text-lg font-bold mt-1">{formatRial(financialData.totalTuition)}</p>
-          </div>
-
-          <div className="bg-purple-500/20 backdrop-blur-lg rounded-2xl p-5 border border-purple-500/30">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                <Percent className="w-5 h-5 text-purple-400" />
-              </div>
-            </div>
-            <p className="text-purple-300 text-sm">تخفیف</p>
-            <p className="text-white text-lg font-bold mt-1">{formatRial(financialData.discount)}</p>
-          </div>
-
-          <div className="bg-green-500/20 backdrop-blur-lg rounded-2xl p-5 border border-green-500/30">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-green-400" />
-              </div>
-            </div>
-            <p className="text-green-300 text-sm">پرداخت شده</p>
-            <p className="text-white text-lg font-bold mt-1">{formatRial(financialData.paid)}</p>
-          </div>
-
-          <div className={`backdrop-blur-lg rounded-2xl p-5 border ${
-            financialData.remaining > 0
-              ? 'bg-red-500/20 border-red-500/30'
-              : 'bg-green-500/20 border-green-500/30'
-          }`}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                financialData.remaining > 0 ? 'bg-red-500/20' : 'bg-green-500/20'
-              }`}>
-                <AlertCircle className={`w-5 h-5 ${financialData.remaining > 0 ? 'text-red-400' : 'text-green-400'}`} />
-              </div>
-            </div>
-            <p className={`text-sm ${financialData.remaining > 0 ? 'text-red-300' : 'text-green-300'}`}>
-              باقی‌مانده
-            </p>
-            <p className="text-white text-lg font-bold mt-1">{formatRial(financialData.remaining)}</p>
-          </div>
+    <DashboardPage
+      className="max-w-4xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Wallet className="w-8 h-8 text-brand-purple" />
+          امور مالی
+        </span>
+      }
+      description={`وضعیت مالی ${studentName} - ${className}`}
+      actions={
+        <Link href="/parent">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard
+            label="شهریه کل"
+            value={formatRial(financialData.totalTuition)}
+            icon={<FileText className="w-5 h-5" />}
+            accentClass="text-blue-400"
+          />
+          <StatCard
+            label="تخفیف"
+            value={formatRial(financialData.discount)}
+            icon={<Percent className="w-5 h-5" />}
+            accentClass="text-brand-purple"
+            className="border-brand-purple/30 bg-brand-purple/10"
+          />
+          <StatCard
+            label="پرداخت شده"
+            value={formatRial(financialData.paid)}
+            icon={<CheckCircle2 className="w-5 h-5" />}
+            accentClass="text-green-400"
+            className="border-green-500/30 bg-green-500/10"
+          />
+          <StatCard
+            label="باقی‌مانده"
+            value={formatRial(financialData.remaining)}
+            icon={<AlertCircle className="w-5 h-5" />}
+            accentClass={financialData.remaining > 0 ? 'text-red-400' : 'text-green-400'}
+            className={
+              financialData.remaining > 0
+                ? 'border-red-500/30 bg-red-500/10'
+                : 'border-green-500/30 bg-green-500/10'
+            }
+          />
         </div>
 
-        {/* ==================== نمودار پیشرفت پرداخت ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+        <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <h2 className="text-lg font-bold flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-purple-400" />
               پیشرفت پرداخت
             </h2>
@@ -212,12 +193,11 @@ export default function ParentFinancialsPage() {
               </p>
             </div>
           )}
-        </div>
+        </GlassCard>
 
-        {/* ==================== جدول تراکنش‌ها ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+        <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <h2 className="text-lg font-bold flex items-center gap-2">
               <FileText className="w-5 h-5 text-purple-400" />
               تاریخچه تراکنش‌ها
             </h2>
@@ -284,10 +264,9 @@ export default function ParentFinancialsPage() {
               ))}
             </div>
           )}
-        </div>
+        </GlassCard>
 
-        {/* ==================== اطلاع‌رسانی پرداخت ==================== */}
-        <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
+        <GlassCard className="p-6 border-brand-cyan/25 bg-gradient-to-bl from-brand-cyan/15 via-card/90 to-brand-purple/10">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
               <Info className="w-6 h-6 text-white" />
@@ -319,7 +298,7 @@ export default function ParentFinancialsPage() {
               </div>
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* ==================== دکمه تماس ==================== */}
         <div className="mt-6 text-center">
@@ -333,11 +312,10 @@ export default function ParentFinancialsPage() {
         </div>
 
         {/* Footer */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

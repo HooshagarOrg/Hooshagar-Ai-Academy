@@ -4,9 +4,9 @@
 
 | نقش | Hex | کاربرد |
 |-----|-----|--------|
-| Deep Space | `#10131A` | پس‌زمینه |
-| Surface | `#171B24` | کارت |
-| Elevated | `#1D2330` | لایه بالاتر |
+| Deep Space | `#161C25` | پس‌زمینه (+۱ پرده روشن‌تر) |
+| Surface | `#1C222C` | کارت |
+| Elevated | `#222936` | لایه بالاتر |
 | AI Pink | `#FF4DA6` | CTA، یادگیری |
 | Learning Orange | `#FF9B54` | انرژی، گیمیفیکیشن |
 | Discovery Purple | `#8B7CFF` | اکتشاف |

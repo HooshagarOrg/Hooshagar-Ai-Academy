@@ -20,9 +20,12 @@ import {
   Activity,
   PieChart,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { StatCard } from '@/components/ui/stat-card'
+import { GlassCard } from '@/components/ui/glass-card'
 import {
   PRIORITY_LABELS,
   SESSION_TYPE_LABELS,
@@ -132,18 +135,16 @@ export default function CounselorDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <Skeleton className="h-24 w-full bg-white/10" />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-32 bg-white/10" />
-            ))}
-          </div>
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Skeleton className="h-80 bg-white/10" />
-            <Skeleton className="h-80 bg-white/10" />
-          </div>
+      <div className="space-y-6" dir="rtl">
+        <Skeleton className="h-24 w-full glass-panel-quiet" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-32 glass-panel-quiet" />
+          ))}
+        </div>
+        <div className="grid lg:grid-cols-2 gap-6">
+          <Skeleton className="h-80 glass-panel-quiet" />
+          <Skeleton className="h-80 glass-panel-quiet" />
         </div>
       </div>
     )
@@ -152,89 +153,58 @@ export default function CounselorDashboardPage() {
   if (!data) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                داشبورد مشاوره 🧠
-              </h1>
-              <p className="text-white/60 text-sm">{persianDate}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="icon" className="bg-white/5 border-white/20 text-white hover:bg-white/10">
-                <Bell className="w-5 h-5" />
-              </Button>
-              <Link href="/counselor/records/new">
-                <Button className="bg-purple-500 hover:bg-purple-600 text-white gap-2">
-                  <Plus className="w-4 h-4" />
-                  پرونده جدید
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </header>
-
-        {/* ==================== Stats Cards ==================== */}
+    <DashboardPage
+      meta={persianDate}
+      title={
+        <>
+          داشبورد مشاوره <span className="text-brand-pink">🧠</span>
+        </>
+      }
+      description="پرونده‌ها، جلسات و اولویت‌های امروز"
+      actions={
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" aria-label="اعلان‌ها">
+            <Bell className="w-5 h-5" />
+          </Button>
+          <Link href="/counselor/records/new">
+            <Button className="bg-brand-pink hover:opacity-90 text-space gap-2">
+              <Plus className="w-4 h-4" />
+              پرونده جدید
+            </Button>
+          </Link>
+        </div>
+      }
+      animatedSections={false}
+    >
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Active Records */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10 hover:bg-white/10 transition-colors">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div className="bg-blue-500/20 p-3 rounded-xl">
-                  <FileText className="w-6 h-6 text-blue-400" />
-                </div>
-                <span className="text-xs text-white/40">فعال</span>
-              </div>
-              <p className="text-white/60 text-sm mb-1">پرونده فعال</p>
-              <p className="text-white text-3xl font-bold">{data.stats.active_records}</p>
-            </CardContent>
-          </Card>
-
-          {/* Urgent Records */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10 hover:bg-white/10 transition-colors">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div className="bg-red-500/20 p-3 rounded-xl">
-                  <AlertTriangle className="w-6 h-6 text-red-400" />
-                </div>
-                <span className="text-xs text-red-400 animate-pulse">فوری</span>
-              </div>
-              <p className="text-white/60 text-sm mb-1">نیازمند توجه فوری</p>
-              <p className="text-white text-3xl font-bold">{data.stats.urgent_records}</p>
-            </CardContent>
-          </Card>
-
-          {/* Today's Sessions */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10 hover:bg-white/10 transition-colors">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div className="bg-green-500/20 p-3 rounded-xl">
-                  <Calendar className="w-6 h-6 text-green-400" />
-                </div>
-                <span className="text-xs text-white/40">امروز</span>
-              </div>
-              <p className="text-white/60 text-sm mb-1">جلسات امروز</p>
-              <p className="text-white text-3xl font-bold">{data.stats.today_sessions}</p>
-            </CardContent>
-          </Card>
-
-          {/* Closed This Month */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10 hover:bg-white/10 transition-colors">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div className="bg-purple-500/20 p-3 rounded-xl">
-                  <CheckCircle2 className="w-6 h-6 text-purple-400" />
-                </div>
-                <span className="text-xs text-white/40">این ماه</span>
-              </div>
-              <p className="text-white/60 text-sm mb-1">بسته شده</p>
-              <p className="text-white text-3xl font-bold">{data.stats.closed_this_month}</p>
-            </CardContent>
-          </Card>
+          <StatCard
+            label="پرونده فعال"
+            value={data.stats.active_records}
+            hint="فعال"
+            icon={<FileText className="w-6 h-6" />}
+            accentClass="text-brand-cyan"
+          />
+          <StatCard
+            label="نیازمند توجه فوری"
+            value={data.stats.urgent_records}
+            hint="فوری"
+            icon={<AlertTriangle className="w-6 h-6" />}
+            accentClass="text-destructive"
+          />
+          <StatCard
+            label="جلسات امروز"
+            value={data.stats.today_sessions}
+            hint="امروز"
+            icon={<Calendar className="w-6 h-6" />}
+            accentClass="text-brand-green"
+          />
+          <StatCard
+            label="بسته شده"
+            value={data.stats.closed_this_month}
+            hint="این ماه"
+            icon={<CheckCircle2 className="w-6 h-6" />}
+            accentClass="text-brand-purple"
+          />
         </div>
 
         {/* ==================== Main Grid ==================== */}
@@ -242,10 +212,10 @@ export default function CounselorDashboardPage() {
           
           {/* ========== Urgent Records ========== */}
           <div className="lg:col-span-2">
-            <Card className="bg-white/5 backdrop-blur-xl border-white/10 h-full">
+            <GlassCard className="h-full">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white flex items-center gap-2">
+                  <CardTitle className="text-foreground flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-red-400" />
                     پرونده‌های نیازمند توجه
                     <span className="bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded-full">
@@ -270,12 +240,12 @@ export default function CounselorDashboardPage() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-foreground font-bold">
                           {record.student?.full_name.charAt(0) || '؟'}
                         </div>
                         <div>
-                          <p className="text-white font-medium">{record.student?.full_name || 'نامشخص'}</p>
-                          <p className="text-white/50 text-xs">پایه {record.student?.grade}</p>
+                          <p className="text-foreground font-medium">{record.student?.full_name || 'نامشخص'}</p>
+                          <p className="text-muted-foreground text-xs">پایه {record.student?.grade}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -291,13 +261,13 @@ export default function CounselorDashboardPage() {
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex gap-1 flex-wrap">
                         {record.issue_categories.map((cat, idx) => (
-                          <span key={idx} className="bg-white/10 text-white/70 text-xs px-2 py-0.5 rounded">
+                          <span key={idx} className="bg-white/10 text-muted-foreground text-xs px-2 py-0.5 rounded">
                             {cat}
                           </span>
                         ))}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-white/40 text-xs flex items-center gap-1">
+                        <span className="text-muted-foreground text-xs flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {formatRelativeTime(record.updated_at)}
                         </span>
@@ -312,19 +282,19 @@ export default function CounselorDashboardPage() {
                 ))}
 
                 {data.lists.urgent_records.length === 0 && (
-                  <div className="text-center py-8 text-white/40">
+                  <div className="text-center py-8 text-muted-foreground">
                     <CheckCircle2 className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>پرونده فوری وجود ندارد</p>
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </GlassCard>
           </div>
 
           {/* ========== Today's Sessions ========== */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          <GlassCard>
             <CardHeader className="pb-3">
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-green-400" />
                 جلسات امروز
               </CardTitle>
@@ -336,12 +306,12 @@ export default function CounselorDashboardPage() {
                   className="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="bg-gradient-to-br from-green-500 to-emerald-600 w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold">
+                    <div className="bg-gradient-to-br from-green-500 to-emerald-600 w-10 h-10 rounded-lg flex items-center justify-center text-foreground font-bold">
                       {idx + 1}
                     </div>
                     <div className="flex-1">
-                      <p className="text-white font-medium">{session.student_name}</p>
-                      <div className="flex items-center gap-2 text-white/50 text-xs">
+                      <p className="text-foreground font-medium">{session.student_name}</p>
+                      <div className="flex items-center gap-2 text-muted-foreground text-xs">
                         <span>{SESSION_TYPE_LABELS[session.session_type as keyof typeof SESSION_TYPE_LABELS]}</span>
                         <span>•</span>
                         <span className="font-mono">{formatTime(session.session_date)}</span>
@@ -352,7 +322,7 @@ export default function CounselorDashboardPage() {
               ))}
 
               {data.lists.upcoming_sessions.length === 0 && (
-                <div className="text-center py-6 text-white/40">
+                <div className="text-center py-6 text-muted-foreground">
                   <Calendar className="w-10 h-10 mx-auto mb-2 opacity-50" />
                   <p>جلسه‌ای برای امروز ثبت نشده</p>
                 </div>
@@ -365,15 +335,14 @@ export default function CounselorDashboardPage() {
                 </Button>
               </Link>
             </CardContent>
-          </Card>
+          </GlassCard>
         </div>
 
         {/* ==================== Charts Row ==================== */}
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Category Distribution */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          <GlassCard>
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <PieChart className="w-5 h-5 text-purple-400" />
                 توزیع دسته‌بندی مسائل
               </CardTitle>
@@ -386,8 +355,8 @@ export default function CounselorDashboardPage() {
                   return (
                     <div key={category}>
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-white/70">{category}</span>
-                        <span className="text-white/50">{count} مورد ({percentage}%)</span>
+                        <span className="text-muted-foreground">{category}</span>
+                        <span className="text-muted-foreground">{count} مورد ({percentage}%)</span>
                       </div>
                       <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                         <div
@@ -400,12 +369,11 @@ export default function CounselorDashboardPage() {
                 })}
               </div>
             </CardContent>
-          </Card>
+          </GlassCard>
 
-          {/* Priority Distribution */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          <GlassCard>
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <Target className="w-5 h-5 text-orange-400" />
                 توزیع اولویت‌ها
               </CardTitle>
@@ -423,17 +391,16 @@ export default function CounselorDashboardPage() {
                     }`}
                   >
                     <div className={`w-3 h-3 rounded-full mb-2 ${getPriorityColor(priority as PriorityLevel)}`} />
-                    <p className="text-white/60 text-sm">{PRIORITY_LABELS[priority as PriorityLevel]}</p>
-                    <p className="text-white text-2xl font-bold">{count}</p>
+                    <p className="text-muted-foreground text-sm">{PRIORITY_LABELS[priority as PriorityLevel]}</p>
+                    <p className="text-foreground text-2xl font-bold">{count}</p>
                   </div>
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </GlassCard>
         </div>
 
-        {/* ==================== Quick Actions ==================== */}
-        <Card className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-xl border-purple-500/30">
+        <GlassCard className="border-brand-purple/25 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-pink/10">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -441,21 +408,21 @@ export default function CounselorDashboardPage() {
                   <Brain className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">تحلیل هوشمند</h3>
-                  <p className="text-white/60 text-sm">
+                  <h3 className="text-lg font-bold text-foreground">تحلیل هوشمند</h3>
+                  <p className="text-muted-foreground text-sm">
                     شناسایی الگوهای رفتاری و پیشنهادات مشاوره‌ای با هوش مصنوعی
                   </p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Link href="/counselor/reports">
-                  <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 gap-2">
+                  <Button variant="outline" className="bg-white/10 border-white/20 text-foreground hover:bg-white/20 gap-2">
                     <Activity className="w-4 h-4" />
                     گزارشات
                   </Button>
                 </Link>
                 <Link href="/counselor/records">
-                  <Button className="bg-purple-500 hover:bg-purple-600 text-white gap-2">
+                  <Button className="bg-brand-pink hover:opacity-90 text-space gap-2">
                     <Users className="w-4 h-4" />
                     پرونده‌ها
                   </Button>
@@ -463,14 +430,12 @@ export default function CounselorDashboardPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
-        {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/30 text-sm py-4">
+        <footer className="text-center text-muted-foreground text-sm py-4">
           <p>سیستم مشاوره هوشاگر</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

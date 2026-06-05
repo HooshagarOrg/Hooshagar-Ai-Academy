@@ -49,6 +49,12 @@ export function AmbientBackground({ className, tone = 'balanced' }: AmbientBackg
           style={{ animationDelay: '-3s' }}
         />
       )}
+      {isCalm && (
+        <div
+          className="ambient-blob bottom-[-8%] left-[-4%] w-[280px] h-[280px] bg-brand-orange/8 opacity-40"
+          style={{ animationDelay: '-7s' }}
+        />
+      )}
     </div>
   )
 }

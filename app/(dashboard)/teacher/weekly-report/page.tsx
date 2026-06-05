@@ -25,6 +25,9 @@ import {
   Check,
   Hash,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -355,35 +358,30 @@ export default function WeeklyReportPage() {
   const unsentCount = reports.filter(r => !r.sent).length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-5xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/teacher"
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-            >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </Link>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <FileText className="w-8 h-8 text-purple-400" />
-                گزارش هفتگی والدین
-              </h1>
-              <p className="text-white/60 mt-1">
-                خلاصه‌سازی یادداشت‌های هفته با هوش مصنوعی
-              </p>
-            </div>
-          </div>
-        </header>
-
+    <DashboardPage
+      className="max-w-5xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <FileText className="w-8 h-8 text-brand-purple" />
+          گزارش هفتگی والدین
+        </span>
+      }
+      description="خلاصه‌سازی یادداشت‌های هفته با هوش مصنوعی"
+      actions={
+        <Link href="/teacher">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
         <div className="grid lg:grid-cols-3 gap-6">
           {/* ==================== ستون چپ: فیلتر و آمار ==================== */}
           <div className="lg:col-span-1 space-y-6">
             {/* فیلترها */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-purple-400" />
                 انتخاب بازه زمانی
               </h2>
@@ -466,11 +464,11 @@ export default function WeeklyReportPage() {
                   ))}
                 </div>
               </div>
-            </div>
+            </GlassCard>
 
             {/* آمار */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <StickyNote className="w-5 h-5 text-yellow-400" />
                 پیش‌نمایش داده‌ها
               </h2>
@@ -508,11 +506,11 @@ export default function WeeklyReportPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </GlassCard>
 
             {/* تنظیمات ارسال خودکار */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <Settings className="w-5 h-5 text-gray-400" />
                 ارسال خودکار
               </h2>
@@ -561,7 +559,7 @@ export default function WeeklyReportPage() {
                   </>
                 )}
               </div>
-            </div>
+            </GlassCard>
           </div>
 
           {/* ==================== ستون راست: گزارش‌ها ==================== */}
@@ -594,7 +592,7 @@ export default function WeeklyReportPage() {
 
             {/* گزارش‌ها */}
             {reports.length > 0 && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <GlassCard className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
                     <FileText className="w-5 h-5 text-purple-400" />
@@ -639,16 +637,16 @@ export default function WeeklyReportPage() {
                     />
                   ))}
                 </div>
-              </div>
+              </GlassCard>
             )}
 
             {/* راهنما */}
             {reports.length === 0 && !isGenerating && (
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-500/20">
-                <h3 className="text-white font-bold mb-3 flex items-center gap-2">
+              <GlassCard className="p-6 border-brand-purple/25 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-pink/10">
+                <h3 className="font-bold mb-3 flex items-center gap-2">
                   💡 راهنمای استفاده
                 </h3>
-                <ul className="text-white/70 text-sm space-y-2 leading-relaxed">
+                <ul className="text-muted-foreground text-sm space-y-2 leading-relaxed">
                   <li>• بازه زمانی مورد نظر را انتخاب کنید (معمولاً یک هفته)</li>
                   <li>• کلاس و دانش‌آموزان را انتخاب کنید</li>
                   <li>• دکمه "تولید گزارش‌های هفتگی" را بزنید</li>
@@ -658,24 +656,22 @@ export default function WeeklyReportPage() {
                 </ul>
 
                 <div className="mt-4 p-3 bg-white/5 rounded-lg">
-                  <p className="text-white/50 text-xs">
+                  <p className="text-muted-foreground text-xs">
                     📊 تعداد یادداشت‌های هفته: {stats.totalNotes}
                     <br />
                     👥 دانش‌آموزان انتخاب شده: {selectedStudents.length}
                   </p>
                 </div>
-              </div>
+              </GlassCard>
             )}
           </div>
         </div>
 
-        {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

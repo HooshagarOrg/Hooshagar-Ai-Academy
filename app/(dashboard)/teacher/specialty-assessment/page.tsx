@@ -47,6 +47,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 import {
   ART_TECHNIQUES,
   SPECIALIZED_SPORTS,
@@ -443,24 +445,20 @@ export default function SpecialtyAssessmentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-6xl mx-auto space-y-6">
-        
-        {/* ==================== Header ==================== */}
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-            <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-xl">
-              <Star className="w-6 h-6 text-white" />
-            </div>
-            ارزیابی تخصصی
-          </h1>
-          <p className="text-white/60 text-sm mt-1">
-            ثبت ارزیابی‌های موسیقی، هنر، ورزش و STEM
-          </p>
-        </div>
-
-        {/* ==================== Filters ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+    <DashboardPage
+      className="max-w-6xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <span className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-xl">
+            <Star className="w-6 h-6 text-white" />
+          </span>
+          ارزیابی تخصصی
+        </span>
+      }
+      description="ثبت ارزیابی‌های موسیقی، هنر، ورزش و STEM"
+      animatedSections={false}
+    >
+        <GlassCard>
           <CardContent className="p-4">
             <div className="grid md:grid-cols-3 gap-4">
               <div>
@@ -500,7 +498,7 @@ export default function SpecialtyAssessmentPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Tabs ==================== */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as AssessmentType)}>
@@ -518,7 +516,7 @@ export default function SpecialtyAssessmentPage() {
 
           {/* Student Table */}
           <div className="mt-6">
-            <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+            <GlassCard>
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <User className="w-5 h-5 text-purple-400" />
@@ -585,7 +583,7 @@ export default function SpecialtyAssessmentPage() {
                   </Table>
                 )}
               </CardContent>
-            </Card>
+            </GlassCard>
           </div>
         </Tabs>
 
@@ -646,8 +644,7 @@ export default function SpecialtyAssessmentPage() {
           </DialogContent>
         </Dialog>
 
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

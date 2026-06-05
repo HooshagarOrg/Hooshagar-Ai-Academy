@@ -18,6 +18,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 import {
   FINAL_GRADE_LABELS,
   STEM_SUBJECT_LABELS,
@@ -233,42 +235,40 @@ export default function ParentSpecialtyReportsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton className="h-16 w-full bg-white/10" />
+      <DashboardPage className="max-w-4xl mx-auto" title="گزارشات تخصصی" animatedSections={false}>
+        <div className="space-y-6">
+          <Skeleton className="h-16 w-full" />
           <div className="grid md:grid-cols-2 gap-6">
-            {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-64 bg-white/10" />
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-64" />
             ))}
           </div>
         </div>
-      </div>
+      </DashboardPage>
     )
   }
 
   if (!data) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-4xl mx-auto space-y-6">
-        
-        {/* ==================== Header ==================== */}
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-3 rounded-xl">
+    <DashboardPage
+      className="max-w-4xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <span className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-xl">
             <Star className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">گزارشات تخصصی</h1>
-            <p className="text-white/60 text-sm">{mockStudentName}</p>
-          </div>
-        </div>
-
-        {/* ==================== Assessment Cards ==================== */}
+          </span>
+          گزارشات تخصصی
+        </span>
+      }
+      description={mockStudentName}
+      animatedSections={false}
+    >
         <div className="grid md:grid-cols-2 gap-6">
           
           {/* Music Card */}
           {data.music && (
-            <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-xl border-purple-500/30">
+            <GlassCard className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-xl border-purple-500/30">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-white flex items-center gap-2">
@@ -337,12 +337,12 @@ export default function ParentSpecialtyReportsPage() {
                   </Button>
                 </Link>
               </CardContent>
-            </Card>
+            </GlassCard>
           )}
 
           {/* Art Card */}
           {data.art && (
-            <Card className="bg-gradient-to-br from-pink-500/10 to-orange-500/10 backdrop-blur-xl border-pink-500/30">
+            <GlassCard className="bg-gradient-to-br from-pink-500/10 to-orange-500/10 backdrop-blur-xl border-pink-500/30">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-white flex items-center gap-2">
@@ -406,12 +406,12 @@ export default function ParentSpecialtyReportsPage() {
                   </Button>
                 </Link>
               </CardContent>
-            </Card>
+            </GlassCard>
           )}
 
           {/* Sports Card */}
           {data.sports && (
-            <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-xl border-green-500/30">
+            <GlassCard className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-xl border-green-500/30">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-white flex items-center gap-2">
@@ -485,12 +485,12 @@ export default function ParentSpecialtyReportsPage() {
                   </Button>
                 </Link>
               </CardContent>
-            </Card>
+            </GlassCard>
           )}
 
           {/* STEM Card */}
           {data.stem && (
-            <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-xl border-blue-500/30">
+            <GlassCard className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-xl border-blue-500/30">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-white flex items-center gap-2">
@@ -554,12 +554,12 @@ export default function ParentSpecialtyReportsPage() {
                   </Button>
                 </Link>
               </CardContent>
-            </Card>
+            </GlassCard>
           )}
         </div>
 
         {/* ==================== Overall Summary ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+        <GlassCard>
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -585,14 +585,12 @@ export default function ParentSpecialtyReportsPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
-        {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/30 text-sm py-4">
+        <footer className="text-center text-muted-foreground text-sm py-4">
           <p>گزارشات تخصصی - هوشاگر</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

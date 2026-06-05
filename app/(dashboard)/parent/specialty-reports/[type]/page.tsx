@@ -22,6 +22,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 import {
   FINAL_GRADE_LABELS,
   
@@ -234,46 +236,52 @@ export default function SpecialtyReportDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton className="h-16 w-full bg-white/10" />
-          <Skeleton className="h-64 w-full bg-white/10" />
-          <Skeleton className="h-96 w-full bg-white/10" />
+      <DashboardPage className="max-w-4xl mx-auto" title="گزارش تخصصی" animatedSections={false}>
+        <div className="space-y-6">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-96 w-full" />
         </div>
-      </div>
+      </DashboardPage>
     )
   }
 
   if (!assessment) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 flex items-center justify-center" dir="rtl">
-        <div className="text-center">
-          <p className="text-white/60">ارزیابی یافت نشد</p>
+      <DashboardPage className="max-w-4xl mx-auto" title="ارزیابی یافت نشد" animatedSections={false}>
+        <div className="text-center py-16">
+          <p className="text-muted-foreground">ارزیابی یافت نشد</p>
           <Link href="/parent/specialty-reports">
-            <Button variant="link" className="text-purple-400 mt-4">
+            <Button variant="link" className="text-brand-purple mt-4">
               بازگشت
             </Button>
           </Link>
         </div>
-      </div>
+      </DashboardPage>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-4xl mx-auto space-y-6">
-        
-        {/* ==================== Breadcrumb ==================== */}
-        <div className="flex items-center gap-2 text-sm">
-          <Link href="/parent" className="text-white/50 hover:text-white">داشبورد</Link>
-          <ChevronRight className="w-4 h-4 text-white/30" />
-          <Link href="/parent/specialty-reports" className="text-white/50 hover:text-white">گزارشات تخصصی</Link>
-          <ChevronRight className="w-4 h-4 text-white/30" />
-          <span className="text-white">{typeInfo.label}</span>
+    <DashboardPage
+      className="max-w-4xl mx-auto"
+      title={`گزارش ${typeInfo.label}`}
+      description={assessment.semester}
+      meta={
+        <div className="flex items-center gap-2 text-sm flex-wrap">
+          <Link href="/parent" className="text-muted-foreground hover:text-foreground">
+            داشبورد
+          </Link>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <Link href="/parent/specialty-reports" className="text-muted-foreground hover:text-foreground">
+            گزارشات تخصصی
+          </Link>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <span>{typeInfo.label}</span>
         </div>
-
-        {/* ==================== Header Card ==================== */}
-        <Card className={`bg-gradient-to-br ${typeInfo.color}/20 backdrop-blur-xl border-white/20`}>
+      }
+      animatedSections={false}
+    >
+        <GlassCard className={`bg-gradient-to-br ${typeInfo.color}/20 border-white/20`}>
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -303,14 +311,14 @@ export default function SpecialtyReportDetailPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Skills Section ==================== */}
         {type === 'music' && (
           <>
             <div className="grid md:grid-cols-2 gap-6">
               {/* Basic Skills */}
-              <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+              <GlassCard>
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Music className="w-5 h-5 text-purple-400" />
@@ -323,10 +331,10 @@ export default function SpecialtyReportDetailPage() {
                   <SkillBar label="خواندن نت" value={(assessment as MusicAssessment).music_reading} />
                   <SkillBar label="مهارت گوش دادن" value={(assessment as MusicAssessment).listening_skills} />
                 </CardContent>
-              </Card>
+              </GlassCard>
 
               {/* Performance & Creativity */}
-              <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+              <GlassCard>
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Star className="w-5 h-5 text-yellow-400" />
@@ -346,12 +354,12 @@ export default function SpecialtyReportDetailPage() {
                     </>
                   )}
                 </CardContent>
-              </Card>
+              </GlassCard>
             </div>
 
             {/* Songs Learned */}
             {(assessment as MusicAssessment).songs_learned && (assessment as MusicAssessment).songs_learned!.length > 0 && (
-              <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+              <GlassCard>
                 <CardHeader>
                   <CardTitle className="text-white">آهنگ‌های یادگرفته</CardTitle>
                 </CardHeader>
@@ -364,7 +372,7 @@ export default function SpecialtyReportDetailPage() {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </GlassCard>
             )}
           </>
         )}
@@ -373,7 +381,7 @@ export default function SpecialtyReportDetailPage() {
           <>
             <div className="grid md:grid-cols-2 gap-6">
               {/* Physical Fitness */}
-              <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+              <GlassCard>
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Dumbbell className="w-5 h-5 text-green-400" />
@@ -388,10 +396,10 @@ export default function SpecialtyReportDetailPage() {
                   <SkillBar label="چابکی" value={(assessment as SportsAssessment).agility} />
                   <SkillBar label="تعادل" value={(assessment as SportsAssessment).balance} />
                 </CardContent>
-              </Card>
+              </GlassCard>
 
               {/* Sports Skills */}
-              <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+              <GlassCard>
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Target className="w-5 h-5 text-blue-400" />
@@ -406,12 +414,12 @@ export default function SpecialtyReportDetailPage() {
                   <SkillBar label="کار تیمی" value={(assessment as SportsAssessment).teamwork} />
                   <SkillBar label="رهبری" value={(assessment as SportsAssessment).leadership} />
                 </CardContent>
-              </Card>
+              </GlassCard>
             </div>
 
             {/* Fitness Test Results */}
             {(assessment as SportsAssessment).fitness_test_results && (
-              <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+              <GlassCard>
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-yellow-400" />
@@ -433,12 +441,12 @@ export default function SpecialtyReportDetailPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </GlassCard>
             )}
 
             {/* Specialized Sports */}
             {(assessment as SportsAssessment).specialized_sports && (assessment as SportsAssessment).specialized_sports!.length > 0 && (
-              <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+              <GlassCard>
                 <CardHeader>
                   <CardTitle className="text-white">ورزش‌های تخصصی</CardTitle>
                 </CardHeader>
@@ -451,13 +459,13 @@ export default function SpecialtyReportDetailPage() {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </GlassCard>
             )}
           </>
         )}
 
         {/* ==================== Teacher Notes ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+        <GlassCard>
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <User className="w-5 h-5 text-purple-400" />
@@ -503,7 +511,7 @@ export default function SpecialtyReportDetailPage() {
               )}
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Actions ==================== */}
         <div className="flex gap-4">
@@ -518,11 +526,10 @@ export default function SpecialtyReportDetailPage() {
         </div>
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/30 text-sm py-4">
+        <footer className="text-center text-muted-foreground text-sm py-4">
           <p>گزارش {typeInfo.label} - هوشاگر</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

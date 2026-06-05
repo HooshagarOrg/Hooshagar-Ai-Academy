@@ -23,8 +23,7 @@ export function GlassCard({
         elevated ? 'glass-panel-elevated' : quiet ? 'glass-panel-quiet' : 'glass-panel',
         glow === 'pink' && 'glow-pink',
         glow === 'cyan' && 'glow-cyan',
-        hover &&
-          'motion-interactive hover:border-white/[0.14] hover:shadow-glass cursor-pointer',
+        hover && 'luxury-card-hover cursor-pointer',
         className,
       )}
       {...props}

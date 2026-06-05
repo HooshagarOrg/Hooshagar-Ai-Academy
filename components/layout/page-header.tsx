@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 
 interface PageHeaderProps {
   title: ReactNode
-  description?: string
+  description?: ReactNode
   meta?: ReactNode
   actions?: ReactNode
   className?: string

@@ -5,6 +5,7 @@ import { AppSidebar } from './app-sidebar'
 import { AppHeader } from './app-header'
 import { MobileNav } from './mobile-nav'
 import { AmbientBackground } from '@/components/ui/ambient-background'
+import { DashboardFrame } from '@/components/motion/dashboard-frame'
 import { getUiTone } from '@/lib/ui/role-tone'
 import { cn } from '@/lib/utils'
 
@@ -92,8 +93,8 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain lg:pb-0 pb-[calc(4.75rem+var(--safe-bottom))]">
           <div className="ui-canvas min-h-full" data-ui-tone={tone}>
-            <div className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6 motion-page-enter px-safe">
-              {children}
+            <div className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto w-full px-safe premium-content premium-legacy-bridge">
+              <DashboardFrame>{children}</DashboardFrame>
             </div>
           </div>
         </main>

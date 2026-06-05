@@ -23,7 +23,7 @@ import {
   GraduationCap,
 } from 'lucide-react'
 import { GlassCard } from '@/components/ui/glass-card'
-import { PageHeader } from '@/components/layout/page-header'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 import { StatCard } from '@/components/ui/stat-card'
 import { ToolTile } from '@/components/ui/tool-tile'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -175,27 +175,27 @@ export default function StudentDashboardPage() {
   ]
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        meta={persianDate}
-        title={
-          <>
-            سلام، <span className="gradient-text">{profileName || 'دانش‌آموز'}</span>
-          </>
-        }
-        description="همراه هوشمند یادگیری آماده است — امروز روی یک هدف تمرکز کن."
-        actions={
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl glass-panel-quiet text-sm">
-            <Zap className="w-4 h-4 text-brand-yellow shrink-0" />
-            <div>
-              <p className="font-bold tabular-nums">{xpData.xp.toLocaleString('fa-IR')} XP</p>
-              <p className="text-xs text-muted-foreground">
-                سطح {xpData.level} · {levelTitle}
-              </p>
-            </div>
+    <DashboardPage
+      meta={persianDate}
+      title={
+        <>
+          سلام، <span className="gradient-text">{profileName || 'دانش‌آموز'}</span>
+        </>
+      }
+      description="همراه هوشمند یادگیری آماده است — امروز روی یک هدف تمرکز کن."
+      actions={
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl glass-panel-quiet text-sm">
+          <Zap className="w-4 h-4 text-brand-yellow shrink-0" />
+          <div>
+            <p className="font-bold tabular-nums">{xpData.xp.toLocaleString('fa-IR')} XP</p>
+            <p className="text-xs text-muted-foreground">
+              سطح {xpData.level} · {levelTitle}
+            </p>
           </div>
-        }
-      />
+        </div>
+      }
+      animatedSections={false}
+    >
 
       {/* تمرکز اصلی: پیشرفت سطح */}
       <GlassCard className="p-6 md:p-7 overflow-hidden relative">
@@ -460,6 +460,6 @@ export default function StudentDashboardPage() {
           </div>
         </GlassCard>
       </Link>
-    </div>
+    </DashboardPage>
   )
 }

@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { usePersianDateString } from '@/lib/hooks/use-persian-date'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { PremiumPanel } from '@/components/ui/premium-panel'
+import { StatCard } from '@/components/ui/stat-card'
 import Link from 'next/link'
 import {
   Users,
@@ -226,49 +229,51 @@ export default function TeacherDashboardPage() {
   const alerts = dashboardData.alerts
 
   return (
-    <div className="space-y-8">
-        <header className="space-y-2">
-          <p className="text-sm text-muted-foreground">{persianDate}</p>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            سلام، <span className="text-brand-cyan">{teacherName}</span>
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            کلاس {className}
-            {alerts.length > 0 && (
-              <span className="mr-2 text-brand-orange"> · {alerts.length} هشدار</span>
-            )}
-          </p>
-        </header>
-
+    <DashboardPage
+      meta={persianDate}
+      title={
+        <>
+          سلام، <span className="text-brand-cyan">{teacherName}</span>
+        </>
+      }
+      description={
+        <>
+          کلاس {className}
+          {alerts.length > 0 && (
+            <span className="text-brand-orange"> · {alerts.length} هشدار</span>
+          )}
+        </>
+      }
+      animatedSections={false}
+    >
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
-            <div key={index} className="glass-panel-quiet p-5">
-              <div className={`${stat.color} p-3 rounded-xl text-white w-fit mb-3 opacity-90`}>
-                {stat.icon}
-              </div>
-              <p className="text-muted-foreground text-sm mb-1">{stat.label}</p>
-              <p className="text-2xl font-bold tabular-nums">{stat.value}</p>
-            </div>
+            <StatCard
+              key={index}
+              label={stat.label}
+              value={stat.value}
+              icon={stat.icon}
+              accentClass="text-brand-cyan"
+            />
           ))}
         </div>
 
         {/* ==================== Main Grid ==================== */}
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
           {/* ========== دانش‌آموزانم ========== */}
-          <div className="lg:col-span-2 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-400" />
-                دانش‌آموزانم
-              </h2>
+          <PremiumPanel
+            className="lg:col-span-2"
+            title="دانش‌آموزانم"
+            action={
               <Link
                 href="/test-students-list"
-                className="text-blue-300 hover:text-blue-200 text-sm flex items-center gap-1"
+                className="text-brand-cyan hover:text-brand-cyan/80 text-sm flex items-center gap-1 motion-interactive cursor-pointer"
               >
                 مشاهده همه
                 <ChevronLeft className="w-4 h-4" />
               </Link>
-            </div>
+            }
+          >
 
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -337,14 +342,17 @@ export default function TeacherDashboardPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </PremiumPanel>
 
           {/* ========== کارهای امروز ========== */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
-              <Calendar className="w-5 h-5 text-green-400" />
-              کارهای امروز
-            </h2>
+          <PremiumPanel
+            title={
+              <span className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-brand-green" />
+                کارهای امروز
+              </span>
+            }
+          >
 
             {/* آزمون‌ها */}
             <div className="mb-4">
@@ -409,17 +417,19 @@ export default function TeacherDashboardPage() {
                 یادآور: جلسه اولیا امروز ساعت ۱۶:۰۰
               </p>
             </div>
-          </div>
+          </PremiumPanel>
         </div>
 
         {/* ==================== ابزارها و هشدارها ==================== */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          {/* ========== ابزارهای من ========== */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-purple-400" />
-              ابزارهای من
-            </h2>
+          <PremiumPanel
+            title={
+              <span className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-brand-purple" />
+                ابزارهای من
+              </span>
+            }
+          >
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {tools.map((tool, index) => (
                 <Link
@@ -442,19 +452,21 @@ export default function TeacherDashboardPage() {
                 </Link>
               ))}
             </div>
-          </div>
+          </PremiumPanel>
 
-          {/* ========== هشدارها - دانش‌آموزان نیازمند توجه ========== */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
-              <AlertTriangle className="w-5 h-5 text-yellow-400" />
-              ⚠️ دانش‌آموزان نیازمند توجه
-              {alerts.length > 0 && (
-                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {alerts.length}
-                </span>
-              )}
-            </h2>
+          <PremiumPanel
+            title={
+              <span className="flex items-center gap-2 flex-wrap">
+                <AlertTriangle className="w-5 h-5 text-brand-yellow" />
+                دانش‌آموزان نیازمند توجه
+                {alerts.length > 0 && (
+                  <span className="bg-destructive text-destructive-foreground text-xs px-2 py-0.5 rounded-full">
+                    {alerts.length}
+                  </span>
+                )}
+              </span>
+            }
+          >
             <div className="space-y-3">
               {alerts.map((alert) => (
                 <div
@@ -494,7 +506,7 @@ export default function TeacherDashboardPage() {
                 </div>
               )}
             </div>
-          </div>
+          </PremiumPanel>
         </div>
 
         {/* ==================== ابزارهای هوشمند AI ==================== */}
@@ -548,7 +560,7 @@ export default function TeacherDashboardPage() {
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-    </div>
+    </DashboardPage>
   )
 }
 

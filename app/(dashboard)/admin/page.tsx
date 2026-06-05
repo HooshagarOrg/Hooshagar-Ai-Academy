@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { usePersianDateString } from '@/lib/hooks/use-persian-date'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { PremiumPanel } from '@/components/ui/premium-panel'
+import { StatCard } from '@/components/ui/stat-card'
 import Link from 'next/link'
 import {
   Building2,
@@ -251,64 +254,63 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
-        <header className="space-y-1">
-          <p className="text-sm text-muted-foreground">{persianDate}</p>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">مرکز فرمان پلتفرم</h1>
-          <p className="text-muted-foreground text-sm md:text-base max-w-2xl">
-            نظارت حرفه‌ای بر مدارس، کاربران و زیرساخت هوش مصنوعی — {adminName}
-          </p>
-          <div className="flex items-center gap-2 pt-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-brand-green/10 text-brand-green border border-brand-green/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
-              سیستم عملیاتی
+    <DashboardPage
+      meta={persianDate}
+      title="مرکز فرمان پلتفرم"
+      description={`نظارت حرفه‌ای بر مدارس، کاربران و زیرساخت هوش مصنوعی — ${adminName}`}
+      actions={
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-brand-green/10 text-brand-green border border-brand-green/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
+            سیستم عملیاتی
+          </span>
+          {mockAlerts.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {mockAlerts.length} هشدار فعال
             </span>
-            {mockAlerts.length > 0 && (
-              <span className="text-xs text-muted-foreground">
-                {mockAlerts.length} هشدار فعال
-              </span>
-            )}
-          </div>
-        </header>
-
+          )}
+        </div>
+      }
+      animatedSections={false}
+    >
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
-            <div
+            <StatCard
               key={index}
-              className="glass-panel-quiet p-5 transition-colors hover:border-white/[0.12]"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`${stat.color} p-3 rounded-xl text-white opacity-90`}>
-                  {stat.icon}
-                </div>
-                {stat.total && (
-                  <span className="text-muted-foreground text-sm">از {stat.total}</span>
-                )}
-              </div>
-              <p className="text-muted-foreground text-sm mb-1">{stat.label}</p>
-              <p className="text-2xl md:text-3xl font-bold tabular-nums">{stat.value}</p>
-              <p className="text-brand-green text-xs mt-1 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                {stat.trend}
-              </p>
-            </div>
+              label={stat.label}
+              value={stat.value}
+              hint={
+                stat.total
+                  ? `از ${stat.total} · ${stat.trend}`
+                  : stat.trend
+              }
+              icon={stat.icon}
+              accentClass="text-brand-cyan"
+            />
           ))}
         </div>
 
         {/* ==================== Main Grid ==================== */}
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
           {/* ========== مدارس من ========== */}
-          <div className="lg:col-span-2 bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-400" />
+          <PremiumPanel
+            className="lg:col-span-2"
+            title={
+              <span className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-brand-cyan" />
                 مدارس تحت پوشش
-              </h2>
-              <button className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl transition-all text-sm">
+              </span>
+            }
+            action={
+              <button
+                type="button"
+                className="flex items-center gap-2 bg-brand-cyan hover:opacity-90 text-space px-4 py-2 rounded-xl transition-all text-sm cursor-pointer"
+              >
                 <Plus className="w-4 h-4" />
                 افزودن مدرسه
               </button>
-            </div>
+            }
+          >
 
             <div className="grid md:grid-cols-2 gap-4">
               {schools.map((school) => (
@@ -354,14 +356,17 @@ export default function AdminDashboardPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </PremiumPanel>
 
           {/* ========== وضعیت سرویس‌ها ========== */}
-          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
-              <Server className="w-5 h-5 text-green-400" />
-              وضعیت سرویس‌ها
-            </h2>
+          <PremiumPanel
+            title={
+              <span className="flex items-center gap-2">
+                <Server className="w-5 h-5 text-brand-green" />
+                وضعیت سرویس‌ها
+              </span>
+            }
+          >
 
             <div className="space-y-3 mb-6">
               {serviceStatus.map((service, index) => (
@@ -420,7 +425,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </PremiumPanel>
         </div>
 
         {/* ==================== آمار عملکرد ==================== */}
@@ -613,7 +618,7 @@ export default function AdminDashboardPage() {
           <p>پنل مدیریت پلتفرم هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰ | آخرین بروزرسانی: {persianDate}</p>
         </footer>
-    </div>
+    </DashboardPage>
   )
 }
 

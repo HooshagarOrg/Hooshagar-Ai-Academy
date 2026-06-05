@@ -18,7 +18,9 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
-import { AmbientBackground } from '@/components/ui/ambient-background'
+import { MarketingShell } from '@/components/layout/marketing-shell'
+import { Reveal } from '@/components/motion/reveal'
+import { Stagger, StaggerItem } from '@/components/motion/stagger'
 import { GlassCard } from '@/components/ui/glass-card'
 
 const features = [
@@ -102,32 +104,11 @@ const stats = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground ui-canvas" data-ui-tone="balanced" dir="rtl">
-      <AmbientBackground tone="balanced" />
-
-      {/* Navbar */}
-      <nav className="sticky top-4 z-50 mx-4 mt-4 pt-safe motion-interactive">
-        <div className="glass-panel max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <HooshagarLogo size="sm" href="/" priority showWordmark />
-          <div className="flex items-center gap-2">
-            <Link href="/login">
-              <Button variant="ghost" size="sm">
-                ورود
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button variant="gradient" size="sm">
-                شروع رایگان
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
+    <MarketingShell tone="balanced">
       {/* Hero */}
-      <section className="relative pt-16 pb-24 md:pt-24 md:pb-32">
+      <section className="relative pt-10 pb-24 md:pt-16 md:pb-32 premium-hero-glow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
+          <Reveal className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full glass-panel text-sm border-brand-pink/20">
               <Sparkles className="w-4 h-4 text-brand-yellow" />
               <span className="text-muted-foreground">آینده آموزش، همین امروز</span>
@@ -152,47 +133,50 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/login">
+              <Link href="/login" prefetch={false}>
                 <Button size="lg" variant="gradient" className="px-8 h-12 text-base">
                   <Zap className="w-5 h-5" />
                   شروع رایگان
                 </Button>
               </Link>
-              <Link href="#features">
+              <Link href="#features" prefetch={false}>
                 <Button size="lg" variant="outline" className="px-8 h-12 text-base">
                   کشف امکانات
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
               </Link>
             </div>
-          </div>
+          </Reveal>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-20 max-w-3xl mx-auto">
+          <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-20 max-w-3xl mx-auto">
             {stats.map((stat, i) => (
-              <GlassCard key={i} className="p-5 text-center" hover>
-                <p className="text-2xl md:text-3xl font-black gradient-text mb-1">{stat.value}</p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-              </GlassCard>
+              <StaggerItem key={i}>
+                <GlassCard className="p-5 text-center" hover>
+                  <p className="text-2xl md:text-3xl font-black gradient-text mb-1">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </GlassCard>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       </section>
 
       {/* Features */}
       <section id="features" className="py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
+          <Reveal className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-black mb-4">همه چیز در یک اکوسیستم</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Soft Futurism برای آموزش — شیشه‌ای، زنده، و متمرکز بر انسان
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f, i) => {
               const FeatureIcon = f.icon
               return (
-              <GlassCard key={i} hover className="p-6 group">
+              <Reveal key={i} delay={i * 0.04}>
+              <GlassCard hover className="p-6 group h-full">
                 <div
                   className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${f.accent} flex items-center justify-center mb-4 border border-white/[0.06] group-hover:scale-105 transition-transform`}
                 >
@@ -201,6 +185,7 @@ export default function LandingPage() {
                 <h3 className="text-lg font-bold mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.description}</p>
               </GlassCard>
+              </Reveal>
             )})}
           </div>
         </div>
@@ -209,16 +194,17 @@ export default function LandingPage() {
       {/* User types */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
+          <Reveal className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-black mb-4">برای هر نقش، تجربه‌ای منحصربه‌فرد</h2>
             <p className="text-lg text-muted-foreground">یک پلتفرم — چهار جهان متفاوت</p>
-          </div>
+          </Reveal>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {userTypes.map((u, i) => {
               const RoleIcon = u.icon
               return (
-              <GlassCard key={i} className="overflow-hidden p-0" hover>
+              <Reveal key={i} delay={i * 0.05}>
+              <GlassCard className="overflow-hidden p-0 h-full" hover>
                 <div className={`bg-gradient-to-br ${u.gradient} p-6`}>
                   <RoleIcon className="w-8 h-8 mb-3 text-white/90" />
                   <h3 className="text-lg font-bold text-white">{u.role}</h3>
@@ -232,6 +218,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
               </GlassCard>
+              </Reveal>
             )})}
           </div>
         </div>
@@ -241,7 +228,7 @@ export default function LandingPage() {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-10 items-center">
-            <div>
+            <Reveal>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-panel text-sm mb-6 border-brand-purple/20">
                 <Brain className="w-4 h-4 text-brand-yellow" />
                 <span>AI Native + Human Centered</span>
@@ -272,8 +259,9 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </Reveal>
 
+            <Reveal delay={0.08}>
             <GlassCard elevated glow="pink" className="p-8">
               <div className="space-y-4">
                 <div className="rounded-2xl p-4 bg-white/[0.04] border border-white/[0.06]">
@@ -302,13 +290,15 @@ export default function LandingPage() {
                 </div>
               </div>
             </GlassCard>
+            </Reveal>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 pb-28">
+      <section className="py-20 pb-8">
         <div className="max-w-3xl mx-auto px-4">
+          <Reveal>
           <GlassCard elevated glow="cyan" className="p-10 text-center">
             <div className="flex justify-center mb-6">
               <HooshagarLogo size="lg" href="/login" showWordmark={false} />
@@ -331,21 +321,9 @@ export default function LandingPage() {
               </Link>
             </div>
           </GlassCard>
+          </Reveal>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-white/[0.06] py-10">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex justify-center mb-4">
-            <HooshagarLogo size="sm" href="/" showWordmark />
-          </div>
-          <p className="text-muted-foreground text-sm">سیستم‌عامل یادگیری هوشمند ایران</p>
-          <p className="text-muted-foreground/60 text-xs mt-4">
-            © ۱۴۰۴ هوشاگر — ساخته شده برای آموزش ایران
-          </p>
-        </div>
-      </footer>
-    </div>
+    </MarketingShell>
   )
 }

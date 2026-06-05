@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { usePersianDateString } from '@/lib/hooks/use-persian-date'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { StatCard } from '@/components/ui/stat-card'
 import Link from 'next/link'
 import {
   User,
@@ -157,26 +159,26 @@ export default function ParentDashboardPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
-          <p className="text-white text-lg">در حال بارگذاری...</p>
+      <div className="flex items-center justify-center py-24">
+        <div className="text-center glass-panel-quiet p-8">
+          <Loader2 className="w-10 h-10 text-brand-green animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">در حال بارگذاری...</p>
         </div>
       </div>
     )
   }
 
-  // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
-        <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <p className="text-white text-xl font-bold mb-2">خطا در بارگذاری</p>
-          <p className="text-white/70 mb-4">{error}</p>
+      <div className="flex items-center justify-center py-24">
+        <div className="text-center glass-panel-quiet p-8 max-w-md">
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <p className="text-lg font-bold mb-2">خطا در بارگذاری</p>
+          <p className="text-muted-foreground mb-4">{error}</p>
           <button
+            type="button"
             onClick={fetchDashboardData}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl transition-all"
+            className="bg-brand-green hover:opacity-90 text-space px-6 py-3 rounded-xl transition-all cursor-pointer"
           >
             تلاش مجدد
           </button>
@@ -185,14 +187,13 @@ export default function ParentDashboardPage() {
     )
   }
 
-  // No data
   if (!dashboardData || !dashboardData.activeChild) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
-        <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-          <Users className="w-16 h-16 text-white/50 mx-auto mb-4" />
-          <p className="text-white text-xl font-bold mb-2">فرزندی ثبت نشده است</p>
-          <p className="text-white/70">لطفاً با مدیر مدرسه تماس بگیرید</p>
+      <div className="flex items-center justify-center py-24">
+        <div className="text-center glass-panel-quiet p-8 max-w-md">
+          <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-lg font-bold mb-2">فرزندی ثبت نشده است</p>
+          <p className="text-muted-foreground">لطفاً با مدیر مدرسه تماس بگیرید</p>
         </div>
       </div>
     )
@@ -239,58 +240,53 @@ export default function ParentDashboardPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                سلام، {parentName} 👋
-              </h1>
-              <p className="text-white/70">
-                <span className="bg-white/20 px-3 py-1 rounded-full text-sm ml-2">
-                  👨‍👩‍👧 ولی
-                </span>
-                <span className="bg-emerald-500/30 px-3 py-1 rounded-full text-sm ml-2">
-                  فرزند: {childName} ({childClass})
-                </span>
-              </p>
-              <p className="text-white/50 text-sm mt-2">{persianDate}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="relative p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
-                <Bell className="w-5 h-5 text-white" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              </button>
-              <Link
-                href="/test-session"
-                className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <Settings className="w-5 h-5 text-white" />
-              </Link>
-            </div>
-          </div>
-        </header>
-
-        {/* ==================== Stats Cards ==================== */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <DashboardPage
+      meta={persianDate}
+      title={
+        <>
+          سلام، <span className="text-brand-green">{parentName}</span>
+        </>
+      }
+      description={
+        <>
+          ولی · فرزند: {childName} ({childClass}) · پایه {childGrade}
+        </>
+      }
+      actions={
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="relative p-3 rounded-xl glass-panel-quiet hover:border-white/[0.12] transition-colors cursor-pointer"
+            aria-label="اعلان‌ها"
+          >
+            <Bell className="w-5 h-5 text-foreground" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+          <Link
+            href="/test-session"
+            className="p-3 rounded-xl glass-panel-quiet hover:border-white/[0.12] transition-colors"
+            aria-label="تنظیمات"
+          >
+            <Settings className="w-5 h-5 text-foreground" />
+          </Link>
+        </div>
+      }
+      animatedSections={false}
+    >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
-            <div
+            <StatCard
               key={index}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`${stat.color} p-3 rounded-xl shadow-lg text-white`}>
-                  {stat.icon}
-                </div>
-              </div>
-              <p className="text-white/60 text-sm mb-1">{stat.label}</p>
-              <p className="text-white text-xl md:text-2xl font-bold">{stat.value}</p>
-              <p className="text-white/40 text-xs mt-1">{stat.subtext}</p>
-            </div>
+              label={stat.label}
+              value={stat.value}
+              hint={stat.subtext}
+              icon={stat.icon}
+              accentClass="text-brand-green"
+            />
           ))}
         </div>
 
@@ -617,12 +613,11 @@ export default function ParentDashboardPage() {
         </div>
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-4">
+        <footer className="text-center text-muted-foreground text-sm py-4">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

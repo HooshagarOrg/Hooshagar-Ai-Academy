@@ -374,12 +374,13 @@ export function AppSidebar({
         {/* ===== پروفایل کاربر ===== */}
         {!collapsed && (
           <div className="px-3 py-3 border-b border-white/[0.06]">
-            <div
+            <Link
+              href="/profile"
               className={cn(
-                'flex items-center gap-3 p-2.5 rounded-2xl border border-white/[0.06]',
+                'flex items-center gap-3 p-2.5 rounded-2xl border border-white/[0.06] motion-interactive cursor-pointer',
                 tone === 'calm'
-                  ? 'bg-white/[0.04]'
-                  : 'bg-gradient-to-l from-brand-pink/15 to-brand-purple/10',
+                  ? 'bg-white/[0.04] hover:bg-white/[0.06]'
+                  : 'bg-gradient-to-l from-brand-pink/15 to-brand-purple/10 hover:border-brand-pink/25',
               )}
             >
               <div
@@ -402,7 +403,7 @@ export function AppSidebar({
                 <p className="text-sm font-semibold text-foreground truncate">{userName}</p>
                 <p className="text-xs text-muted-foreground">{getRoleLabel(role)}</p>
               </div>
-            </div>
+            </Link>
           </div>
         )}
 

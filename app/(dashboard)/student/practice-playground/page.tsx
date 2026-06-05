@@ -19,6 +19,9 @@ import {
   Play,
   PartyPopper,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -696,42 +699,36 @@ export default function PracticePlaygroundPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-700 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-3xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/student"
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </Link>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  <span className="text-4xl">🎮</span>
-                  زمین بازی تمرین
-                </h1>
-                <p className="text-white/60 mt-1 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-yellow-400" />
-                  یاد بگیر و بازی کن!
-                </p>
-              </div>
-            </div>
-
-            {/* XP */}
-            <div className="bg-gradient-to-r from-yellow-500/30 to-orange-500/30 rounded-2xl px-4 py-3 border border-yellow-500/30">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-yellow-400" />
-                <span className="text-yellow-400 font-bold text-xl">{totalXp}</span>
-                <span className="text-yellow-400/70 text-sm">XP</span>
-              </div>
-            </div>
+    <DashboardPage
+      className="max-w-3xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <span className="text-4xl">🎮</span>
+          زمین بازی تمرین
+        </span>
+      }
+      description={
+        <span className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-brand-yellow" />
+          یاد بگیر و بازی کن!
+        </span>
+      }
+      actions={
+        <div className="flex items-center gap-2">
+          <div className="bg-gradient-to-r from-yellow-500/30 to-orange-500/30 rounded-2xl px-4 py-2 border border-yellow-500/30 flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-yellow-400" />
+            <span className="text-yellow-400 font-bold">{totalXp}</span>
+            <span className="text-yellow-400/70 text-sm">XP</span>
           </div>
-        </header>
-
-        {/* ==================== محتوای اصلی ==================== */}
+          <Link href="/student">
+            <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </Link>
+        </div>
+      }
+      animatedSections={false}
+    >
         <main>
           {/* نمایش نتیجه */}
           {gameResult ? (
@@ -743,13 +740,13 @@ export default function PracticePlaygroundPage() {
             />
           ) : !selectedSubject ? (
             /* انتخاب درس */
-            <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 border border-white/20">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <GlassCard className="p-6">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                 <Award className="w-5 h-5 text-yellow-400" />
                 یک درس انتخاب کن!
               </h2>
               <SubjectSelector onSelect={setSelectedSubject} />
-            </div>
+            </GlassCard>
           ) : selectedSubject === 'math' ? (
             /* بازی ریاضی */
             <MathGame onFinish={handleGameFinish} onBack={handleBack} />
@@ -760,12 +757,11 @@ export default function PracticePlaygroundPage() {
         </main>
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>🎓 یادگیری با هوشاگر، لذت‌بخش و هوشمند!</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

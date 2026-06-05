@@ -50,6 +50,9 @@ import {
   ACCESS_DENIED_MESSAGES,
   SENSITIVE_FIELDS_FOR_STUDENT,
 } from '@/lib/privacy'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -490,41 +493,32 @@ export default function FutureCompassPage() {
   const selectedInterestsCount = interests.filter(i => i.checked).length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-700 to-blue-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-5xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/student"
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </Link>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  <Compass className="w-8 h-8 text-yellow-400 animate-pulse" />
-                  قطب‌نمای آینده
-                </h1>
-                <p className="text-white/60 mt-1">
-                  کشف استعدادها و انتخاب مسیر شغلی و تحصیلی
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="bg-purple-500/30 text-purple-200 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
-                <Brain className="w-4 h-4" />
-                تحلیل هوشمند AI
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* ==================== درباره من و نقاط قوت ==================== */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          {/* درباره من */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+    <DashboardPage
+      className="max-w-5xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Compass className="w-8 h-8 text-brand-yellow animate-pulse" />
+          قطب‌نمای آینده
+        </span>
+      }
+      description="کشف استعدادها و انتخاب مسیر شغلی و تحصیلی"
+      actions={
+        <div className="flex items-center gap-2">
+          <span className="bg-brand-purple/20 text-brand-purple px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            تحلیل هوشمند AI
+          </span>
+          <Link href="/student">
+            <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </Link>
+        </div>
+      }
+      animatedSections={false}
+    >
+        <div className="grid lg:grid-cols-2 gap-6">
+          <GlassCard className="p-6">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <User className="w-5 h-5 text-purple-400" />
               درباره من
@@ -561,10 +555,9 @@ export default function FutureCompassPage() {
                 )}
               </div>
             </div>
-          </div>
+          </GlassCard>
 
-          {/* نقاط قوت */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+          <GlassCard className="p-6">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-green-400" />
               نقاط قوت من
@@ -581,11 +574,10 @@ export default function FutureCompassPage() {
                 />
               ))}
             </div>
-          </div>
+          </GlassCard>
         </div>
 
-        {/* ==================== علایق من ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
+        <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Heart className="w-5 h-5 text-pink-400" />
@@ -632,7 +624,7 @@ export default function FutureCompassPage() {
               </>
             )}
           </button>
-        </div>
+        </GlassCard>
 
         {/* ==================== دکمه تحلیل هوشمند ==================== */}
         <div className="mb-6">
@@ -680,7 +672,7 @@ export default function FutureCompassPage() {
             )}
 
             {/* رشته‌های پیشنهادی - همه می‌بینند */}
-            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
+            <GlassCard className="p-6 border-brand-purple/30 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-pink/10">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg">
                   <GraduationCap className="w-6 h-6" />
@@ -696,10 +688,9 @@ export default function FutureCompassPage() {
                   <MajorCard key={major.id} major={major} rank={index + 1} />
                 ))}
               </div>
-            </div>
+            </GlassCard>
 
-            {/* مشاغل آینده - برای دانش‌آموز بدون حقوق */}
-            <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
+            <GlassCard className="p-6 border-brand-cyan/30 bg-gradient-to-bl from-brand-cyan/15 via-card/90 to-blue-500/10">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg">
                   <Briefcase className="w-6 h-6" />
@@ -734,10 +725,9 @@ export default function FutureCompassPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </GlassCard>
 
-            {/* مهارت‌های مورد نیاز - همه می‌بینند */}
-            <div className="bg-gradient-to-r from-emerald-500/20 to-green-500/20 backdrop-blur-lg rounded-2xl p-6 border border-emerald-500/30">
+            <GlassCard className="p-6 border-green-500/30 bg-gradient-to-bl from-green-500/15 via-card/90 to-emerald-500/10">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 text-white shadow-lg">
                   <Wrench className="w-6 h-6" />
@@ -777,7 +767,7 @@ export default function FutureCompassPage() {
                   )
                 })}
               </div>
-            </div>
+            </GlassCard>
 
             {/* ==================== بخش محرمانه - فقط معلم/مشاور ==================== */}
             <RestrictedContent
@@ -785,7 +775,7 @@ export default function FutureCompassPage() {
               requiredLevel="full"
               fallbackMessage="تحلیل تفصیلی فقط برای معلم و مشاور قابل مشاهده است"
             >
-              <div className="bg-gradient-to-r from-red-500/20 to-orange-500/20 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30">
+              <GlassCard className="p-6 border-red-500/30 bg-gradient-to-bl from-red-500/15 via-card/90 to-orange-500/10">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 text-white shadow-lg">
                     <Shield className="w-6 h-6" />
@@ -838,11 +828,10 @@ export default function FutureCompassPage() {
                     </ul>
                   </div>
                 </div>
-              </div>
+              </GlassCard>
             </RestrictedContent>
 
-            {/* پیام انگیزشی */}
-            <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-lg rounded-2xl p-6 border border-yellow-500/30 text-center">
+            <GlassCard className="p-6 border-yellow-500/30 bg-gradient-to-bl from-yellow-500/15 via-card/90 to-orange-500/10 text-center">
               <div className="flex justify-center mb-4">
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 text-white shadow-lg">
                   <Award className="w-8 h-8" />
@@ -855,7 +844,7 @@ export default function FutureCompassPage() {
                 این فقط یک پیشنهاد است. آینده در دستان توست و هر مسیری که انتخاب کنی، 
                 با تلاش و پشتکار می‌تونی به بهترین‌ها برسی. به خودت ایمان داشته باش! 🚀
               </p>
-            </div>
+            </GlassCard>
 
             {/* دکمه دانلود - فقط برای معلم/مشاور/مدیر */}
             {canViewFull && (
@@ -871,12 +860,11 @@ export default function FutureCompassPage() {
         )}
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

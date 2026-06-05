@@ -14,6 +14,9 @@ import {
   Loader2,
   Sparkles,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -170,8 +173,8 @@ export default function ParentSurveyPage() {
   // نمایش صفحه موفقیت
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-600 via-emerald-700 to-teal-800 p-4 md:p-6 lg:p-8 flex items-center justify-center" dir="rtl">
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 text-center max-w-md">
+      <DashboardPage className="max-w-md mx-auto flex items-center justify-center min-h-[50vh]" title="نظرسنجی" animatedSections={false}>
+        <GlassCard className="p-8 text-center w-full">
           <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10 text-white" />
           </div>
@@ -181,49 +184,41 @@ export default function ParentSurveyPage() {
           <p className="text-white/70 mb-6">
             نظرسنجی شما با موفقیت ثبت شد. نظرات شما به بهبود کیفیت آموزش کمک می‌کند.
           </p>
-          <Link
-            href="/parent"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-all"
-          >
-            <ArrowRight className="w-5 h-5" />
-            بازگشت به داشبورد
+          <Link href="/parent">
+            <Button className="gap-2 bg-brand-green hover:opacity-90 text-space">
+              <ArrowRight className="w-5 h-5" />
+              بازگشت به داشبورد
+            </Button>
           </Link>
-        </div>
-      </div>
+        </GlassCard>
+      </DashboardPage>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-3xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/parent"
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-            >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </Link>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <ClipboardList className="w-8 h-8 text-blue-400" />
-                نظرسنجی
-              </h1>
-              <p className="text-white/60 mt-1">
-                نظر شما برای ما مهم است
-              </p>
-            </div>
-          </div>
-        </header>
-
-        {/* ==================== Progress ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 mb-6 border border-white/20">
+    <DashboardPage
+      className="max-w-3xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <ClipboardList className="w-8 h-8 text-brand-cyan" />
+          نظرسنجی
+        </span>
+      }
+      description="نظر شما برای ما مهم است"
+      actions={
+        <Link href="/parent">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
+        <GlassCard className="p-4">
           <ProgressBar current={answeredCount} total={totalQuestions} />
-        </div>
+        </GlassCard>
 
-        {/* ==================== نظرسنجی عملکرد معلم ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+        <GlassCard className="p-6">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <GraduationCap className="w-6 h-6 text-yellow-400" />
             عملکرد معلم
@@ -250,10 +245,9 @@ export default function ParentSurveyPage() {
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
 
-        {/* ==================== نظرسنجی امکانات مدرسه ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+        <GlassCard className="p-6">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <Building className="w-6 h-6 text-purple-400" />
             امکانات مدرسه
@@ -280,10 +274,9 @@ export default function ParentSurveyPage() {
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
 
-        {/* ==================== نظرات و پیشنهادات ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+        <GlassCard className="p-6">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <MessageSquare className="w-6 h-6 text-green-400" />
             نظرات و پیشنهادات
@@ -298,7 +291,7 @@ export default function ParentSurveyPage() {
             rows={5}
             className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none leading-relaxed"
           />
-        </div>
+        </GlassCard>
 
         {/* ==================== دکمه ارسال ==================== */}
         <button
@@ -331,12 +324,11 @@ export default function ParentSurveyPage() {
         )}
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

@@ -36,6 +36,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 import {
   PRIORITY_LABELS,
   
@@ -151,24 +153,22 @@ const StatCard = ({
   color: string
   subtext?: string
 }) => (
-  <Card className="bg-white/5 backdrop-blur-xl border-white/10">
-    <CardContent className="p-5">
-      <div className="flex items-start justify-between mb-3">
-        <div className={`${color} p-3 rounded-xl`}>
-          {icon}
+  <GlassCard className="p-5">
+    <div className="flex items-start justify-between mb-3">
+      <div className={`${color} p-3 rounded-xl text-white`}>{icon}</div>
+      {change !== undefined && (
+        <div
+          className={`flex items-center gap-1 text-xs ${change >= 0 ? 'text-brand-green' : 'text-destructive'}`}
+        >
+          {change >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+          {Math.abs(change)}%
         </div>
-        {change !== undefined && (
-          <div className={`flex items-center gap-1 text-xs ${change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {change >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-            {Math.abs(change)}%
-          </div>
-        )}
-      </div>
-      <p className="text-white/60 text-sm mb-1">{title}</p>
-      <p className="text-white text-2xl font-bold">{value}</p>
-      {subtext && <p className="text-white/40 text-xs mt-1">{subtext}</p>}
-    </CardContent>
-  </Card>
+      )}
+    </div>
+    <p className="text-muted-foreground text-sm mb-1">{title}</p>
+    <p className="text-2xl font-bold tabular-nums">{value}</p>
+    {subtext && <p className="text-muted-foreground text-xs mt-1">{subtext}</p>}
+  </GlassCard>
 )
 
 const ProgressBar = ({ value, color = 'from-purple-500 to-pink-500' }: { value: number; color?: string }) => (
@@ -252,18 +252,16 @@ export default function CounselorReportsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <Skeleton className="h-16 w-full bg-white/10" />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-32 bg-white/10" />
-            ))}
-          </div>
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Skeleton className="h-80 bg-white/10" />
-            <Skeleton className="h-80 bg-white/10" />
-          </div>
+      <div className="space-y-6" dir="rtl">
+        <Skeleton className="h-16 w-full glass-panel-quiet" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-32 glass-panel-quiet" />
+          ))}
+        </div>
+        <div className="grid lg:grid-cols-2 gap-6">
+          <Skeleton className="h-80 glass-panel-quiet" />
+          <Skeleton className="h-80 glass-panel-quiet" />
         </div>
       </div>
     )
@@ -272,38 +270,35 @@ export default function CounselorReportsPage() {
   if (!stats) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* ==================== Header ==================== */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-              <BarChart3 className="w-8 h-8 text-purple-400" />
-              گزارشات آماری
-            </h1>
-            <p className="text-white/60 text-sm mt-1">
-              تحلیل و آمار پرونده‌های مشاوره
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-40 bg-white/5 border-white/20 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">هفته جاری</SelectItem>
-                <SelectItem value="month">ماه جاری</SelectItem>
-                <SelectItem value="quarter">سه ماهه</SelectItem>
-                <SelectItem value="year">سال تحصیلی</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 gap-2">
-              <Download className="w-4 h-4" />
-              دانلود Excel
-            </Button>
-          </div>
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <BarChart3 className="w-8 h-8 text-brand-pink" />
+          گزارشات آماری
+        </span>
+      }
+      description="تحلیل و آمار پرونده‌های مشاوره"
+      actions={
+        <div className="flex items-center gap-3">
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">هفته جاری</SelectItem>
+              <SelectItem value="month">ماه جاری</SelectItem>
+              <SelectItem value="quarter">سه ماهه</SelectItem>
+              <SelectItem value="year">سال تحصیلی</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" className="gap-2">
+            <Download className="w-4 h-4" />
+            دانلود Excel
+          </Button>
         </div>
+      }
+      animatedSections={false}
+    >
 
         {/* ==================== Overview Stats ==================== */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -342,9 +337,9 @@ export default function CounselorReportsPage() {
         <div className="grid lg:grid-cols-2 gap-6">
           
           {/* Category Distribution */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          <GlassCard>
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className=" flex items-center gap-2">
                 <PieChart className="w-5 h-5 text-purple-400" />
                 توزیع دسته‌بندی مسائل
               </CardTitle>
@@ -353,19 +348,19 @@ export default function CounselorReportsPage() {
               {categoryData.map((item) => (
                 <div key={item.category}>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-white/70">{item.category}</span>
-                    <span className="text-white/50">{item.count} پرونده ({item.percentage}%)</span>
+                    <span className="text-muted-foreground">{item.category}</span>
+                    <span className="text-muted-foreground">{item.count} پرونده ({item.percentage}%)</span>
                   </div>
                   <ProgressBar value={item.percentage * 3} />
                 </div>
               ))}
             </CardContent>
-          </Card>
+          </GlassCard>
 
           {/* Priority Distribution */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          <GlassCard>
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className=" flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-orange-400" />
                 توزیع اولویت‌ها
               </CardTitle>
@@ -375,52 +370,52 @@ export default function CounselorReportsPage() {
                 <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <span className="text-white/70 text-sm">فوری</span>
+                    <span className="text-muted-foreground text-sm">فوری</span>
                   </div>
-                  <p className="text-white text-3xl font-bold">{priorityData.urgent}</p>
-                  <p className="text-white/40 text-xs mt-1">
+                  <p className="text-3xl font-bold tabular-nums">{priorityData.urgent}</p>
+                  <p className="text-muted-foreground text-xs mt-1">
                     {Math.round((priorityData.urgent / stats.active_records) * 100)}% از فعال‌ها
                   </p>
                 </div>
                 <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-3 h-3 rounded-full bg-orange-500" />
-                    <span className="text-white/70 text-sm">بالا</span>
+                    <span className="text-muted-foreground text-sm">بالا</span>
                   </div>
-                  <p className="text-white text-3xl font-bold">{priorityData.high}</p>
-                  <p className="text-white/40 text-xs mt-1">
+                  <p className="text-3xl font-bold tabular-nums">{priorityData.high}</p>
+                  <p className="text-muted-foreground text-xs mt-1">
                     {Math.round((priorityData.high / stats.active_records) * 100)}% از فعال‌ها
                   </p>
                 </div>
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <span className="text-white/70 text-sm">متوسط</span>
+                    <span className="text-muted-foreground text-sm">متوسط</span>
                   </div>
-                  <p className="text-white text-3xl font-bold">{priorityData.medium}</p>
-                  <p className="text-white/40 text-xs mt-1">
+                  <p className="text-3xl font-bold tabular-nums">{priorityData.medium}</p>
+                  <p className="text-muted-foreground text-xs mt-1">
                     {Math.round((priorityData.medium / stats.active_records) * 100)}% از فعال‌ها
                   </p>
                 </div>
                 <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-3 h-3 rounded-full bg-green-500" />
-                    <span className="text-white/70 text-sm">پایین</span>
+                    <span className="text-muted-foreground text-sm">پایین</span>
                   </div>
-                  <p className="text-white text-3xl font-bold">{priorityData.low}</p>
-                  <p className="text-white/40 text-xs mt-1">
+                  <p className="text-3xl font-bold tabular-nums">{priorityData.low}</p>
+                  <p className="text-muted-foreground text-xs mt-1">
                     {Math.round((priorityData.low / stats.active_records) * 100)}% از فعال‌ها
                   </p>
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </GlassCard>
         </div>
 
         {/* ==================== Monthly Trend ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+        <GlassCard>
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className=" flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-green-400" />
               روند ماهانه جلسات
             </CardTitle>
@@ -437,12 +432,12 @@ export default function CounselorReportsPage() {
                         className="w-full max-w-[60px] bg-gradient-to-t from-purple-600 to-pink-500 rounded-t-lg transition-all duration-500 hover:from-purple-500 hover:to-pink-400"
                         style={{ height: `${height}%` }}
                       >
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-white/60 text-xs">
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-muted-foreground text-xs">
                           {item.sessions}
                         </div>
                       </div>
                     </div>
-                    <p className="text-white/60 text-sm">{item.month}</p>
+                    <p className="text-muted-foreground text-sm">{item.month}</p>
                   </div>
                 )
               })}
@@ -450,20 +445,20 @@ export default function CounselorReportsPage() {
             <div className="flex justify-center gap-8 mt-6 pt-4 border-t border-white/10">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
-                <span className="text-white/60 text-sm">تعداد جلسات</span>
+                <span className="text-muted-foreground text-sm">تعداد جلسات</span>
               </div>
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Tables Row ==================== */}
         <div className="grid lg:grid-cols-2 gap-6">
           
           {/* Active Records (Top 10) */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          <GlassCard>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className=" flex items-center gap-2">
                   <Users className="w-5 h-5 text-blue-400" />
                   پرونده‌های فعال (بیشترین جلسات)
                 </CardTitle>
@@ -478,41 +473,41 @@ export default function CounselorReportsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="text-white/60 text-right">دانش‌آموز</TableHead>
-                    <TableHead className="text-white/60 text-right">پایه</TableHead>
-                    <TableHead className="text-white/60 text-right">جلسات</TableHead>
-                    <TableHead className="text-white/60 text-right">اولویت</TableHead>
-                    <TableHead className="text-white/60 text-right">آخرین</TableHead>
+                    <TableHead className="text-muted-foreground text-right">دانش‌آموز</TableHead>
+                    <TableHead className="text-muted-foreground text-right">پایه</TableHead>
+                    <TableHead className="text-muted-foreground text-right">جلسات</TableHead>
+                    <TableHead className="text-muted-foreground text-right">اولویت</TableHead>
+                    <TableHead className="text-muted-foreground text-right">آخرین</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {mockTopRecords.map((record) => (
                     <TableRow key={record.id} className="border-white/10 hover:bg-white/5">
-                      <TableCell className="text-white font-medium">
+                      <TableCell className="font-medium">
                         <Link href={`/counselor/records/${record.id}`} className="hover:text-purple-400">
                           {record.student_name}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-white/70">{record.grade}</TableCell>
-                      <TableCell className="text-white/70">{record.sessions_count}</TableCell>
+                      <TableCell className="text-muted-foreground">{record.grade}</TableCell>
+                      <TableCell className="text-muted-foreground">{record.sessions_count}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-0.5 rounded-full text-xs border ${getPriorityColor(record.priority)}`}>
                           {PRIORITY_LABELS[record.priority]}
                         </span>
                       </TableCell>
-                      <TableCell className="text-white/50 text-sm">{record.last_session}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{record.last_session}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
+          </GlassCard>
 
           {/* Recently Closed */}
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          <GlassCard>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className=" flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-green-400" />
                   پرونده‌های بسته شده اخیر
                 </CardTitle>
@@ -527,18 +522,18 @@ export default function CounselorReportsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="text-white/60 text-right">دانش‌آموز</TableHead>
-                    <TableHead className="text-white/60 text-right">جلسات</TableHead>
-                    <TableHead className="text-white/60 text-right">مدت (روز)</TableHead>
-                    <TableHead className="text-white/60 text-right">نتیجه</TableHead>
+                    <TableHead className="text-muted-foreground text-right">دانش‌آموز</TableHead>
+                    <TableHead className="text-muted-foreground text-right">جلسات</TableHead>
+                    <TableHead className="text-muted-foreground text-right">مدت (روز)</TableHead>
+                    <TableHead className="text-muted-foreground text-right">نتیجه</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {mockRecentClosed.map((record) => (
                     <TableRow key={record.id} className="border-white/10 hover:bg-white/5">
-                      <TableCell className="text-white font-medium">{record.student_name}</TableCell>
-                      <TableCell className="text-white/70">{record.sessions}</TableCell>
-                      <TableCell className="text-white/70">{record.duration}</TableCell>
+                      <TableCell className="font-medium">{record.student_name}</TableCell>
+                      <TableCell className="text-muted-foreground">{record.sessions}</TableCell>
+                      <TableCell className="text-muted-foreground">{record.duration}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-0.5 rounded-full text-xs ${
                           record.outcome === 'موفق' 
@@ -553,65 +548,64 @@ export default function CounselorReportsPage() {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
+          </GlassCard>
         </div>
 
         {/* ==================== Additional Stats ==================== */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          <GlassCard>
             <CardContent className="p-4 text-center">
-              <p className="text-white/50 text-sm">میانگین جلسات</p>
+              <p className="text-muted-foreground text-sm">میانگین جلسات</p>
               <p className="text-white text-2xl font-bold mt-1">{stats.avg_sessions_per_record}</p>
-              <p className="text-white/40 text-xs">به ازای هر پرونده</p>
+              <p className="text-muted-foreground text-xs">به ازای هر پرونده</p>
             </CardContent>
-          </Card>
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          </GlassCard>
+          <GlassCard>
             <CardContent className="p-4 text-center">
-              <p className="text-white/50 text-sm">میانگین مدت</p>
+              <p className="text-muted-foreground text-sm">میانگین مدت</p>
               <p className="text-white text-2xl font-bold mt-1">{stats.avg_duration_days}</p>
-              <p className="text-white/40 text-xs">روز</p>
+              <p className="text-muted-foreground text-xs">روز</p>
             </CardContent>
-          </Card>
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          </GlassCard>
+          <GlassCard>
             <CardContent className="p-4 text-center">
-              <p className="text-white/50 text-sm">ارجاع شده</p>
+              <p className="text-muted-foreground text-sm">ارجاع شده</p>
               <p className="text-white text-2xl font-bold mt-1">{stats.referred_records}</p>
-              <p className="text-white/40 text-xs">پرونده</p>
+              <p className="text-muted-foreground text-xs">پرونده</p>
             </CardContent>
-          </Card>
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+          </GlassCard>
+          <GlassCard>
             <CardContent className="p-4 text-center">
-              <p className="text-white/50 text-sm">بسته شده</p>
+              <p className="text-muted-foreground text-sm">بسته شده</p>
               <p className="text-white text-2xl font-bold mt-1">{stats.closed_records}</p>
-              <p className="text-white/40 text-xs">این ماه</p>
+              <p className="text-muted-foreground text-xs">این ماه</p>
             </CardContent>
-          </Card>
+          </GlassCard>
         </div>
 
         {/* ==================== Export Actions ==================== */}
-        <Card className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/20">
+        <GlassCard className="border-brand-purple/25 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-pink/10">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h3 className="text-lg font-bold text-white">خروجی گزارشات</h3>
-                <p className="text-white/60 text-sm">دانلود گزارش‌های جامع به فرمت‌های مختلف</p>
+                <h3 className="text-lg font-bold">خروجی گزارشات</h3>
+                <p className="text-muted-foreground text-sm">دانلود گزارش‌های جامع به فرمت‌های مختلف</p>
               </div>
               <div className="flex gap-3">
-                <Button variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 gap-2">
+                <Button variant="outline" className="gap-2">
                   <Download className="w-4 h-4" />
                   Excel
                 </Button>
-                <Button variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 gap-2">
+                <Button variant="outline" className="gap-2">
                   <FileText className="w-4 h-4" />
                   PDF
                 </Button>
               </div>
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

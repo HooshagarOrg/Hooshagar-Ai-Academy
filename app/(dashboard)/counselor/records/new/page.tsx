@@ -33,6 +33,8 @@ import {
   type PriorityLevel,
   type CounselingGoal,
 } from '@/lib/types/counseling.types'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 
 // ==========================================
 // Mock Students (for demo)
@@ -138,33 +140,29 @@ export default function NewCounselingRecordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-3xl mx-auto space-y-6">
-        
-        {/* ==================== Breadcrumb ==================== */}
-        <div className="flex items-center gap-2 text-sm">
-          <Link href="/counselor/dashboard" className="text-white/50 hover:text-white">داشبورد</Link>
-          <ChevronRight className="w-4 h-4 text-white/30" />
-          <Link href="/counselor/records" className="text-white/50 hover:text-white">پرونده‌ها</Link>
-          <ChevronRight className="w-4 h-4 text-white/30" />
-          <span className="text-white">پرونده جدید</span>
+    <DashboardPage
+      className="max-w-3xl mx-auto"
+      title="ایجاد پرونده مشاوره جدید"
+      description="اطلاعات دانش‌آموز و وضعیت مشاوره را وارد کنید"
+      meta={
+        <div className="flex items-center gap-2 text-sm flex-wrap">
+          <Link href="/counselor/dashboard" className="text-muted-foreground hover:text-foreground">
+            داشبورد
+          </Link>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <Link href="/counselor/records" className="text-muted-foreground hover:text-foreground">
+            پرونده‌ها
+          </Link>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <span>پرونده جدید</span>
         </div>
-
-        {/* ==================== Header ==================== */}
-        <div className="flex items-center gap-3">
-          <div className="bg-purple-500/20 p-3 rounded-xl">
-            <FileText className="w-6 h-6 text-purple-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">ایجاد پرونده مشاوره جدید</h1>
-            <p className="text-white/60 text-sm">اطلاعات دانش‌آموز و وضعیت مشاوره را وارد کنید</p>
-          </div>
-        </div>
-
-        {/* ==================== Student Selection ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+      }
+      animatedSections={false}
+    >
+      <div className="space-y-6">
+        <GlassCard>
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2">
               <User className="w-5 h-5 text-blue-400" />
               انتخاب دانش‌آموز
             </CardTitle>
@@ -221,10 +219,10 @@ export default function NewCounselingRecordPage() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Issue Categories ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+        <GlassCard>
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-orange-400" />
@@ -249,12 +247,12 @@ export default function NewCounselingRecordPage() {
               ))}
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Priority ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+        <GlassCard>
           <CardHeader>
-            <CardTitle className="text-white">اولویت</CardTitle>
+            <CardTitle>اولویت</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-4 gap-3">
@@ -276,12 +274,12 @@ export default function NewCounselingRecordPage() {
               ))}
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Summary & Assessment ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+        <GlassCard>
           <CardHeader>
-            <CardTitle className="text-white">توضیحات</CardTitle>
+            <CardTitle>توضیحات</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -303,12 +301,12 @@ export default function NewCounselingRecordPage() {
               />
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Goals ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+        <GlassCard>
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5 text-green-400" />
               اهداف مشاوره
             </CardTitle>
@@ -359,7 +357,7 @@ export default function NewCounselingRecordPage() {
               </p>
             )}
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Submit ==================== */}
         <div className="flex gap-4">
@@ -377,9 +375,8 @@ export default function NewCounselingRecordPage() {
             </Button>
           </Link>
         </div>
-
       </div>
-    </div>
+    </DashboardPage>
   )
 }
 

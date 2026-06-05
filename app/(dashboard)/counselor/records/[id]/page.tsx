@@ -33,6 +33,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 import {
   Dialog,
   DialogContent,
@@ -367,47 +369,54 @@ export default function CounselingRecordDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <Skeleton className="h-24 w-full bg-white/10" />
-          <Skeleton className="h-12 w-full bg-white/10" />
-          <Skeleton className="h-96 w-full bg-white/10" />
+      <DashboardPage className="max-w-6xl mx-auto" title="پرونده مشاوره" animatedSections={false}>
+        <div className="space-y-6">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-96 w-full" />
         </div>
-      </div>
+      </DashboardPage>
     )
   }
 
   if (!record) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center" dir="rtl">
-        <div className="text-center">
-          <FileText className="w-16 h-16 text-white/20 mx-auto mb-4" />
-          <p className="text-white/60">پرونده یافت نشد</p>
+      <DashboardPage className="max-w-6xl mx-auto" title="پرونده یافت نشد" animatedSections={false}>
+        <div className="text-center py-16">
+          <FileText className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+          <p className="text-muted-foreground">پرونده یافت نشد</p>
           <Link href="/counselor/records">
-            <Button variant="link" className="text-purple-400 mt-4">
+            <Button variant="link" className="text-brand-purple mt-4">
               بازگشت به لیست پرونده‌ها
             </Button>
           </Link>
         </div>
-      </div>
+      </DashboardPage>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-6xl mx-auto space-y-6">
-        
-        {/* ==================== Breadcrumb ==================== */}
-        <div className="flex items-center gap-2 text-sm">
-          <Link href="/counselor/dashboard" className="text-white/50 hover:text-white">داشبورد</Link>
-          <ChevronRight className="w-4 h-4 text-white/30" />
-          <Link href="/counselor/records" className="text-white/50 hover:text-white">پرونده‌ها</Link>
-          <ChevronRight className="w-4 h-4 text-white/30" />
-          <span className="text-white">{record.student?.full_name}</span>
+    <DashboardPage
+      className="max-w-6xl mx-auto"
+      title={record.student?.full_name ?? 'پرونده مشاوره'}
+      description={`پایه ${record.student?.grade ?? '—'} · ${record.status ?? ''}`}
+      meta={
+        <div className="flex items-center gap-2 text-sm flex-wrap">
+          <Link href="/counselor/dashboard" className="text-muted-foreground hover:text-foreground">
+            داشبورد
+          </Link>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <Link href="/counselor/records" className="text-muted-foreground hover:text-foreground">
+            پرونده‌ها
+          </Link>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <span>{record.student?.full_name}</span>
         </div>
-
-        {/* ==================== Header Card ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+      }
+      animatedSections={false}
+    >
+      <div className="space-y-6">
+        <GlassCard>
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -486,7 +495,7 @@ export default function CounselingRecordDetailPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Tabs ==================== */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -1153,9 +1162,8 @@ export default function CounselingRecordDetailPage() {
             </Card>
           </TabsContent>
         </Tabs>
-
       </div>
-    </div>
+    </DashboardPage>
   )
 }
 

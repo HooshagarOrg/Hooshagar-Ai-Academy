@@ -18,7 +18,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#10131A',
+  themeColor: '#161C25',
   interactiveWidget: 'resizes-content',
 }
 
@@ -59,7 +59,7 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#10131A" />
+        <meta name="theme-color" content="#161C25" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />

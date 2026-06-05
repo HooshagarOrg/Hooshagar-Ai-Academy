@@ -44,6 +44,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 import {
   ISSUE_CATEGORIES,
   PRIORITY_LABELS,
@@ -282,57 +284,50 @@ export default function CounselingRecordsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <Skeleton className="h-16 w-full bg-white/10" />
-          <Skeleton className="h-14 w-full bg-white/10" />
-          <Skeleton className="h-96 w-full bg-white/10" />
-        </div>
+      <div className="space-y-6" dir="rtl">
+        <Skeleton className="h-16 w-full glass-panel-quiet" />
+        <Skeleton className="h-14 w-full glass-panel-quiet" />
+        <Skeleton className="h-96 w-full glass-panel-quiet" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* ==================== Header ==================== */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-              <FileText className="w-8 h-8 text-purple-400" />
-              پرونده‌های مشاوره
-            </h1>
-            <p className="text-white/60 text-sm mt-1">
-              مدیریت و پیگیری پرونده‌های مشاوره دانش‌آموزان
-            </p>
-          </div>
-          <Link href="/counselor/records/new">
-            <Button className="bg-purple-500 hover:bg-purple-600 text-white gap-2">
-              <Plus className="w-4 h-4" />
-              پرونده جدید
-            </Button>
-          </Link>
-        </div>
-
-        {/* ==================== Filters ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <FileText className="w-8 h-8 text-brand-pink" />
+          پرونده‌های مشاوره
+        </span>
+      }
+      description="مدیریت و پیگیری پرونده‌های مشاوره دانش‌آموزان"
+      actions={
+        <Link href="/counselor/records/new">
+          <Button className="bg-brand-pink hover:opacity-90 text-space gap-2">
+            <Plus className="w-4 h-4" />
+            پرونده جدید
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
+        <GlassCard>
           <CardContent className="p-4">
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search */}
               <div className="relative flex-1">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="جستجوی نام دانش‌آموز..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pr-10 bg-white/5 border-white/20 text-white placeholder:text-white/40"
+                  className="pr-10"
                 />
               </div>
 
               {/* Status Filter */}
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full lg:w-40 bg-white/5 border-white/20 text-white">
+                <SelectTrigger className="w-full lg:w-40">
                   <SelectValue placeholder="وضعیت" />
                 </SelectTrigger>
                 <SelectContent>
@@ -345,7 +340,7 @@ export default function CounselingRecordsPage() {
 
               {/* Priority Filter */}
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-full lg:w-40 bg-white/5 border-white/20 text-white">
+                <SelectTrigger className="w-full lg:w-40">
                   <SelectValue placeholder="اولویت" />
                 </SelectTrigger>
                 <SelectContent>
@@ -359,7 +354,7 @@ export default function CounselingRecordsPage() {
 
               {/* Category Filter */}
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full lg:w-40 bg-white/5 border-white/20 text-white">
+                <SelectTrigger className="w-full lg:w-40">
                   <SelectValue placeholder="دسته‌بندی" />
                 </SelectTrigger>
                 <SelectContent>
@@ -375,7 +370,7 @@ export default function CounselingRecordsPage() {
                 <Button
                   variant="ghost"
                   onClick={clearFilters}
-                  className="text-white/60 hover:text-white hover:bg-white/10 gap-1"
+                  className="text-muted-foreground hover:text-white hover:bg-white/10 gap-1"
                 >
                   <X className="w-4 h-4" />
                   پاک کردن
@@ -383,24 +378,23 @@ export default function CounselingRecordsPage() {
               )}
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
-        {/* ==================== Records Table ==================== */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+        <GlassCard>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="text-white/60 text-right">#</TableHead>
-                    <TableHead className="text-white/60 text-right">دانش‌آموز</TableHead>
-                    <TableHead className="text-white/60 text-right">کلاس</TableHead>
-                    <TableHead className="text-white/60 text-right">دسته‌بندی</TableHead>
-                    <TableHead className="text-white/60 text-right">اولویت</TableHead>
-                    <TableHead className="text-white/60 text-right">وضعیت</TableHead>
-                    <TableHead className="text-white/60 text-right">جلسات</TableHead>
-                    <TableHead className="text-white/60 text-right">آخرین فعالیت</TableHead>
-                    <TableHead className="text-white/60 text-right">عملیات</TableHead>
+                    <TableHead className="text-muted-foreground text-right">#</TableHead>
+                    <TableHead className="text-muted-foreground text-right">دانش‌آموز</TableHead>
+                    <TableHead className="text-muted-foreground text-right">کلاس</TableHead>
+                    <TableHead className="text-muted-foreground text-right">دسته‌بندی</TableHead>
+                    <TableHead className="text-muted-foreground text-right">اولویت</TableHead>
+                    <TableHead className="text-muted-foreground text-right">وضعیت</TableHead>
+                    <TableHead className="text-muted-foreground text-right">جلسات</TableHead>
+                    <TableHead className="text-muted-foreground text-right">آخرین فعالیت</TableHead>
+                    <TableHead className="text-muted-foreground text-right">عملیات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -411,7 +405,7 @@ export default function CounselingRecordsPage() {
                         key={record.id} 
                         className="border-white/10 hover:bg-white/5 transition-colors"
                       >
-                        <TableCell className="text-white/50">
+                        <TableCell className="text-muted-foreground">
                           {(currentPage - 1) * itemsPerPage + idx + 1}
                         </TableCell>
                         <TableCell>
@@ -419,23 +413,23 @@ export default function CounselingRecordsPage() {
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
                               {record.student?.full_name.charAt(0) || '؟'}
                             </div>
-                            <span className="text-white font-medium">
+                            <span className="font-medium">
                               {record.student?.full_name || 'نامشخص'}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-white/70">
+                        <TableCell className="text-muted-foreground">
                           پایه {record.student?.grade}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1 flex-wrap max-w-xs">
                             {record.issue_categories.slice(0, 2).map((cat, i) => (
-                              <span key={i} className="bg-white/10 text-white/70 text-xs px-2 py-0.5 rounded">
+                              <span key={i} className="bg-white/10 text-muted-foreground text-xs px-2 py-0.5 rounded">
                                 {cat}
                               </span>
                             ))}
                             {record.issue_categories.length > 2 && (
-                              <span className="bg-white/10 text-white/50 text-xs px-2 py-0.5 rounded">
+                              <span className="bg-white/10 text-muted-foreground text-xs px-2 py-0.5 rounded">
                                 +{record.issue_categories.length - 2}
                               </span>
                             )}
@@ -452,21 +446,21 @@ export default function CounselingRecordsPage() {
                             {STATUS_LABELS[record.status]}
                           </span>
                         </TableCell>
-                        <TableCell className="text-white/70">
+                        <TableCell className="text-muted-foreground">
                           {record.sessions_count} جلسه
                         </TableCell>
-                        <TableCell className="text-white/50 text-sm">
+                        <TableCell className="text-muted-foreground text-sm">
                           {formatRelativeDate(record.last_session_date || record.updated_at)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Link href={`/counselor/records/${record.id}`}>
-                              <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/10">
+                              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-white hover:bg-white/10">
                                 <Eye className="w-4 h-4" />
                               </Button>
                             </Link>
                             <Link href={`/counselor/records/${record.id}/edit`}>
-                              <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/10">
+                              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-white hover:bg-white/10">
                                 <Edit className="w-4 h-4" />
                               </Button>
                             </Link>
@@ -483,7 +477,7 @@ export default function CounselingRecordsPage() {
             {filteredRecords.length === 0 && (
               <div className="text-center py-12">
                 <FileText className="w-12 h-12 text-white/20 mx-auto mb-4" />
-                <p className="text-white/40">پرونده‌ای یافت نشد</p>
+                <p className="text-muted-foreground">پرونده‌ای یافت نشد</p>
                 {hasActiveFilters && (
                   <Button
                     variant="link"
@@ -499,7 +493,7 @@ export default function CounselingRecordsPage() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between p-4 border-t border-white/10">
-                <p className="text-white/50 text-sm">
+                <p className="text-muted-foreground text-sm">
                   نمایش {((currentPage - 1) * itemsPerPage) + 1} تا {Math.min(currentPage * itemsPerPage, filteredRecords.length)} از {filteredRecords.length} پرونده
                 </p>
                 <div className="flex items-center gap-2">
@@ -512,7 +506,7 @@ export default function CounselingRecordsPage() {
                   >
                     <ChevronRight className="w-4 h-4" />
                   </Button>
-                  <span className="text-white/60 text-sm px-3">
+                  <span className="text-muted-foreground text-sm px-3">
                     {currentPage} / {totalPages}
                   </span>
                   <Button
@@ -528,7 +522,7 @@ export default function CounselingRecordsPage() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </GlassCard>
 
         {/* ==================== Stats Summary ==================== */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -538,8 +532,8 @@ export default function CounselingRecordsPage() {
                 <FileText className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-white/60 text-xs">کل پرونده‌ها</p>
-                <p className="text-white text-xl font-bold">{records.length}</p>
+                <p className="text-muted-foreground text-xs">کل پرونده‌ها</p>
+                <p className="text-xl font-bold tabular-nums">{records.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -549,8 +543,8 @@ export default function CounselingRecordsPage() {
                 <CheckCircle2 className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <p className="text-white/60 text-xs">فعال</p>
-                <p className="text-white text-xl font-bold">
+                <p className="text-muted-foreground text-xs">فعال</p>
+                <p className="text-xl font-bold tabular-nums">
                   {records.filter(r => r.status === 'active').length}
                 </p>
               </div>
@@ -562,8 +556,8 @@ export default function CounselingRecordsPage() {
                 <AlertTriangle className="w-5 h-5 text-red-400" />
               </div>
               <div>
-                <p className="text-white/60 text-xs">فوری</p>
-                <p className="text-white text-xl font-bold">
+                <p className="text-muted-foreground text-xs">فوری</p>
+                <p className="text-xl font-bold tabular-nums">
                   {records.filter(r => r.priority_level === 'urgent').length}
                 </p>
               </div>
@@ -575,8 +569,8 @@ export default function CounselingRecordsPage() {
                 <Calendar className="w-5 h-5 text-purple-400" />
               </div>
               <div>
-                <p className="text-white/60 text-xs">ارجاع شده</p>
-                <p className="text-white text-xl font-bold">
+                <p className="text-muted-foreground text-xs">ارجاع شده</p>
+                <p className="text-xl font-bold tabular-nums">
                   {records.filter(r => r.status === 'referred').length}
                 </p>
               </div>
@@ -584,8 +578,7 @@ export default function CounselingRecordsPage() {
           </Card>
         </div>
 
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

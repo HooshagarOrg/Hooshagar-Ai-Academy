@@ -10,9 +10,9 @@ export const brandAssets = {
 
 /** پالت برند هوشاگر — Soft Futurism / Smart Soft Dark */
 export const brandColors = {
-  space: '#10131A',
-  surface: '#171B24',
-  elevated: '#1D2330',
+  space: '#161C25',
+  surface: '#1C222C',
+  elevated: '#222936',
   pink: '#FF4DA6',
   orange: '#FF9B54',
   purple: '#8B7CFF',
@@ -35,7 +35,7 @@ export const brandGradient = {
   primary: 'linear-gradient(135deg, #FF4DA6 0%, #8B7CFF 50%, #54D2FF 100%)',
   warm: 'linear-gradient(135deg, #FF4DA6 0%, #FF9B54 55%, #FFD166 100%)',
   hero:
-    'radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,77,166,0.25), transparent 50%), radial-gradient(ellipse 80% 60% at 100% 50%, rgba(139,124,255,0.15), transparent 45%), #10131A',
+    'radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,77,166,0.25), transparent 50%), radial-gradient(ellipse 80% 60% at 100% 50%, rgba(139,124,255,0.15), transparent 45%), #161C25',
   soft: 'linear-gradient(135deg, rgba(255,77,166,0.12) 0%, rgba(84,210,255,0.08) 100%)',
   glass:
     'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',

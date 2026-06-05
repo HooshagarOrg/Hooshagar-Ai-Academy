@@ -24,6 +24,8 @@ import {
   Lightbulb,
   Trophy,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 
 // ============================================
 // تایپ‌ها
@@ -455,46 +457,42 @@ export default function ExamGeneratorPage() {
   const displayedQuestions = sampleQuestions.slice(0, Math.min(parseInt(questionCount) || 10, sampleQuestions.length))
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-5xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/teacher"
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </Link>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  <Trophy className="w-8 h-8 text-yellow-300" />
-                  آزمون‌ساز تیزهوشان
-                </h1>
-                <p className="text-white/70 mt-1">
-                  تولید سوال بر اساس نمونه سوالات گذشته پایه ششم
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="bg-yellow-500/30 text-yellow-100 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
-                <Brain className="w-4 h-4" />
-                هوش مصنوعی Gemini
-              </span>
-            </div>
-          </div>
-        </header>
+    <DashboardPage
+      className="max-w-5xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Trophy className="w-8 h-8 text-brand-yellow" />
+          آزمون‌ساز تیزهوشان
+        </span>
+      }
+      description="تولید سوال بر اساس نمونه سوالات گذشته پایه ششم"
+      actions={
+        <div className="flex items-center gap-2">
+          <Link
+            href="/teacher"
+            className="p-2 rounded-xl glass-panel-quiet hover:border-white/[0.12] transition-colors"
+            aria-label="بازگشت"
+          >
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+          <span className="glass-panel-quiet px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 text-brand-yellow">
+            <Brain className="w-4 h-4" />
+            هوش مصنوعی Gemini
+          </span>
+        </div>
+      }
+      animatedSections={false}
+    >
 
         {/* ==================== بخش آپلود و تنظیمات ==================== */}
         <div className="grid lg:grid-cols-5 gap-6 mb-6">
           {/* آپلود فایل */}
-          <div className="lg:col-span-3 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <GlassCard className="lg:col-span-3 p-6">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
               <Upload className="w-5 h-5 text-orange-300" />
               آپلود فایل نمونه سوالات
             </h2>
-            <p className="text-white/60 text-sm mb-4">
+            <p className="text-muted-foreground text-sm mb-4">
               فایل PDF نمونه سوالات تیزهوشان را آپلود کنید تا سبک و ساختار آن تحلیل شود.
             </p>
             <FileUpload
@@ -502,18 +500,17 @@ export default function ExamGeneratorPage() {
               onFileSelect={handleFileSelect}
               error={fileError}
             />
-          </div>
+          </GlassCard>
 
-          {/* تنظیمات */}
-          <div className="lg:col-span-2 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <GlassCard className="lg:col-span-2 p-6">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
               <Settings className="w-5 h-5 text-orange-300" />
               تنظیمات
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-white/80 text-sm font-medium mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium mb-2 flex items-center gap-2 text-muted-foreground">
                   <Hash className="w-4 h-4" />
                   تعداد سوال
                 </label>
@@ -523,13 +520,13 @@ export default function ExamGeneratorPage() {
                   max="20"
                   value={questionCount}
                   onChange={(e) => setQuestionCount(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  className="w-full glass-panel-quiet rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-orange/40"
                   placeholder="۵ تا ۲۰ سوال"
                 />
               </div>
 
               <div>
-                <label className="block text-white/80 text-sm font-medium mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium mb-2 flex items-center gap-2 text-muted-foreground">
                   <ListChecks className="w-4 h-4" />
                   نوع سوال
                 </label>
@@ -542,7 +539,7 @@ export default function ExamGeneratorPage() {
               </div>
 
               <div>
-                <label className="block text-white/80 text-sm font-medium mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium mb-2 flex items-center gap-2 text-muted-foreground">
                   <BarChart3 className="w-4 h-4" />
                   سطح دشواری
                 </label>
@@ -554,7 +551,7 @@ export default function ExamGeneratorPage() {
                 />
               </div>
             </div>
-          </div>
+          </GlassCard>
         </div>
 
         {/* ==================== دکمه تولید ==================== */}
@@ -586,14 +583,14 @@ export default function ExamGeneratorPage() {
         {showResults && (
           <>
             {/* کارت تحلیل */}
-            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <GlassCard className="p-6 border-brand-purple/25 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-pink/10 mb-6">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Target className="w-5 h-5 text-purple-400" />
                 نتیجه تحلیل
               </h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white/10 rounded-xl p-4">
-                  <p className="text-white/60 text-sm mb-1">سبک سوالات</p>
+                <div className="glass-panel-quiet rounded-xl p-4">
+                  <p className="text-muted-foreground text-sm mb-1">سبک سوالات</p>
                   <div className="flex flex-wrap gap-2">
                     {sampleAnalysis.style.map((s, i) => (
                       <span key={i} className="bg-purple-500/30 text-purple-300 px-2 py-1 rounded-lg text-sm">
@@ -602,8 +599,8 @@ export default function ExamGeneratorPage() {
                     ))}
                   </div>
                 </div>
-                <div className="bg-white/10 rounded-xl p-4">
-                  <p className="text-white/60 text-sm mb-1">موضوعات</p>
+                <div className="glass-panel-quiet rounded-xl p-4">
+                  <p className="text-muted-foreground text-sm mb-1">موضوعات</p>
                   <div className="flex flex-wrap gap-2">
                     {sampleAnalysis.topics.map((t, i) => (
                       <span key={i} className="bg-blue-500/30 text-blue-300 px-2 py-1 rounded-lg text-sm">
@@ -612,21 +609,20 @@ export default function ExamGeneratorPage() {
                     ))}
                   </div>
                 </div>
-                <div className="bg-white/10 rounded-xl p-4">
-                  <p className="text-white/60 text-sm mb-1">سطح دشواری</p>
-                  <p className="text-white font-bold">{sampleAnalysis.difficulty}</p>
+                <div className="glass-panel-quiet rounded-xl p-4">
+                  <p className="text-muted-foreground text-sm mb-1">سطح دشواری</p>
+                  <p className="font-bold">{sampleAnalysis.difficulty}</p>
                 </div>
-                <div className="bg-white/10 rounded-xl p-4">
-                  <p className="text-white/60 text-sm mb-1">تعداد سوالات منبع</p>
-                  <p className="text-white font-bold">{sampleAnalysis.totalQuestions} سوال</p>
+                <div className="glass-panel-quiet rounded-xl p-4">
+                  <p className="text-muted-foreground text-sm mb-1">تعداد سوالات منبع</p>
+                  <p className="font-bold">{sampleAnalysis.totalQuestions} سوال</p>
                 </div>
               </div>
-            </div>
+            </GlassCard>
 
-            {/* سوالات تولید شده */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <GlassCard className="p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <h2 className="text-xl font-bold flex items-center gap-2">
                   <FileQuestion className="w-5 h-5 text-yellow-400" />
                   سوالات تولید شده
                   <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm">
@@ -684,17 +680,16 @@ export default function ExamGeneratorPage() {
                   />
                 ))}
               </div>
-            </div>
+            </GlassCard>
           </>
         )}
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

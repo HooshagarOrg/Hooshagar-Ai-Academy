@@ -75,6 +75,8 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 
 // ============================================
 // تایپ‌ها
@@ -445,21 +447,18 @@ export default function FamilyInsightPage() {
   // ============================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6" dir="rtl">
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-3">
-            <FileText className="w-8 h-8 text-purple-600" />
-            فرم بینش خانوادگی
-          </h1>
-          <p className="text-gray-600 mt-2">
-            پرسش‌های هدفمند برای شناخت بهتر دانش‌آموز
-          </p>
-        </div>
-
-        {/* انتخاب دانش‌آموز */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+    <DashboardPage
+      className="max-w-5xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <FileText className="w-8 h-8 text-brand-purple" />
+          فرم بینش خانوادگی
+        </span>
+      }
+      description="پرسش‌های هدفمند برای شناخت بهتر دانش‌آموز"
+      animatedSections={false}
+    >
+        <GlassCard className="p-6">
           <Label className="text-lg font-semibold mb-3 block">انتخاب دانش‌آموز</Label>
           <Popover open={studentOpen} onOpenChange={setStudentOpen}>
             <PopoverTrigger asChild>
@@ -476,13 +475,13 @@ export default function FamilyInsightPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">{selectedStudent.full_name}</p>
-                      <p className="text-sm text-gray-500">{selectedStudent.class_name}</p>
+                      <p className="text-sm text-muted-foreground">{selectedStudent.class_name}</p>
                     </div>
                   </div>
                 ) : (
-                  <span className="text-gray-400">دانش‌آموز را انتخاب کنید...</span>
+                  <span className="text-muted-foreground">دانش‌آموز را انتخاب کنید...</span>
                 )}
-                <Search className="w-5 h-5 text-gray-400" />
+                <Search className="w-5 h-5 text-muted-foreground" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0" align="start">
@@ -508,7 +507,7 @@ export default function FamilyInsightPage() {
                         </div>
                         <div>
                           <p className="font-semibold">{student.full_name}</p>
-                          <p className="text-sm text-gray-500">{student.class_name}</p>
+                          <p className="text-sm text-muted-foreground">{student.class_name}</p>
                         </div>
                       </CommandItem>
                     ))}
@@ -517,14 +516,13 @@ export default function FamilyInsightPage() {
               </Command>
             </PopoverContent>
           </Popover>
-        </div>
+        </GlassCard>
 
-        {/* Progress */}
         {selectedStudent && (
-          <div className="bg-white rounded-2xl shadow-lg p-6">
+          <GlassCard className="p-6">
             <div className="flex items-center justify-between mb-3">
               <span className="font-semibold">پیشرفت تکمیل فرم</span>
-              <span className="text-purple-600 font-bold">{completedCount}/19 سوال</span>
+              <span className="text-brand-purple font-bold">{completedCount}/19 سوال</span>
             </div>
             <Progress value={progress} className="h-3" />
             {lastSaved && (
@@ -533,10 +531,9 @@ export default function FamilyInsightPage() {
                 آخرین ذخیره: {lastSaved.toLocaleTimeString('fa-IR')}
               </p>
             )}
-          </div>
+          </GlassCard>
         )}
 
-        {/* فرم اصلی */}
         {selectedStudent && (
           <Accordion
             type="multiple"
@@ -545,8 +542,8 @@ export default function FamilyInsightPage() {
             className="space-y-4"
           >
             {/* دسته الف: محیط خانه */}
-            <AccordionItem value="home" className="bg-white rounded-2xl shadow-lg overflow-hidden border-0">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gray-50">
+            <AccordionItem value="home" className="glass-panel rounded-2xl overflow-hidden border-0">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-white/5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                     <Home className="w-5 h-5 text-blue-600" />
@@ -571,7 +568,7 @@ export default function FamilyInsightPage() {
                   <Label className="font-semibold">2. چند خواهر و برادر دارد؟ رابطه با آن‌ها چگونه است؟</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-gray-600">تعداد</Label>
+                      <Label className="text-sm text-muted-foreground">تعداد</Label>
                       <Input
                         type="number"
                         min={0}
@@ -580,7 +577,7 @@ export default function FamilyInsightPage() {
                       />
                     </div>
                     <div>
-                      <Label className="text-sm text-gray-600">توضیح رابطه</Label>
+                      <Label className="text-sm text-muted-foreground">توضیح رابطه</Label>
                       <Textarea
                         value={formData.siblingsRelation}
                         onChange={(e) => setFormData({ ...formData, siblingsRelation: e.target.value })}
@@ -647,8 +644,8 @@ export default function FamilyInsightPage() {
             </AccordionItem>
 
             {/* دسته ب: رفتار و عادات */}
-            <AccordionItem value="behavior" className="bg-white rounded-2xl shadow-lg overflow-hidden border-0">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gray-50">
+            <AccordionItem value="behavior" className="glass-panel rounded-2xl overflow-hidden border-0">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-white/5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
                     <Brain className="w-5 h-5 text-orange-600" />
@@ -662,7 +659,7 @@ export default function FamilyInsightPage() {
                   <Label className="font-semibold">5. ساعت خواب معمولی چیست؟</Label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label className="text-sm text-gray-600">ساعت خواب</Label>
+                      <Label className="text-sm text-muted-foreground">ساعت خواب</Label>
                       <Input
                         type="time"
                         value={formData.sleepTime}
@@ -670,7 +667,7 @@ export default function FamilyInsightPage() {
                       />
                     </div>
                     <div>
-                      <Label className="text-sm text-gray-600">ساعت بیداری</Label>
+                      <Label className="text-sm text-muted-foreground">ساعت بیداری</Label>
                       <Input
                         type="time"
                         value={formData.wakeTime}
@@ -678,7 +675,7 @@ export default function FamilyInsightPage() {
                       />
                     </div>
                     <div>
-                      <Label className="text-sm text-gray-600">میانگین ساعات خواب</Label>
+                      <Label className="text-sm text-muted-foreground">میانگین ساعات خواب</Label>
                       <Input
                         type="number"
                         min={4}
@@ -696,7 +693,7 @@ export default function FamilyInsightPage() {
                   <div className="space-y-4">
                     <div>
                       <div className="flex justify-between mb-2">
-                        <span className="text-sm text-gray-600">ساعت در روز</span>
+                        <span className="text-sm text-muted-foreground">ساعت در روز</span>
                         <span className="font-bold text-purple-600">{formData.screenTime} ساعت</span>
                       </div>
                       <Slider
@@ -757,8 +754,8 @@ export default function FamilyInsightPage() {
             </AccordionItem>
 
             {/* دسته ج: تحصیلی */}
-            <AccordionItem value="academic" className="bg-white rounded-2xl shadow-lg overflow-hidden border-0">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gray-50">
+            <AccordionItem value="academic" className="glass-panel rounded-2xl overflow-hidden border-0">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-white/5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
                     <BookOpen className="w-5 h-5 text-green-600" />
@@ -856,8 +853,8 @@ export default function FamilyInsightPage() {
             </AccordionItem>
 
             {/* دسته د: سلامت */}
-            <AccordionItem value="health" className="bg-white rounded-2xl shadow-lg overflow-hidden border-0">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gray-50">
+            <AccordionItem value="health" className="glass-panel rounded-2xl overflow-hidden border-0">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-white/5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
                     <Heart className="w-5 h-5 text-red-600" />
@@ -954,8 +951,8 @@ export default function FamilyInsightPage() {
             </AccordionItem>
 
             {/* دسته ه: اجتماعی */}
-            <AccordionItem value="social" className="bg-white rounded-2xl shadow-lg overflow-hidden border-0">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gray-50">
+            <AccordionItem value="social" className="glass-panel rounded-2xl overflow-hidden border-0">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-white/5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-cyan-100 rounded-xl flex items-center justify-center">
                     <Users className="w-5 h-5 text-cyan-600" />
@@ -1039,8 +1036,8 @@ export default function FamilyInsightPage() {
             </AccordionItem>
 
             {/* دسته و: انتظارات */}
-            <AccordionItem value="expectations" className="bg-white rounded-2xl shadow-lg overflow-hidden border-0">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gray-50">
+            <AccordionItem value="expectations" className="glass-panel rounded-2xl overflow-hidden border-0">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-white/5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
                     <Target className="w-5 h-5 text-purple-600" />
@@ -1099,11 +1096,11 @@ export default function FamilyInsightPage() {
             </AccordionItem>
 
             {/* دسته ز: سایر */}
-            <AccordionItem value="other" className="bg-white rounded-2xl shadow-lg overflow-hidden border-0">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gray-50">
+            <AccordionItem value="other" className="glass-panel rounded-2xl overflow-hidden border-0">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-white/5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-gray-600" />
+                    <FileText className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <span className="font-bold text-lg">ز: سایر اطلاعات</span>
                 </div>
@@ -1126,7 +1123,7 @@ export default function FamilyInsightPage() {
 
         {/* دکمه‌های عمل */}
         {selectedStudent && (
-          <div className="bg-white rounded-2xl shadow-lg p-6">
+          <GlassCard className="p-6">
             <div className="flex flex-wrap gap-3">
               <Button
                 variant="outline"
@@ -1158,31 +1155,29 @@ export default function FamilyInsightPage() {
                 چاپ
               </Button>
             </div>
-          </div>
+          </GlassCard>
         )}
 
-        {/* نتیجه تحلیل AI */}
         {aiAnalysis && (
-          <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl shadow-lg p-6 border-2 border-purple-200">
-            <h2 className="text-xl font-bold text-purple-800 flex items-center gap-2 mb-4">
+          <GlassCard className="p-6 border-brand-purple/25 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-cyan/10">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2 mb-4">
               <Sparkles className="w-6 h-6" />
               تحلیل هوشمند
             </h2>
 
             <div className="space-y-4">
               {/* خلاصه */}
-              <div className="bg-white rounded-xl p-4">
+              <div className="glass-panel-quiet rounded-xl p-4">
                 <h3 className="font-semibold mb-2">📋 خلاصه وضعیت</h3>
-                <p className="text-gray-700 leading-relaxed">{aiAnalysis.summary}</p>
+                <p className="text-foreground/90 leading-relaxed">{aiAnalysis.summary}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* نقاط قوت */}
-                <div className="bg-green-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-green-700 mb-2">✅ نقاط قوت</h3>
+                <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
+                  <h3 className="font-semibold text-green-400 mb-2">✅ نقاط قوت</h3>
                   <ul className="space-y-1">
                     {aiAnalysis.strengths.map((item, i) => (
-                      <li key={i} className="text-green-600 flex items-start gap-2">
+                      <li key={i} className="text-green-300 flex items-start gap-2">
                         <span className="mt-1">•</span>
                         {item}
                       </li>
@@ -1191,11 +1186,11 @@ export default function FamilyInsightPage() {
                 </div>
 
                 {/* نقاط نگرانی */}
-                <div className="bg-orange-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-orange-700 mb-2">⚠️ نقاط نیازمند توجه</h3>
+                <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4">
+                  <h3 className="font-semibold text-orange-400 mb-2">⚠️ نقاط نیازمند توجه</h3>
                   <ul className="space-y-1">
                     {aiAnalysis.concerns.map((item, i) => (
-                      <li key={i} className="text-orange-600 flex items-start gap-2">
+                      <li key={i} className="text-orange-300 flex items-start gap-2">
                         <span className="mt-1">•</span>
                         {item}
                       </li>
@@ -1205,11 +1200,11 @@ export default function FamilyInsightPage() {
               </div>
 
               {/* پیشنهادات مشاور */}
-              <div className="bg-blue-50 rounded-xl p-4">
-                <h3 className="font-semibold text-blue-700 mb-2">💡 پیشنهادات برای مشاور</h3>
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                <h3 className="font-semibold text-blue-400 mb-2">💡 پیشنهادات برای مشاور</h3>
                 <ul className="space-y-1">
                   {aiAnalysis.counselorSuggestions.map((item, i) => (
-                    <li key={i} className="text-blue-600 flex items-start gap-2">
+                    <li key={i} className="text-blue-300 flex items-start gap-2">
                       <span className="mt-1">{i + 1}.</span>
                       {item}
                     </li>
@@ -1218,11 +1213,11 @@ export default function FamilyInsightPage() {
               </div>
 
               {/* پیشنهادات والدین */}
-              <div className="bg-purple-50 rounded-xl p-4">
-                <h3 className="font-semibold text-purple-700 mb-2">👨‍👩‍👧 پیشنهادات برای والدین</h3>
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
+                <h3 className="font-semibold text-purple-400 mb-2">👨‍👩‍👧 پیشنهادات برای والدین</h3>
                 <ul className="space-y-1">
                   {aiAnalysis.parentSuggestions.map((item, i) => (
-                    <li key={i} className="text-purple-600 flex items-start gap-2">
+                    <li key={i} className="text-purple-300 flex items-start gap-2">
                       <span className="mt-1">•</span>
                       {item}
                     </li>
@@ -1232,19 +1227,18 @@ export default function FamilyInsightPage() {
 
               {/* برنامه مداخله */}
               {aiAnalysis.interventionPlan && (
-                <div className="bg-red-50 rounded-xl p-4 border border-red-200">
-                  <h3 className="font-semibold text-red-700 mb-2">🚨 برنامه مداخله پیشنهادی</h3>
-                  <p className="text-red-600 whitespace-pre-line">{aiAnalysis.interventionPlan}</p>
+                <div className="bg-red-500/10 rounded-xl p-4 border border-red-500/30">
+                  <h3 className="font-semibold text-red-400 mb-2">🚨 برنامه مداخله پیشنهادی</h3>
+                  <p className="text-red-300 whitespace-pre-line">{aiAnalysis.interventionPlan}</p>
                 </div>
               )}
             </div>
-          </div>
+          </GlassCard>
         )}
 
-        {/* فرم‌های قبلی */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <GlassCard className="p-6">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-gray-600" />
+            <Calendar className="w-5 h-5 text-muted-foreground" />
             فرم‌های ثبت شده
           </h2>
 
@@ -1304,8 +1298,7 @@ export default function FamilyInsightPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
-      </div>
+        </GlassCard>
 
       {/* Dialog مشاهده */}
       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
@@ -1314,18 +1307,18 @@ export default function FamilyInsightPage() {
             <DialogTitle>مشاهده فرم - {selectedForm?.studentName}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               تاریخ ثبت: {selectedForm?.date}
               <br />
               پرکننده: {selectedForm?.filledBy}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               این قابلیت در حال توسعه است...
             </p>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardPage>
   )
 }
 

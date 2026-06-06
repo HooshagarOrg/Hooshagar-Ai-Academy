@@ -10,7 +10,7 @@ import {
   Activity, ClipboardCheck, DollarSign, Mail, Search, AlertCircle,
   Wrench, Bell, Send, GraduationCap, Building, ChevronLeft, ChevronRight,
   Sparkles, Trophy, Compass, Gamepad2, Lightbulb, LogOut, User,
-  Heart, PenTool, HelpCircle, Clock, TrendingUp, X, CreditCard,
+  Heart, PenTool, HelpCircle, Clock, TrendingUp, X, CreditCard, Video,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -61,6 +61,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'کاربران', href: '/admin/users', icon: Users },
         { title: 'واردسازی گروهی', href: '/admin/bulk-import', icon: FileText },
         { title: 'انتقال دانش‌آموزان', href: '/admin/progression', icon: ArrowUpCircle },
+        { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video },
       ]
     },
     {
@@ -122,6 +123,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'نمرات', href: '/teacher/grades', icon: GraduationCap },
         { title: 'رفتار دانش‌آموزان', href: '/teacher/behavior', icon: Heart },
         { title: 'گزارش هفتگی', href: '/teacher/weekly-report', icon: FileText },
+        { title: 'کلاس مجازی', href: '/teacher', icon: Video },
       ]
     },
     {
@@ -175,6 +177,7 @@ const navConfig: Record<string, NavGroup[]> = {
       items: [
         { title: 'نمراتم', href: '/student/grades', icon: GraduationCap },
         { title: 'آزمون‌هایم', href: '/student/exams', icon: ClipboardCheck },
+        { title: 'کلاس مجازی', href: '/student', icon: Video },
         { title: 'دستیار مطالعه', href: '/student/study-buddy', icon: BookOpen },
         { title: 'حل مسئله (OCR)', href: '/student/problem-solver', icon: Lightbulb },
       ]
@@ -323,7 +326,8 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname()
 
-  const groups: NavGroup[] = navConfig[role] || [
+  const navRole = role === 'platform_admin' ? 'admin' : role
+  const groups: NavGroup[] = navConfig[navRole] || [
     { items: (simpleNavs[role] || [{ title: 'داشبورد', href: '/dashboard', icon: Home }]) }
   ]
 

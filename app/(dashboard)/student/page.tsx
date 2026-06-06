@@ -22,6 +22,7 @@ import {
   Trophy,
   GraduationCap,
 } from 'lucide-react'
+import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 import { GlassCard } from '@/components/ui/glass-card'
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { StatCard } from '@/components/ui/stat-card'
@@ -196,6 +197,7 @@ export default function StudentDashboardPage() {
       }
       animatedSections={false}
     >
+      <VirtualClassCard />
 
       {/* تمرکز اصلی: پیشرفت سطح */}
       <GlassCard className="p-6 md:p-7 overflow-hidden relative">

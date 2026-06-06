@@ -6,6 +6,7 @@ import { DashboardPage } from '@/components/layout/dashboard-page'
 import { PremiumPanel } from '@/components/ui/premium-panel'
 import { StatCard } from '@/components/ui/stat-card'
 import Link from 'next/link'
+import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 import {
   Users,
   BookOpen,
@@ -246,6 +247,7 @@ export default function TeacherDashboardPage() {
       }
       animatedSections={false}
     >
+        <VirtualClassCard />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
             <StatCard

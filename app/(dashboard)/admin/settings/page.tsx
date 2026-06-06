@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   Settings, Shield, Brain, Bell, Database, Mail, Lock,
   ChevronLeft, Globe, Key, Activity, DollarSign, Calendar,
-  Sliders, Users, Building, GraduationCap, Sparkles,
+  Sliders, Users, Building, GraduationCap, Sparkles, Video,
 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
 import { GlassCard } from '@/components/ui/glass-card'
@@ -47,6 +47,14 @@ const SETTINGS_GROUPS: { title: string; cards: SettingsCard[] }[] = [
         href: '/admin/academic-years',
         color: 'text-brand-green',
         bg: 'bg-brand-green/15 border border-brand-green/20',
+      },
+      {
+        title: 'کلاس مجازی (اسکای‌روم)',
+        description: 'اتصال کلاس درسی به اتاق اسکای‌روم و زمان‌بندی جلسات',
+        icon: Video,
+        href: '/admin/virtual-classes',
+        color: 'text-brand-cyan',
+        bg: 'bg-brand-cyan/15 border border-brand-cyan/20',
       },
     ],
   },

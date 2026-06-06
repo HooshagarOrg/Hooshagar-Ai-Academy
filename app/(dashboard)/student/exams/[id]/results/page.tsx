@@ -25,6 +25,7 @@ import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { cn } from '@/lib/utils'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 import {
   RadarChart,
   PolarGrid,
@@ -203,30 +204,32 @@ export default function ExamResultsPage() {
   const unansweredCount = result.questions.filter(q => !q.yourAnswer).length
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
+    <>
       {showConfetti && result.passed && (
         <Confetti recycle={false} numberOfPieces={200} onConfettiComplete={() => setShowConfetti(false)} />
       )}
-      
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          {result.passed ? (
-            <>
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <Trophy className="w-14 h-14 text-green-500" />
-              </div>
-              <h1 className="text-3xl font-bold text-green-600">تبریک! قبول شدید! 🎉</h1>
-            </>
+      <DashboardPage
+        className="container mx-auto px-4"
+        title={
+          result.passed ? (
+            <span className="text-green-500">تبریک! قبول شدید! 🎉</span>
           ) : (
-            <>
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                <Award className="w-14 h-14 text-orange-500" />
-              </div>
-              <h1 className="text-3xl font-bold text-orange-600">تلاش خوبی بود!</h1>
-            </>
-          )}
-          <p className="text-gray-600 dark:text-gray-400 mt-2">{result.examTitle}</p>
+            <span className="text-orange-500">تلاش خوبی بود!</span>
+          )
+        }
+        description={result.examTitle}
+        animatedSections={false}
+      >
+        <div className="text-center mb-8">
+          <div className={`w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center ${
+            result.passed ? 'bg-green-500/10' : 'bg-orange-500/10'
+          }`}>
+            {result.passed ? (
+              <Trophy className="w-14 h-14 text-green-500" />
+            ) : (
+              <Award className="w-14 h-14 text-orange-500" />
+            )}
+          </div>
         </div>
 
         {/* Score Card */}
@@ -532,8 +535,8 @@ export default function ExamResultsPage() {
             </Link>
           </Button>
         </div>
-      </div>
-    </div>
+      </DashboardPage>
+    </>
   )
 }
 

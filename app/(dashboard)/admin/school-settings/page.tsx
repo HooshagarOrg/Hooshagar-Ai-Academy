@@ -80,6 +80,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 
 // ============================================
 // تایپ‌ها
@@ -737,44 +738,39 @@ export default function SchoolSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6" dir="rtl">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-xl">
-                  <Settings className="w-8 h-8 text-blue-600" />
-                </div>
-                تنظیمات مدرسه
-              </h1>
-              <p className="text-gray-500 mt-2 mr-14">
-                مدیریت اطلاعات، لوگو و برندینگ مدرسه
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="text-sm px-4 py-2">
-                <Building className="w-4 h-4 ml-2" />
-                {settings.name}
-              </Badge>
-              {hasChanges && (
-                <Button onClick={handleSave} disabled={isSaving} className="gap-2">
-                  {isSaving ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  ذخیره تغییرات
-                </Button>
+    <DashboardPage
+      className="max-w-6xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <span className="p-3 rounded-xl bg-brand-cyan/10">
+            <Settings className="w-8 h-8 text-brand-cyan" />
+          </span>
+          تنظیمات مدرسه
+        </span>
+      }
+      description="مدیریت اطلاعات، لوگو و برندینگ مدرسه"
+      actions={
+        <div className="flex items-center gap-3">
+          <Badge variant="secondary" className="text-sm px-4 py-2 glass-panel-quiet">
+            <Building className="w-4 h-4 ml-2" />
+            {settings.name}
+          </Badge>
+          {hasChanges && (
+            <Button onClick={handleSave} disabled={isSaving} className="gap-2">
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
               )}
-            </div>
-          </div>
+              ذخیره تغییرات
+            </Button>
+          )}
         </div>
-
-        {/* Tabs */}
+      }
+      animatedSections={false}
+    >
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 w-[500px] mb-6">
+          <TabsList className="grid grid-cols-3 w-[500px] mb-6 glass-panel-quiet">
             <TabsTrigger value="general" className="gap-2">
               <Building className="w-4 h-4" />
               اطلاعات عمومی
@@ -1131,8 +1127,7 @@ export default function SchoolSettingsPage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

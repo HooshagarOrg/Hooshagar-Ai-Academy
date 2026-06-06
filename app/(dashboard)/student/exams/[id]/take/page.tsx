@@ -472,7 +472,7 @@ export default function TakeExamPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-6">
+      <div className="p-6">
         <Skeleton className="h-16 w-full mb-6" />
         <Skeleton className="h-96 w-full" />
       </div>
@@ -481,7 +481,7 @@ export default function TakeExamPage() {
 
   if (!exam || questions.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-[50dvh] items-center justify-center">
         <Card className="max-w-md text-center p-8">
           <AlertTriangle className="w-16 h-16 mx-auto text-yellow-500 mb-4" />
           <h2 className="text-xl font-bold mb-2">امتحان یافت نشد</h2>
@@ -496,7 +496,7 @@ export default function TakeExamPage() {
   const progress = calculateProgress(answeredCount, questions.length);
 
   return (
-    <div className="min-h-screen bg-muted/30" dir="rtl">
+    <div className="bg-background min-h-[100dvh]" dir="rtl">
       {/* هدر ثابت */}
       <div className="sticky top-0 z-50 bg-background border-b shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-3">

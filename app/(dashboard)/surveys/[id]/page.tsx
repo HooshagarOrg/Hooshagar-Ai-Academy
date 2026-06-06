@@ -19,6 +19,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { DashboardPage } from '@/components/layout/dashboard-page';
 import {
   ClipboardList,
   Clock,
@@ -614,10 +615,8 @@ export default function SurveyPage() {
   const answeredCount = Object.keys(answers).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-8">
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* هدر */}
-        <Card className="border-primary/20">
+    <DashboardPage className="max-w-2xl mx-auto" title={survey.title} description={survey.description} animatedSections={false}>
+        <Card className="border-primary/20 glass-panel">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -777,7 +776,6 @@ export default function SurveyPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
+    </DashboardPage>
   );
 }

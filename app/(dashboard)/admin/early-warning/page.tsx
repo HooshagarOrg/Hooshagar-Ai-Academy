@@ -33,6 +33,7 @@ import {
   
 } from 'lucide-react'
 import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 
 // ============================================
@@ -543,7 +544,7 @@ export default function EarlyWarningPage() {
         </div>
 
         {/* ==================== فیلترها ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
+        <GlassCard className="p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* جستجو */}
             <div className="flex-1 relative">
@@ -619,10 +620,10 @@ export default function EarlyWarningPage() {
               )}
             </button>
           </div>
-        </div>
+        </GlassCard>
 
         {/* ==================== جدول دانش‌آموزان ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden mb-6">
+        <GlassCard className="overflow-hidden mb-6 p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-white/5">
@@ -710,10 +711,10 @@ export default function EarlyWarningPage() {
           <div className="px-4 py-3 border-t border-white/10 text-white/50 text-sm">
             نمایش {filteredStudents.length} از {students.length} دانش‌آموز
           </div>
-        </div>
+        </GlassCard>
 
         {/* ==================== تنظیمات گزارش خودکار ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+        <GlassCard className="p-6">
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <Settings className="w-5 h-5 text-white/60" />
             تنظیمات گزارش خودکار
@@ -768,7 +769,7 @@ export default function EarlyWarningPage() {
               دانلود گزارش PDF
             </button>
           </div>
-        </div>
+        </GlassCard>
 
         {/* ==================== Footer ==================== */}
         <footer className="text-center text-muted-foreground text-sm py-6 mt-6">

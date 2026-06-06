@@ -22,6 +22,7 @@ import {
   User,
 } from 'lucide-react'
 import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 
 // ============================================
@@ -311,7 +312,7 @@ export default function AdminSurveysPage() {
         </div>
 
         {/* ==================== عملکرد معلمان ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
+        <GlassCard className="p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <GraduationCap className="w-5 h-5 text-yellow-400" />
@@ -385,10 +386,10 @@ export default function AdminSurveysPage() {
               </div>
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* ==================== امکانات مدرسه ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
+        <GlassCard className="p-6 mb-6">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <Building className="w-5 h-5 text-purple-400" />
             امکانات مدرسه
@@ -423,10 +424,10 @@ export default function AdminSurveysPage() {
               </div>
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* ==================== نظرات متنی ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+        <GlassCard className="p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-green-400" />
@@ -472,7 +473,7 @@ export default function AdminSurveysPage() {
               نظری با این فیلتر یافت نشد
             </div>
           )}
-        </div>
+        </GlassCard>
 
         {/* ==================== Footer ==================== */}
         <footer className="text-center text-muted-foreground text-sm py-6 mt-6">

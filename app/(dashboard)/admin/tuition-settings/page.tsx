@@ -16,6 +16,7 @@ import {
   FileText,
 } from 'lucide-react'
 import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 
 // ============================================
@@ -249,7 +250,7 @@ export default function TuitionSettingsPage() {
         </div>
 
         {/* ==================== جدول مدارس ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+        <GlassCard className="p-6">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <Building className="w-5 h-5 text-blue-400" />
             لیست مدارس و شهریه‌ها
@@ -312,7 +313,7 @@ export default function TuitionSettingsPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </GlassCard>
 
         {/* ==================== Dialog ویرایش ==================== */}
         {editingSchool && (

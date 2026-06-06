@@ -378,7 +378,7 @@ function SuccessPage({
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="min-h-screen flex items-center justify-center p-4"
+      className="flex min-h-[50dvh] items-center justify-center p-4"
     >
       <Card className="max-w-md w-full text-center">
         <CardHeader>
@@ -571,7 +571,7 @@ export default function SurveyPage() {
   // لودینگ
   if (loading) {
     return (
-      <div className="min-h-screen p-4 md:p-8">
+      <div className="p-4 md:p-8">
         <div className="max-w-2xl mx-auto space-y-6">
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-64 w-full" />
@@ -584,7 +584,7 @@ export default function SurveyPage() {
   // نظرسنجی یافت نشد
   if (!survey) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-[50dvh] items-center justify-center">
         <Card className="max-w-md text-center p-8">
           <ClipboardList className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
           <h2 className="text-xl font-bold mb-2">نظرسنجی یافت نشد</h2>

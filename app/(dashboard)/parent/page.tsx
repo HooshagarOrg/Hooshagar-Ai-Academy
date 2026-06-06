@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { usePersianDateString } from '@/lib/hooks/use-persian-date'
+import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { StatCard } from '@/components/ui/stat-card'
+import { GlassCard } from '@/components/ui/glass-card'
 import Link from 'next/link'
 import {
   User,
@@ -277,6 +279,7 @@ export default function ParentDashboardPage() {
       }
       animatedSections={false}
     >
+        <VirtualClassCard />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
             <StatCard
@@ -293,7 +296,7 @@ export default function ParentDashboardPage() {
         {/* ==================== Main Grid ==================== */}
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
           {/* ========== وضعیت تحصیلی فرزندم ========== */}
-          <div className="lg:col-span-2 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+          <GlassCard className="lg:col-span-2 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-emerald-400" />
@@ -382,10 +385,10 @@ export default function ParentDashboardPage() {
               <FileText className="w-5 h-5" />
               مشاهده کارنامه کامل
             </button>
-          </div>
+          </GlassCard>
 
           {/* ========== پیام‌ها و اطلاعیه‌ها ========== */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+          <GlassCard className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-blue-400" />
@@ -449,13 +452,13 @@ export default function ParentDashboardPage() {
                 ))}
               </div>
             </div>
-          </div>
+          </GlassCard>
         </div>
 
         {/* ==================== دسترسی سریع و یادآورها ==================== */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
           {/* ========== دسترسی سریع ========== */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+          <GlassCard className="p-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
               <Sparkles className="w-5 h-5 text-purple-400" />
               دسترسی سریع
@@ -482,10 +485,10 @@ export default function ParentDashboardPage() {
                 </Link>
               ))}
             </div>
-          </div>
+          </GlassCard>
 
           {/* ========== یادآورها ========== */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+          <GlassCard className="p-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
               <Clock className="w-5 h-5 text-orange-400" />
               یادآورها
@@ -519,11 +522,11 @@ export default function ParentDashboardPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </GlassCard>
         </div>
 
         {/* ==================== وضعیت مالی ==================== */}
-        <div className="bg-gradient-to-r from-orange-500/20 to-yellow-500/20 backdrop-blur-lg rounded-2xl p-6 border border-orange-500/30 mb-6">
+        <GlassCard className="p-6 mb-6 border-brand-orange/30 bg-gradient-to-bl from-brand-orange/15 via-card/90 to-brand-yellow/10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="bg-gradient-to-r from-orange-500 to-yellow-500 p-4 rounded-xl">
@@ -567,10 +570,10 @@ export default function ParentDashboardPage() {
               />
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* ==================== ابزارهای آموزشی هوشاگر ==================== */}
-        <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 mb-6">
+        <GlassCard className="p-6 mb-6 border-brand-purple/30 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-pink/10">
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl">
               <Sparkles className="w-6 h-6 text-white" />
@@ -610,7 +613,7 @@ export default function ParentDashboardPage() {
               <p className="text-white/40 text-xs">پیشرفت و امتیازات</p>
             </Link>
           </div>
-        </div>
+        </GlassCard>
 
         {/* ==================== Footer ==================== */}
         <footer className="text-center text-muted-foreground text-sm py-4">

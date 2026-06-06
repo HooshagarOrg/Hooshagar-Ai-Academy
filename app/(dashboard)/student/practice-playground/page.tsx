@@ -337,7 +337,7 @@ function MathGame({ onFinish, onBack }: MathGameProps) {
 
       {/* سوال */}
       {currentQuestion && (
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 mb-6">
+        <GlassCard className="rounded-3xl p-8 mb-6">
           <div className="text-center mb-8">
             <div className="text-6xl md:text-8xl font-bold text-white mb-4">
               {currentQuestion.num1} {operationSymbol} {currentQuestion.num2} = ?
@@ -390,7 +390,7 @@ function MathGame({ onFinish, onBack }: MathGameProps) {
               )
             })}
           </div>
-        </div>
+        </GlassCard>
       )}
     </div>
   )
@@ -493,7 +493,7 @@ function SpellingGame({ onFinish, onBack }: SpellingGameProps) {
       </div>
 
       {/* سوال */}
-      <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20">
+      <GlassCard className="rounded-3xl p-8">
         <div className="text-center mb-8">
           <h3 className="text-white/60 text-lg mb-4">به صدا گوش کن و بنویس:</h3>
 
@@ -568,7 +568,7 @@ function SpellingGame({ onFinish, onBack }: SpellingGameProps) {
             </button>
           )}
         </div>
-      </div>
+      </GlassCard>
     </div>
   )
 }
@@ -589,7 +589,7 @@ function GameResultCard({ result, subject, onPlayAgain, onChangeSubject }: GameR
   const isPerfect = percentage >= 90
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 text-center">
+    <GlassCard className="rounded-3xl p-8 text-center">
       {/* انیمیشن جشن */}
       <div className="text-8xl mb-4 animate-bounce">
         {isPerfect ? '🏆' : isGreat ? '🎉' : '💪'}
@@ -663,7 +663,7 @@ function GameResultCard({ result, subject, onPlayAgain, onChangeSubject }: GameR
           <ChevronLeft className="w-5 h-5" />
         </button>
       </div>
-    </div>
+    </GlassCard>
   )
 }
 

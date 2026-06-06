@@ -17,6 +17,7 @@ import {
   Printer,
 } from 'lucide-react'
 import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 
 // ============================================
@@ -142,7 +143,7 @@ export default function LotteryAuditPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* ستون چپ: لیست قرعه‌کشی‌ها */}
           <div className="lg:col-span-1">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 sticky top-6">
+            <GlassCard className="p-6 sticky top-6">
               <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-emerald-400" />
                 قرعه‌کشی‌های انجام شده
@@ -174,7 +175,7 @@ export default function LotteryAuditPage() {
                   </button>
                 ))}
               </div>
-            </div>
+            </GlassCard>
           </div>
 
           {/* ستون راست: جزئیات */}
@@ -182,7 +183,7 @@ export default function LotteryAuditPage() {
             {selectedData && (
               <>
                 {/* کارت اطلاعات کلی */}
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <GlassCard className="p-6">
                   <h3 className="text-xl font-bold text-white mb-4">اطلاعات کلی</h3>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="bg-white/5 rounded-xl p-4">
@@ -202,10 +203,10 @@ export default function LotteryAuditPage() {
                       <p className="text-white font-bold">{selectedData.executedBy}</p>
                     </div>
                   </div>
-                </div>
+                </GlassCard>
 
                 {/* آمار */}
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <GlassCard className="p-6">
                   <h3 className="text-xl font-bold text-white mb-4">آمار نتایج</h3>
                   <div className="grid md:grid-cols-4 gap-4">
                     <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
@@ -232,10 +233,10 @@ export default function LotteryAuditPage() {
                       <p className="text-3xl font-bold text-emerald-300">{successRate}%</p>
                     </div>
                   </div>
-                </div>
+                </GlassCard>
 
                 {/* لاگ‌ها */}
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <GlassCard className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
                       <FileText className="w-5 h-5 text-emerald-400" />
@@ -281,7 +282,7 @@ export default function LotteryAuditPage() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </GlassCard>
 
                 {/* تاییدیه */}
                 <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-6">

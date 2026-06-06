@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { Trophy, Medal, Award, TrendingUp, Star } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 
 interface LeaderboardEntry {
   rank: number
@@ -56,63 +58,52 @@ export default function LeaderboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6 flex items-center justify-center">
-        <div className="text-white text-xl">در حال بارگذاری...</div>
-      </div>
+      <DashboardPage className="max-w-4xl mx-auto" title="جدول افتخارات" animatedSections={false}>
+        <div className="flex items-center justify-center py-20 text-muted-foreground text-xl">
+          در حال بارگذاری...
+        </div>
+      </DashboardPage>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6">
-      {/* Header */}
-      <div className="max-w-4xl mx-auto mb-8">
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm">
-              <Trophy className="w-16 h-16 text-yellow-400" />
-            </div>
-          </div>
-          <h1 className="text-4xl font-black text-white mb-2">
-            🏆 جدول افتخارات
-          </h1>
-          <p className="text-blue-200 text-lg">
-            برترین دانش‌آموزان باغ استعداد
-          </p>
+    <DashboardPage
+      className="max-w-4xl mx-auto"
+      title="🏆 جدول افتخارات"
+      description="برترین دانش‌آموزان باغ استعداد"
+      meta={
+        <div className="p-3 rounded-full glass-panel-quiet inline-flex">
+          <Trophy className="w-10 h-10 text-brand-yellow" />
         </div>
-
-        {/* رتبه کاربر فعلی */}
+      }
+      animatedSections={false}
+    >
         {currentUserRank && (
-          <div className="mt-6 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+          <GlassCard className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <TrendingUp className="w-6 h-6 text-green-400" />
-                <span className="text-white font-bold">رتبه شما:</span>
+                <TrendingUp className="w-6 h-6 text-brand-green" />
+                <span className="font-bold">رتبه شما:</span>
               </div>
-              <span className="text-2xl font-black text-yellow-400">
+              <span className="text-2xl font-black text-brand-yellow">
                 #{currentUserRank}
               </span>
             </div>
-          </div>
+          </GlassCard>
         )}
-      </div>
 
-      {/* Leaderboard List */}
-      <div className="max-w-4xl mx-auto space-y-3">
+      <div className="space-y-3">
         {leaderboard.length === 0 ? (
           <div className="text-center text-white text-xl py-12">
             هنوز هیچ رکوردی ثبت نشده است
           </div>
         ) : (
           leaderboard.map((entry) => (
-            <div
+            <GlassCard
               key={entry.student_id}
-              className={`
-                bg-white/10 backdrop-blur-md rounded-2xl p-5 
-                border border-white/20 
-                hover:bg-white/15 transition-all duration-300
-                hover:scale-[1.02] hover:shadow-2xl
-                ${entry.rank <= 3 ? 'ring-2 ring-yellow-400/50' : ''}
-              `}
+              className={`p-5 transition-all duration-300 hover:scale-[1.01] ${
+                entry.rank <= 3 ? 'ring-2 ring-brand-yellow/50' : ''
+              }`}
             >
               <div className="flex items-center justify-between">
                 {/* رتبه و آیکون */}
@@ -156,18 +147,15 @@ export default function LeaderboardPage() {
                   </div>
                 </div>
               )}
-            </div>
+            </GlassCard>
           ))
         )}
       </div>
 
-      {/* Footer */}
-      <div className="max-w-4xl mx-auto mt-8 text-center">
-        <p className="text-blue-200 text-sm">
-          ✨ با انجام تکالیف و فعالیت‌ها امتیاز بگیر و در جدول افتخارات بالاتر برو!
-        </p>
-      </div>
-    </div>
+      <p className="text-center text-muted-foreground text-sm mt-8">
+        ✨ با انجام تکالیف و فعالیت‌ها امتیاز بگیر و در جدول افتخارات بالاتر برو!
+      </p>
+    </DashboardPage>
   )
 }
 

@@ -15,6 +15,8 @@ import {
   Bus,
   FileText,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -187,29 +189,24 @@ export default function TuitionSettingsPage() {
   const avgTuition = Math.round(schools.reduce((sum, s) => sum + s.baseTuition, 0) / schools.length)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/30 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-6xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/admin"
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-            >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </Link>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <Settings className="w-8 h-8 text-blue-400" />
-                تنظیم شهریه مدارس
-              </h1>
-              <p className="text-white/60 mt-1">
-                مدیریت شهریه و هزینه‌های مدارس
-              </p>
-            </div>
-          </div>
-        </header>
-
+    <DashboardPage
+      className="max-w-6xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Settings className="w-8 h-8 text-brand-cyan" />
+          تنظیم شهریه مدارس
+        </span>
+      }
+      description="مدیریت شهریه و هزینه‌های مدارس"
+      actions={
+        <Link href="/admin">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
         {/* ==================== کارت‌های آمار ==================== */}
         <div className="grid md:grid-cols-3 gap-4 mb-6">
           <div className="bg-blue-500/20 backdrop-blur-lg rounded-2xl p-5 border border-blue-500/30">
@@ -328,11 +325,10 @@ export default function TuitionSettingsPage() {
         )}
 
         {/* Footer */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

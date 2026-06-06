@@ -16,6 +16,8 @@ import {
   AlertCircle,
   Printer,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -108,38 +110,34 @@ export default function LotteryAuditPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-zinc-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/admin/lottery"
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-            >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </Link>
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <Shield className="w-8 h-8 text-emerald-400" />
-                ممیزی و بازرسی قرعه‌کشی
-              </h1>
-              <p className="text-white/60 mt-1">
-                مشاهده جزئیات کامل، لاگ‌ها و گزارش‌های قابل چاپ
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all">
-                <Printer className="w-4 h-4" />
-                چاپ گزارش
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all">
-                <Download className="w-4 h-4" />
-                دانلود PDF
-              </button>
-            </div>
-          </div>
-        </header>
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Shield className="w-8 h-8 text-brand-green" />
+          ممیزی و بازرسی قرعه‌کشی
+        </span>
+      }
+      description="مشاهده جزئیات کامل، لاگ‌ها و گزارش‌های قابل چاپ"
+      actions={
+        <div className="flex items-center gap-2">
+          <Link href="/admin/lottery">
+            <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </Link>
+          <Button variant="outline" className="gap-2">
+            <Printer className="w-4 h-4" />
+            چاپ گزارش
+          </Button>
+          <Button className="gap-2">
+            <Download className="w-4 h-4" />
+            دانلود PDF
+          </Button>
+        </div>
+      }
+      animatedSections={false}
+    >
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* ستون چپ: لیست قرعه‌کشی‌ها */}
@@ -315,12 +313,10 @@ export default function LotteryAuditPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر | گزارش قابل ارائه به ناظران و والدین</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

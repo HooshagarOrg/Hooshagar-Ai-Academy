@@ -32,6 +32,8 @@ import {
   
   
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -477,37 +479,30 @@ export default function EarlyWarningPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-900/20 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/admin"
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </Link>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  <AlertTriangle className="w-8 h-8 text-red-400" />
-                  سیستم هشدار زودهنگام (EWS)
-                </h1>
-                <p className="text-white/60 mt-1">
-                  شناسایی دانش‌آموزان در معرض خطر با هوش مصنوعی
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="bg-red-500/20 text-red-400 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
-                <Bell className="w-4 h-4" />
-                {stats.critical + stats.medium} هشدار فعال
-              </span>
-            </div>
-          </div>
-        </header>
-
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <AlertTriangle className="w-8 h-8 text-red-400" />
+          سیستم هشدار زودهنگام (EWS)
+        </span>
+      }
+      description="شناسایی دانش‌آموزان در معرض خطر با هوش مصنوعی"
+      meta={
+        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-red-500/20 text-red-400">
+          <Bell className="w-4 h-4" />
+          {stats.critical + stats.medium} هشدار فعال
+        </span>
+      }
+      actions={
+        <Link href="/admin">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
         {/* ==================== کارت‌های آمار ==================== */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-red-500/20 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30">
@@ -776,13 +771,11 @@ export default function EarlyWarningPage() {
         </div>
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
 
-      {/* ==================== Modal ==================== */}
       {selectedStudent && (
         <DetailModal
           student={selectedStudent}
@@ -790,7 +783,7 @@ export default function EarlyWarningPage() {
           onSendToCounselor={sendToCounselor}
         />
       )}
-    </div>
+    </DashboardPage>
   )
 }
 

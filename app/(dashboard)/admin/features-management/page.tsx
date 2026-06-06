@@ -40,6 +40,8 @@ import {
   Loader2,
   CheckCircle2,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -280,59 +282,45 @@ export default function FeaturesManagementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900/30 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/admin"
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </Link>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  <Settings className="w-8 h-8 text-indigo-400" />
-                  مدیریت قابلیت‌های پلتفرم
-                </h1>
-                <p className="text-white/60 mt-1">
-                  فعال/غیرفعال‌سازی قابلیت‌ها برای مدارس و نقش‌های کاربری
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-                saved
-                  ? 'bg-green-500 text-white'
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-              }`}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  در حال ذخیره...
-                </>
-              ) : saved ? (
-                <>
-                  <CheckCircle2 className="w-5 h-5" />
-                  ذخیره شد!
-                </>
-              ) : (
-                <>
-                  <Save className="w-5 h-5" />
-                  ذخیره تغییرات
-                </>
-              )}
-            </button>
-          </div>
-        </header>
-
-        {/* ==================== Tabs ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden mb-6">
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Settings className="w-8 h-8 text-brand-purple" />
+          مدیریت قابلیت‌های پلتفرم
+        </span>
+      }
+      description="فعال/غیرفعال‌سازی قابلیت‌ها برای مدارس و نقش‌های کاربری"
+      actions={
+        <div className="flex items-center gap-2">
+          <Link href="/admin">
+            <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </Link>
+          <Button onClick={handleSave} disabled={isSaving} className="gap-2">
+            {isSaving ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                در حال ذخیره...
+              </>
+            ) : saved ? (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                ذخیره شد!
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5" />
+                ذخیره تغییرات
+              </>
+            )}
+          </Button>
+        </div>
+      }
+      animatedSections={false}
+    >
+        <div className="glass-panel rounded-2xl overflow-hidden mb-6">
           <div className="flex border-b border-white/10">
             {[
               { key: 'ai', label: 'قابلیت‌های هوش مصنوعی', icon: Sparkles },
@@ -767,11 +755,10 @@ export default function FeaturesManagementPage() {
         </div>
 
         {/* Footer */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

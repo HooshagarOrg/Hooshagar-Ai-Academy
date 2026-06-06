@@ -21,6 +21,8 @@ import {
   
   User,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -233,35 +235,30 @@ export default function AdminSurveysPage() {
   }), [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/admin"
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </Link>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  <BarChart3 className="w-8 h-8 text-purple-400" />
-                  نتایج نظرسنجی‌ها
-                </h1>
-                <p className="text-white/60 mt-1">
-                  تحلیل نظرات والدین درباره مدرسه
-                </p>
-              </div>
-            </div>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all">
-              <Download className="w-4 h-4" />
-              دانلود گزارش
-            </button>
-          </div>
-        </header>
-
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <BarChart3 className="w-8 h-8 text-brand-purple" />
+          نتایج نظرسنجی‌ها
+        </span>
+      }
+      description="تحلیل نظرات والدین درباره مدرسه"
+      actions={
+        <div className="flex items-center gap-2">
+          <Link href="/admin">
+            <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </Link>
+          <Button variant="outline" className="gap-2 glass-panel-quiet">
+            <Download className="w-4 h-4" />
+            دانلود گزارش
+          </Button>
+        </div>
+      }
+      animatedSections={false}
+    >
         {/* ==================== کارت‌های آمار ==================== */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-blue-500/20 backdrop-blur-lg rounded-2xl p-5 border border-blue-500/30">
@@ -478,12 +475,11 @@ export default function AdminSurveysPage() {
         </div>
 
         {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

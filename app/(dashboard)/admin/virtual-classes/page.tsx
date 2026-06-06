@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { PageHeader } from '@/components/ui/page-header'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
@@ -265,36 +265,40 @@ export default function AdminVirtualClassesPage() {
     }
   }
 
+  const pageActions = (
+    <div className="flex gap-2">
+      <Button variant="outline" size="sm" onClick={fetchItems}>
+        <RefreshCw className="h-4 w-4 ml-1" />
+        بروزرسانی
+      </Button>
+      <Button size="sm" onClick={openCreate} disabled={forbidden}>
+        <Plus className="h-4 w-4 ml-1" />
+        کلاس مجازی جدید
+      </Button>
+    </div>
+  )
+
   if (forbidden) {
     return (
-      <div className="p-6">
+      <DashboardPage
+        title="کلاس‌های مجازی (اسکای‌روم)"
+        description="اتصال کلاس درسی به اتاق اسکای‌روم و زمان‌بندی جلسات"
+      >
         <EmptyState
           icon={Video}
           title="دسترسی محدود"
           description="فقط ادمین کل پلتفرم می‌تواند کلاس‌های مجازی را مدیریت کند."
         />
-      </div>
+      </DashboardPage>
     )
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
-      <PageHeader
-        title="کلاس‌های مجازی (اسکای‌روم)"
-        description="اتصال کلاس درسی به اتاق اسکای‌روم و زمان‌بندی جلسات"
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={fetchItems}>
-              <RefreshCw className="h-4 w-4 ml-1" />
-              بروزرسانی
-            </Button>
-            <Button size="sm" onClick={openCreate}>
-              <Plus className="h-4 w-4 ml-1" />
-              کلاس مجازی جدید
-            </Button>
-          </div>
-        }
-      />
+    <DashboardPage
+      title="کلاس‌های مجازی (اسکای‌روم)"
+      description="اتصال کلاس درسی به اتاق اسکای‌روم و زمان‌بندی جلسات"
+      actions={pageActions}
+    >
 
       {isLoading ? (
         <div className="flex justify-center py-16">
@@ -580,6 +584,6 @@ export default function AdminVirtualClassesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </DashboardPage>
   )
 }

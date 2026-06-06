@@ -32,6 +32,16 @@ export function VirtualClassCard() {
     fetchMine()
   }, [fetchMine])
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.location.hash !== '#virtual-class') return
+    const el = document.getElementById('virtual-class')
+    if (!el) return
+    const timer = window.setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 150)
+    return () => window.clearTimeout(timer)
+  }, [items, loading])
+
   const handleJoin = async (item: VirtualClassMineItem) => {
     if (!item.can_join) return
     setJoiningId(item.id)
@@ -52,10 +62,12 @@ export function VirtualClassCard() {
 
   if (loading) {
     return (
-      <GlassCard className="p-4 flex items-center gap-2 text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        بارگذاری کلاس مجازی...
-      </GlassCard>
+      <section id="virtual-class" className="scroll-mt-24">
+        <GlassCard className="p-4 flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          بارگذاری کلاس مجازی...
+        </GlassCard>
+      </section>
     )
   }
 
@@ -64,7 +76,11 @@ export function VirtualClassCard() {
   }
 
   return (
-    <div className="space-y-3">
+    <section id="virtual-class" className="space-y-3 scroll-mt-24">
+      <h2 className="text-lg font-semibold flex items-center gap-2">
+        <Video className="h-5 w-5 text-brand-cyan" />
+        کلاس مجازی
+      </h2>
       {error && (
         <p className="text-sm text-destructive">{error}</p>
       )}
@@ -113,6 +129,6 @@ export function VirtualClassCard() {
           </div>
         </GlassCard>
       ))}
-    </div>
+    </section>
   )
 }

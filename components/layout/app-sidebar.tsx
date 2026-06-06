@@ -123,7 +123,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'نمرات', href: '/teacher/grades', icon: GraduationCap },
         { title: 'رفتار دانش‌آموزان', href: '/teacher/behavior', icon: Heart },
         { title: 'گزارش هفتگی', href: '/teacher/weekly-report', icon: FileText },
-        { title: 'کلاس مجازی', href: '/teacher', icon: Video },
+        { title: 'کلاس مجازی', href: '/teacher#virtual-class', icon: Video },
       ]
     },
     {
@@ -161,6 +161,7 @@ const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'خدمات',
       items: [
+        { title: 'کلاس مجازی', href: '/parent#virtual-class', icon: Video },
         { title: 'مشاوره', href: '/parent/counseling', icon: HelpCircle },
         { title: 'ثبت‌نام کلاس', href: '/parent/class-registration', icon: GraduationCap },
         { title: 'نظرسنجی', href: '/parent/survey', icon: MessageSquare },
@@ -177,7 +178,7 @@ const navConfig: Record<string, NavGroup[]> = {
       items: [
         { title: 'نمراتم', href: '/student/grades', icon: GraduationCap },
         { title: 'آزمون‌هایم', href: '/student/exams', icon: ClipboardCheck },
-        { title: 'کلاس مجازی', href: '/student', icon: Video },
+        { title: 'کلاس مجازی', href: '/student#virtual-class', icon: Video },
         { title: 'دستیار مطالعه', href: '/student/study-buddy', icon: BookOpen },
         { title: 'حل مسئله (OCR)', href: '/student/problem-solver', icon: Lightbulb },
       ]

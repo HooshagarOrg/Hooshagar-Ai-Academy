@@ -47,6 +47,9 @@ import {
 } from 'recharts'
 
 import { Button } from '@/components/ui/button'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { StatCard } from '@/components/ui/stat-card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -597,41 +600,35 @@ export default function AcademicFoundationPage() {
   // ============================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6" dir="rtl">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-              <Brain className="w-8 h-8 text-purple-600" />
-              ارزیابی بنیه علمی
-            </h1>
-            <p className="text-gray-600 mt-1">ارزیابی مهارت‌های بنیادی و آمادگی یادگیری</p>
-          </div>
-
-          {/* Stats Summary */}
-          <div className="flex gap-4">
-            <div className="bg-white rounded-xl shadow-sm p-4 text-center min-w-[100px]">
-              <p className="text-2xl font-bold text-purple-600">{assessments.length}</p>
-              <p className="text-xs text-gray-500">ارزیابی انجام شده</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm p-4 text-center min-w-[100px]">
-              <p className="text-2xl font-bold text-green-600">
-                {assessments.filter((a) => a.level === 'excellent' || a.level === 'good').length}
-              </p>
-              <p className="text-xs text-gray-500">خوب و عالی</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm p-4 text-center min-w-[100px]">
-              <p className="text-2xl font-bold text-yellow-600">
-                {assessments.filter((a) => a.level === 'weak' || a.level === 'average').length}
-              </p>
-              <p className="text-xs text-gray-500">نیاز به تقویت</p>
-            </div>
-          </div>
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Brain className="w-8 h-8 text-brand-purple" />
+          ارزیابی بنیه علمی
+        </span>
+      }
+      description="ارزیابی مهارت‌های بنیادی و آمادگی یادگیری"
+      meta={
+        <div className="flex flex-wrap gap-3">
+          <StatCard label="ارزیابی انجام شده" value={assessments.length} accentClass="text-brand-purple" className="min-w-[100px] p-4" />
+          <StatCard
+            label="خوب و عالی"
+            value={assessments.filter((a) => a.level === 'excellent' || a.level === 'good').length}
+            accentClass="text-brand-green"
+            className="min-w-[100px] p-4"
+          />
+          <StatCard
+            label="نیاز به تقویت"
+            value={assessments.filter((a) => a.level === 'weak' || a.level === 'average').length}
+            accentClass="text-brand-yellow"
+            className="min-w-[100px] p-4"
+          />
         </div>
-
-        {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-4">
+      }
+      animatedSections={false}
+    >
+        <GlassCard className="p-4 flex items-center gap-4 flex-wrap">
           <div className="flex-1 max-w-xs">
             <div className="relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -654,10 +651,10 @@ export default function AcademicFoundationPage() {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </GlassCard>
 
         {/* Students Table */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="glass-panel rounded-xl overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50">
@@ -745,7 +742,6 @@ export default function AcademicFoundationPage() {
             </TableBody>
           </Table>
         </div>
-      </div>
 
       {/* Assessment Dialog */}
       <Dialog open={assessDialogOpen} onOpenChange={setAssessDialogOpen}>
@@ -1163,7 +1159,7 @@ export default function AcademicFoundationPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardPage>
   )
 }
 

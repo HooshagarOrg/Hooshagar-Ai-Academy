@@ -35,6 +35,9 @@ import {
   Star,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { StatCard } from '@/components/ui/stat-card'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -573,37 +576,25 @@ export default function OralQuestionsPage() {
   // ============================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6" dir="rtl">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-              <Mic className="w-8 h-8 text-purple-600" />
-              تولید سوالات شفاهی
-            </h1>
-            <p className="text-gray-600 mt-1">تولید هوشمند سوال از متن درس</p>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="flex gap-4">
-            <div className="bg-white rounded-xl shadow-sm p-4 text-center min-w-[90px]">
-              <p className="text-2xl font-bold text-purple-600">{stats.totalSessions}</p>
-              <p className="text-xs text-gray-500">جلسه</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm p-4 text-center min-w-[90px]">
-              <p className="text-2xl font-bold text-blue-600">{stats.totalQuestions}</p>
-              <p className="text-xs text-gray-500">سوال</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm p-4 text-center min-w-[90px]">
-              <p className="text-2xl font-bold text-green-600">{stats.averageScore}%</p>
-              <p className="text-xs text-gray-500">میانگین</p>
-            </div>
-          </div>
+    <DashboardPage
+      className="max-w-6xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Mic className="w-8 h-8 text-brand-purple" />
+          تولید سوالات شفاهی
+        </span>
+      }
+      description="تولید هوشمند سوال از متن درس"
+      meta={
+        <div className="flex flex-wrap gap-3">
+          <StatCard label="جلسه" value={stats.totalSessions} accentClass="text-brand-purple" className="min-w-[90px] p-4" />
+          <StatCard label="سوال" value={stats.totalQuestions} accentClass="text-brand-cyan" className="min-w-[90px] p-4" />
+          <StatCard label="میانگین" value={`${stats.averageScore}%`} accentClass="text-brand-green" className="min-w-[90px] p-4" />
         </div>
-
-        {/* Wizard Steps */}
-        <div className="bg-white rounded-xl shadow-sm p-4">
+      }
+      animatedSections={false}
+    >
+        <GlassCard className="p-4">
           <div className="flex items-center justify-between">
             {[
               { step: 1, label: 'انتخاب متن', icon: FileText },
@@ -655,11 +646,11 @@ export default function OralQuestionsPage() {
               </div>
             )})}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Step 1: Text Input */}
         {currentStep === 1 && (
-          <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+          <div className="glass-panel rounded-xl p-6 space-y-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
               <FileText className="w-6 h-6 text-purple-600" />
               مرحله ۱: انتخاب متن درس
@@ -767,7 +758,7 @@ export default function OralQuestionsPage() {
 
         {/* Step 2: Settings */}
         {currentStep === 2 && (
-          <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+          <div className="glass-panel rounded-xl p-6 space-y-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
               <Target className="w-6 h-6 text-purple-600" />
               مرحله ۲: تنظیمات تولید
@@ -891,7 +882,7 @@ export default function OralQuestionsPage() {
         {/* Step 3: Generated Questions */}
         {currentStep === 3 && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="glass-panel rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                   <HelpCircle className="w-6 h-6 text-purple-600" />
@@ -925,7 +916,7 @@ export default function OralQuestionsPage() {
             </div>
 
             {/* History Section */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="glass-panel rounded-xl p-6">
               <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
                 <Clock className="w-5 h-5 text-gray-600" />
                 تاریخچه جلسات ارزیابی
@@ -984,7 +975,6 @@ export default function OralQuestionsPage() {
             </div>
           </div>
         )}
-      </div>
 
       {/* Assessment Dialog */}
       <Dialog open={assessmentOpen} onOpenChange={setAssessmentOpen}>
@@ -1225,7 +1215,7 @@ export default function OralQuestionsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardPage>
   )
 }
 

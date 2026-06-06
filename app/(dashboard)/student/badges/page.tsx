@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import BadgeCard from '@/components/BadgeCard'
 import { toast } from 'sonner'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
 
 interface Badge {
   id: string
@@ -125,15 +127,13 @@ export default function StudentBadgesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="h-64 bg-white/10 rounded-2xl animate-pulse" />
+      <DashboardPage className="max-w-7xl mx-auto" title="نشان‌های من" animatedSections={false}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-64 glass-panel rounded-2xl animate-pulse" />
           ))}
         </div>
-        </div>
-      </div>
+      </DashboardPage>
     )
   }
 
@@ -143,27 +143,22 @@ export default function StudentBadgesPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-8">
-      <div className="max-w-7xl mx-auto">
-      {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4">
-            🏆 نشان‌های من
-          </h1>
-          <p className="text-xl text-white/80">
-            {badges.length} از {allBadges.length} نشان دریافت شده
-          </p>
-          <div className="mt-4 inline-block bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full">
-            <span className="text-2xl font-bold text-yellow-300">
-              ⭐ {totalXp} XP
-            </span>
-          </div>
-          </div>
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title="🏆 نشان‌های من"
+      description={`${badges.length} از ${allBadges.length} نشان دریافت شده`}
+      meta={
+        <GlassCard quiet className="inline-flex px-6 py-2">
+          <span className="text-xl font-bold text-brand-yellow">⭐ {totalXp} XP</span>
+        </GlassCard>
+      }
+      animatedSections={false}
+    >
 
         {/* Badge‌های قابل دریافت (Available) */}
         {availableBadges.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
               <span className="text-4xl">🎁</span>
               آماده دریافت!
               </h2>
@@ -184,7 +179,7 @@ export default function StudentBadgesPage() {
         {/* Badge‌های دریافت شده */}
         {badges.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
               <span className="text-4xl">✅</span>
               دریافت شده
               </h2>
@@ -204,7 +199,7 @@ export default function StudentBadgesPage() {
         {/* Badge‌های قفل شده */}
         {lockedBadges.length > 0 && (
           <div>
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
               <span className="text-4xl">🔒</span>
               قفل شده
             </h2>
@@ -225,15 +220,12 @@ export default function StudentBadgesPage() {
         {badges.length === 0 && lockedBadges.length === 0 && (
           <div className="text-center py-20">
             <div className="text-8xl mb-6">🎖️</div>
-            <h2 className="text-3xl font-bold text-white mb-4">
-              هنوز نشانی وجود ندارد
-            </h2>
-            <p className="text-xl text-white/70">
+            <h2 className="text-2xl font-bold mb-4">هنوز نشانی وجود ندارد</h2>
+            <p className="text-lg text-muted-foreground">
               با کسب امتیاز، نشان‌های خود را دریافت کن!
                     </p>
                   </div>
                   )}
-                </div>
-    </div>
+    </DashboardPage>
   )
 }

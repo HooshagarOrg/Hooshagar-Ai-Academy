@@ -79,6 +79,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { AI_FEATURES } from '@/lib/check-ai-limit'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 
 // ============================================
 // داده‌های نمونه
@@ -182,46 +183,44 @@ export default function AIUsageDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 p-4 md:p-6" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-white" />
-              </div>
-              داشبورد مصرف هوش مصنوعی
-            </h1>
-            <p className="text-gray-500 mt-2">
-              آمار و تحلیل استفاده از قابلیت‌های AI
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-36">
-                <Calendar className="w-4 h-4 ml-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">۷ روز اخیر</SelectItem>
-                <SelectItem value="30d">۳۰ روز اخیر</SelectItem>
-                <SelectItem value="90d">۳ ماه اخیر</SelectItem>
-              </SelectContent>
-            </Select>
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 bg-gradient-to-br from-brand-green to-brand-cyan rounded-xl flex items-center justify-center">
+            <BarChart3 className="w-6 h-6 text-white" />
+          </span>
+          داشبورد مصرف هوش مصنوعی
+        </span>
+      }
+      description="آمار و تحلیل استفاده از قابلیت‌های AI"
+      actions={
+        <div className="flex items-center gap-2">
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-36 glass-panel-quiet">
+              <Calendar className="w-4 h-4 ml-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">۷ روز اخیر</SelectItem>
+              <SelectItem value="30d">۳۰ روز اخیر</SelectItem>
+              <SelectItem value="90d">۳ ماه اخیر</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            className="glass-panel-quiet"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
+          </Button>
         </div>
-
+      }
+      animatedSections={false}
+    >
         {/* کارت‌های آمار */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
           <StatCard
@@ -613,9 +612,9 @@ export default function AIUsageDashboardPage() {
                 </Button>
               </div>
 
-              <div className="bg-blue-50 rounded-lg p-4 mt-4">
-                <h4 className="font-medium text-blue-800 mb-2">💡 نکته</h4>
-                <p className="text-sm text-blue-600">
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mt-4">
+                <h4 className="font-medium text-blue-300 mb-2">💡 نکته</h4>
+                <p className="text-sm text-blue-200/80">
                   برای تنظیم محدودیت‌ها به صفحه
                   <Button
                     variant="link"
@@ -630,8 +629,7 @@ export default function AIUsageDashboardPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 
@@ -657,21 +655,21 @@ function StatCard({
   color: 'blue' | 'green' | 'purple' | 'yellow' | 'cyan' | 'red'
 }) {
   const colors = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-100',
-    green: 'bg-green-50 text-green-600 border-green-100',
-    purple: 'bg-purple-50 text-purple-600 border-purple-100',
-    yellow: 'bg-yellow-50 text-yellow-600 border-yellow-100',
-    cyan: 'bg-cyan-50 text-cyan-600 border-cyan-100',
-    red: 'bg-red-50 text-red-600 border-red-100',
+    blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    green: 'bg-green-500/10 text-green-400 border-green-500/20',
+    purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+    yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+    cyan: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+    red: 'bg-red-500/10 text-red-400 border-red-500/20',
   }
 
   const iconColors = {
-    blue: 'text-blue-500',
-    green: 'text-green-500',
-    purple: 'text-purple-500',
-    yellow: 'text-yellow-500',
-    cyan: 'text-cyan-500',
-    red: 'text-red-500',
+    blue: 'text-blue-400',
+    green: 'text-green-400',
+    purple: 'text-purple-400',
+    yellow: 'text-yellow-400',
+    cyan: 'text-cyan-400',
+    red: 'text-red-400',
   }
 
   return (
@@ -684,7 +682,7 @@ function StatCard({
               variant="secondary"
               className={cn(
                 'text-xs',
-                up ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                up ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'
               )}
             >
               {up ? <ArrowUpRight className="w-3 h-3 ml-0.5" /> : <ArrowDownRight className="w-3 h-3 ml-0.5" />}
@@ -694,8 +692,8 @@ function StatCard({
         </div>
         <p className="text-2xl font-bold">{value}</p>
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-500">{title}</p>
-          {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
+          <p className="text-xs text-muted-foreground">{title}</p>
+          {subtitle && <p className="text-xs text-muted-foreground/80">{subtitle}</p>}
         </div>
       </CardContent>
     </Card>

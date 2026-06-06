@@ -17,6 +17,9 @@ import {
   Loader2,
   Sparkles,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // کامپوننت اصلی
@@ -125,31 +128,25 @@ export default function AIGuidancePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-900 via-blue-900 to-indigo-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/student"
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-            >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </Link>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <Compass className="w-8 h-8 text-cyan-400" />
-                قطب‌نمای آینده
-              </h1>
-              <p className="text-white/60 mt-1">
-                با هوش مصنوعی مسیر آینده‌ات رو پیدا کن!
-              </p>
-            </div>
-          </div>
-        </header>
-
-        {/* دکمه تحلیل */}
-        <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-lg rounded-2xl p-8 mb-6 border border-cyan-500/30 text-center">
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Compass className="w-8 h-8 text-brand-cyan" />
+          راهنمای هوشمند آینده
+        </span>
+      }
+      description="با هوش مصنوعی مسیر آینده‌ات را پیدا کن"
+      actions={
+        <Link href="/student">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
+        <GlassCard className="p-8 text-center border-brand-cyan/25 bg-gradient-to-bl from-brand-cyan/15 via-card/90 to-brand-purple/10">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-cyan-500/20 mb-4">
             <Brain className="w-10 h-10 text-cyan-400" />
           </div>
@@ -181,13 +178,13 @@ export default function AIGuidancePage() {
               </>
             )}
           </button>
-        </div>
+        </GlassCard>
 
         {/* نتایج */}
         {guidance && (
           <div className="space-y-6">
             {/* استعدادها */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <GlassCard className="p-6">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Star className="w-6 h-6 text-yellow-400" />
                 استعدادهای شما
@@ -209,11 +206,11 @@ export default function AIGuidancePage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </GlassCard>
 
             <div className="grid lg:grid-cols-2 gap-6">
               {/* خصوصیات شخصیتی */}
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <GlassCard className="p-6">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                   <Users className="w-6 h-6 text-purple-400" />
                   ویژگی‌های شخصیتی
@@ -234,10 +231,10 @@ export default function AIGuidancePage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </GlassCard>
 
               {/* رشته‌های پیشنهادی */}
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <GlassCard className="p-6">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                   <GraduationCap className="w-6 h-6 text-green-400" />
                   رشته‌های مناسب
@@ -262,11 +259,11 @@ export default function AIGuidancePage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </GlassCard>
             </div>
 
             {/* مسیرهای شغلی */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <GlassCard className="p-6">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Briefcase className="w-6 h-6 text-blue-400" />
                 مسیرهای شغلی پیشنهادی
@@ -295,10 +292,10 @@ export default function AIGuidancePage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </GlassCard>
 
             {/* دانشگاه‌های پیشنهادی */}
-            <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
+            <GlassCard className="p-6 border-brand-purple/30 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-pink/10">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Award className="w-6 h-6 text-purple-400" />
                 دانشگاه‌های پیشنهادی
@@ -316,7 +313,7 @@ export default function AIGuidancePage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </GlassCard>
 
             {/* توصیه نهایی */}
             <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-6">
@@ -337,11 +334,10 @@ export default function AIGuidancePage() {
         )}
 
         {/* Footer */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

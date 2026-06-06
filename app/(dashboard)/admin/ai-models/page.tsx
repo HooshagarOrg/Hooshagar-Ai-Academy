@@ -87,6 +87,7 @@ import {
 } from '@/components/ui/tooltip'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 import {
   AVAILABLE_MODELS,
   DEFAULT_FEATURE_CONFIGS,
@@ -334,35 +335,27 @@ export default function AIModelsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 p-4 md:p-6" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                مدیریت مدل‌های هوش مصنوعی
-              </h1>
-              <p className="text-gray-500 mt-2">
-                انتخاب و پیکربندی مدل AI برای هر قابلیت
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Badge variant="secondary" className="text-lg gap-2 px-4 py-2">
-                <CreditCard className="w-4 h-4" />
-                💰 هزینه این ماه: {formatCost(totalCostThisMonth)}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 bg-gradient-to-br from-brand-purple to-brand-cyan rounded-xl flex items-center justify-center">
+            <Sparkles className="w-6 h-6 text-white" />
+          </span>
+          مدیریت مدل‌های هوش مصنوعی
+        </span>
+      }
+      description="انتخاب و پیکربندی مدل AI برای هر قابلیت"
+      actions={
+        <Badge variant="secondary" className="text-base gap-2 px-4 py-2 glass-panel-quiet">
+          <CreditCard className="w-4 h-4" />
+          💰 هزینه این ماه: {formatCost(totalCostThisMonth)}
+        </Badge>
+      }
+      animatedSections={false}
+    >
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-5 mb-6 bg-white/80">
+          <TabsList className="grid grid-cols-5 mb-6 glass-panel-quiet">
             <TabsTrigger value="configs" className="gap-2">
               <Settings className="w-4 h-4" />
               پیکربندی مدل‌ها
@@ -1284,8 +1277,7 @@ export default function AIModelsPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

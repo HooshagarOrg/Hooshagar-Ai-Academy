@@ -31,6 +31,9 @@ import {
   Users,
   Zap,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -271,7 +274,7 @@ interface SummaryCardProps {
 
 function SummaryCard({ plan, formData }: SummaryCardProps) {
   return (
-    <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 backdrop-blur-lg rounded-2xl p-6 border border-emerald-500/30">
+    <GlassCard className="p-6 border-brand-green/30 bg-gradient-to-bl from-brand-green/15 via-card/90 to-brand-cyan/10">
       <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
         <FileText className="w-5 h-5 text-emerald-400" />
         خلاصه برنامه
@@ -318,7 +321,7 @@ function SummaryCard({ plan, formData }: SummaryCardProps) {
           ))}
         </div>
       </div>
-    </div>
+    </GlassCard>
   )
 }
 
@@ -331,7 +334,7 @@ interface WeeklyScheduleProps {
 
 function WeeklySchedule({ schedule }: WeeklyScheduleProps) {
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+    <GlassCard className="p-6">
       <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
         <Calendar className="w-5 h-5 text-blue-400" />
         برنامه هفتگی
@@ -366,7 +369,7 @@ function WeeklySchedule({ schedule }: WeeklyScheduleProps) {
           ))}
         </div>
       </div>
-    </div>
+    </GlassCard>
   )
 }
 
@@ -379,7 +382,7 @@ interface MonthlyGoalsProps {
 
 function MonthlyGoals({ goals }: MonthlyGoalsProps) {
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+    <GlassCard className="p-6">
       <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
         <Target className="w-5 h-5 text-orange-400" />
         اهداف ماهانه
@@ -415,7 +418,7 @@ function MonthlyGoals({ goals }: MonthlyGoalsProps) {
           </div>
         ))}
       </div>
-    </div>
+    </GlassCard>
   )
 }
 
@@ -430,7 +433,7 @@ interface AdvisorTipsProps {
 
 function AdvisorTips({ tips, strengths, weaknesses }: AdvisorTipsProps) {
   return (
-    <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
+    <GlassCard className="p-6 border-brand-purple/30 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-pink/10">
       <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
         <Brain className="w-5 h-5 text-purple-400" />
         نکات مشاور هوشمند
@@ -484,7 +487,7 @@ function AdvisorTips({ tips, strengths, weaknesses }: AdvisorTipsProps) {
           </ul>
         </div>
       </div>
-    </div>
+    </GlassCard>
   )
 }
 
@@ -536,41 +539,37 @@ export default function KonkurRoadmapPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-6xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/student"
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </Link>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  <Map className="w-8 h-8 text-emerald-400" />
-                  نقشه راه کنکور
-                </h1>
-                <p className="text-white/60 mt-1 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-yellow-400" />
-                  برنامه‌ریزی حرفه‌ای برای موفقیت
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="bg-emerald-500/30 text-emerald-200 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
-                <Brain className="w-4 h-4" />
-                مشاور هوشمند AI
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* ==================== فرم اطلاعات ==================== */}
+    <DashboardPage
+      className="max-w-6xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Map className="w-8 h-8 text-brand-green" />
+          نقشه راه کنکور
+        </span>
+      }
+      description={
+        <span className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-brand-yellow" />
+          برنامه‌ریزی حرفه‌ای برای موفقیت
+        </span>
+      }
+      meta={
+        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium glass-panel-quiet text-brand-green">
+          <Brain className="w-4 h-4" />
+          مشاور هوشمند AI
+        </span>
+      }
+      actions={
+        <Link href="/student">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
         {!showPlan && (
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
+          <GlassCard className="p-6 mb-6">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
               <FileText className="w-5 h-5 text-emerald-400" />
               اطلاعات اولیه
@@ -675,7 +674,7 @@ export default function KonkurRoadmapPage() {
                 </>
               )}
             </button>
-          </div>
+          </GlassCard>
         )}
 
         {/* ==================== نمایش برنامه ==================== */}
@@ -733,8 +732,7 @@ export default function KonkurRoadmapPage() {
               weaknesses={samplePlan.weaknesses}
             />
 
-            {/* پیام انگیزشی */}
-            <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-lg rounded-2xl p-6 border border-yellow-500/30 text-center">
+            <GlassCard className="p-6 border-brand-yellow/30 bg-gradient-to-bl from-brand-yellow/15 via-card/90 to-brand-orange/10 text-center">
               <Award className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-white mb-2">
                 🌟 موفقیت در انتظار توست!
@@ -743,17 +741,15 @@ export default function KonkurRoadmapPage() {
                 با پیگیری این برنامه و تلاش مداوم، حتماً به هدفت می‌رسی.
                 یادت باشه که مهم‌ترین چیز استمرار و پشتکار است. موفق باشی! 💪
               </p>
-            </div>
+            </GlassCard>
           </div>
         )}
 
-        {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

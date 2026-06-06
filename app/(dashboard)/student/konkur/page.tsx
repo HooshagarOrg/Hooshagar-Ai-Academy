@@ -15,6 +15,10 @@ import {
   Loader2,
   Sparkles,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { StatCard } from '@/components/ui/stat-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // کامپوننت اصلی
@@ -64,76 +68,58 @@ export default function KonkurPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/student"
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-            >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </Link>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <Target className="w-8 h-8 text-orange-400" />
-                برنامه‌ریزی هوشمند کنکور
-              </h1>
-              <p className="text-white/60 mt-1">
-                با کمک هوش مصنوعی به دانشگاه مورد نظرت برس!
-              </p>
-            </div>
-          </div>
-        </header>
-
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <Target className="w-8 h-8 text-brand-orange" />
+          برنامه‌ریزی هوشمند کنکور
+        </span>
+      }
+      description="با کمک هوش مصنوعی به دانشگاه مورد نظرت برس"
+      actions={
+        <Link href="/student">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* کارت‌های آماری */}
           <div className="lg:col-span-3 grid md:grid-cols-4 gap-4">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <div className="flex items-center gap-3 mb-2">
-                <Target className="w-6 h-6 text-orange-400" />
-                <span className="text-white/70 text-sm">هدف شما</span>
-              </div>
-              <p className="text-3xl font-bold text-white">رتبه 500</p>
-              <p className="text-white/60 text-sm mt-1">دانشگاه شریف</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="w-6 h-6 text-green-400" />
-                <span className="text-white/70 text-sm">رتبه پیش‌بینی شده</span>
-              </div>
-              <p className="text-3xl font-bold text-green-400">
-                {prediction ? prediction.predicted_rank : '---'}
-              </p>
-              <p className="text-white/60 text-sm mt-1">
-                {prediction ? `${(prediction.confidence * 100).toFixed(0)}% اطمینان` : 'منتظر تحلیل...'}
-              </p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <div className="flex items-center gap-3 mb-2">
-                <Calendar className="w-6 h-6 text-blue-400" />
-                <span className="text-white/70 text-sm">آزمون‌های آزمایشی</span>
-              </div>
-              <p className="text-3xl font-bold text-white">12</p>
-              <p className="text-white/60 text-sm mt-1">در این سال</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <div className="flex items-center gap-3 mb-2">
-                <BookOpen className="w-6 h-6 text-purple-400" />
-                <span className="text-white/70 text-sm">ساعت مطالعه هفتگی</span>
-              </div>
-              <p className="text-3xl font-bold text-white">35</p>
-              <p className="text-white/60 text-sm mt-1">از 40 ساعت هدف</p>
-            </div>
+            <StatCard
+              label="هدف شما"
+              value="رتبه 500"
+              hint="دانشگاه شریف"
+              icon={<Target className="w-5 h-5" />}
+              accentClass="text-brand-orange"
+            />
+            <StatCard
+              label="رتبه پیش‌بینی شده"
+              value={prediction ? prediction.predicted_rank : '---'}
+              hint={prediction ? `${(prediction.confidence * 100).toFixed(0)}% اطمینان` : 'منتظر تحلیل...'}
+              icon={<TrendingUp className="w-5 h-5" />}
+              accentClass="text-brand-green"
+            />
+            <StatCard
+              label="آزمون‌های آزمایشی"
+              value="12"
+              hint="در این سال"
+              icon={<Calendar className="w-5 h-5" />}
+              accentClass="text-brand-cyan"
+            />
+            <StatCard
+              label="ساعت مطالعه هفتگی"
+              value="35"
+              hint="از 40 ساعت هدف"
+              icon={<BookOpen className="w-5 h-5" />}
+              accentClass="text-brand-purple"
+            />
           </div>
 
-          {/* دکمه پیش‌بینی رتبه */}
           <div className="lg:col-span-3">
-            <div className="bg-gradient-to-r from-orange-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-orange-500/30">
+            <GlassCard className="p-6 border-brand-orange/25 bg-gradient-to-bl from-brand-orange/15 via-card/90 to-brand-pink/10">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
@@ -166,12 +152,11 @@ export default function KonkurPage() {
                   )}
                 </button>
               </div>
-            </div>
+            </GlassCard>
           </div>
 
-          {/* نتیجه پیش‌بینی */}
           {prediction && (
-            <div className="lg:col-span-3 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <GlassCard className="lg:col-span-3 p-6">
               <h3 className="text-xl font-bold text-white mb-4">📊 نتیجه تحلیل</h3>
               
               <div className="grid md:grid-cols-2 gap-6">
@@ -223,12 +208,11 @@ export default function KonkurPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </GlassCard>
           )}
 
-          {/* برنامه مطالعاتی */}
           <div className="lg:col-span-2">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <GlassCard className="p-6">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-blue-400" />
                 برنامه مطالعاتی هفتگی
@@ -265,12 +249,11 @@ export default function KonkurPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </GlassCard>
           </div>
 
-          {/* نقاط قوت و ضعف */}
           <div className="lg:col-span-1">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-4">
+            <GlassCard className="p-6 mb-4">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-400" />
                 نقاط قوت
@@ -282,9 +265,9 @@ export default function KonkurPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </GlassCard>
 
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <GlassCard className="p-6">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <XCircle className="w-5 h-5 text-red-400" />
                 نقاط ضعف
@@ -296,16 +279,14 @@ export default function KonkurPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </GlassCard>
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

@@ -89,6 +89,7 @@ import {
 } from '@/components/ui/tooltip'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 import { AI_FEATURES } from '@/lib/check-ai-limit'
 
 // ============================================
@@ -310,39 +311,34 @@ export default function AILimitsPage() {
   // ============================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 p-4 md:p-6" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Settings className="w-6 h-6 text-white" />
-                </div>
-                مدیریت محدودیت‌های هوش مصنوعی
-              </h1>
-              <p className="text-gray-500 mt-2">
-                کنترل و مدیریت استفاده از قابلیت‌های AI
-              </p>
-            </div>
-            
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => window.location.href = '/admin/ai-usage-dashboard'}
-            >
-              <BarChart3 className="w-4 h-4" />
-              مشاهده داشبورد مصرف
-            </Button>
-          </div>
-        </div>
-
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 bg-gradient-to-br from-brand-cyan to-brand-purple rounded-xl flex items-center justify-center">
+            <Settings className="w-6 h-6 text-white" />
+          </span>
+          مدیریت محدودیت‌های هوش مصنوعی
+        </span>
+      }
+      description="کنترل و مدیریت استفاده از قابلیت‌های AI"
+      actions={
+        <Button
+          variant="outline"
+          className="gap-2 glass-panel-quiet"
+          onClick={() => window.location.href = '/admin/ai-usage-dashboard'}
+        >
+          <BarChart3 className="w-4 h-4" />
+          مشاهده داشبورد مصرف
+        </Button>
+      }
+      animatedSections={false}
+    >
         <div className="flex gap-6">
           {/* محتوای اصلی */}
           <div className="flex-1">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-4 mb-6 bg-white/80">
+              <TabsList className="grid grid-cols-4 mb-6 glass-panel-quiet">
                 <TabsTrigger value="global" className="gap-2">
                   <Globe className="w-4 h-4" />
                   تنظیمات سراسری
@@ -1143,8 +1139,7 @@ export default function AILimitsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

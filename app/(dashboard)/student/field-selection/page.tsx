@@ -14,6 +14,9 @@ import {
   Target,
   Award,
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // تایپ‌ها
@@ -121,37 +124,32 @@ export default function FieldSelectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/student"
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-            >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </Link>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <GraduationCap className="w-8 h-8 text-blue-400" />
-                انتخاب رشته تحصیلی
-              </h1>
-              <p className="text-white/60 mt-1">
-                با کمک هوش مصنوعی بهترین رشته را انتخاب کنید
-              </p>
-            </div>
-          </div>
-        </header>
-
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <GraduationCap className="w-8 h-8 text-brand-cyan" />
+          انتخاب رشته تحصیلی
+        </span>
+      }
+      description="با کمک هوش مصنوعی بهترین رشته را انتخاب کنید"
+      actions={
+        <Link href="/student">
+          <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+        </Link>
+      }
+      animatedSections={false}
+    >
         {!isSubmitted ? (
           <div className="grid lg:grid-cols-2 gap-6">
             {/* ستون چپ: تحلیل AI */}
             <div className="space-y-6">
               {/* دکمه تحلیل AI */}
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <Brain className="w-6 h-6 text-purple-400" />
+              <GlassCard className="p-6">
+                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <Brain className="w-6 h-6 text-brand-purple" />
                   تحلیل هوشمند با AI
                 </h2>
                 <p className="text-white/70 text-sm mb-4 leading-relaxed">
@@ -178,11 +176,10 @@ export default function FieldSelectionPage() {
                     </>
                   )}
                 </button>
-              </div>
+              </GlassCard>
 
-              {/* نتیجه تحلیل AI */}
               {aiRecommendation && (
-                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
+                <GlassCard className="p-6 border-brand-purple/30 bg-gradient-to-bl from-brand-purple/15 via-card/90 to-brand-pink/10">
                   <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                     <Target className="w-6 h-6 text-purple-400" />
                     پیشنهاد هوش مصنوعی
@@ -243,13 +240,12 @@ export default function FieldSelectionPage() {
                       ))}
                     </div>
                   </div>
-                </div>
+                </GlassCard>
               )}
             </div>
 
-            {/* ستون راست: انتخاب رشته */}
             <div className="space-y-6">
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <GlassCard className="p-6">
                 <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                   <BookOpen className="w-6 h-6 text-blue-400" />
                   انتخاب‌های شما
@@ -338,12 +334,11 @@ export default function FieldSelectionPage() {
                   <CheckCircle className="w-5 h-5" />
                   ثبت نهایی انتخاب رشته
                 </button>
-              </div>
+              </GlassCard>
             </div>
           </div>
         ) : (
-          // صفحه تأیید
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 text-center">
+          <GlassCard className="p-8 text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-500/20 mb-6">
               <Award className="w-10 h-10 text-green-400" />
             </div>
@@ -361,15 +356,13 @@ export default function FieldSelectionPage() {
             >
               بازگشت به پنل دانش‌آموز
             </Link>
-          </div>
+          </GlassCard>
         )}
 
-        {/* Footer */}
-        <footer className="text-center text-white/40 text-sm py-6 mt-6">
+        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

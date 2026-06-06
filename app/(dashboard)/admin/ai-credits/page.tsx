@@ -7,6 +7,10 @@ import {
   Database, Sparkles, Brain, BookOpen, Camera, Wand2,
   RefreshCw, Download, AlertTriangle, Clock
 } from 'lucide-react'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { GlassCard } from '@/components/ui/glass-card'
+import { StatCard } from '@/components/ui/stat-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // داده‌های نمونه (Mock Data)
@@ -152,97 +156,63 @@ export default function AICreditsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-blue-900 p-4 md:p-6 lg:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* ==================== Header ==================== */}
-        <header className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-3 rounded-xl">
-                  <Cpu className="w-6 h-6 text-white" />
-                </div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white">
-                  مدیریت اعتبار هوش مصنوعی
-                </h1>
-              </div>
-              <p className="text-white/60">
-                مدیریت و نظارت بر اعتبار و مصرف ابزارهای هوش مصنوعی در مدارس
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-all">
-                <RefreshCw className="w-4 h-4" />
-                بروزرسانی
-              </button>
-              <button className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl transition-all">
-                <Download className="w-4 h-4" />
-                خروجی گزارش
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* ==================== آمار کلی ==================== */}
+    <DashboardPage
+      className="max-w-7xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <span className="bg-gradient-to-r from-brand-cyan to-brand-purple p-3 rounded-xl">
+            <Cpu className="w-6 h-6 text-white" />
+          </span>
+          مدیریت اعتبار هوش مصنوعی
+        </span>
+      }
+      description="مدیریت و نظارت بر اعتبار و مصرف ابزارهای هوش مصنوعی در مدارس"
+      actions={
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="gap-2 glass-panel-quiet">
+            <RefreshCw className="w-4 h-4" />
+            بروزرسانی
+          </Button>
+          <Button className="gap-2">
+            <Download className="w-4 h-4" />
+            خروجی گزارش
+          </Button>
+        </div>
+      }
+      animatedSections={false}
+    >
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/20">
-            <div className="flex items-start justify-between mb-3">
-              <div className="bg-blue-500 p-3 rounded-xl shadow-lg text-white">
-                <Coins className="w-6 h-6" />
-              </div>
-              <span className="text-blue-400 text-sm flex items-center gap-1">
-                <TrendingUp className="w-4 h-4" />
-                +۱۲٪
-              </span>
-            </div>
-            <p className="text-white/60 text-sm mb-1">کل اعتبار تخصیص‌یافته</p>
-            <p className="text-white text-2xl font-bold">{totalAllocated.toLocaleString('fa-IR')}</p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/20">
-            <div className="flex items-start justify-between mb-3">
-              <div className="bg-orange-500 p-3 rounded-xl shadow-lg text-white">
-                <TrendingDown className="w-6 h-6" />
-              </div>
-              <span className="text-orange-400 text-sm flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                امروز
-              </span>
-            </div>
-            <p className="text-white/60 text-sm mb-1">کل اعتبار مصرف‌شده</p>
-            <p className="text-white text-2xl font-bold">{totalUsed.toLocaleString('fa-IR')}</p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/20">
-            <div className="flex items-start justify-between mb-3">
-              <div className="bg-green-500 p-3 rounded-xl shadow-lg text-white">
-                <Database className="w-6 h-6" />
-              </div>
-              <span className="text-green-400 text-sm">
-                {Math.round((totalRemaining / totalAllocated) * 100)}٪
-              </span>
-            </div>
-            <p className="text-white/60 text-sm mb-1">اعتبار باقی‌مانده</p>
-            <p className="text-white text-2xl font-bold">{totalRemaining.toLocaleString('fa-IR')}</p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-5 border border-white/20">
-            <div className="flex items-start justify-between mb-3">
-              <div className="bg-purple-500 p-3 rounded-xl shadow-lg text-white">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <span className="text-purple-400 text-sm flex items-center gap-1">
-                <TrendingUp className="w-4 h-4" />
-                +۸٪
-              </span>
-            </div>
-            <p className="text-white/60 text-sm mb-1">کل درخواست‌های AI</p>
-            <p className="text-white text-2xl font-bold">{totalRequests.toLocaleString('fa-IR')}</p>
-          </div>
+          <StatCard
+            label="کل اعتبار تخصیص‌یافته"
+            value={totalAllocated.toLocaleString('fa-IR')}
+            hint="+۱۲٪"
+            icon={<Coins className="w-5 h-5" />}
+            accentClass="text-brand-cyan"
+          />
+          <StatCard
+            label="کل اعتبار مصرف‌شده"
+            value={totalUsed.toLocaleString('fa-IR')}
+            hint="امروز"
+            icon={<TrendingDown className="w-5 h-5" />}
+            accentClass="text-brand-orange"
+          />
+          <StatCard
+            label="اعتبار باقی‌مانده"
+            value={totalRemaining.toLocaleString('fa-IR')}
+            hint={`${Math.round((totalRemaining / totalAllocated) * 100)}٪`}
+            icon={<Database className="w-5 h-5" />}
+            accentClass="text-brand-green"
+          />
+          <StatCard
+            label="کل درخواست‌های AI"
+            value={totalRequests.toLocaleString('fa-IR')}
+            hint="+۸٪"
+            icon={<Sparkles className="w-5 h-5" />}
+            accentClass="text-brand-purple"
+          />
         </div>
 
-        {/* ==================== جدول مدارس ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
+        <GlassCard className="p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Building2 className="w-5 h-5 text-blue-400" />
@@ -348,12 +318,10 @@ export default function AICreditsPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </GlassCard>
 
-        {/* ==================== نمودارها ==================== */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          {/* نمودار میله‌ای مصرف مدارس */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+          <GlassCard className="p-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-6">
               <BarChart3 className="w-5 h-5 text-green-400" />
               مصرف اعتبار به تفکیک مدرسه
@@ -383,10 +351,9 @@ export default function AICreditsPage() {
                 )
               })}
             </div>
-          </div>
+          </GlassCard>
 
-          {/* نمودار دایره‌ای ابزارها */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+          <GlassCard className="p-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-6">
               <PieChart className="w-5 h-5 text-purple-400" />
               مصرف به تفکیک ابزار AI
@@ -454,11 +421,10 @@ export default function AICreditsPage() {
                 )
               })}
             </div>
-          </div>
+          </GlassCard>
         </div>
 
-        {/* ==================== جدول کاربران پرمصرف ==================== */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+        <GlassCard className="p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Users className="w-5 h-5 text-yellow-400" />
@@ -573,14 +539,12 @@ export default function AICreditsPage() {
               <p>کاربری با این فیلتر یافت نشد</p>
             </div>
           )}
-        </div>
+        </GlassCard>
 
-        {/* ==================== Footer ==================== */}
-        <footer className="text-center text-white/40 text-sm py-6">
+        <footer className="text-center text-muted-foreground text-sm py-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }

@@ -85,6 +85,7 @@ import {
   AlertDescription,
 } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 import { AI_FEATURES } from '@/lib/check-ai-limit'
 import {
   type AccessHistoryRecord,
@@ -406,24 +407,21 @@ export default function AIAccessControlPage() {
   // ============================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-red-50 p-4 md:p-6" dir="rtl">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            کنترل دسترسی قابلیت‌های AI
-          </h1>
-          <p className="text-gray-500 mt-2">
-            فعال یا غیرفعال کردن قابلیت‌های هوش مصنوعی برای مدرسه، کلاس یا کاربر خاص
-          </p>
-        </div>
-
-        {/* Tabs */}
+    <DashboardPage
+      className="max-w-6xl mx-auto"
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 bg-gradient-to-br from-brand-orange to-red-500 rounded-xl flex items-center justify-center">
+            <Shield className="w-6 h-6 text-white" />
+          </span>
+          کنترل دسترسی قابلیت‌های AI
+        </span>
+      }
+      description="فعال یا غیرفعال کردن قابلیت‌های هوش مصنوعی برای مدرسه، کلاس یا کاربر خاص"
+      animatedSections={false}
+    >
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-6 bg-white/80">
+          <TabsList className="grid grid-cols-3 mb-6 glass-panel-quiet">
             <TabsTrigger value="school" className="gap-2">
               <School className="w-4 h-4" />
               کنترل مدرسه
@@ -791,8 +789,7 @@ export default function AIAccessControlPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-    </div>
+    </DashboardPage>
   )
 }
 

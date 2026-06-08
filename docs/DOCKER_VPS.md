@@ -168,6 +168,7 @@ Supabase redirect URLs را هم به HTTPS به‌روز کنید.
 | مشکل | راه‌حل |
 |------|--------|
 | `pnpm build` روی ویندوز: `EPERM symlink` | محدودیت ویندوز است؛ build را روی VPS/Linux داخل Docker انجام دهید (یا Developer Mode ویندوز را فعال کنید) |
+| Build: `supabaseKey is required` | `.env` را با کلیدهای واقعی Supabase پر کنید؛ سپس `docker compose up -d --build` |
 | پورت 3000 در دسترس نیست | `ufw allow 3000` + Security Group پنل VPS |
 | Build با OOM | `docker system prune -a` یا swap موقت |
 | لاگین redirect اشتباه | Supabase URLs + `NEXT_PUBLIC_APP_URL` |

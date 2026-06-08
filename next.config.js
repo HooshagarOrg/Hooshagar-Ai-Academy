@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
+
   // ESLint and TypeScript
   eslint: {
     ignoreDuringBuilds: true, // موقتاً غیرفعال برای رفع مشکل circular structure

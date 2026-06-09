@@ -232,7 +232,7 @@ hooshagar-project/
 
 **بعد از deploy:** template SMS کاوه‌نگار را روی دامنه زنده تأیید کنید.
 
-**استقرار روی VPS (Docker):** راهنمای کامل در [docs/DOCKER_VPS.md](./docs/DOCKER_VPS.md) — `docker compose up -d --build`
+**استقرار روی VPS (Docker):** [docs/DOCKER_VPS.md](./docs/DOCKER_VPS.md) — nginx + 2×app + redis — `bash scripts/docker-deploy.sh`
 
 ---
 

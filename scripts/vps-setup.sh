@@ -18,7 +18,12 @@ docker compose version
 
 echo "==> Configuring firewall..."
 sudo ufw allow OpenSSH
-sudo ufw allow 3000/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 3001/tcp   # uptime-kuma (restrict to admin IP in production)
+sudo ufw allow 9443/tcp   # portainer (restrict to admin IP in production)
+# single-container test only:
+# sudo ufw allow 3000/tcp
 echo "y" | sudo ufw enable || true
 sudo ufw status
 
@@ -26,6 +31,6 @@ echo ""
 echo "Done. Next steps:"
 echo "  1. git clone <repo> ~/hooshagar"
 echo "  2. cd ~/hooshagar && cp env.example .env && nano .env"
-echo "  3. docker compose up -d --build"
+echo "  3. bash scripts/docker-deploy.sh"
 echo ""
 echo "See docs/DOCKER_VPS.md for full guide."

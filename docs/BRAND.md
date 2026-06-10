@@ -77,4 +77,4 @@ npm run generate-icons
 npm run logo:all
 ```
 
-لوگوی رسمی: حرف **H** رنگی با سیلوئت انسان در فضای منفی؛ پس‌زمینهٔ شفاف در UI، `#10131A` برای maskable و apple-touch.
+لوگوی رسمی: حرف **H** سه‌بعدی رنگی با سیلوئت انسان در مرکز؛ منبع `assets/logo-source.png` (۳DLogoSpin). پس‌زمینهٔ شفاف در UI، `#10131A` برای maskable و apple-touch.

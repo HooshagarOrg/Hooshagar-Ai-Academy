@@ -120,6 +120,12 @@
   },
   "engines": {
     "node": ">=20.0.0",
-    "pnpm": ">=8.0.0"
+    "npm": ">=10.0.0"
+  },
+  "allowScripts": {
+    "@sentry/cli@2.58.6": true,
+    "sharp@0.33.5": true,
+    "supabase@1.226.4": true,
+    "unrs-resolver@1.12.2": true
   }
 }

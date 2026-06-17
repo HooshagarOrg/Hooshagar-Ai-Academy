@@ -102,14 +102,20 @@ docker compose logs -f app nginx
 
 ---
 
-## حالت ساده (۱ کانتینر، پورت 3000)
+## حالت تست ساده (۳ کانتینر)
 
-برای تست اولیه:
+برای تست اولیه — **nginx + app + redis** (بدون portainer و uptime-kuma):
+
+| کانتینر | نقش |
+|---------|-----|
+| nginx | ورودی روی پورت 80 |
+| app | Next.js (۱ instance) |
+| redis | cache |
 
 ```bash
 bash scripts/docker-deploy-single.sh
-# تست: http://YOUR_SERVER_IP:3000
-sudo ufw allow 3000/tcp
+# تست: http://YOUR_SERVER_IP
+sudo ufw allow 80/tcp
 ```
 
 ---
@@ -164,7 +170,7 @@ docker compose up -d
 | فایل | نقش |
 |------|-----|
 | [`docker-compose.yml`](../docker-compose.yml) | Production: nginx + 2×app + redis + monitoring |
-| [`docker-compose.single.yml`](../docker-compose.single.yml) | تک‌کانتینر روی 3000 |
+| [`docker-compose.single.yml`](../docker-compose.single.yml) | تست ساده: nginx + app + redis |
 | [`deploy/nginx/docker.conf`](../deploy/nginx/docker.conf) | تنظیم nginx داخل Docker |
 | [`Dockerfile`](../Dockerfile) | Build اپ Next.js |
 

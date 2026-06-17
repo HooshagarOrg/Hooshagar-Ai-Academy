@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Single-container mode on port 3000 (quick test)
+# Simple test stack: nginx + app + redis (3 containers)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -10,9 +10,14 @@ if [[ ! -f .env ]]; then
   exit 1
 fi
 
-docker compose -f docker-compose.single.yml build
+echo "==> Building app..."
+docker compose -f docker-compose.single.yml build app
+
+echo "==> Starting simple stack (nginx + app + redis)..."
 docker compose -f docker-compose.single.yml up -d
+
 docker compose -f docker-compose.single.yml ps
 
 echo ""
-echo "App: http://YOUR_SERVER_IP:3000"
+echo "App:  http://YOUR_SERVER_IP"
+echo "Logs: docker compose -f docker-compose.single.yml logs -f app nginx"

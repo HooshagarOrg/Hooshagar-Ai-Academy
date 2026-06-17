@@ -1,6 +1,6 @@
 # Production stack: nginx + 2× app + redis + monitoring
 # Start: docker compose up -d --build
-# Simple single-container mode: docker compose -f docker-compose.single.yml up -d --build
+# Simple test (3 containers): docker compose -f docker-compose.single.yml up -d --build
 
 name: hooshagar
 

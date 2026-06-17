@@ -223,7 +223,7 @@ hooshagar-project/
 
 ## ☁️ Deploy
 
-**پیشنهاد:** [Vercel](https://vercel.com) + Supabase Cloud  
+**Production (پیشنهادی):** [docs/VERCEL_DEPLOY.md](./docs/VERCEL_DEPLOY.md) — Vercel + Supabase + Cloudflare Workers
 
 1. Repo را به Vercel وصل کنید (`HooshagarOrg/Hooshagar-Ai-Academy`).  
 2. همه envهای `.env.example` را در Vercel → Settings → Environment Variables بگذارید.  
@@ -232,7 +232,7 @@ hooshagar-project/
 
 **بعد از deploy:** template SMS کاوه‌نگار را روی دامنه زنده تأیید کنید.
 
-**استقرار روی VPS (Docker):** [docs/DOCKER_VPS.md](./docs/DOCKER_VPS.md) — nginx + 2×app + redis — `bash scripts/docker-deploy.sh`
+**تست/استیجینگ (Docker):** [docs/DOCKER_VPS.md](./docs/DOCKER_VPS.md)
 
 ---
 

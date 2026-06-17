@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'sonner'
 import { CookieConsent } from '@/components/cookie-consent'
@@ -14,11 +15,17 @@ const vazirmatn = localFont({
   display: 'swap',
 })
 
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#161C25',
+  themeColor: '#05070d',
   interactiveWidget: 'resizes-content',
 }
 
@@ -57,9 +64,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
+    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#161C25" />
+        <meta name="theme-color" content="#05070d" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />

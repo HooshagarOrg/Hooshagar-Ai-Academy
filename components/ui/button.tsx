@@ -10,9 +10,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-l from-brand-pink to-brand-purple text-white hover:opacity-95 shadow-md shadow-brand-pink/25 border-0",
+          "bg-gradient-to-l from-blue-500 to-blue-600 text-white hover:opacity-95 shadow-md shadow-blue-500/25 border-0",
         gradient:
-          "bg-gradient-to-l from-brand-pink via-brand-purple to-brand-cyan text-white hover:opacity-95 shadow-lg shadow-brand-pink/20 border-0",
+          "bg-gradient-to-l from-sky-400 via-blue-500 to-indigo-500 text-white hover:opacity-95 shadow-lg shadow-blue-500/20 border-0",
+        luxury:
+          "bg-gradient-to-l from-blue-500 to-indigo-600 text-white hover:shadow-blue-500/30 shadow-lg shadow-blue-500/25 border border-blue-400/30",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:

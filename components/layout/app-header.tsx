@@ -31,7 +31,7 @@ export function AppHeader({
 
   return (
     <header
-      className="sticky top-0 z-40 h-14 min-h-[3.5rem] border-b border-white/[0.06] bg-card/75 backdrop-blur-xl flex items-center px-4 gap-3 pt-safe motion-interactive"
+      className="sticky top-0 z-40 h-14 min-h-[3.5rem] border-b border-blue-400/10 glass-panel-quiet flex items-center px-4 gap-3 pt-safe motion-interactive"
       dir="rtl"
     >
       <button

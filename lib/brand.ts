@@ -14,6 +14,10 @@ export const brandColors = {
   surface: '#1C222C',
   elevated: '#222936',
   pink: '#FF4DA6',
+  gold: '#C9A962',
+  goldLight: '#DFC98A',
+  champagne: '#E8DCC0',
+  teal: '#2A6B6B',
   orange: '#FF9B54',
   purple: '#8B7CFF',
   cyan: '#54D2FF',
@@ -32,8 +36,8 @@ export const brandColors = {
 } as const
 
 export const brandGradient = {
-  primary: 'linear-gradient(135deg, #FF4DA6 0%, #8B7CFF 50%, #54D2FF 100%)',
-  warm: 'linear-gradient(135deg, #FF4DA6 0%, #FF9B54 55%, #FFD166 100%)',
+  primary: 'linear-gradient(135deg, #C9A962 0%, #DFC98A 50%, #8B7CFF 100%)',
+  warm: 'linear-gradient(135deg, #C9A962 0%, #FF9B54 55%, #FFD166 100%)',
   hero:
     'radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,77,166,0.25), transparent 50%), radial-gradient(ellipse 80% 60% at 100% 50%, rgba(139,124,255,0.15), transparent 45%), #161C25',
   soft: 'linear-gradient(135deg, rgba(255,77,166,0.12) 0%, rgba(84,210,255,0.08) 100%)',

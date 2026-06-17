@@ -13,9 +13,8 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <MarketingShell tone="balanced" showNav={false}>
+    <MarketingShell tone="balanced" showNav={false} background="auth">
       <div className="relative min-h-[calc(100dvh-2rem)] flex items-center justify-center p-4 sm:p-6">
-        <div className="absolute inset-x-0 top-0 h-64 premium-hero-glow pointer-events-none" aria-hidden />
         <Reveal className="relative z-10 w-full max-w-md">{children}</Reveal>
       </div>
     </MarketingShell>

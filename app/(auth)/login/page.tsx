@@ -15,8 +15,11 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
 import { TermsAcceptanceNotice } from '@/components/auth/terms-acceptance-notice'
+import { Float3D } from '@/components/motion/float-3d'
+import { motion, useReducedMotion } from 'framer-motion'
 
 export default function LoginPage() {
+  const reduceMotion = useReducedMotion()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [otpSent, setOtpSent] = useState(false)
@@ -164,7 +167,12 @@ export default function LoginPage() {
 
   return (
     <div className="w-full" dir="rtl">
-        <div className="text-center mb-8">
+        <motion.div
+          className="text-center mb-8"
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        >
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 text-sm cursor-pointer"
@@ -173,14 +181,26 @@ export default function LoginPage() {
             بازگشت به خانه
           </Link>
 
-          <div className="flex justify-center mb-4">
-            <HooshagarLogo size="lg" href="/" showWordmark subtitle="همراه هوشمند یادگیری" />
+          <div className="flex justify-center mb-4 perspective-[1200px]">
+            <Float3D depth="hero">
+              <div className="auth-logo-halo">
+                <HooshagarLogo size="lg" href="/" showWordmark subtitle="همراه هوشمند یادگیری" />
+              </div>
+            </Float3D>
           </div>
           <p className="text-sm text-muted-foreground">به آینده آموزش خوش آمدید</p>
-        </div>
+        </motion.div>
 
-        <Card className="glass-panel-elevated border-white/[0.1] shadow-glow">
-          <CardContent className="pt-6">
+        <motion.div
+          className="auth-card-glow"
+          initial={reduceMotion ? false : { opacity: 0, y: 24, rotateX: 8 }}
+          animate={{ opacity: 1, y: 0, rotateX: 0 }}
+          transition={{ duration: 0.65, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformStyle: 'preserve-3d', perspective: 1000 }}
+        >
+        <Card className="glass-panel-luxury shadow-glow border-blue-400/20 auth-login-card relative overflow-hidden">
+          <div className="auth-card-shimmer pointer-events-none" aria-hidden />
+          <CardContent className="pt-6 relative z-[1]">
             <Tabs defaultValue="staff" className="w-full">
               <TabsList className="grid w-full grid-cols-3 mb-6 bg-muted/80 p-1 rounded-xl border border-white/[0.06]">
                 <TabsTrigger value="staff" className="rounded-lg text-xs gap-1 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground">
@@ -390,6 +410,7 @@ export default function LoginPage() {
             </div>
         </CardFooter>
     </Card>
+        </motion.div>
     </div>
   )
 }

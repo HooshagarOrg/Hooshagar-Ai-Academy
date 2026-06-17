@@ -339,7 +339,7 @@ export function AppSidebar({
     <TooltipProvider delayDuration={300}>
       <aside
         className={cn(
-          'flex flex-col h-full bg-card/80 backdrop-blur-xl border-l border-white/[0.06] shadow-glass motion-standard',
+          'flex flex-col h-full glass-panel-luxury border-l border-blue-400/10 shadow-glass motion-standard',
           collapsed ? 'w-[4.5rem]' : 'w-64'
         )}
         dir="rtl"
@@ -385,17 +385,17 @@ export function AppSidebar({
                 'flex items-center gap-3 p-2.5 rounded-2xl border border-white/[0.06] motion-interactive cursor-pointer',
                 tone === 'calm'
                   ? 'bg-white/[0.04] hover:bg-white/[0.06]'
-                  : 'bg-gradient-to-l from-brand-pink/15 to-brand-purple/10 hover:border-brand-pink/25',
+                  : 'bg-gradient-to-l from-blue-500/12 to-indigo-500/10 hover:border-blue-400/25',
               )}
             >
               <div
                 className={cn(
                   'w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0',
                   tone === 'calm'
-                    ? 'bg-brand-cyan/80'
+                    ? 'bg-blue-500/80'
                     : tone === 'vivid'
-                      ? 'bg-gradient-to-br from-brand-pink to-brand-orange shadow-glow'
-                      : 'bg-gradient-to-br from-brand-purple to-brand-cyan',
+                      ? 'bg-gradient-to-br from-blue-500 to-indigo-500 shadow-glow'
+                      : 'bg-gradient-to-br from-blue-600 to-cyan-600',
                 )}
               >
                 {avatarUrl ? (

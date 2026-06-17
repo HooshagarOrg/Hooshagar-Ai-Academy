@@ -57,6 +57,9 @@ const config: Config = {
           foreground: 'hsl(var(--card-foreground))',
         },
         brand: {
+          gold: '#C9A962',
+          'gold-light': '#DFC98A',
+          champagne: '#E8DCC0',
           pink: '#FF4DA6',
           orange: '#FF9B54',
           purple: '#8B7CFF',
@@ -115,6 +118,19 @@ const config: Config = {
           '0%, 100%': { opacity: '0.6' },
           '50%': { opacity: '1' },
         },
+        'aurora-drift-a': {
+          '0%, 100%': { transform: 'translate(0, 0) rotate(0deg) scale(1)' },
+          '33%': { transform: 'translate(-2%, 3%) rotate(6deg) scale(1.04)' },
+          '66%': { transform: 'translate(3%, -2%) rotate(-4deg) scale(0.97)' },
+        },
+        'aurora-drift-b': {
+          '0%, 100%': { transform: 'translate(0, 0) rotate(0deg)' },
+          '50%': { transform: 'translate(4%, -3%) rotate(8deg)' },
+        },
+        'aurora-pulse': {
+          '0%, 100%': { opacity: '0.5', transform: 'scale(1)' },
+          '50%': { opacity: '0.85', transform: 'scale(1.08)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 220ms cubic-bezier(0.16, 1, 0.3, 1)',
@@ -133,8 +149,9 @@ const config: Config = {
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'brand-gradient': 'linear-gradient(135deg, #FF4DA6 0%, #8B7CFF 50%, #54D2FF 100%)',
+        'brand-gradient': 'linear-gradient(135deg, #C9A962 0%, #DFC98A 45%, #E8DCC0 100%)',
         'brand-warm': 'linear-gradient(135deg, #FF4DA6 0%, #FF9B54 55%, #FFD166 100%)',
+        'brand-rainbow': 'linear-gradient(135deg, #FF4DA6 0%, #8B7CFF 50%, #54D2FF 100%)',
       },
     },
   },

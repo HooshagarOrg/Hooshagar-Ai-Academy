@@ -452,7 +452,15 @@
 
   /* ── Obsidian Meridian — لاکچری ۳D ── */
   .text-luxury-shimmer {
-    @apply bg-gradient-to-l from-amber-100 via-[#E8D4A8] to-amber-300 bg-clip-text text-transparent;
+    color: #fef3c7;
+    @apply bg-gradient-to-l from-amber-100 via-[#E8D4A8] to-amber-300 bg-clip-text;
+  }
+
+  @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    .text-luxury-shimmer {
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
   }
 
   .shadow-luxury-gold {

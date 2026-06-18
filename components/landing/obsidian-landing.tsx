@@ -107,15 +107,16 @@ export function ObsidianLanding() {
     items.forEach((el, i) => {
       gsap.fromTo(
         el,
-        { opacity: 0, y: 64, rotateX: 8 },
+        { opacity: 0, y: 48, rotateX: 6 },
         {
           opacity: 1,
           y: 0,
           rotateX: 0,
-          duration: 1,
-          delay: i * 0.04,
+          duration: 0.85,
+          delay: i * 0.03,
           ease: 'power3.out',
-          scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' },
+          immediateRender: false,
+          scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' },
         },
       )
     })
@@ -125,25 +126,29 @@ export function ObsidianLanding() {
   return (
     <div ref={rootRef} className="relative min-h-app">
       <ObsidianCanvas mode="immersive" />
+      <div className="relative z-10">
       <FloatingNav show={navShow} />
 
       {/* Hero — نامتقارن، سینمایی */}
       <section
         ref={heroRef}
-        className="relative min-h-screen flex items-center overflow-hidden pt-safe"
+        className="relative min-h-[100dvh] flex items-start lg:items-center overflow-hidden pt-safe"
       >
         <div className="absolute inset-0 meridian-thread" aria-hidden />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full grid lg:grid-cols-2 gap-10 lg:gap-6 items-center py-16 lg:py-0">
-          <motion.div style={{ y: reduce ? 0 : heroParallax, opacity: reduce ? 1 : heroFade }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full grid lg:grid-cols-2 gap-8 lg:gap-6 items-center py-10 sm:py-14 lg:py-0">
+          <motion.div
+            className="order-2 lg:order-1"
+            style={{ y: reduce ? 0 : heroParallax, opacity: reduce ? 1 : heroFade }}
+          >
             <MeridianOrb />
           </motion.div>
 
           <motion.div
-            className="text-center lg:text-right order-first lg:order-last"
-            initial={reduce ? false : { opacity: 0, x: 40 }}
+            className="text-center lg:text-right order-1 lg:order-2"
+            initial={reduce ? false : { opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           >
             <p className="text-xs sm:text-sm tracking-[0.2em] text-amber-400/70 mb-5 uppercase">
               Obsidian Meridian
@@ -190,7 +195,7 @@ export function ObsidianLanding() {
       </section>
 
       {/* Capabilities — تخته‌های شناور */}
-      <section id="capabilities" className="py-28 sm:py-36 relative">
+      <section id="capabilities" className="py-16 sm:py-24 relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div data-rise className="text-center mb-16">
             <Orbit className="w-8 h-8 text-amber-400/60 mx-auto mb-4" />
@@ -214,7 +219,7 @@ export function ObsidianLanding() {
       </section>
 
       {/* AI constellation */}
-      <section className="py-28 relative overflow-hidden" data-rise>
+      <section className="py-16 sm:py-24 relative overflow-hidden" data-rise>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-12 items-center">
           <LuxurySlab glow="sapphire" className="lg:-rotate-1">
             <p className="text-xs text-blue-300/70 mb-2">منظومه هوش</p>
@@ -253,7 +258,7 @@ export function ObsidianLanding() {
       </section>
 
       {/* Roles — فن ۳D */}
-      <section className="py-28 sm:py-36" data-rise>
+      <section className="py-16 sm:py-24" data-rise>
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl font-black text-center mb-12">هر نقش، یک مدار</h2>
           <div className="flex flex-wrap justify-center gap-4 perspective-[900px]">
@@ -276,7 +281,7 @@ export function ObsidianLanding() {
       </section>
 
       {/* CTA */}
-      <section className="py-28 pb-36" data-rise>
+      <section className="py-16 sm:py-24 pb-28" data-rise>
         <div className="max-w-2xl mx-auto px-4 text-center">
           <LuxurySlab glow="gold" className="py-12 sm:py-16">
             <h2 className="text-3xl font-black mb-4">مدرسه‌ات را به مدار بعدی ببر</h2>
@@ -295,6 +300,7 @@ export function ObsidianLanding() {
       <footer className="border-t border-white/[0.05] py-10 text-center text-sm text-muted-foreground">
         © {new Date().getFullYear()} هوشاگر — Obsidian Meridian
       </footer>
+      </div>
     </div>
   )
 }

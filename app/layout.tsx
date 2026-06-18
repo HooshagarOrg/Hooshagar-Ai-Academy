@@ -76,7 +76,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased min-h-app bg-[#020617]" suppressHydrationWarning>
         <SmoothScrollProvider>
-          <div className="relative z-0 min-h-app">{children}</div>
+          <div className="relative z-10 min-h-app">{children}</div>
         </SmoothScrollProvider>
         <CookieConsent />
         <ServiceWorkerRegister />

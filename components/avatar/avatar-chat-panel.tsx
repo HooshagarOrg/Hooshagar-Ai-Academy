@@ -1,0 +1,294 @@
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { X, Send, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Button } from '@/components/ui/button'
+import { HooshiarCharacter, type HooshiarMood } from './hooshiar-character'
+
+interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+}
+
+interface AvatarChatPanelProps {
+  open: boolean
+  onClose: () => void
+}
+
+export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [mood, setMood] = useState<HooshiarMood>('idle')
+  const [remaining, setRemaining] = useState<number | null>(null)
+  const [canChat, setCanChat] = useState(true)
+  const [dailyLimit, setDailyLimit] = useState(15)
+  const listRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  const scrollToBottom = useCallback(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch('/api/avatar/chat', {
+          cache: 'no-store',
+          credentials: 'same-origin',
+        })
+        if (res.ok) {
+          const data = (await res.json()) as {
+            remainingMessages: number
+            dailyLimit: number
+            canChat: boolean
+            welcomeMessage?: string
+          }
+          setRemaining(data.remainingMessages)
+          setDailyLimit(data.dailyLimit)
+          setCanChat(data.canChat)
+          if (data.welcomeMessage) {
+            setMessages([
+              {
+                id: 'welcome',
+                role: 'assistant',
+                content: data.welcomeMessage,
+              },
+            ])
+          }
+        }
+      } catch {
+        // نادیده
+      }
+    }
+
+    void fetchStatus()
+    inputRef.current?.focus()
+  }, [open])
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, scrollToBottom])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onClose])
+
+  useEffect(() => {
+    if (!open) return
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [open])
+
+  const sendMessage = async () => {
+    const text = input.trim()
+    if (!text || loading) return
+
+    const userMsg: ChatMessage = {
+      id: `u-${Date.now()}`,
+      role: 'user',
+      content: text,
+    }
+    setMessages((prev) => [...prev, userMsg])
+    setInput('')
+    setLoading(true)
+    setMood('thinking')
+
+    try {
+      const res = await fetch('/api/avatar/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+        body: JSON.stringify({ message: text }),
+      })
+
+      const data = (await res.json()) as {
+        reply?: string
+        error?: string
+        remainingMessages?: number
+      }
+
+      if (typeof data.remainingMessages === 'number') {
+        setRemaining(data.remainingMessages)
+        setCanChat(data.remainingMessages > 0)
+      }
+
+      if (!res.ok) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `e-${Date.now()}`,
+            role: 'assistant',
+            content: data.error || 'متأسفانه خطایی پیش اومد. دوباره امتحان کن.',
+          },
+        ])
+        setMood('idle')
+        return
+      }
+
+      setMood('talking')
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: 'assistant',
+          content: data.reply || 'پاسخی دریافت نشد.',
+        },
+      ])
+      setTimeout(() => setMood('idle'), 1200)
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `e-${Date.now()}`,
+          role: 'assistant',
+          content: 'اتصال برقرار نشد. اینترنتت رو چک کن.',
+        },
+      ])
+      setMood('idle')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      void sendMessage()
+    }
+  }
+
+  if (!open) return null
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm motion-overlay"
+        onClick={onClose}
+        aria-hidden
+      />
+
+      <div
+        className={cn(
+          'fixed z-[70] flex flex-col',
+          'inset-x-0 bottom-0 max-h-[85vh] rounded-t-2xl',
+          'sm:inset-x-auto sm:bottom-6 sm:left-6 sm:right-auto',
+          'sm:w-[min(100vw-2rem,24rem)] sm:max-h-[32rem] sm:rounded-2xl',
+          'motion-drawer'
+        )}
+        role="dialog"
+        aria-label="گفتگو با هوشیار"
+      >
+        <GlassCard luxury glow="scholar" className="flex flex-col h-full overflow-hidden border-0 rounded-t-2xl sm:rounded-2xl">
+          {/* هدر */}
+          <div className="flex items-center gap-3 p-4 border-b border-white/10">
+            <HooshiarCharacter mood={mood} size="sm" />
+            <div className="flex-1 min-w-0">
+              <h2 className="font-bold text-foreground leading-tight">هوشیار</h2>
+              <p className="text-xs text-muted-foreground truncate">
+                دستیار هوشمند تو
+                {remaining !== null && (
+                  <span className="mr-1">
+                    · {remaining}/{dailyLimit} پیام امروز
+                  </span>
+                )}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              aria-label="بستن"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* پیام‌ها */}
+          <div
+            ref={listRef}
+            className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[12rem] max-h-[50vh] sm:max-h-[18rem]"
+          >
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={cn(
+                  'flex',
+                  msg.role === 'user' ? 'justify-start' : 'justify-end'
+                )}
+              >
+                <div
+                  className={cn(
+                    'max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap',
+                    msg.role === 'user'
+                      ? 'bg-primary/20 text-foreground rounded-br-sm'
+                      : 'bg-white/10 text-foreground rounded-bl-sm'
+                  )}
+                >
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex justify-end">
+                <div className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  داره فکر می‌کنه...
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ورودی */}
+          <div className="p-3 border-t border-white/10 flex gap-2 items-end">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="پیامت رو بنویس..."
+              rows={1}
+              disabled={loading || !canChat || (remaining !== null && remaining <= 0)}
+              className={cn(
+                'flex-1 resize-none rounded-xl border border-white/10 bg-white/5',
+                'px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground',
+                'focus:outline-none focus:ring-2 focus:ring-primary/40',
+                'min-h-[44px] max-h-24 leading-relaxed'
+              )}
+              dir="rtl"
+            />
+            <Button
+              type="button"
+              size="icon"
+              onClick={() => void sendMessage()}
+              disabled={loading || !input.trim() || !canChat || (remaining !== null && remaining <= 0)}
+              aria-label="ارسال"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </GlassCard>
+      </div>
+    </>
+  )
+}

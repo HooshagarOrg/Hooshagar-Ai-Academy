@@ -51,6 +51,8 @@ next-env.d.ts
 .cursor/*
 !.cursor/rules/
 !.cursor/rules/**
+.agents/
+skills-lock.json
 .cursorrules
 CURSOR_PLANNING.md
 PROMPTS.md

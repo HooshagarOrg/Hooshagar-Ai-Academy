@@ -2,7 +2,41 @@
  * WebGL plasma field — Scholar Blue palette (adapted from ShaderBackground)
  */
 
-export type PlasmaVariant = 'landing' | 'auth'
+export type PlasmaVariant = 'landing' | 'auth' | 'luxury' | 'luxury-calm'
+
+const VARIANT_CONFIG: Record<
+  PlasmaVariant,
+  { speed: string; lineIntensity: string; lineColor: string; bg1: string; bg2: string }
+> = {
+  landing: {
+    speed: '0.2',
+    lineIntensity: '1.18',
+    lineColor: 'vec4(0.23, 0.51, 0.96, 1.0)',
+    bg1: 'vec4(0.02, 0.027, 0.051, 1.0)',
+    bg2: 'vec4(0.09, 0.11, 0.29, 1.0)',
+  },
+  auth: {
+    speed: '0.12',
+    lineIntensity: '0.72',
+    lineColor: 'vec4(0.23, 0.51, 0.96, 1.0)',
+    bg1: 'vec4(0.02, 0.027, 0.051, 1.0)',
+    bg2: 'vec4(0.09, 0.11, 0.29, 1.0)',
+  },
+  luxury: {
+    speed: '0.14',
+    lineIntensity: '0.92',
+    lineColor: 'vec4(0.83, 0.69, 0.22, 1.0)',
+    bg1: 'vec4(0.02, 0.008, 0.035, 1.0)',
+    bg2: 'vec4(0.06, 0.03, 0.09, 1.0)',
+  },
+  'luxury-calm': {
+    speed: '0.08',
+    lineIntensity: '0.48',
+    lineColor: 'vec4(0.72, 0.58, 0.18, 1.0)',
+    bg1: 'vec4(0.015, 0.008, 0.03, 1.0)',
+    bg2: 'vec4(0.05, 0.025, 0.08, 1.0)',
+  },
+}
 
 const VS_SOURCE = `
   attribute vec4 aVertexPosition;
@@ -12,16 +46,14 @@ const VS_SOURCE = `
 `
 
 function buildFragmentSource(variant: PlasmaVariant): string {
-  const speed =
-    variant === 'auth' ? '0.12' : '0.2'
-  const lineIntensity = variant === 'auth' ? '0.72' : '1.18'
+  const cfg = VARIANT_CONFIG[variant]
 
   return `
     precision highp float;
     uniform vec2 iResolution;
     uniform float iTime;
 
-    const float overallSpeed = ${speed};
+    const float overallSpeed = ${cfg.speed};
     const float gridSmoothWidth = 0.015;
     const float axisWidth = 0.05;
     const float majorLineWidth = 0.025;
@@ -29,7 +61,7 @@ function buildFragmentSource(variant: PlasmaVariant): string {
     const float majorLineFrequency = 5.0;
     const float minorLineFrequency = 1.0;
     const float scale = 5.0;
-    const vec4 lineColor = vec4(0.23, 0.51, 0.96, 1.0);
+    const vec4 lineColor = ${cfg.lineColor};
     const float minLineWidth = 0.01;
     const float maxLineWidth = 0.2;
     const float lineSpeed = 1.0 * overallSpeed;
@@ -43,7 +75,7 @@ function buildFragmentSource(variant: PlasmaVariant): string {
     const float minOffsetSpread = 0.6;
     const float maxOffsetSpread = 2.0;
     const int linesPerGroup = 16;
-    const float lineIntensity = ${lineIntensity};
+    const float lineIntensity = ${cfg.lineIntensity};
 
     #define drawCircle(pos, radius, coord) smoothstep(radius + gridSmoothWidth, radius, length(coord - (pos)))
     #define drawSmoothLine(pos, halfWidth, t) smoothstep(halfWidth, 0.0, abs(pos - (t)))
@@ -69,8 +101,8 @@ function buildFragmentSource(variant: PlasmaVariant): string {
       space.x += random(space.y * warpFrequency + iTime * warpSpeed + 2.0) * warpAmplitude * horizontalFade;
 
       vec4 lines = vec4(0.0);
-      vec4 bgColor1 = vec4(0.02, 0.027, 0.051, 1.0);
-      vec4 bgColor2 = vec4(0.09, 0.11, 0.29, 1.0);
+      vec4 bgColor1 = ${cfg.bg1};
+      vec4 bgColor2 = ${cfg.bg2};
 
       for (int l = 0; l < linesPerGroup; l++) {
         float normalizedLineIndex = float(l) / float(linesPerGroup);

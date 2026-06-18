@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { SmoothScrollProvider } from '@/components/providers/smooth-scroll-provider'
 import { Toaster } from 'sonner'
 import { CookieConsent } from '@/components/cookie-consent'
 import { ServiceWorkerRegister } from '@/components/service-worker-register'
@@ -25,7 +26,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#05070d',
+  themeColor: '#020617',
   interactiveWidget: 'resizes-content',
 }
 
@@ -66,15 +67,17 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={`${vazirmatn.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#05070d" />
+        <meta name="theme-color" content="#020617" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="هوشاگر" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body className="font-sans antialiased min-h-app" suppressHydrationWarning>
-        {children}
+      <body className="font-sans antialiased min-h-app bg-[#020617]" suppressHydrationWarning>
+        <SmoothScrollProvider>
+          <div className="relative z-0 min-h-app">{children}</div>
+        </SmoothScrollProvider>
         <CookieConsent />
         <ServiceWorkerRegister />
         <Toaster

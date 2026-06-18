@@ -14,7 +14,7 @@ const buttonVariants = cva(
         gradient:
           "bg-gradient-to-l from-sky-400 via-blue-500 to-indigo-500 text-white hover:opacity-95 shadow-lg shadow-blue-500/20 border-0",
         luxury:
-          "bg-gradient-to-l from-blue-500 to-indigo-600 text-white hover:shadow-blue-500/30 shadow-lg shadow-blue-500/25 border border-blue-400/30",
+          "bg-gradient-to-l from-amber-500/90 via-amber-600 to-amber-700 text-[#0a0612] hover:shadow-luxury-gold shadow-lg border border-amber-400/30 font-semibold",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:

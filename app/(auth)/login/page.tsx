@@ -11,15 +11,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
 import { TermsAcceptanceNotice } from '@/components/auth/terms-acceptance-notice'
-import { Float3D } from '@/components/motion/float-3d'
-import { motion, useReducedMotion } from 'framer-motion'
 
 export default function LoginPage() {
-  const reduceMotion = useReducedMotion()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [otpSent, setOtpSent] = useState(false)
@@ -167,41 +162,20 @@ export default function LoginPage() {
 
   return (
     <div className="w-full" dir="rtl">
-        <motion.div
-          className="text-center mb-8"
-          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 text-sm cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            بازگشت به خانه
-          </Link>
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 text-sm"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        بازگشت به خانه
+      </Link>
 
-          <div className="flex justify-center mb-4 perspective-[1200px]">
-            <Float3D depth="hero">
-              <div className="auth-logo-halo">
-                <HooshagarLogo size="lg" href="/" showWordmark subtitle="همراه هوشمند یادگیری" />
-              </div>
-            </Float3D>
-          </div>
-          <p className="text-sm text-muted-foreground">به آینده آموزش خوش آمدید</p>
-        </motion.div>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold">ورود به هوشاگر</h1>
+        <p className="text-sm text-muted-foreground mt-1">نقش خود را انتخاب کنید</p>
+      </div>
 
-        <motion.div
-          className="auth-card-glow"
-          initial={reduceMotion ? false : { opacity: 0, y: 24, rotateX: 8 }}
-          animate={{ opacity: 1, y: 0, rotateX: 0 }}
-          transition={{ duration: 0.65, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-          style={{ transformStyle: 'preserve-3d', perspective: 1000 }}
-        >
-        <Card className="glass-panel-luxury shadow-glow border-blue-400/20 auth-login-card relative overflow-hidden">
-          <div className="auth-card-shimmer pointer-events-none" aria-hidden />
-          <CardContent className="pt-6 relative z-[1]">
-            <Tabs defaultValue="staff" className="w-full">
+      <Tabs defaultValue="staff" className="w-full">
               <TabsList className="grid w-full grid-cols-3 mb-6 bg-muted/80 p-1 rounded-xl border border-white/[0.06]">
                 <TabsTrigger value="staff" className="rounded-lg text-xs gap-1 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground">
                   <User className="w-3.5 h-3.5" />
@@ -395,22 +369,19 @@ export default function LoginPage() {
                 </form>
               </TabsContent>
             </Tabs>
-          </CardContent>
 
-          <CardFooter className="flex flex-col gap-3 border-t border-white/[0.06] pt-5 bg-muted/30 rounded-b-2xl">
-            <TermsAcceptanceNotice />
-          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <Shield className="w-3 h-3 text-brand-green" />
-              <span>ورود شما با امنیت بالا محافظت می‌شود</span>
-          </div>
-            <div className="text-center">
-              <Link href="/help" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                راهنما و پشتیبانی
-              </Link>
-            </div>
-        </CardFooter>
-    </Card>
-        </motion.div>
+      <div className="flex flex-col gap-3 border-t border-white/[0.06] pt-5 mt-6">
+        <TermsAcceptanceNotice />
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <Shield className="w-3 h-3 text-brand-green" />
+          <span>ورود شما با امنیت بالا محافظت می‌شود</span>
+        </div>
+        <div className="text-center">
+          <Link href="/help" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            راهنما و پشتیبانی
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }

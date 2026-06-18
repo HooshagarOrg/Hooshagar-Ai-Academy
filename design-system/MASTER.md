@@ -1,43 +1,41 @@
-# Hooshagar Design System — Knowledge Universe
-
-## Vision
-Academic dark environment for Iranian schools. Static knowledge field (math, science, Persian, tech symbols) — no shaders, no background animation.
+# Hooshagar Premium Platform — Design System
 
 ## Identity
-- **Feel:** AI laboratory + digital library + future classroom
-- **Not:** confetti, rainbow SaaS, generic pink-purple glass, WebGL shaders
+Premium AI knowledge platform for Iranian schools. Persian-first RTL. Fusion of Apple polish, OpenAI simplicity, Linear precision.
 
-## Colors
-- Background: `#05070d` (hsl 222 47% 4%)
-- Primary: Scholar Blue `#3b82f6`
-- Symbols: academic blues `rgba(219,234,254,*)`
-- Role accents: logo colors at low opacity only
+## Tokens
+| Token | Value | Use |
+|-------|-------|-----|
+| Canvas Base | `#020617` | Global background |
+| Midnight | `#0B1020` | Cards, panels |
+| AI Blue | `#3B82F6` | Primary actions |
+| Intel Gold | `#D4AF37` | Accent, highlights |
 
-## Background (`KnowledgeUniverseBg`)
-- 4 depth layers — static positioned symbols
-- Central AI aura — static radial gradient
-- Knowledge grid — 80px, 4% opacity
-- Vignette for readability
-- **No** requestAnimationFrame, **no** WebGL
+## Variance
+- DESIGN_VARIANCE: 8/10
+- MOTION_INTENSITY: 7/10
+- VISUAL_DENSITY: 5/10
+
+## Background
+`PlatformCanvas` in root layout — radial glow + light particles. No WebGL.
 
 ## Typography
-- UI: Vazirmatn (RTL)
-- English symbols in bg: Inter (`--font-inter`)
+- Persian: Vazirmatn
+- English: Inter (`font-mono-en`)
+
+## Motion
+- Lenis smooth scroll (global)
+- GSAP ScrollTrigger (landing sections)
+- Framer Motion (micro-interactions)
+- `prefers-reduced-motion` respected
 
 ## Components
-| Component | Use |
-|-----------|-----|
-| `KnowledgeUniverseBg` | All shells via `AmbientBackground` |
-| `GlassCard luxury` | Panels |
-| `TiltCard` | Interactive cards (hover only) |
-| `Button variant="luxury"` | Primary CTA (blue) |
+- `premium-glass` — selective glassmorphism
+- `HooshyarAvatar` — AI assistant placeholder
+- `AuthSplitLayout` — split-screen auth
 
-## Motion rules
-- Background: **static**
-- UI: 220ms transitions, tilt on hover
-- `prefers-reduced-motion`: disable tilt transforms
-
-## Phase status
-1. ✅ Knowledge Universe static bg
-2. ✅ Landing + login shell + sidebar/header
-3. Dashboard pages inherit tokens automatically
+## Anti-patterns
+- Neon cyberpunk overload
+- Heavy WebGL shaders
+- Generic rainbow SaaS templates
+- text-justify for Persian

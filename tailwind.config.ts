@@ -57,8 +57,8 @@ const config: Config = {
           foreground: 'hsl(var(--card-foreground))',
         },
         brand: {
-          gold: '#C9A962',
-          'gold-light': '#DFC98A',
+          gold: '#D4AF37',
+          'gold-light': '#E4C76B',
           champagne: '#E8DCC0',
           pink: '#FF4DA6',
           orange: '#FF9B54',
@@ -72,10 +72,12 @@ const config: Config = {
           blue: '#54D2FF',
           coral: '#FF9B54',
         },
+        midnight: '#0B1020',
+        canvas: '#020617',
         space: {
-          DEFAULT: '#10131A',
-          surface: '#171B24',
-          elevated: '#1D2330',
+          DEFAULT: '#0B1020',
+          surface: '#101828',
+          elevated: '#1a2236',
         },
       },
       borderRadius: {

@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { AppSidebar } from './app-sidebar'
 import { AppHeader } from './app-header'
 import { MobileNav } from './mobile-nav'
-import { AmbientBackground } from '@/components/ui/ambient-background'
 import { DashboardFrame } from '@/components/motion/dashboard-frame'
+import { ObsidianCanvas } from '@/components/ui/obsidian-canvas'
 import { getUiTone } from '@/lib/ui/role-tone'
 import { cn } from '@/lib/utils'
+import { AvatarFab } from '@/components/avatar/avatar-fab'
 
 interface DashboardShellProps {
   role: string
@@ -41,11 +42,11 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
 
   return (
     <div
-      className="relative flex h-app overflow-hidden bg-background"
+      className="relative flex h-app overflow-hidden"
       dir="rtl"
       data-ui-tone={tone}
     >
-      <AmbientBackground tone={tone} />
+      <ObsidianCanvas mode="static" />
 
       {mobileSidebarOpen && (
         <div
@@ -100,6 +101,8 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
         </main>
 
         <MobileNav role={role} tone={tone} />
+
+        <AvatarFab />
       </div>
     </div>
   )

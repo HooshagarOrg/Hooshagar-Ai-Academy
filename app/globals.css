@@ -4,45 +4,50 @@
 
 @layer base {
   :root {
-    /* Knowledge Universe — آکادمیک تیره */
-    --background: 222 47% 4%;
-    --foreground: 210 40% 96%;
+    /* Premium Platform — Midnight + AI Blue + Gold */
+    --background: 222 84% 4.5%;
+    --foreground: 210 25% 96%;
 
-    --card: 222 38% 7%;
-    --card-foreground: 210 40% 96%;
+    --card: 224 49% 8%;
+    --card-foreground: 210 25% 96%;
 
-    --popover: 222 35% 9%;
-    --popover-foreground: 210 40% 96%;
+    --popover: 224 45% 10%;
+    --popover-foreground: 210 25% 96%;
 
-    --primary: 213 94% 58%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 224 49% 6%;
 
-    --secondary: 215 35% 18%;
-    --secondary-foreground: 210 40% 96%;
+    --secondary: 215 25% 16%;
+    --secondary-foreground: 210 25% 96%;
 
-    --muted: 222 32% 10%;
-    --muted-foreground: 215 18% 58%;
+    --muted: 222 35% 11%;
+    --muted-foreground: 215 16% 58%;
 
-    --accent: 213 80% 48%;
-    --accent-foreground: 210 40% 96%;
+    --accent: 46 65% 52%;
+    --accent-foreground: 224 49% 6%;
 
     --destructive: 0 72% 58%;
     --destructive-foreground: 0 0% 100%;
 
     --success: 152 65% 54%;
-    --success-foreground: 222 47% 6%;
+    --success-foreground: 224 49% 6%;
 
-    --border: 213 50% 60% / 0.1;
-    --input: 222 28% 12%;
-    --ring: 213 94% 58%;
+    --border: 215 25% 100% / 0.08;
+    --input: 222 30% 12%;
+    --ring: 217 91% 60%;
 
     --radius: 0.875rem;
 
+    --midnight: 224 49% 8%;
+    --canvas-base: 222 84% 4.5%;
+    --ai-blue: 217 91% 60%;
+    --intel-gold: 46 65% 52%;
+
     /* Brand — لوگو + نقش‌ها */
-    --brand-gold: 42 48% 55%;
-    --brand-gold-light: 42 62% 68%;
+    --brand-gold: 46 65% 52%;
+    --brand-gold-light: 46 55% 65%;
     --brand-champagne: 38 42% 74%;
-    --scholar-blue: 213 94% 58%;
+    --scholar-blue: 217 91% 60%;
     --scholar-glow: 214 95% 68%;
     --brand-pink: 330 85% 62%;
     --brand-orange: 28 95% 62%;
@@ -408,7 +413,272 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-l from-sky-200 via-blue-300 to-blue-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-l from-sky-200 via-blue-300 to-amber-300/90 bg-clip-text text-transparent;
+  }
+
+  .gradient-text-gold {
+    @apply bg-gradient-to-l from-amber-200 via-amber-400 to-amber-300 bg-clip-text text-transparent;
+  }
+
+  .platform-particle {
+    animation: platform-float ease-in-out infinite;
+  }
+
+  @keyframes platform-float {
+    0%, 100% { transform: translateY(0) translateX(0); opacity: 0.25; }
+    50% { transform: translateY(-12px) translateX(4px); opacity: 0.55; }
+  }
+
+  .platform-vignette {
+    background: radial-gradient(
+      ellipse 85% 75% at 50% 45%,
+      transparent 35%,
+      rgba(2, 6, 23, 0.75) 100%
+    );
+  }
+
+  .premium-glass {
+    @apply rounded-2xl border backdrop-blur-xl;
+    background: linear-gradient(
+      155deg,
+      rgba(11, 16, 32, 0.72) 0%,
+      rgba(2, 6, 23, 0.55) 100%
+    );
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* ── Obsidian Meridian — لاکچری ۳D ── */
+  .text-luxury-shimmer {
+    @apply bg-gradient-to-l from-amber-100 via-[#E8D4A8] to-amber-300 bg-clip-text text-transparent;
+  }
+
+  .shadow-luxury-gold {
+    box-shadow:
+      0 0 40px -8px rgba(212, 175, 55, 0.45),
+      0 16px 48px -12px rgba(0, 0, 0, 0.55);
+  }
+
+  .obsidian-vignette {
+    background: radial-gradient(
+      ellipse 90% 80% at 50% 45%,
+      transparent 22%,
+      #020617 100%
+    );
+  }
+
+  .obsidian-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .obsidian-rings-stage {
+    position: absolute;
+    left: 50%;
+    top: 38%;
+    width: min(100vw, 720px);
+    height: min(100vw, 720px);
+    transform: translate(-50%, -50%);
+    perspective: 1000px;
+  }
+
+  .obsidian-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 175, 55, 0.08);
+    transform-style: preserve-3d;
+  }
+
+  .obsidian-ring-a { animation: obsidian-spin-a 36s linear infinite; }
+  .obsidian-ring-b { inset: 14%; border-color: rgba(79, 124, 255, 0.1); animation: obsidian-spin-b 48s linear infinite reverse; }
+  .obsidian-ring-c { inset: 28%; border-style: dashed; animation: obsidian-spin-c 28s linear infinite; }
+  .obsidian-ring-vivid { border-color: rgba(212, 175, 55, 0.16); }
+
+  @keyframes obsidian-spin-a {
+    from { transform: rotateX(72deg) rotateZ(0deg); }
+    to { transform: rotateX(72deg) rotateZ(360deg); }
+  }
+  @keyframes obsidian-spin-b {
+    from { transform: rotateX(58deg) rotateY(12deg) rotateZ(0deg); }
+    to { transform: rotateX(58deg) rotateY(12deg) rotateZ(360deg); }
+  }
+  @keyframes obsidian-spin-c {
+    from { transform: rotateX(78deg) rotateZ(0deg); }
+    to { transform: rotateX(78deg) rotateZ(-360deg); }
+  }
+
+  .meridian-thread {
+    background: linear-gradient(
+      125deg,
+      transparent 42%,
+      rgba(212, 175, 55, 0.12) 49.5%,
+      rgba(212, 175, 55, 0.2) 50%,
+      rgba(212, 175, 55, 0.12) 50.5%,
+      transparent 58%
+    );
+  }
+
+  .meridian-core {
+    background: radial-gradient(circle at 35% 30%, rgba(79, 124, 255, 0.2), rgba(3, 1, 8, 0.95) 65%);
+    box-shadow:
+      inset 0 0 60px rgba(212, 175, 55, 0.08),
+      0 0 80px rgba(79, 124, 255, 0.15),
+      0 0 120px rgba(212, 175, 55, 0.1);
+  }
+
+  .meridian-core-glow {
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+    animation: meridian-pulse 5s ease-in-out infinite;
+  }
+
+  @keyframes meridian-pulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.05); }
+  }
+
+  .meridian-orbit {
+    position: absolute;
+    inset: -4%;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    transform-style: preserve-3d;
+  }
+
+  .meridian-orbit-1 { animation: meridian-orbit-1 20s linear infinite; }
+  .meridian-orbit-2 { inset: 6%; border-color: rgba(79, 124, 255, 0.12); animation: meridian-orbit-2 26s linear infinite reverse; }
+  .meridian-orbit-3 { inset: 14%; border-style: dashed; border-color: rgba(212, 175, 55, 0.1); animation: meridian-orbit-3 16s linear infinite; }
+
+  @keyframes meridian-orbit-1 {
+    from { transform: rotateX(70deg) rotateZ(0deg); }
+    to { transform: rotateX(70deg) rotateZ(360deg); }
+  }
+  @keyframes meridian-orbit-2 {
+    from { transform: rotateX(55deg) rotateY(15deg) rotateZ(0deg); }
+    to { transform: rotateX(55deg) rotateY(15deg) rotateZ(360deg); }
+  }
+  @keyframes meridian-orbit-3 {
+    from { transform: rotateX(80deg) rotateZ(0deg); }
+    to { transform: rotateX(80deg) rotateZ(-360deg); }
+  }
+
+  .obsidian-slab {
+    background: linear-gradient(
+      145deg,
+      rgba(12, 8, 22, 0.85) 0%,
+      rgba(6, 4, 14, 0.72) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    box-shadow:
+      0 24px 64px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .obsidian-slab-gold {
+    border-color: rgba(212, 175, 55, 0.18);
+    box-shadow:
+      0 28px 72px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(212, 175, 55, 0.06),
+      inset 0 1px 0 rgba(232, 212, 168, 0.1);
+  }
+
+  .obsidian-slab-sapphire {
+    border-color: rgba(79, 124, 255, 0.2);
+    box-shadow:
+      0 28px 72px rgba(0, 0, 0, 0.6),
+      0 0 32px -8px rgba(79, 124, 255, 0.2),
+      inset 0 1px 0 rgba(147, 197, 253, 0.08);
+  }
+
+  .obsidian-slab-shine {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(232, 212, 168, 0.04) 50%,
+      transparent 60%
+    );
+    background-size: 200% 100%;
+    animation: obsidian-shine 8s ease-in-out infinite;
+  }
+
+  @keyframes obsidian-shine {
+    0%, 100% { background-position: 200% 0; }
+    50% { background-position: -200% 0; }
+  }
+
+  .obsidian-stat-chip {
+    @apply flex flex-col items-center gap-1 py-3 rounded-xl;
+    background: rgba(212, 175, 55, 0.04);
+    border: 1px solid rgba(212, 175, 55, 0.12);
+  }
+
+  .obsidian-constellation-node {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.5);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+  }
+
+  .obsidian-role-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    transform-style: preserve-3d;
+  }
+
+  .obsidian-portal-frame {
+    transform-style: preserve-3d;
+  }
+
+  .obsidian-portal-ring {
+    position: absolute;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    pointer-events: none;
+  }
+
+  .obsidian-portal-ring-outer {
+    inset: -12px;
+    animation: portal-ring-pulse 4s ease-in-out infinite;
+  }
+
+  .obsidian-portal-ring-inner {
+    inset: -4px;
+    border-color: rgba(79, 124, 255, 0.15);
+    animation: portal-ring-pulse 4s ease-in-out infinite reverse;
+  }
+
+  @keyframes portal-ring-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.9; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .obsidian-ring-a,
+    .obsidian-ring-b,
+    .obsidian-ring-c,
+    .meridian-orbit-1,
+    .meridian-orbit-2,
+    .meridian-orbit-3,
+    .meridian-core-glow,
+    .obsidian-slab-shine,
+    .obsidian-portal-ring-outer,
+    .obsidian-portal-ring-inner {
+      animation: none !important;
+    }
+  }
+
+  .premium-section {
+    @apply py-20 md:py-28;
+  }
+
+  .premium-eyebrow {
+    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-white/10 bg-white/[0.04] text-muted-foreground mb-6;
   }
 
   .brand-rainbow-text {

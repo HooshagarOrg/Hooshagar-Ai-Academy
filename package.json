@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "author": "Hooshagar",
   "scripts": {
-    "dev": "next dev",
+    "dev": "node --dns-result-order=ipv4first ./node_modules/next/dist/bin/next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -92,6 +92,7 @@
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.5.0",
     "tailwindcss-animate": "^1.0.7",
+    "undici": "^6.27.0",
     "xlsx": "^0.18.5",
     "zod": "^3.25.76"
   },

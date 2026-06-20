@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { SmoothScrollProvider } from '@/components/providers/smooth-scroll-provider'
 import { Toaster } from 'sonner'
@@ -13,12 +12,6 @@ import { ServiceWorkerRegister } from '@/components/service-worker-register'
 const vazirmatn = localFont({
   src: './fonts/Vazirmatn-Regular.woff2',
   variable: '--font-vazirmatn',
-  display: 'swap',
-})
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
   display: 'swap',
 })
 
@@ -65,7 +58,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#020617" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

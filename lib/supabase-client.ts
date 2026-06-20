@@ -1,16 +1,15 @@
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database.types'
+import { getSupabaseUrl } from '@/lib/supabase/resolve-url'
+import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
 
 // برای Client Components (login/register pages, logout button, etc.)
 export function createClient() {
-  // ⚠️ مهم: برای Realtime از URL اصلی استفاده کن، نه Proxy
-  // Proxy فقط برای REST API کار می‌کند
-  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  
   return createBrowserClient<Database>(
-    SUPABASE_URL,
+    getSupabaseUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: supabaseAuthCookieOptions,
       cookies: {
         get(name: string) {
           // خواندن cookie از browser

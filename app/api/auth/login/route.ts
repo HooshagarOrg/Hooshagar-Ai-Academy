@@ -1,11 +1,15 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { applyRateLimit } from '@/lib/security/rate-limiter'
 import { sanitizeString, normalizeIranPhone } from '@/lib/security/sanitize'
+import { getSupabaseServerUrl } from '@/lib/supabase/resolve-url'
+import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
+import { supabaseGlobalOptions } from '@/lib/supabase/fetch'
+
+type SessionCookie = { name: string; value: string; options: CookieOptions }
 
 // ============================================
 // اسکیماهای validation
@@ -35,27 +39,81 @@ const loginSchema = z.discriminatedUnion('method', [
 ])
 
 // ============================================
-// helper: ساخت Supabase client با کوکی
+// helper: ساخت Supabase client با کوکی (Route Handler)
 // ============================================
-async function getSupabaseWithCookies() {
-    const cookieStore = cookies()
+function createLoginClient(request: NextRequest, sessionCookies: SessionCookie[]) {
   return createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
-          },
-          set(name: string, value: string, options: CookieOptions) {
-          try { cookieStore.set({ name, value, ...options }) } catch {}
-          },
-          remove(name: string, options: CookieOptions) {
-          try { cookieStore.set({ name, value: '', ...options }) } catch {}
+    getSupabaseServerUrl(),
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookieOptions: supabaseAuthCookieOptions,
+      ...supabaseGlobalOptions,
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet: SessionCookie[]) {
+          sessionCookies.length = 0
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value)
+            sessionCookies.push({ name, value, options })
+          })
         },
       },
     }
   )
+}
+
+function jsonWithSessionCookies(
+  body: Record<string, unknown>,
+  status: number,
+  sessionCookies: SessionCookie[]
+) {
+  const res = NextResponse.json(body, { status })
+  sessionCookies.forEach(({ name, value, options }) => {
+    res.cookies.set(name, value, options)
+  })
+  return res
+}
+
+async function queryWithRetry<T>(
+  fn: () => PromiseLike<{ data: T; error: { message?: string; code?: string } | null }>
+): Promise<{ data: T; error: { message?: string; code?: string } | null }> {
+  let last = await fn()
+  for (let i = 1; i < 6; i++) {
+    if (!last.error) return last
+    const msg = last.error.message ?? ''
+    const retriable =
+      msg.includes('fetch') ||
+      msg.includes('timeout') ||
+      msg.includes('ECONNRESET') ||
+      msg.includes('aborted') ||
+      last.error.code === 'UND_ERR_CONNECT_TIMEOUT'
+    if (!retriable) return last
+    await new Promise((r) => setTimeout(r, 3000 * i))
+    last = await fn()
+  }
+  return last
+}
+
+async function withNetworkRetry<T>(fn: () => Promise<T>): Promise<T> {
+  let lastError: unknown
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      return await fn()
+    } catch (err: unknown) {
+      lastError = err
+      const msg = err instanceof Error ? err.message : String(err)
+      const retriable =
+        msg.includes('fetch') ||
+        msg.includes('timeout') ||
+        msg.includes('ECONNRESET') ||
+        msg.includes('aborted')
+      if (!retriable || attempt === 5) break
+      await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)))
+    }
+  }
+  throw lastError
 }
 
 // ============================================
@@ -63,9 +121,9 @@ async function getSupabaseWithCookies() {
 // ============================================
 function getAdminClient() {
   return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    getSupabaseServerUrl(),
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
+    { auth: { autoRefreshToken: false, persistSession: false }, ...supabaseGlobalOptions }
   )
 }
 
@@ -219,14 +277,29 @@ async function handleStudentPinLogin(
 ) {
   const admin = getAdminClient()
 
-  // 1. پیدا کردن دانش‌آموز
-  const { data: student, error: studentError } = await admin
-    .from('students')
-    .select('id, user_id, pin_hash, can_login, full_name, grade, education_stage')
-    .eq('student_number', student_number.trim())
-    .single()
+  // 1. پیدا کردن دانش‌آموز (با retry برای قطعی‌های شبکه)
+  const { data: student, error: studentError } = await queryWithRetry(() =>
+    admin
+      .from('students')
+      .select('id, user_id, pin_hash, can_login, full_name, grade, education_stage')
+      .eq('student_number', student_number.trim())
+      .single()
+  )
 
   if (studentError || !student) {
+    console.error('Student lookup failed:', studentError?.message)
+    const msg = studentError?.message ?? ''
+    if (
+      msg.includes('fetch') ||
+      msg.includes('timeout') ||
+      msg.includes('ECONNRESET') ||
+      studentError?.code === 'UND_ERR_CONNECT_TIMEOUT'
+    ) {
+      return {
+        success: false,
+        error: 'اتصال به سرور برقرار نشد. لطفاً چند ثانیه بعد دوباره تلاش کنید.',
+      }
+    }
     return { success: false, error: 'کد دانش‌آموزی یافت نشد' }
   }
 
@@ -259,35 +332,56 @@ async function handleStudentPinLogin(
     .eq('id', student.user_id)
     .single()
 
-  // 4. ورود با session admin
-  const { data: authUserData } = await admin.auth.admin.getUserById(student.user_id)
+  // 4. ورود — رمز داخلی همگام با PIN (session واقعی)
+  const { data: authUserData } = await withNetworkRetry(() =>
+    admin.auth.admin.getUserById(student.user_id)
+  )
 
   if (!authUserData.user?.email) {
     return { success: false, error: 'خطا در احراز هویت' }
   }
 
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: authUserData.user.email,
-    password: `student_${student_number}_${student.pin_hash?.slice(0, 8)}`,
-  })
+  const authEmail = authUserData.user.email
+  const internalPassword = `hg_student_${student.user_id.replace(/-/g, '').slice(0, 12)}_${pin}`
+
+  let updateError: { message: string } | null = null
+  try {
+    const updateResult = await withNetworkRetry(() =>
+      admin.auth.admin.updateUserById(student.user_id, {
+        password: internalPassword,
+      })
+    )
+    updateError = updateResult.error
+  } catch (err: unknown) {
+    updateError = {
+      message: err instanceof Error ? err.message : 'خطا در همگام‌سازی رمز',
+    }
+  }
+
+  if (updateError) {
+    console.error('Student password sync failed:', updateError.message)
+    return { success: false, error: 'خطا در ورود. لطفاً دوباره تلاش کنید.' }
+  }
+
+  const { error: signInError } = await queryWithRetry(async () => {
+    const result = await supabase.auth.signInWithPassword({
+      email: authEmail,
+      password: internalPassword,
+    })
+    return {
+      data: result.data,
+      error: result.error ? { message: result.error.message, code: result.error.code } : null,
+    }
+  }).then((r) => ({ error: r.error ? { message: r.error.message } : null }))
 
   if (signInError) {
-    return {
-      success: true,
-      userId: student.user_id,
-      role: profile?.role || 'student',
-      must_change_password: false,
-      auth_method: 'pin_verified',
-      student_info: {
-        full_name: student.full_name,
-        grade: student.grade,
-        education_stage: student.education_stage,
-      }
-    }
+    console.error('Student signIn failed:', signInError.message)
+    return { success: false, error: 'خطا در ورود. لطفاً دوباره تلاش کنید.' }
   }
 
   return {
     success: true,
+    userId: student.user_id,
     role: profile?.role || 'student',
     must_change_password: false,
     auth_method: 'pin',
@@ -295,7 +389,7 @@ async function handleStudentPinLogin(
       full_name: student.full_name,
       grade: student.grade,
       education_stage: student.education_stage,
-    }
+    },
   }
 }
 
@@ -325,7 +419,8 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    const supabase = await getSupabaseWithCookies()
+    const sessionCookies: SessionCookie[] = []
+    const supabase = createLoginClient(request, sessionCookies)
 
     // انتخاب روش ورود
     switch (result.data.method) {
@@ -341,12 +436,16 @@ export async function POST(request: NextRequest) {
             { status: 401 }
           )
         }
-        return NextResponse.json({
-          success: true,
-          must_change_password: loginResult.must_change_password,
-          role: loginResult.role,
-          redirect: loginResult.must_change_password ? '/change-password' : '/dashboard',
-        })
+        return jsonWithSessionCookies(
+          {
+            success: true,
+            must_change_password: loginResult.must_change_password,
+            role: loginResult.role,
+            redirect: loginResult.must_change_password ? '/change-password' : '/dashboard',
+          },
+          200,
+          sessionCookies
+        )
       }
 
       case 'otp': {
@@ -357,12 +456,16 @@ export async function POST(request: NextRequest) {
             { status: 401 }
           )
         }
-    return NextResponse.json({ 
-      success: true,
-          must_change_password: otpResult.must_change_password,
-          role: otpResult.role,
-          redirect: '/dashboard',
-        })
+        return jsonWithSessionCookies(
+          {
+            success: true,
+            must_change_password: otpResult.must_change_password,
+            role: otpResult.role,
+            redirect: '/dashboard',
+          },
+          200,
+          sessionCookies
+        )
       }
 
       case 'student_pin': {
@@ -377,12 +480,16 @@ export async function POST(request: NextRequest) {
             { status: 401 }
           )
         }
-        return NextResponse.json({
-          success: true,
-          role: pinResult.role,
-          redirect: '/dashboard',
-          student_info: pinResult.student_info,
-        })
+        return jsonWithSessionCookies(
+          {
+            success: true,
+            role: pinResult.role,
+            redirect: '/student',
+            student_info: pinResult.student_info,
+          },
+          200,
+          sessionCookies
+        )
       }
     }
   } catch (err: unknown) {

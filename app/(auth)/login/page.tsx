@@ -133,6 +133,7 @@ export default function LoginPage() {
   const handleStudentLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
+    toast.message('در حال اتصال به سرور… لطفاً تا یک دقیقه صبر کنید.')
     const formData = new FormData(e.currentTarget)
     
     try {

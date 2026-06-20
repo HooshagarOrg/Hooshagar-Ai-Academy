@@ -11,13 +11,17 @@ export default {
     const allowedOrigins = [
       'https://app.hooshagar.com',
       'https://hooshagar.com',
-      'http://localhost:3000'
+      'http://localhost:3000',
+      'http://localhost:3001',
     ]
 
     const origin = request.headers.get('Origin')
-    
+    const isLocalhost =
+      origin?.startsWith('http://localhost:') ||
+      origin?.startsWith('http://127.0.0.1:')
+
     // بررسی Origin
-    if (origin && !allowedOrigins.includes(origin)) {
+    if (origin && !allowedOrigins.includes(origin) && !isLocalhost) {
       return new Response('Forbidden', { status: 403 })
     }
 

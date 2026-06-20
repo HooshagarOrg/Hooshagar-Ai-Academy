@@ -7,14 +7,18 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database.types'
 
+import { getSupabaseServerUrl } from '@/lib/supabase/resolve-url'
+import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
+
 export function createRouteHandlerClient(
   request: NextRequest,
   response: NextResponse
 ) {
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    getSupabaseServerUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: supabaseAuthCookieOptions,
       cookies: {
         getAll() {
           return request.cookies.getAll()

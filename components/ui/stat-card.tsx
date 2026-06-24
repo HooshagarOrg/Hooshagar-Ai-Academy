@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils'
-import { GlassCard } from '@/components/ui/glass-card'
 
 interface StatCardProps {
   label: string
@@ -15,16 +14,19 @@ export function StatCard({
   value,
   hint,
   icon,
-  accentClass = 'text-brand-cyan',
+  accentClass = 'text-role-accent',
   className,
 }: StatCardProps) {
   return (
-    <GlassCard className={cn('p-5', className)}>
+    <div
+      className={cn('glass-arc p-5', className)}
+    >
       <div className="flex items-start justify-between gap-3 mb-3">
         {icon && (
           <div
             className={cn(
-              'p-2.5 rounded-xl bg-white/[0.05] border border-white/[0.08]',
+              'p-2.5 rounded-xl',
+              'bg-[rgba(var(--role-accent-r),0.1)] border border-[rgba(var(--role-accent-r),0.18)]',
               accentClass,
             )}
           >
@@ -32,9 +34,9 @@ export function StatCard({
           </div>
         )}
       </div>
-      <p className="text-xs text-muted-foreground mb-1">{label}</p>
-      <p className="text-2xl font-bold tabular-nums tracking-tight">{value}</p>
-      {hint && <p className="text-xs text-muted-foreground mt-1.5">{hint}</p>}
-    </GlassCard>
+      <p className="text-xs text-white/45 mb-1">{label}</p>
+      <p className="stat-pill-value text-2xl">{value}</p>
+      {hint && <p className="text-xs text-white/35 mt-1.5">{hint}</p>}
+    </div>
   )
 }

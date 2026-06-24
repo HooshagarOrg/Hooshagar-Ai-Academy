@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { ObsidianPortal } from '@/components/auth/obsidian-portal'
+import { SpectrumPortal } from '@/components/auth/spectrum-portal'
 
 export const metadata: Metadata = {
   title: 'ورود و ثبت‌نام | هوشاگر',
@@ -11,5 +11,5 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <ObsidianPortal>{children}</ObsidianPortal>
+  return <SpectrumPortal>{children}</SpectrumPortal>
 }

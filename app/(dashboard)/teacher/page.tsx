@@ -5,6 +5,7 @@ import { usePersianDateString } from '@/lib/hooks/use-persian-date'
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { PremiumPanel } from '@/components/ui/premium-panel'
 import { StatCard } from '@/components/ui/stat-card'
+import { ChromaticHero } from '@/components/layout/chromatic-hero'
 import Link from 'next/link'
 import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 import {
@@ -231,23 +232,23 @@ export default function TeacherDashboardPage() {
 
   return (
     <DashboardPage
-      meta={persianDate}
-      title={
-        <>
-          سلام، <span className="text-brand-cyan">{teacherName}</span>
-        </>
-      }
-      description={
-        <>
-          کلاس {className}
-          {alerts.length > 0 && (
-            <span className="text-brand-orange"> · {alerts.length} هشدار</span>
-          )}
-        </>
-      }
+      meta=""
+      title=""
       animatedSections={false}
     >
-        <VirtualClassCard />
+      <ChromaticHero
+        meta={persianDate}
+        title={<>سلام، <span className="text-role-accent">{teacherName}</span></>}
+        description={
+          <>
+            کلاس {className}
+            {alerts.length > 0 && (
+              <span className="text-white/60"> · {alerts.length} هشدار</span>
+            )}
+          </>
+        }
+      />
+      <VirtualClassCard />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
             <StatCard

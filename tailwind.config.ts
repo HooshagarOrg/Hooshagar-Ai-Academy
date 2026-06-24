@@ -56,6 +56,21 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        /* Chromatic Spectrum — arc colors from logo */
+        arc: {
+          blue:   '#3B82F6',
+          green:  '#10B981',
+          amber:  '#F59E0B',
+          pink:   '#EC4899',
+          red:    '#EF4444',
+          teal:   '#14B8A6',
+        },
+        cs: {
+          canvas:    '#07080E',
+          'surface-1': '#0C0D15',
+          'surface-2': '#121420',
+          'surface-3': '#1A1C2A',
+        },
         brand: {
           gold: '#D4AF37',
           'gold-light': '#E4C76B',
@@ -133,6 +148,14 @@ const config: Config = {
           '0%, 100%': { opacity: '0.5', transform: 'scale(1)' },
           '50%': { opacity: '0.85', transform: 'scale(1.08)' },
         },
+        'spectrum-orbit': {
+          from: { transform: 'rotate(0deg)' },
+          to:   { transform: 'rotate(360deg)' },
+        },
+        'arc-glow-pulse': {
+          '0%, 100%': { opacity: '0.6', filter: 'blur(32px)' },
+          '50%':      { opacity: '1',   filter: 'blur(22px)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 220ms cubic-bezier(0.16, 1, 0.3, 1)',
@@ -141,6 +164,8 @@ const config: Config = {
         'fade-up': 'fade-up 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
         shimmer: 'shimmer 3s linear infinite',
         'pulse-soft': 'pulseSoft 3s ease-in-out infinite',
+        'spectrum-orbit': 'spectrum-orbit 18s linear infinite',
+        'arc-glow-pulse': 'arc-glow-pulse 4s ease-in-out infinite',
       },
       fontFamily: {
         sans: ['var(--font-vazirmatn)', 'system-ui', 'sans-serif'],
@@ -148,6 +173,11 @@ const config: Config = {
       boxShadow: {
         glass: '0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
         glow: '0 0 48px -12px rgba(255, 77, 166, 0.4)',
+        'arc-blue':  '0 0 32px -8px rgba(59,130,246,0.5)',
+        'arc-green': '0 0 32px -8px rgba(16,185,129,0.5)',
+        'arc-amber': '0 0 32px -8px rgba(245,158,11,0.5)',
+        'arc-pink':  '0 0 32px -8px rgba(236,72,153,0.5)',
+        'arc-red':   '0 0 32px -8px rgba(239,68,68,0.5)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

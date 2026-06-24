@@ -43,6 +43,31 @@
     --ai-blue: 217 91% 60%;
     --intel-gold: 46 65% 52%;
 
+    /* ── Chromatic Spectrum — قوس‌های لوگو → نقش‌های کاربری ── */
+    --arc-blue:   59 130 246;    /* دانش‌آموز  #3B82F6 */
+    --arc-green:  16 185 129;    /* معلم        #10B981 */
+    --arc-amber:  245 158 11;    /* والدین      #F59E0B */
+    --arc-pink:   236 72 153;    /* ادمین       #EC4899 */
+    --arc-red:    239 68 68;     /* مشاور       #EF4444 */
+    --arc-teal:   20 184 166;    /* بهداشت      #14B8A6 */
+
+    /* Role accent — پیش‌فرض آبی، با data-role تغییر می‌کند */
+    --role-accent-r: var(--arc-blue);
+    --role-accent:   rgb(var(--arc-blue));
+
+    /* Chromatic surfaces — عمیق‌تر از Obsidian */
+    --cs-canvas:    #07080E;
+    --cs-surface-1: #0C0D15;
+    --cs-surface-2: #121420;
+    --cs-surface-3: #1A1C2A;
+
+    /* Motion tokens */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+    --dur-fast:  160ms;
+    --dur-mid:   320ms;
+    --dur-slow:  640ms;
+
     /* Brand — لوگو + نقش‌ها */
     --brand-gold: 46 65% 52%;
     --brand-gold-light: 46 55% 65%;
@@ -958,6 +983,268 @@
 
   .motion-page-enter {
     animation: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   CHROMATIC SPECTRUM — Role-Accent System
+   ══════════════════════════════════════════════════════ */
+@layer base {
+  /* data-role روی dashboard-shell → --role-accent تغییر می‌کند */
+  [data-role='student']    { --role-accent-r: var(--arc-blue);  --role-accent: rgb(var(--arc-blue)); }
+  [data-role='teacher']    { --role-accent-r: var(--arc-green); --role-accent: rgb(var(--arc-green)); }
+  [data-role='parent']     { --role-accent-r: var(--arc-amber); --role-accent: rgb(var(--arc-amber)); }
+  [data-role='admin']      { --role-accent-r: var(--arc-pink);  --role-accent: rgb(var(--arc-pink)); }
+  [data-role='platform_admin'] { --role-accent-r: var(--arc-pink); --role-accent: rgb(var(--arc-pink)); }
+  [data-role='counselor']  { --role-accent-r: var(--arc-red);   --role-accent: rgb(var(--arc-red)); }
+  [data-role='health_vp']  { --role-accent-r: var(--arc-teal);  --role-accent: rgb(var(--arc-teal)); }
+  [data-role='principal']  { --role-accent-r: var(--arc-amber); --role-accent: rgb(var(--arc-amber)); }
+  [data-role='educational_vp'] { --role-accent-r: var(--arc-green); --role-accent: rgb(var(--arc-green)); }
+  [data-role='financial_vp']   { --role-accent-r: var(--arc-teal);  --role-accent: rgb(var(--arc-teal)); }
+  [data-role='disciplinary_vp']{ --role-accent-r: var(--arc-red);   --role-accent: rgb(var(--arc-red)); }
+  [data-role='evaluation_vp']  { --role-accent-r: var(--arc-amber); --role-accent: rgb(var(--arc-amber)); }
+  [data-role='art_teacher']    { --role-accent-r: var(--arc-pink);  --role-accent: rgb(var(--arc-pink)); }
+  [data-role='sports_teacher'] { --role-accent-r: var(--arc-green); --role-accent: rgb(var(--arc-green)); }
+  [data-role='librarian']      { --role-accent-r: var(--arc-teal);  --role-accent: rgb(var(--arc-teal)); }
+  [data-role='secretary']      { --role-accent-r: var(--arc-amber); --role-accent: rgb(var(--arc-amber)); }
+  [data-role='security']       { --role-accent-r: var(--arc-red);   --role-accent: rgb(var(--arc-red)); }
+  [data-role='maintenance']    { --role-accent-r: var(--arc-amber); --role-accent: rgb(var(--arc-amber)); }
+}
+
+@layer components {
+  /* ── GlassArc — کارت شیشه‌ای با border از role-accent ── */
+  .glass-arc {
+    position: relative;
+    border-radius: 1.25rem;
+    background: rgba(12, 13, 21, 0.82);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: box-shadow var(--dur-mid) var(--ease-out-expo),
+                border-color var(--dur-mid) var(--ease-out-expo),
+                transform var(--dur-mid) var(--ease-out-expo);
+  }
+
+  .glass-arc::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(var(--role-accent-r), 0.35) 0%,
+      rgba(255, 255, 255, 0.04) 50%,
+      rgba(var(--role-accent-r), 0.18) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    transition: opacity var(--dur-mid) var(--ease-out-expo);
+    opacity: 0.7;
+  }
+
+  .glass-arc:hover::before {
+    opacity: 1;
+  }
+
+  .glass-arc:hover {
+    box-shadow:
+      0 12px 48px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(var(--role-accent-r), 0.12),
+      0 0 32px -8px rgba(var(--role-accent-r), 0.25);
+    transform: translateY(-2px);
+  }
+
+  /* Sizes */
+  .glass-arc-sm  { border-radius: 0.875rem; }
+  .glass-arc-lg  { border-radius: 1.5rem; }
+  .glass-arc-xl  { border-radius: 2rem; }
+
+  /* ── Chromatic Sidebar ── */
+  .cs-sidebar {
+    background: rgba(7, 8, 14, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .cs-sidebar-item {
+    position: relative;
+    border-radius: 0.625rem;
+    transition: background var(--dur-fast) var(--ease-out-expo),
+                color var(--dur-fast) var(--ease-out-expo);
+  }
+
+  .cs-sidebar-item:hover {
+    background: rgba(var(--role-accent-r), 0.08);
+    color: var(--role-accent);
+  }
+
+  .cs-sidebar-item.active {
+    background: rgba(var(--role-accent-r), 0.12);
+    color: var(--role-accent);
+  }
+
+  .cs-sidebar-item.active::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: 20%;
+    height: 60%;
+    width: 2px;
+    background: var(--role-accent);
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 0 8px rgba(var(--role-accent-r), 0.6);
+  }
+
+  /* ── StatPill — عدد + label ── */
+  .stat-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+  }
+
+  .stat-pill-value {
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(
+      135deg,
+      var(--role-accent) 0%,
+      rgba(var(--role-accent-r), 0.65) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .stat-pill-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Role Avatar ring ── */
+  .role-avatar-ring {
+    position: relative;
+    border-radius: 50%;
+    padding: 2px;
+    background: conic-gradient(
+      from 0deg,
+      var(--role-accent),
+      rgba(var(--role-accent-r), 0.3),
+      var(--role-accent)
+    );
+    animation: role-avatar-spin 8s linear infinite;
+  }
+
+  @keyframes role-avatar-spin {
+    from { --angle: 0deg; }
+    to   { --angle: 360deg; }
+  }
+
+  /* ── Spectrum text gradient ── */
+  .text-spectrum {
+    background: linear-gradient(
+      135deg,
+      #3B82F6 0%,
+      #10B981 25%,
+      #F59E0B 50%,
+      #EC4899 75%,
+      #EF4444 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .text-role-accent {
+    color: var(--role-accent);
+  }
+
+  .bg-role-accent {
+    background-color: var(--role-accent);
+  }
+
+  .border-role-accent {
+    border-color: var(--role-accent);
+  }
+
+  .glow-role-accent {
+    box-shadow: 0 0 24px -4px rgba(var(--role-accent-r), 0.5);
+  }
+
+  /* ── Chromatic Canvas helpers ── */
+  .cs-bg {
+    background-color: var(--cs-canvas);
+  }
+
+  /* ── Spectrum shimmer loading ── */
+  .spectrum-skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(255,255,255,0.03) 0%,
+      rgba(var(--role-accent-r), 0.08) 50%,
+      rgba(255,255,255,0.03) 100%
+    );
+    background-size: 200% 100%;
+    animation: spectrum-shimmer 1.8s ease-in-out infinite;
+    border-radius: 0.5rem;
+  }
+
+  @keyframes spectrum-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Arc Bloom canvas wrapper ── */
+  .arc-bloom-canvas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* ── Hero video overlay ── */
+  .hero-video-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(7,8,14,0.55) 0%,
+      rgba(7,8,14,0.35) 40%,
+      rgba(7,8,14,0.65) 80%,
+      rgba(7,8,14,0.95) 100%
+    );
+  }
+
+  /* ── Spectrum button ── */
+  .btn-spectrum {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #3B82F6, #10B981, #F59E0B, #EC4899);
+    background-size: 300% 300%;
+    animation: spectrum-btn-drift 6s ease infinite;
+    color: white;
+    font-weight: 700;
+    border: none;
+    box-shadow: 0 4px 24px rgba(59,130,246,0.35);
+  }
+
+  @keyframes spectrum-btn-drift {
+    0%,100% { background-position: 0% 50%; }
+    50%     { background-position: 100% 50%; }
+  }
+
+  .btn-spectrum:hover {
+    box-shadow: 0 8px 40px rgba(59,130,246,0.5);
+    transform: translateY(-1px);
   }
 }
 

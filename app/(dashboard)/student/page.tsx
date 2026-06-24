@@ -24,7 +24,9 @@ import {
 } from 'lucide-react'
 import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 import { GlassCard } from '@/components/ui/glass-card'
+import { GlassArc } from '@/components/ui/glass-arc'
 import { DashboardPage } from '@/components/layout/dashboard-page'
+import { ChromaticHero } from '@/components/layout/chromatic-hero'
 import { StatCard } from '@/components/ui/stat-card'
 import { ToolTile } from '@/components/ui/tool-tile'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -177,59 +179,61 @@ export default function StudentDashboardPage() {
 
   return (
     <DashboardPage
-      meta={persianDate}
-      title={
-        <>
-          سلام، <span className="gradient-text">{profileName || 'دانش‌آموز'}</span>
-        </>
-      }
-      description="همراه هوشمند یادگیری آماده است — امروز روی یک هدف تمرکز کن."
-      actions={
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl glass-panel-quiet text-sm">
-          <Zap className="w-4 h-4 text-brand-yellow shrink-0" />
-          <div>
-            <p className="font-bold tabular-nums">{xpData.xp.toLocaleString('fa-IR')} XP</p>
-            <p className="text-xs text-muted-foreground">
-              سطح {xpData.level} · {levelTitle}
-            </p>
-          </div>
-        </div>
-      }
+      meta=""
+      title=""
       animatedSections={false}
     >
+      <ChromaticHero
+        meta={persianDate}
+        title={<>سلام، <span className="text-role-accent">{profileName || 'دانش‌آموز'}</span></>}
+        description="همراه هوشمند یادگیری آماده است — امروز روی یک هدف تمرکز کن."
+        actions={
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm glass-arc glass-arc-sm"
+          >
+            <Zap className="w-4 h-4 text-role-accent shrink-0" />
+            <div>
+              <p className="font-bold tabular-nums text-white">{xpData.xp.toLocaleString('fa-IR')} XP</p>
+              <p className="text-xs text-white/45">سطح {xpData.level} · {levelTitle}</p>
+            </div>
+          </div>
+        }
+      />
       <VirtualClassCard />
 
       {/* تمرکز اصلی: پیشرفت سطح */}
-      <GlassCard className="p-6 md:p-7 overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-l from-brand-pink/10 via-transparent to-brand-purple/5 pointer-events-none" />
-        <div className="relative flex flex-col md:flex-row md:items-center gap-6">
+      <GlassArc className="p-6 md:p-7 overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center gap-6">
           <div className="flex items-center gap-4 flex-1">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-pink to-brand-orange flex items-center justify-center ring-2 ring-white/10">
-              <GraduationCap className="w-7 h-7 text-white" />
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center ring-1"
+              style={{ background: 'rgba(var(--role-accent-r),0.2)', boxShadow: '0 0 0 1px rgba(var(--role-accent-r),0.3)' }}
+            >
+              <GraduationCap className="w-7 h-7 text-role-accent" />
             </div>
             <div>
-              <p className="section-label mb-1">پیشرفت امروز</p>
-              <p className="text-lg font-semibold">مسیر رشد تو</p>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <p className="text-xs text-white/40 mb-1 uppercase tracking-wider">پیشرفت امروز</p>
+              <p className="text-lg font-semibold text-white">مسیر رشد تو</p>
+              <p className="text-sm text-white/45 mt-0.5">
                 {xpData.xp_progress.current.toLocaleString('fa-IR')} از{' '}
                 {xpData.xp_progress.needed.toLocaleString('fa-IR')} XP تا سطح بعد
               </p>
             </div>
           </div>
           <div className="md:w-64 w-full">
-            <div className="flex justify-between text-xs text-muted-foreground mb-2">
+            <div className="flex justify-between text-xs text-white/40 mb-2">
               <span>سطح {xpData.level}</span>
-              <span className="text-brand-yellow font-medium">{levelProgress}%</span>
+              <span className="text-role-accent font-medium">{levelProgress}%</span>
             </div>
-            <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+            <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
               <div
-                className="h-full rounded-full bg-gradient-to-l from-brand-yellow to-brand-orange transition-all duration-500"
-                style={{ width: `${levelProgress}%` }}
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${levelProgress}%`, background: 'var(--role-accent)' }}
               />
             </div>
           </div>
         </div>
-      </GlassCard>
+      </GlassArc>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard

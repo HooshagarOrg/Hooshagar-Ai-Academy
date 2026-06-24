@@ -5,7 +5,7 @@ import { AppSidebar } from './app-sidebar'
 import { AppHeader } from './app-header'
 import { MobileNav } from './mobile-nav'
 import { DashboardFrame } from '@/components/motion/dashboard-frame'
-import { ObsidianCanvas } from '@/components/ui/obsidian-canvas'
+import { ChromaticCanvas } from '@/components/ui/chromatic-canvas'
 import { getUiTone } from '@/lib/ui/role-tone'
 import { cn } from '@/lib/utils'
 import { AvatarFab } from '@/components/avatar/avatar-fab'
@@ -45,8 +45,9 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
       className="relative flex h-app overflow-hidden"
       dir="rtl"
       data-ui-tone={tone}
+      data-role={role}
     >
-      <ObsidianCanvas mode="static" />
+      <ChromaticCanvas mode="static" />
 
       {mobileSidebarOpen && (
         <div

@@ -18,17 +18,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { HooshagarLogo, HooshagarMark } from '@/components/brand/hooshagar-logo'
 import type { UiTone } from '@/lib/ui/role-tone'
 
-function navActiveClass(tone: UiTone, active: boolean) {
-  if (!active) return 'text-muted-foreground hover:bg-white/[0.06] hover:text-foreground'
-  if (tone === 'vivid') return 'nav-item-active-vivid'
-  if (tone === 'calm') return 'nav-item-active-calm'
-  return 'nav-item-active-balanced'
+function navActiveClass(_tone: UiTone, active: boolean) {
+  if (!active) return 'cs-sidebar-item text-white/45 hover:text-white'
+  return 'cs-sidebar-item active text-role-accent'
 }
 
-function navIconClass(tone: UiTone, active: boolean) {
-  if (!active) return 'text-muted-foreground group-hover:text-foreground'
-  if (tone === 'vivid') return 'text-white'
-  return 'text-foreground'
+function navIconClass(_tone: UiTone, active: boolean) {
+  if (!active) return 'text-white/40 group-hover:text-white/70'
+  return 'text-role-accent'
 }
 
 // ============================================
@@ -339,16 +336,19 @@ export function AppSidebar({
     <TooltipProvider delayDuration={300}>
       <aside
         className={cn(
-          'flex flex-col h-full glass-panel-luxury border-l border-blue-400/10 shadow-glass motion-standard',
+          'cs-sidebar flex flex-col h-full shadow-glass motion-standard transition-[width]',
           collapsed ? 'w-[4.5rem]' : 'w-64'
         )}
         dir="rtl"
       >
         {/* ===== لوگو و هدر ===== */}
-        <div className={cn(
-          'flex items-center border-b border-white/[0.06] transition-all',
-          collapsed ? 'justify-center p-4' : 'justify-between px-4 py-4'
-        )}>
+        <div
+          className={cn(
+            'flex items-center border-b transition-all',
+            collapsed ? 'justify-center p-4' : 'justify-between px-4 py-4'
+          )}
+          style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        >
           {!collapsed && (
             <HooshagarLogo
               size="sm"
@@ -378,25 +378,18 @@ export function AppSidebar({
 
         {/* ===== پروفایل کاربر ===== */}
         {!collapsed && (
-          <div className="px-3 py-3 border-b border-white/[0.06]">
+          <div className="px-3 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <Link
               href="/profile"
-              className={cn(
-                'flex items-center gap-3 p-2.5 rounded-2xl border border-white/[0.06] motion-interactive cursor-pointer',
-                tone === 'calm'
-                  ? 'bg-white/[0.04] hover:bg-white/[0.06]'
-                  : 'bg-gradient-to-l from-blue-500/12 to-indigo-500/10 hover:border-blue-400/25',
-              )}
+              className="flex items-center gap-3 p-2.5 rounded-2xl motion-interactive cursor-pointer border transition-all"
+              style={{
+                background: 'rgba(var(--role-accent-r),0.08)',
+                borderColor: 'rgba(var(--role-accent-r),0.18)',
+              }}
             >
               <div
-                className={cn(
-                  'w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0',
-                  tone === 'calm'
-                    ? 'bg-blue-500/80'
-                    : tone === 'vivid'
-                      ? 'bg-gradient-to-br from-blue-500 to-indigo-500 shadow-glow'
-                      : 'bg-gradient-to-br from-blue-600 to-cyan-600',
-                )}
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                style={{ background: 'rgba(var(--role-accent-r),0.25)' }}
               >
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={userName} className="w-full h-full rounded-xl object-cover" />
@@ -405,8 +398,8 @@ export function AppSidebar({
                 )}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground truncate">{userName}</p>
-                <p className="text-xs text-muted-foreground">{getRoleLabel(role)}</p>
+                <p className="text-sm font-semibold text-white truncate">{userName}</p>
+                <p className="text-xs text-role-accent">{getRoleLabel(role)}</p>
               </div>
             </Link>
           </div>
@@ -511,7 +504,7 @@ export function AppSidebar({
         </nav>
 
         {/* ===== تنظیمات و خروج ===== */}
-        <div className="border-t border-white/[0.06] p-2 space-y-0.5">
+        <div className="p-2 space-y-0.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
           {collapsed ? (
             <>
               <Tooltip>

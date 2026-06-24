@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { usePersianDateString } from '@/lib/hooks/use-persian-date'
 import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 import { DashboardPage } from '@/components/layout/dashboard-page'
+import { ChromaticHero } from '@/components/layout/chromatic-hero'
 import { StatCard } from '@/components/ui/stat-card'
 import { GlassCard } from '@/components/ui/glass-card'
 import Link from 'next/link'
@@ -243,25 +244,22 @@ export default function ParentDashboardPage() {
 
   return (
     <DashboardPage
-      meta={persianDate}
-      title={
-        <>
-          سلام، <span className="text-brand-green">{parentName}</span>
-        </>
-      }
-      description={
-        <>
-          ولی · فرزند: {childName} ({childClass}) · پایه {childGrade}
-        </>
-      }
-      actions={
-        <div className="flex items-center gap-2">
+      meta=""
+      title=""
+      animatedSections={false}
+    >
+      <ChromaticHero
+        meta={persianDate}
+        title={<>سلام، <span className="text-role-accent">{parentName}</span></>}
+        description={<>ولی · فرزند: {childName} ({childClass}) · پایه {childGrade}</>}
+        actions={
+          <div className="flex items-center gap-2">
           <button
             type="button"
-            className="relative p-3 rounded-xl glass-panel-quiet hover:border-white/[0.12] transition-colors cursor-pointer"
+            className="relative p-3 rounded-xl glass-arc glass-arc-sm cursor-pointer"
             aria-label="اعلان‌ها"
           >
-            <Bell className="w-5 h-5 text-foreground" />
+            <Bell className="w-5 h-5 text-white/70" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
                 {unreadCount}
@@ -270,15 +268,14 @@ export default function ParentDashboardPage() {
           </button>
           <Link
             href="/test-session"
-            className="p-3 rounded-xl glass-panel-quiet hover:border-white/[0.12] transition-colors"
+            className="p-3 rounded-xl glass-arc glass-arc-sm"
             aria-label="تنظیمات"
           >
             <Settings className="w-5 h-5 text-foreground" />
           </Link>
         </div>
-      }
-      animatedSections={false}
-    >
+        }
+      />
         <VirtualClassCard />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (

@@ -33,15 +33,19 @@ export function DashboardPage({
     <div className={cn('space-y-6', className)}>{children}</div>
   )
 
+  const showHeader = title !== '' || meta !== '' || description !== undefined || actions !== undefined
+
   return (
     <DashboardFrame>
-      <PageHeader
-        title={title}
-        description={description}
-        meta={meta}
-        actions={actions}
-        className={headerClassName}
-      />
+      {showHeader && (
+        <PageHeader
+          title={title}
+          description={description}
+          meta={meta}
+          actions={actions}
+          className={headerClassName}
+        />
+      )}
       {body}
     </DashboardFrame>
   )

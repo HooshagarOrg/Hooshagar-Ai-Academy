@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { usePersianDateString } from '@/lib/hooks/use-persian-date'
 import { DashboardPage } from '@/components/layout/dashboard-page'
+import { ChromaticHero } from '@/components/layout/chromatic-hero'
 import { PremiumPanel } from '@/components/ui/premium-panel'
 import { StatCard } from '@/components/ui/stat-card'
 import Link from 'next/link'
@@ -255,24 +256,26 @@ export default function AdminDashboardPage() {
 
   return (
     <DashboardPage
-      meta={persianDate}
-      title="مرکز فرمان پلتفرم"
-      description={`نظارت حرفه‌ای بر مدارس، کاربران و زیرساخت هوش مصنوعی — ${adminName}`}
-      actions={
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-brand-green/10 text-brand-green border border-brand-green/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
-            سیستم عملیاتی
-          </span>
-          {mockAlerts.length > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {mockAlerts.length} هشدار فعال
-            </span>
-          )}
-        </div>
-      }
+      meta=""
+      title=""
       animatedSections={false}
     >
+      <ChromaticHero
+        meta={persianDate}
+        title={<>مرکز فرمان <span className="text-role-accent">پلتفرم</span></>}
+        description={`نظارت حرفه‌ای بر مدارس، کاربران و زیرساخت هوش مصنوعی — ${adminName}`}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs glass-arc glass-arc-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-arc-green animate-pulse" />
+              <span className="text-role-accent">سیستم عملیاتی</span>
+            </span>
+            {mockAlerts.length > 0 && (
+              <span className="text-xs text-white/40">{mockAlerts.length} هشدار فعال</span>
+            )}
+          </div>
+        }
+      />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
             <StatCard

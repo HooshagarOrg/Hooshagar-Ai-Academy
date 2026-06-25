@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard'
+import { withAuth, ADMIN_ROLES, type AllowedRole } from '@/lib/security/api-guard'
+
+const SCHOOL_VIEW_ROLES: AllowedRole[] = [...ADMIN_ROLES, 'principal']
 
 export async function GET(request: NextRequest) {
   return withAuth(
@@ -18,7 +20,7 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({ schools: data || [], total: count || 0 })
     },
-    { roles: ADMIN_ROLES, rateLimit: 'admin_action' }
+    { roles: SCHOOL_VIEW_ROLES, rateLimit: 'admin_action' }
   )
 }
 

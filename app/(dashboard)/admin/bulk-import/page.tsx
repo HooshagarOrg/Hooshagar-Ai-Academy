@@ -1,507 +1,431 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Upload, Download, CheckCircle, XCircle, Loader2, FileText, AlertCircle, ArrowLeft } from 'lucide-react'
+import {
+  Upload, Download, CheckCircle, XCircle, Loader2,
+  FileText, AlertCircle, Users, Briefcase,
+} from 'lucide-react'
 import { toast } from 'sonner'
+import type { StaffImportRow, StudentImportRow } from '@/lib/bulk-import/types'
 
-// ─── تایپ‌ها ───────────────────────────────────────────────
-type StudentRow = {
-  full_name: string
-  student_number: string
-  grade: string
-  phone?: string
-  parent_phone?: string
-  email?: string
-  _status?: 'pending' | 'success' | 'error' | 'duplicate'
-  _error?: string
+type Step = 'upload' | 'preview' | 'done'
+
+type SheetPreview = {
+  sheetName: string
+  type: 'students' | 'staff'
+  rows: (StudentImportRow | StaffImportRow)[]
 }
 
-type ColumnMapping = {
-  username_col:  string   // نام کاربری (کد دانش‌آموزی)
-  fullname_col:  string   // نام
-  lastname_col:  string   // نام خانوادگی
-  grade_col:     string   // پایه تحصیلی
-}
-
-// فیلدهای سیستم
-const SYSTEM_FIELDS: { key: keyof ColumnMapping; label: string; required: boolean }[] = [
-  { key: 'username_col',  label: 'نام کاربری (رمز عبور یکسان خواهد بود)', required: true  },
-  { key: 'fullname_col',  label: 'نام',                                    required: true  },
-  { key: 'lastname_col',  label: 'نام خانوادگی',                           required: true  },
-  { key: 'grade_col',     label: 'پایه تحصیلی (اختیاری)',                  required: false },
-]
-
-const EXCEL_TEMPLATE_CSV = `نام_کاربری,نام,نام_خانوادگی,پایه_تحصیلی,تلفن,تلفن_والد
-10001,علی,احمدی,پنجم,09121234567,09129876543
-10002,زهرا,رضایی,سوم,,09361112222
-10003,محمد,کریمی,هفتم,09351234567,`
-
-const GRADE_MAP: Record<string, number> = {
-  'اول': 1, 'دوم': 2, 'سوم': 3, 'چهارم': 4, 'پنجم': 5, 'ششم': 6,
-  'هفتم': 7, 'هشتم': 8, 'نهم': 9, 'دهم': 10, 'یازدهم': 11, 'دوازدهم': 12,
-  '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
-  '7': 7, '8': 8, '9': 9, '10': 10, '11': 11, '12': 12,
-}
-
-// ─── کامپوننت اصلی ─────────────────────────────────────────
-type Step = 'upload' | 'mapping' | 'preview'
+type School = { id: string; name: string }
 
 export default function BulkImportPage() {
-  const [step, setStep]           = useState<Step>('upload')
-  const [fileHeaders, setFileHeaders] = useState<string[]>([])
-  const [rawData, setRawData]     = useState<Record<string, string>[]>([])
-  const [mapping, setMapping]     = useState<Partial<ColumnMapping>>({})
-  const [rows, setRows]           = useState<StudentRow[]>([])
+  const [step, setStep] = useState<Step>('upload')
+  const [schools, setSchools] = useState<School[]>([])
+  const [schoolId, setSchoolId] = useState('')
+  const [sheets, setSheets] = useState<SheetPreview[]>([])
+  const [createParents, setCreateParents] = useState(true)
   const [skipDuplicates, setSkipDuplicates] = useState(true)
   const [importing, setImporting] = useState(false)
-  const [progress, setProgress]   = useState(0)
+  const [progress, setProgress] = useState(0)
+  const [results, setResults] = useState<Array<{ name: string; status: string; message?: string; loginCode?: string; pin?: string }>>([])
   const fileRef = useRef<HTMLInputElement>(null)
 
-  // ─── دانلود نمونه ────────────────────────────────────────
-  const downloadTemplate = () => {
-    const blob = new Blob(['\uFEFF' + EXCEL_TEMPLATE_CSV], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'students_template.csv'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  // ─── خواندن فایل (CSV یا Excel) ──────────────────────────
-  const handleFile = useCallback(async (file: File) => {
-    try {
-      let headers: string[] = []
-      let data: Record<string, string>[] = []
-
-      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-        // Excel با SheetJS
-        const { read, utils } = await import('xlsx')
-        const buffer = await file.arrayBuffer()
-        const wb = read(buffer)
-        const sheetName = wb.SheetNames[0]
-        if (!sheetName) { toast.error('فایل Excel بدون شیت است'); return }
-        const ws = wb.Sheets[sheetName]
-        if (!ws) { toast.error('شیت Excel خوانده نشد'); return }
-        const json = utils.sheet_to_json<Record<string, string>>(ws, { defval: '' })
-        if (json.length === 0) { toast.error('فایل خالی است'); return }
-        const firstRow = json[0]
-        if (!firstRow) { toast.error('فایل خالی است'); return }
-        headers = Object.keys(firstRow)
-        data = json.map(row => {
-          const r: Record<string, string> = {}
-          headers.forEach(h => { r[h] = String(row[h] ?? '') })
-          return r
-        })
-      } else {
-        // CSV
-        const text = await file.text()
-        const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim())
-        if (lines.length < 2) { toast.error('فایل خالی یا فرمت نادرست'); return }
-        const headerLine = lines[0]
-        if (!headerLine) { toast.error('فایل خالی یا فرمت نادرست'); return }
-        headers = headerLine.split(',').map(h => h.trim().replace(/^\uFEFF/, ''))
-        data = lines.slice(1).map(line => {
-          const vals = line.split(',').map(v => v.trim())
-          const row: Record<string, string> = {}
-          headers.forEach((h, i) => { row[h] = vals[i] ?? '' })
-          return row
-        }).filter(r => Object.values(r).some(v => v))
-      }
-
-      setFileHeaders(headers)
-      setRawData(data)
-
-      // تشخیص خودکار ستون‌ها
-      const autoMap: Partial<ColumnMapping> = {}
-      const lower = (s: string) => s.toLowerCase()
-      headers.forEach(h => {
-        const l = lower(h)
-        if (!autoMap.username_col  && (l.includes('کاربری') || l.includes('username') || l.includes('کد')))
-          autoMap.username_col = h
-        if (!autoMap.fullname_col  && (l.includes('نام') && !l.includes('خانواد') || l === 'name' || l === 'first'))
-          autoMap.fullname_col = h
-        if (!autoMap.lastname_col  && (l.includes('خانواد') || l.includes('last')))
-          autoMap.lastname_col = h
-        if (!autoMap.grade_col     && (l.includes('پایه') || l.includes('grade')))
-          autoMap.grade_col = h
+  useEffect(() => {
+    fetch('/api/admin/schools')
+      .then((r) => r.json())
+      .then((d) => {
+        const list: School[] = d.schools || []
+        setSchools(list)
+        if (list.length === 1 && list[0]) setSchoolId(list[0].id)
       })
-      setMapping(autoMap)
-      setStep('mapping')
-      toast.success(`${data.length} ردیف بارگذاری شد — ستون‌ها را تطبیق دهید`)
-    } catch (e) {
-      console.error(e)
-      toast.error('خطا در خواندن فایل')
-    }
+      .catch(() => {})
   }, [])
 
-  // ─── تأیید mapping و رفتن به پیش‌نمایش ──────────────────
-  const confirmMapping = () => {
-    if (!mapping.username_col || !mapping.fullname_col || !mapping.lastname_col) {
-      toast.error('فیلدهای اجباری را تطبیق دهید')
-      return
+  const downloadTemplate = async (type: 'students' | 'staff') => {
+    try {
+      const res = await fetch(`/api/admin/bulk-import?type=${type}`)
+      if (!res.ok) { toast.error('خطا در دانلود قالب'); return }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `bulk-import-${type}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      toast.error('خطا در دانلود قالب')
     }
-
-    const usernameCol = mapping.username_col!
-    const fullnameCol = mapping.fullname_col!
-    const lastnameCol = mapping.lastname_col!
-    const gradeCol = mapping.grade_col
-
-    const parsed: StudentRow[] = rawData.map(row => {
-      const username  = (row[usernameCol]  || '').trim()
-      const firstName = (row[fullnameCol]  || '').trim()
-      const lastName  = (row[lastnameCol]  || '').trim()
-      const gradeRaw  = gradeCol ? (row[gradeCol] || '').trim() : ''
-      const gradeNum  = GRADE_MAP[gradeRaw] || parseInt(gradeRaw) || 0
-
-      let error = ''
-      let status: StudentRow['_status'] = 'pending'
-
-      if (!username)  error = 'نام کاربری خالی می‌باشد'
-      if (!firstName) error = (error ? error + ' | ' : '') + 'مقدار خالی می‌باشد'
-      if (!lastName)  error = (error ? error + ' | ' : '') + 'نام خانوادگی خالی می‌باشد'
-
-      if (error) status = 'error'
-
-      return {
-        full_name:      `${firstName} ${lastName}`.trim(),
-        student_number: username,
-        grade:          gradeNum ? String(gradeNum) : '',
-        _status:        status,
-        _error:         error || undefined,
-      }
-    }).filter(r => r.full_name || r.student_number)
-
-    // تشخیص تکراری‌ها
-    const seen = new Set<string>()
-    parsed.forEach(r => {
-      if (r.student_number) {
-        if (seen.has(r.student_number)) {
-          if (skipDuplicates) {
-            r._status = 'duplicate'
-            r._error  = 'نام کاربری تکراری می‌باشد'
-          }
-        } else {
-          seen.add(r.student_number)
-        }
-      }
-    })
-
-    setRows(parsed)
-    setStep('preview')
   }
 
-  // ─── واردسازی ────────────────────────────────────────────
-  const startImport = async () => {
-    const toImport = rows.filter(r => r._status === 'pending')
-    if (toImport.length === 0) return
-    setImporting(true)
-    let done = 0
-
-    const updated = [...rows]
-    for (let i = 0; i < updated.length; i++) {
-      const row = updated[i]
-      if (!row || row._status !== 'pending') { done++; continue }
-      try {
-        const pass = `Hooshagar@${row.student_number}`
-        const res = await fetch('/api/admin/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: `${row.student_number}@student.hooshagar.ir`,
-            password: pass,
-            full_name: row.full_name,
-            role: 'student',
-            student_number: row.student_number,
-            grade: parseInt(row.grade) || 1,
-          }),
-        })
-        const data = await res.json()
-        updated[i] = res.ok
-          ? { ...row, _status: 'success' }
-          : { ...row, _status: 'error', _error: data.error }
-      } catch {
-        updated[i] = { ...row, _status: 'error', _error: 'خطای شبکه' }
+  const handleFile = useCallback(async (file: File) => {
+    if (!schoolId) {
+      toast.error('ابتدا مدرسه را انتخاب کنید')
+      return
+    }
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      form.append('schoolId', schoolId)
+      const res = await fetch('/api/admin/bulk-import', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || 'خطا در خواندن فایل')
+        return
       }
+      setSheets(data.sheets || [])
+      setStep('preview')
+      const total = (data.sheets || []).reduce((n: number, s: SheetPreview) => n + s.rows.length, 0)
+      toast.success(`${total} ردیف از ${data.sheets?.length || 0} شیت بارگذاری شد`)
+    } catch {
+      toast.error('خطا در آپلود فایل')
+    }
+  }, [schoolId])
+
+  const startImport = async () => {
+    if (!schoolId) return
+    setImporting(true)
+    setProgress(0)
+    const allResults: typeof results = []
+    let done = 0
+    const totalSheets = sheets.length
+
+    for (const sheet of sheets) {
+      const validRows = sheet.rows.filter((r) => r.status !== 'error')
+      if (validRows.length === 0) continue
+
+      const res = await fetch('/api/admin/bulk-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'import',
+          importType: sheet.type,
+          options: {
+            schoolId,
+            createParentAccounts: createParents,
+            skipDuplicates,
+          },
+          rows: validRows.map((r) => rawFromRow(r, sheet.type)),
+        }),
+      })
+      const data = await res.json()
+      if (data.details) allResults.push(...data.details)
       done++
-      setProgress(Math.round((done / updated.length) * 100))
-      setRows([...updated])
-      await new Promise(r => setTimeout(r, 250))
+      setProgress(Math.round((done / totalSheets) * 100))
     }
 
+    setResults(allResults)
     setImporting(false)
-    const ok  = updated.filter(r => r._status === 'success').length
-    const err = updated.filter(r => r._status === 'error').length
-    toast.success(`واردسازی تمام شد — موفق: ${ok} | خطا: ${err}`)
+    setStep('done')
+    const ok = allResults.filter((r) => r.status === 'success' || r.status === 'warning').length
+    toast.success(`واردسازی تمام شد — موفق: ${ok} | کل: ${allResults.length}`)
   }
 
   const reset = () => {
-    setStep('upload'); setRows([]); setRawData([]); setFileHeaders([])
-    setMapping({}); setProgress(0)
+    setStep('upload')
+    setSheets([])
+    setResults([])
+    setProgress(0)
   }
 
-  // ─── آمار ────────────────────────────────────────────────
-  const successCount   = rows.filter(r => r._status === 'success').length
-  const errorCount     = rows.filter(r => r._status === 'error').length
-  const duplicateCount = rows.filter(r => r._status === 'duplicate').length
-  const pendingCount   = rows.filter(r => r._status === 'pending').length
+  const studentSheets = sheets.filter((s) => s.type === 'students')
+  const staffSheets = sheets.filter((s) => s.type === 'staff')
+  const allRows = sheets.flatMap((s) => s.rows)
+  const validCount = allRows.filter((r) => r.status !== 'error').length
+  const errorCount = allRows.filter((r) => r.status === 'error').length
 
-  // ══════════════════════════════════════════════════════════
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto" dir="rtl">
-
-      {/* ─ Header ─ */}
-            <div>
+    <div className="p-6 space-y-6 max-w-6xl mx-auto" dir="rtl">
+      <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Upload className="text-blue-600" /> ثبت دانش‌آموزان
-              </h1>
-        <p className="text-sm text-gray-500 mt-1">آپلود فایل Excel یا CSV برای ثبت چند دانش‌آموز به‌صورت همزمان</p>
-        </div>
+          <Upload className="text-blue-600" /> واردسازی گروهی کاربران
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          دانش‌آموز + والد در یک سطر | کارکنان در شیت جدا | ورود با کد ۱۰ رقمی (کد ملی یا موبایل)
+        </p>
+      </div>
 
-      {/* ─ نوار مراحل ─ */}
-      <div className="flex items-center gap-2 text-sm">
-        {(['upload','mapping','preview'] as Step[]).map((s, i) => {
-          const labels = ['آپلود فایل', 'تطبیق ستون‌ها', 'بررسی و ثبت']
-          const active = step === s
-          const done   = (step === 'mapping' && i === 0) || (step === 'preview' && i <= 1)
-          return (
-            <div key={s} className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
-                ${done ? 'bg-green-500 text-white' : active ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                {done ? '✓' : i + 1}
-                              </div>
-              <span className={active ? 'font-semibold text-blue-600' : done ? 'text-green-600' : 'text-gray-400'}>
-                {labels[i] ?? ''}
-              </span>
-              {i < 2 && <ArrowLeft className="text-gray-300 w-4 h-4" />}
-                            </div>
-          )
-        })}
-                      </div>
+      {/* انتخاب مدرسه */}
+      <Card>
+        <CardContent className="p-4 flex flex-wrap items-center gap-4">
+          <span className="text-sm font-medium">مدرسه:</span>
+          <Select value={schoolId} onValueChange={setSchoolId}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="انتخاب مدرسه" />
+            </SelectTrigger>
+            <SelectContent>
+              {schools.map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex gap-2 mr-auto">
+            <Button variant="outline" size="sm" onClick={() => downloadTemplate('students')}>
+              <Download size={14} className="ml-1" /> قالب دانش‌آموز
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => downloadTemplate('staff')}>
+              <Download size={14} className="ml-1" /> قالب کارکنان
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* ══ مرحله ۱: آپلود ══════════════════════════════════ */}
       {step === 'upload' && (
         <>
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div className="flex items-start gap-3">
-                <FileText className="text-blue-600 mt-0.5 shrink-0" />
-                      <div>
-                  <p className="font-semibold text-blue-800">دانلود فایل نمونه</p>
-                  <p className="text-sm text-blue-700">
-                    فایل نمونه را دانلود، پر کنید و آپلود کنید (CSV یا Excel)
-                  </p>
-                              </div>
-                            </div>
-              <Button variant="outline" className="border-blue-400 text-blue-700 shrink-0" onClick={downloadTemplate}>
-                <Download size={16} className="ml-1" /> دانلود نمونه
-                      </Button>
-                  </CardContent>
-                </Card>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Users className="text-blue-600 mt-1" />
+                  <div>
+                    <p className="font-semibold text-blue-800">شیت دانش‌آموزان</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      نام، کد ملی، پایه، کلاس + مشخصات والد در همان سطر
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-purple-200 bg-purple-50">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Briefcase className="text-purple-600 mt-1" />
+                  <div>
+                    <p className="font-semibold text-purple-800">شیت کارکنان</p>
+                    <p className="text-sm text-purple-700 mt-1">
+                      نام، کد ملی، نقش، موبایل — کد ورود: کد ملی یا موبایل ۱۰ رقمی
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           <div
             className="border-2 border-dashed border-gray-300 rounded-xl p-16 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
-            onDrop={e => { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]) }}
-            onDragOver={e => e.preventDefault()}
+            onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]) }}
+            onDragOver={(e) => e.preventDefault()}
             onClick={() => fileRef.current?.click()}
           >
             <Upload className="mx-auto mb-3 text-gray-400" size={48} />
-            <p className="text-gray-700 font-medium text-lg">فایل را اینجا بکشید یا کلیک کنید</p>
-            <p className="text-sm text-gray-400 mt-2">پشتیبانی از فرمت‌های CSV و Excel (.xlsx)</p>
+            <p className="text-gray-700 font-medium text-lg">فایل Excel یا CSV را اینجا بکشید</p>
+            <p className="text-sm text-gray-400 mt-2">چند شیت در یک فایل Excel پشتیبانی می‌شود</p>
             <input
               ref={fileRef} type="file" accept=".csv,.txt,.xlsx,.xls" className="hidden"
-              onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]) }}
+              onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]) }}
             />
-                </div>
+          </div>
         </>
-              )}
+      )}
 
-      {/* ══ مرحله ۲: تطبیق ستون‌ها ════════════════════════ */}
-      {step === 'mapping' && (
-                <Card>
-                  <CardHeader>
-            <CardTitle>ثبت دانش‌آموزان</CardTitle>
-                  </CardHeader>
-          <CardContent className="space-y-5">
-                              <p className="text-sm text-gray-500">
-              برای هر فیلد سیستم، ستون متناظر در فایل Excel را انتخاب کنید
-            </p>
-
-            {/* جدول تطبیق */}
-            <div className="border rounded-lg overflow-hidden">
-              <div className="grid grid-cols-2 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-600">
-                <span>ستون فایل excel</span>
-                <span>ستون الگو</span>
-                        </div>
-              {SYSTEM_FIELDS.map(field => (
-                <div key={field.key} className="grid grid-cols-2 items-center px-4 py-3 border-t hover:bg-gray-50">
-                  <span className="text-sm text-gray-700">
-                    {field.label}
-                    {field.required && <span className="text-red-500 mr-1">*</span>}
-                  </span>
-                  <Select
-                    value={mapping[field.key] || ''}
-                    onValueChange={val => setMapping(prev => ({ ...prev, [field.key]: val }))}
-                  >
-                    <SelectTrigger className="text-sm">
-                      <SelectValue placeholder="انتخاب کنید" />
-                          </SelectTrigger>
-                          <SelectContent>
-                      {!field.required && (
-                        <SelectItem value="__none__">— انتخاب نشود —</SelectItem>
-                      )}
-                      {fileHeaders.map(h => (
-                        <SelectItem key={h} value={h}>{h}</SelectItem>
-                      ))}
-                          </SelectContent>
-                        </Select>
-                </div>
-              ))}
-                      </div>
-
-            {/* صرف نظر از تکراری‌ها */}
-            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <Checkbox
-                id="skip-dup"
-                checked={skipDuplicates}
-                onCheckedChange={v => setSkipDuplicates(Boolean(v))}
-              />
-              <label htmlFor="skip-dup" className="text-sm text-blue-800 cursor-pointer font-medium">
-                صرف نظر از خطای ثبت کاربرهای تکراری (ثبت ردیف‌های بدون خطا)
-              </label>
-                      </div>
-
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={reset}>بازگشت</Button>
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={confirmMapping}>
-                تایید - ادامه
-                          </Button>
-                        </div>
-                  </CardContent>
-                </Card>
-              )}
-
-      {/* ══ مرحله ۳: پیش‌نمایش و واردسازی ════════════════ */}
       {step === 'preview' && (
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <CardTitle>ثبت دانش‌آموزان — پیش‌نمایش</CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle>پیش‌نمایش و واردسازی</CardTitle>
               <div className="flex gap-2">
-                {!importing && (
-                  <Button variant="outline" onClick={reset}>بارگذاری مجدد</Button>
-                )}
-                    <Button
+                <Button variant="outline" onClick={reset}>بارگذاری مجدد</Button>
+                <Button
                   onClick={startImport}
-                  disabled={importing || pendingCount === 0}
+                  disabled={importing || validCount === 0}
                   className="bg-orange-500 hover:bg-orange-600 text-white"
                 >
                   {importing
-                    ? <><Loader2 className="animate-spin ml-2" size={16} /> واردسازی... {progress}%</>
-                    : pendingCount === 0
-                    ? <><CheckCircle size={16} className="ml-1" /> تکمیل شد</>
-                    : `تایید - ادامه (${pendingCount} نفر)`}
-                    </Button>
+                    ? <><Loader2 className="animate-spin ml-2" size={16} /> {progress}%</>
+                    : `شروع واردسازی (${validCount} ردیف)`}
+                </Button>
               </div>
             </div>
+            <div className="flex gap-4 text-sm flex-wrap">
+              <span className="text-green-700">✅ معتبر: {validCount}</span>
+              <span className="text-red-700">❌ خطا: {errorCount}</span>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-4 p-3 bg-gray-50 rounded-lg">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox checked={createParents} onCheckedChange={(v) => setCreateParents(Boolean(v))} />
+                ایجاد حساب والد در کنار دانش‌آموز
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox checked={skipDuplicates} onCheckedChange={(v) => setSkipDuplicates(Boolean(v))} />
+                رد کردن ردیف‌های تکراری
+              </label>
+            </div>
 
-            {/* نوار پیشرفت */}
-            {importing && (
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                <div className="bg-orange-500 h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
-                </div>
-              )}
+            <Tabs defaultValue="students">
+              <TabsList>
+                <TabsTrigger value="students">دانش‌آموزان ({studentSheets.reduce((n, s) => n + s.rows.length, 0)})</TabsTrigger>
+                <TabsTrigger value="staff">کارکنان ({staffSheets.reduce((n, s) => n + s.rows.length, 0)})</TabsTrigger>
+              </TabsList>
 
-            {/* آمار */}
-            <div className="flex gap-4 text-sm mt-2 flex-wrap">
-              <span className="text-green-700 font-bold">✅ موفق: {successCount}</span>
-              <span className="text-red-700 font-bold">❌ خطا: {errorCount}</span>
-              {duplicateCount > 0 && (
-                <span className="text-orange-700 font-bold">⚠️ تکراری: {duplicateCount}</span>
-              )}
-              <span className="text-gray-500">⏳ در انتظار: {pendingCount}</span>
-                </div>
-              </CardHeader>
+              <TabsContent value="students">
+                <PreviewTable sheets={studentSheets} type="students" />
+              </TabsContent>
+              <TabsContent value="staff">
+                <PreviewTable sheets={staffSheets} type="staff" />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
 
-              <CardContent>
+      {step === 'done' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="text-green-600" /> نتیجه واردسازی
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="overflow-x-auto max-h-[500px] overflow-y-auto rounded-lg border">
-              <table className="w-full text-sm border-collapse">
-                <thead className="bg-gray-100 sticky top-0 z-10">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100 sticky top-0">
                   <tr>
-                    <th className="p-3 text-right font-semibold border-b">نام کاربری</th>
-                    <th className="p-3 text-right font-semibold border-b">نام</th>
-                    <th className="p-3 text-right font-semibold border-b">نام خانوادگی</th>
-                    <th className="p-3 text-center font-semibold border-b">پایه تحصیلی</th>
-                    <th className="p-3 text-center font-semibold border-b">وضعیت</th>
+                    <th className="p-3 text-right">نام</th>
+                    <th className="p-3 text-right">کد ورود</th>
+                    <th className="p-3 text-right">رمز/PIN</th>
+                    <th className="p-3 text-center">وضعیت</th>
+                    <th className="p-3 text-right">پیام</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row, idx) => {
-                    const nameParts = row.full_name.split(' ')
-                    const fn = nameParts[0] || ''
-                    const ln = nameParts.slice(1).join(' ') || ''
-                    const isOk  = row._status === 'success'
-                    const isErr = row._status === 'error' || row._status === 'duplicate'
-                    return (
-                      <tr
-                        key={idx}
-                        className={`border-b transition-colors ${
-                          isOk  ? 'bg-green-50 hover:bg-green-100' :
-                          isErr ? 'bg-red-50 hover:bg-red-100' :
-                          'hover:bg-gray-50'
-                        }`}
-                      >
-                        <td className={`p-3 font-mono text-xs ${isErr ? 'text-red-700' : ''}`}>
-                          {row.student_number || (
-                            <span className="text-red-500">مقدار خالی می‌باشد</span>
-                          )}
-                          {row._error?.includes('تکراری') && (
-                            <span className="text-orange-600 text-xs block">نام کاربری تکراری می باشد</span>
-                          )}
-                        </td>
-                        <td className={`p-3 ${isErr && !fn ? 'text-red-500' : ''}`}>
-                          {fn || <span className="text-red-500">مقدار خالی می‌باشد</span>}
-                        </td>
-                        <td className={`p-3 ${isErr && !ln ? 'text-red-500' : ''}`}>
-                          {ln || <span className="text-red-500">مقدار خالی می‌باشد</span>}
-                        </td>
-                        <td className="p-3 text-center">
-                          {row.grade ? (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                              {Object.entries(GRADE_MAP).find(([k, v]) => v === parseInt(row.grade, 10) && !/^\d+$/.test(k))?.[0] ?? `پایه ${row.grade}`}
-                            </Badge>
-                          ) : '—'}
-                        </td>
-                        <td className="p-3 text-center">
-                          {row._status === 'success'   && <CheckCircle className="text-green-600 mx-auto" size={20} />}
-                          {row._status === 'error'     && <XCircle     className="text-red-500 mx-auto"   size={20} />}
-                          {row._status === 'duplicate' && <AlertCircle className="text-orange-500 mx-auto" size={20} />}
-                          {row._status === 'pending'   && <AlertCircle className="text-gray-400 mx-auto"   size={20} />}
-                        </td>
-                      </tr>
-                    )
-                  })}
+                  {results.map((r, i) => (
+                    <tr key={i} className={`border-t ${r.status === 'error' ? 'bg-red-50' : 'bg-green-50'}`}>
+                      <td className="p-3">{r.name}</td>
+                      <td className="p-3 font-mono text-xs" dir="ltr">{r.loginCode || '—'}</td>
+                      <td className="p-3 font-mono text-xs" dir="ltr">{r.pin || '—'}</td>
+                      <td className="p-3 text-center">
+                        {r.status === 'success' || r.status === 'warning'
+                          ? <CheckCircle className="text-green-600 mx-auto" size={18} />
+                          : r.status === 'skipped'
+                          ? <AlertCircle className="text-orange-500 mx-auto" size={18} />
+                          : <XCircle className="text-red-500 mx-auto" size={18} />}
+                      </td>
+                      <td className="p-3 text-xs text-gray-600">{r.message}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-
-            <div className="flex justify-end mt-4">
-              <Button variant="outline" onClick={() => setStep('mapping')}>
-                بازگشت
-                            </Button>
-                          </div>
-              </CardContent>
-            </Card>
+            <div className="flex justify-end mt-4 gap-2">
+              <Button variant="outline" onClick={reset}>واردسازی جدید</Button>
+              <Button onClick={() => {
+                const csv = ['نام,کد_ورود,رمز,وضعیت,پیام', ...results.map((r) =>
+                  `"${r.name}","${r.loginCode || ''}","${r.pin || ''}","${r.status}","${r.message || ''}"`
+                )].join('\n')
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' })
+                const a = document.createElement('a')
+                a.href = URL.createObjectURL(blob)
+                a.download = 'import-results.csv'
+                a.click()
+              }}>
+                <Download size={14} className="ml-1" /> دانلود نتایج
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
-
-      {/* Dialog پیام‌ها */}
     </div>
   )
+}
+
+function PreviewTable({ sheets, type }: { sheets: SheetPreview[]; type: 'students' | 'staff' }) {
+  if (sheets.length === 0) {
+    return <p className="text-sm text-gray-500 p-4">ردیفی یافت نشد</p>
+  }
+
+  return (
+    <div className="space-y-4">
+      {sheets.map((sheet) => (
+        <div key={sheet.sheetName}>
+          <p className="text-sm font-medium text-gray-600 mb-2">شیت: {sheet.sheetName}</p>
+          <div className="overflow-x-auto rounded-lg border max-h-96 overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100 sticky top-0">
+                <tr>
+                  <th className="p-2 text-right">#</th>
+                  <th className="p-2 text-right">نام</th>
+                  <th className="p-2 text-right">کد ملی</th>
+                  {type === 'students' && <th className="p-2 text-center">پایه</th>}
+                  {type === 'students' && <th className="p-2 text-right">والد</th>}
+                  {type === 'staff' && <th className="p-2 text-right">نقش</th>}
+                  <th className="p-2 text-center">وضعیت</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sheet.rows.map((row) => {
+                  const isStudent = type === 'students'
+                  const sRow = row as StudentImportRow
+                  const fRow = row as StaffImportRow
+                  const name = isStudent
+                    ? `${sRow.firstName} ${sRow.lastName}`
+                    : `${fRow.firstName} ${fRow.lastName}`
+                  const isErr = row.status === 'error'
+                  return (
+                    <tr key={row.rowNumber} className={`border-t ${isErr ? 'bg-red-50' : ''}`}>
+                      <td className="p-2">{row.rowNumber}</td>
+                      <td className="p-2">{name}</td>
+                      <td className="p-2 font-mono text-xs" dir="ltr">
+                        {isStudent ? sRow.nationalCode : fRow.nationalCode}
+                      </td>
+                      {isStudent && <td className="p-2 text-center">{sRow.grade}</td>}
+                      {isStudent && (
+                        <td className="p-2 text-xs">
+                          {sRow.parentFirstName
+                            ? `${sRow.parentFirstName} (${sRow.parentLoginCode || '—'})`
+                            : '—'}
+                        </td>
+                      )}
+                      {!isStudent && <td className="p-2">{fRow.role}</td>}
+                      <td className="p-2 text-center">
+                        {row.status === 'error' && <XCircle className="text-red-500 mx-auto" size={16} />}
+                        {row.status === 'warning' && <AlertCircle className="text-orange-500 mx-auto" size={16} />}
+                        {(row.status === 'valid' || row.status === 'pending') && <FileText className="text-gray-400 mx-auto" size={16} />}
+                        {isErr && <p className="text-xs text-red-600 mt-1">{row.errors.join(' | ')}</p>}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function rawFromRow(row: StudentImportRow | StaffImportRow, type: 'students' | 'staff'): Record<string, string> {
+  if (type === 'staff') {
+    const r = row as StaffImportRow
+    return {
+      نام: r.firstName,
+      نام_خانوادگی: r.lastName,
+      کد_ملی: r.nationalCode,
+      نقش: r.role,
+      موبایل: r.mobile || '',
+      کد_ورود: r.loginCode,
+    }
+  }
+  const r = row as StudentImportRow
+  return {
+    نام: r.firstName,
+    نام_خانوادگی: r.lastName,
+    کد_ملی: r.nationalCode,
+    پایه: String(r.grade),
+    کلاس: r.className || '',
+    نام_والد: r.parentFirstName || '',
+    نام_خانوادگی_والد: r.parentLastName || '',
+    کد_ورود_والد: r.parentLoginCode || '',
+    موبایل_والد: r.parentMobile || '',
+    نسبت_والد: r.parentRelation || 'پدر',
+  }
 }

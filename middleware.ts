@@ -1,7 +1,11 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { getSupabaseUrl, getSupabaseServerUrl } from '@/lib/supabase/resolve-url'
-import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
+import { getSupabaseMiddlewareUrl } from '@/lib/supabase/resolve-url'
+import {
+  supabaseAuthCookieOptions,
+  clearLegacyAuthCookies,
+  LEGACY_SUPABASE_AUTH_COOKIES,
+} from '@/lib/supabase/auth-cookie'
 
 // ============================================
 // تایپ‌ها
@@ -27,13 +31,6 @@ type UserRole =
   | 'maintenance'
 
 type EducationStage = 'preschool' | 'elementary' | 'middle_school' | 'high_school' | 'vocational' | 'technical'
-
-interface UserProfile {
-  id: string
-  role: UserRole
-  school_id: string | null
-  must_change_password?: boolean
-}
 
 // مسیرهایی که حداقل پایه تحصیلی نیاز دارند
 const GRADE_RESTRICTED_ROUTES: Record<string, { min_grade: number; stages: EducationStage[] }> = {
@@ -65,7 +62,10 @@ const EXCLUDED_ROUTES = [
   '/manifest.json',
   '/logo.png',
   '/images',
+  '/videos',
+  '/brand',
   '/fonts',
+  '/templates',
   '/_vercel',
 ]
 
@@ -194,7 +194,7 @@ export async function middleware(request: NextRequest) {
 
   // 3. ایجاد Supabase Client
   const supabase = createServerClient(
-    getSupabaseServerUrl(),
+    getSupabaseMiddlewareUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookieOptions: supabaseAuthCookieOptions,
@@ -219,27 +219,33 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // 4. دریافت کاربر — getUser() امن‌تر از getSession() است
-  // getSession() فقط کوکی محلی را می‌خواند و قابل جعل است
-  // getUser() با سرور Supabase تأیید می‌کند
+  // 4. دریافت session از JWT کوکی — بدون network call به Auth API
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
-  // 5. مسیرهای عمومی - اگر لاگین است، redirect به داشبورد مربوطه
-  if (isPublicRoute(pathname)) {
-    if (user) {
-      // دریافت پروفایل کاربر
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      if (profile?.role) {
-        const defaultRoute = getDefaultRouteForRole(profile.role as UserRole)
-        return NextResponse.redirect(new URL(defaultRoute, request.url))
+  // حذف کوکی‌های legacy
+  if (!user) {
+    response = clearLegacyAuthCookies(response)
+    for (const legacyName of LEGACY_SUPABASE_AUTH_COOKIES) {
+      if (request.cookies.has(legacyName)) {
+        response.cookies.set(legacyName, '', { path: '/', maxAge: 0 })
       }
+    }
+  }
+
+  // استخراج role از JWT claims (user_metadata یا app_metadata)
+  const jwtRole = (
+    user?.user_metadata?.role ??
+    user?.app_metadata?.role
+  ) as UserRole | undefined
+
+  // 5. مسیرهای عمومی - اگر لاگین است، redirect به داشبورد
+  if (isPublicRoute(pathname)) {
+    if (user && jwtRole) {
+      const defaultRoute = getDefaultRouteForRole(jwtRole)
+      return NextResponse.redirect(new URL(defaultRoute, request.url))
     }
     return response
   }
@@ -251,34 +257,32 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // 7. دریافت پروفایل کاربر
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, role, school_id, must_change_password')
-    .eq('id', user.id)
-    .single()
+  // 7. تعیین نقش کاربر
+  // اولویت: JWT claims → DB query (fallback)
+  let userRole: UserRole
+  let userId = user.id
+  let schoolId: string | null = null
 
-  // اگر پروفایل یافت نشد
-  if (profileError || !profile) {
-    console.error('Profile not found:', profileError)
-    // خروج از حساب و redirect به login
-    await supabase.auth.signOut()
-    return NextResponse.redirect(new URL('/login?error=profile_not_found', request.url))
+  if (jwtRole) {
+    userRole = jwtRole
+  } else {
+    // fallback به DB (برای کاربرانی که role در JWT ندارند)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, role, school_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.role) {
+      // نمی‌توان نقش را تعیین کرد — redirect به login
+      return NextResponse.redirect(new URL('/login?error=profile_not_found', request.url))
+    }
+    userRole = profile.role as UserRole
+    schoolId = profile.school_id ?? null
+    userId = profile.id
   }
 
-  const userProfile = profile as UserProfile
-  const userRole = userProfile.role
-
-  // 8. بررسی must_change_password - اجبار به تغییر رمز
-  if (
-    userProfile.must_change_password &&
-    pathname !== '/change-password' &&
-    !pathname.startsWith('/api')
-  ) {
-    return NextResponse.redirect(new URL('/change-password', request.url))
-  }
-
-  // 8.5. Redirect از /dashboard به role-based dashboard
+  // 8. Redirect از /dashboard به role-based dashboard
   if (pathname === '/dashboard') {
     const defaultRoute = getDefaultRouteForRole(userRole)
     return NextResponse.redirect(new URL(defaultRoute, request.url))
@@ -287,26 +291,18 @@ export async function middleware(request: NextRequest) {
   // 9. بررسی RBAC
   const allowedRoles = getAllowedRoles(pathname)
 
-  if (allowedRoles !== null) {
-    // اگر نقش کاربر در لیست مجاز نیست
-    if (!allowedRoles.includes(userRole)) {
-      console.warn(`Access denied: ${userRole} tried to access ${pathname}`)
-
-      // redirect به داشبورد مربوط به نقش کاربر
-      const defaultRoute = getDefaultRouteForRole(userRole)
-
-      // جلوگیری از infinite loop
-      if (pathname === defaultRoute) {
-        return NextResponse.redirect(new URL('/dashboard?error=access_denied', request.url))
-      }
-
-      const redirectUrl = new URL(defaultRoute, request.url)
-      redirectUrl.searchParams.set('error', 'access_denied')
-      return NextResponse.redirect(redirectUrl)
+  if (allowedRoles !== null && !allowedRoles.includes(userRole)) {
+    console.warn(`Access denied: ${userRole} tried to access ${pathname}`)
+    const defaultRoute = getDefaultRouteForRole(userRole)
+    if (pathname === defaultRoute) {
+      return NextResponse.redirect(new URL('/dashboard?error=access_denied', request.url))
     }
+    const redirectUrl = new URL(defaultRoute, request.url)
+    redirectUrl.searchParams.set('error', 'access_denied')
+    return NextResponse.redirect(redirectUrl)
   }
 
-  // 9.5. بررسی محدودیت مقطع تحصیلی برای دانش‌آموزان
+  // 10. بررسی محدودیت مقطع تحصیلی برای دانش‌آموزان
   if (userRole === 'student' && Object.keys(GRADE_RESTRICTED_ROUTES).some(r => pathname.startsWith(r))) {
     const { data: studentData } = await supabase
       .from('students')
@@ -327,40 +323,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 10. بررسی دسترسی مبتنی بر مدرسه (School-Based Access)
-  // platform_admin به همه مدارس دسترسی دارد
-  if (userRole !== 'platform_admin' && userRole !== 'admin') {
-    // اگر کاربر school_id ندارد
-    if (!userProfile.school_id) {
-      console.warn(`User ${userProfile.id} has no school_id`)
-      // اجازه دسترسی به داشبورد عمومی
-      if (!pathname.startsWith('/dashboard')) {
-        return NextResponse.redirect(
-          new URL('/dashboard?error=no_school_assigned', request.url)
-        )
-      }
-    }
-
-    // بررسی school_id در URL parameters (اگر وجود دارد)
-    const schoolIdParam = request.nextUrl.searchParams.get('school_id')
-    if (schoolIdParam && schoolIdParam !== userProfile.school_id) {
-      console.warn(
-        `School access denied: User school ${userProfile.school_id}, requested ${schoolIdParam}`
-      )
-      return NextResponse.redirect(
-        new URL(`${pathname}?error=school_access_denied`, request.url)
-      )
-    }
-  }
-
   // 11. افزودن headers برای استفاده در صفحات
   response.headers.set('x-user-role', userRole)
-  response.headers.set('x-user-id', userProfile.id)
-  if (userProfile.school_id) {
-    response.headers.set('x-school-id', userProfile.school_id)
-  }
-  if (userProfile.must_change_password) {
-    response.headers.set('x-must-change-password', 'true')
+  response.headers.set('x-user-id', userId)
+  if (schoolId) {
+    response.headers.set('x-school-id', schoolId)
   }
 
   return response
@@ -378,7 +345,7 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (images, fonts, etc.)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|mp4|webm|woff2)$).*)',
   ],
 }
 

@@ -214,6 +214,41 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     // 3. Create Supabase client
     const supabase = await createClient()
 
+    // 3b. برای ورود: بررسی وجود کاربر با این موبایل
+    if (purpose === 'login') {
+      const { createClient: createAdminClient } = await import('@supabase/supabase-js')
+      const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      )
+      const { data: matches } = await admin
+        .from('profiles')
+        .select('id, role, phone')
+        .eq('phone', phoneNumber)
+
+      if (!matches?.length) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'کاربری با این شماره موبایل ثبت نشده است. با مدرسه تماس بگیرید.',
+            code: 'USER_NOT_FOUND',
+          },
+          { status: 404 }
+        )
+      }
+      if (matches.length > 1) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'این شماره برای چند حساب ثبت شده. با پشتیبانی تماس بگیرید.',
+            code: 'AMBIGUOUS_PHONE',
+          },
+          { status: 409 }
+        )
+      }
+    }
+
     // 4. Check rate limit
     const { allowed, attemptsLeft } = await checkRateLimit(supabase, phoneNumber)
 

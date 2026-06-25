@@ -80,7 +80,7 @@ async function queryWithRetry<T>(
   fn: () => PromiseLike<{ data: T; error: { message?: string; code?: string } | null }>
 ): Promise<{ data: T; error: { message?: string; code?: string } | null }> {
   let last = await fn()
-  for (let i = 1; i < 6; i++) {
+  for (let i = 1; i < 3; i++) {
     if (!last.error) return last
     const msg = last.error.message ?? ''
     const retriable =
@@ -90,7 +90,7 @@ async function queryWithRetry<T>(
       msg.includes('aborted') ||
       last.error.code === 'UND_ERR_CONNECT_TIMEOUT'
     if (!retriable) return last
-    await new Promise((r) => setTimeout(r, 3000 * i))
+    await new Promise((r) => setTimeout(r, 1500 * i))
     last = await fn()
   }
   return last
@@ -98,7 +98,7 @@ async function queryWithRetry<T>(
 
 async function withNetworkRetry<T>(fn: () => Promise<T>): Promise<T> {
   let lastError: unknown
-  for (let attempt = 0; attempt < 6; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
       return await fn()
     } catch (err: unknown) {
@@ -109,8 +109,8 @@ async function withNetworkRetry<T>(fn: () => Promise<T>): Promise<T> {
         msg.includes('timeout') ||
         msg.includes('ECONNRESET') ||
         msg.includes('aborted')
-      if (!retriable || attempt === 5) break
-      await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)))
+      if (!retriable || attempt === 2) break
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)))
     }
   }
   throw lastError
@@ -135,13 +135,15 @@ async function handleStaffLogin(
   username: string,
   password: string
 ) {
-  // 1. پیدا کردن ایمیل بر اساس username
+  // 1. پیدا کردن ایمیل بر اساس username (از profiles، بدون Auth API)
   const admin = getAdminClient()
-  const { data: profile, error: profileError } = await admin
-    .from('profiles')
-    .select('id, email: id, role, must_change_password, is_staff')
-    .eq('username', username.toLowerCase().trim())
-    .single()
+  const { data: profile, error: profileError } = await queryWithRetry(() =>
+    admin
+      .from('profiles')
+      .select('id, email, role, must_change_password, is_staff')
+      .eq('username', username.toLowerCase().trim())
+      .single()
+  )
 
   if (profileError || !profile) {
     return { success: false, error: 'نام کاربری یا رمز عبور اشتباه است' }
@@ -151,18 +153,15 @@ async function handleStaffLogin(
     return { success: false, error: 'این حساب از نوع کارکنان نیست' }
   }
 
-  // 2. دریافت ایمیل واقعی از auth.users
-  const { data: authUser, error: authError } = await admin.auth.admin.getUserById(profile.id)
-
-  if (authError || !authUser.user?.email) {
+  if (!profile.email) {
     return { success: false, error: 'خطا در احراز هویت' }
   }
 
-  // 3. ورود با ایمیل + رمز
+  // 2. ورود با ایمیل + رمز (مستقیم، بدون getUserById)
   const { error } = await supabase.auth.signInWithPassword({
-    email: authUser.user.email,
-      password,
-    })
+    email: profile.email,
+    password,
+  })
     
     if (error) {
     // ثبت تلاش ناموفق
@@ -180,6 +179,9 @@ async function handleStaffLogin(
     .update({ login_attempts: 0, last_login_at: new Date().toISOString() })
     .eq('id', profile.id)
 
+  // صبر برای onAuthStateChange → applyServerStorage → setAll
+  await new Promise<void>((resolve) => setTimeout(resolve, 0))
+
   return {
     success: true,
     must_change_password: profile.must_change_password,
@@ -188,12 +190,11 @@ async function handleStaffLogin(
 }
 
 // ============================================
-// روش 2: ورود OTP (والدین و دانش‌آموزان با موبایل)
+// روش 2: ورود OTP — برگرداندن credentials برای client-side signIn
 // ============================================
 async function handleOtpLogin(phone: string, otp: string) {
   const admin = getAdminClient()
 
-  // 1. بررسی کد OTP
   const now = new Date().toISOString()
   const { data: otpRecord, error: otpError } = await admin
     .from('otp_codes')
@@ -211,52 +212,55 @@ async function handleOtpLogin(phone: string, otp: string) {
     return { success: false, error: 'کد تأیید نامعتبر یا منقضی شده است' }
   }
 
-  // 2. علامت‌گذاری OTP به عنوان استفاده‌شده
   await admin
     .from('otp_codes')
     .update({ is_used: true, used_at: new Date().toISOString() })
     .eq('id', otpRecord.id)
 
-  // 3. پیدا کردن کاربر با شماره موبایل
-  const { data: profile, error: profileError } = await admin
+  const { data: profiles, error: profileError } = await admin
     .from('profiles')
-    .select('id, role, must_change_password, phone_verified')
+    .select('id, email, role, full_name, pin_hash, phone, must_change_password')
     .eq('phone', phone)
-    .single()
 
-  if (profileError || !profile) {
-    return { success: false, error: 'کاربری با این شماره موبایل ثبت‌نام نکرده است. لطفاً ابتدا حساب خود را فعال‌سازی کنید.' }
+  if (profileError || !profiles?.length) {
+    return { success: false, error: 'کاربری با این شماره موبایل یافت نشد' }
+  }
+  if (profiles.length > 1) {
+    return { success: false, error: 'این شماره برای چند حساب ثبت شده. با پشتیبانی تماس بگیرید.' }
   }
 
-  // 4. تأیید شماره موبایل (اگر هنوز تأیید نشده)
-  if (!profile.phone_verified) {
-    await admin
-      .from('profiles')
-      .update({ phone_verified: true, phone_verified_at: new Date().toISOString() })
-      .eq('id', profile.id)
+  const profile = profiles[0]
+  if (!profile?.email) {
+    return { success: false, error: 'خطا در احراز هویت' }
   }
 
-  // 5. ایجاد session با service role
-  const { data: session, error: sessionError } = await admin.auth.admin.generateLink({
-    type: 'magiclink',
-    email: `${phone}@phone.hooshagar.ir`,
-  })
+  const uidClean = profile.id.replace(/-/g, '').slice(0, 12)
+  let authPassword: string
 
-  if (sessionError || !session) {
-    // روش جایگزین: signInWithPassword با رمز از پیش تنظیم شده
-    const { data: authUser } = await admin.auth.admin.getUserById(profile.id)
-    if (!authUser.user?.email) {
-      return { success: false, error: 'خطا در ایجاد نشست' }
+  if (profile.role === 'student') {
+    const { data: student } = await admin
+      .from('students')
+      .select('pin_hash')
+      .eq('user_id', profile.id)
+      .single()
+
+    if (!student?.pin_hash) {
+      return { success: false, error: 'رمز دانش‌آموز تنظیم نشده است' }
     }
-
-    return {
-      success: true,
-      userId: profile.id,
-      role: profile.role,
-      must_change_password: profile.must_change_password,
-      auth_method: 'otp_verified',
+    const pinPlain = Buffer.from(student.pin_hash, 'base64').toString('utf8')
+    authPassword = `hg_student_${uidClean}_${pinPlain}`
+  } else {
+    if (!profile.pin_hash) {
+      return { success: false, error: 'رمز ورود تنظیم نشده است' }
     }
+    const passPlain = Buffer.from(profile.pin_hash, 'base64').toString('utf8')
+    authPassword = `hg_user_${uidClean}_${passPlain}`
   }
+
+  await admin
+    .from('profiles')
+    .update({ phone_verified: true, phone_verified_at: new Date().toISOString() })
+    .eq('id', profile.id)
 
   return {
     success: true,
@@ -264,6 +268,11 @@ async function handleOtpLogin(phone: string, otp: string) {
     role: profile.role,
     must_change_password: profile.must_change_password,
     auth_method: 'otp_verified',
+    credentials: {
+      email: profile.email,
+      password: authPassword,
+    },
+    full_name: profile.full_name,
   }
 }
 
@@ -277,11 +286,11 @@ async function handleStudentPinLogin(
 ) {
   const admin = getAdminClient()
 
-  // 1. پیدا کردن دانش‌آموز (با retry برای قطعی‌های شبکه)
+  // 1. دریافت دانش‌آموز + پروفایل در یک query (join)
   const { data: student, error: studentError } = await queryWithRetry(() =>
     admin
       .from('students')
-      .select('id, user_id, pin_hash, can_login, full_name, grade, education_stage')
+      .select('id, user_id, pin_hash, can_login, full_name, grade, education_stage, profiles!user_id(email, role, must_change_password)')
       .eq('student_number', student_number.trim())
       .single()
   )
@@ -311,9 +320,7 @@ async function handleStudentPinLogin(
     return { success: false, error: 'رمز ورود تنظیم نشده است. لطفاً با مدرسه تماس بگیرید.' }
   }
 
-  // 2. بررسی PIN (مقایسه ساده - باید bcrypt شود)
-  // در حال حاضر از مقایسه مستقیم استفاده می‌کنیم
-  // TODO: در صورت نصب bcryptjs، از آن استفاده شود
+  // 2. بررسی PIN
   const pinMatches = student.pin_hash === pin ||
     student.pin_hash === Buffer.from(pin).toString('base64')
 
@@ -325,66 +332,30 @@ async function handleStudentPinLogin(
     return { success: false, error: 'حساب کاربری دانش‌آموز هنوز ایجاد نشده است' }
   }
 
-  // 3. دریافت اطلاعات پروفایل
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('id, role, must_change_password')
-    .eq('id', student.user_id)
-    .single()
+  // استخراج پروفایل از join
+  const profile = Array.isArray(student.profiles) ? student.profiles[0] : student.profiles as {
+    email?: string; role?: string; must_change_password?: boolean
+  } | null
 
-  // 4. ورود — رمز داخلی همگام با PIN (session واقعی)
-  const { data: authUserData } = await withNetworkRetry(() =>
-    admin.auth.admin.getUserById(student.user_id)
-  )
-
-  if (!authUserData.user?.email) {
-    return { success: false, error: 'خطا در احراز هویت' }
+  if (!profile?.email) {
+    return { success: false, error: 'خطا در احراز هویت — پروفایل یافت نشد' }
   }
 
-  const authEmail = authUserData.user.email
+  // 3. رمز داخلی یکتا
   const internalPassword = `hg_student_${student.user_id.replace(/-/g, '').slice(0, 12)}_${pin}`
 
-  let updateError: { message: string } | null = null
-  try {
-    const updateResult = await withNetworkRetry(() =>
-      admin.auth.admin.updateUserById(student.user_id, {
-        password: internalPassword,
-      })
-    )
-    updateError = updateResult.error
-  } catch (err: unknown) {
-    updateError = {
-      message: err instanceof Error ? err.message : 'خطا در همگام‌سازی رمز',
-    }
-  }
-
-  if (updateError) {
-    console.error('Student password sync failed:', updateError.message)
-    return { success: false, error: 'خطا در ورود. لطفاً دوباره تلاش کنید.' }
-  }
-
-  const { error: signInError } = await queryWithRetry(async () => {
-    const result = await supabase.auth.signInWithPassword({
-      email: authEmail,
-      password: internalPassword,
-    })
-    return {
-      data: result.data,
-      error: result.error ? { message: result.error.message, code: result.error.code } : null,
-    }
-  }).then((r) => ({ error: r.error ? { message: r.error.message } : null }))
-
-  if (signInError) {
-    console.error('Student signIn failed:', signInError.message)
-    return { success: false, error: 'خطا در ورود. لطفاً دوباره تلاش کنید.' }
-  }
-
+  // 4. برگرداندن credentials برای ورود client-side
+  // Node.js نمی‌تواند به Supabase Auth API متصل شود — browser می‌تواند
   return {
     success: true,
     userId: student.user_id,
-    role: profile?.role || 'student',
+    role: profile.role || 'student',
     must_change_password: false,
     auth_method: 'pin',
+    credentials: {
+      email: profile.email,
+      password: internalPassword,
+    },
     student_info: {
       full_name: student.full_name,
       grade: student.grade,
@@ -456,16 +427,26 @@ export async function POST(request: NextRequest) {
             { status: 401 }
           )
         }
-        return jsonWithSessionCookies(
-          {
-            success: true,
-            must_change_password: otpResult.must_change_password,
-            role: otpResult.role,
-            redirect: '/dashboard',
-          },
-          200,
-          sessionCookies
-        )
+        const role = otpResult.role as string
+        const roleRoutes: Record<string, string> = {
+          parent: '/parent',
+          teacher: '/teacher',
+          principal: '/principal',
+          student: '/student',
+          admin: '/admin',
+          platform_admin: '/admin',
+        }
+        const redirect = otpResult.must_change_password
+          ? '/change-password'
+          : roleRoutes[role] || '/dashboard'
+        return NextResponse.json({
+          success: true,
+          must_change_password: otpResult.must_change_password,
+          role: otpResult.role,
+          redirect,
+          credentials: otpResult.credentials,
+          full_name: otpResult.full_name,
+        })
       }
 
       case 'student_pin': {

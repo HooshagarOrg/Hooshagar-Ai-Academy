@@ -1,10 +1,11 @@
 /**
  * POST /api/avatar/chat — گفتگوی آواتار هوشیار (همه نقش‌ها)
- * GET  /api/avatar/chat — وضعیت سقف روزانه + پیام خوش‌آمد
+ * GET  /api/avatar/chat — وضعیت سقف روزانه + تاریخچه چت
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { callAvatarAI, AvatarAIExhaustedError } from '@/lib/ai/avatar-provider'
 import { loadAvatarUserContext, buildAvatarSystemPrompt } from '@/lib/avatar/context'
 import { tryTemplateReply } from '@/lib/avatar/templates'
@@ -14,8 +15,10 @@ import {
   recordAvatarMessage,
   getAvatarDailyLimit,
 } from '@/lib/avatar/rate-limit'
+import { loadAvatarChatHistory, saveAvatarChatExchange } from '@/lib/avatar/history'
 import { getRouteHandlerUser } from '@/lib/supabase/route-handler'
 import { log } from '@/lib/logger'
+import type { Database } from '@/types/database.types'
 
 const chatSchema = z.object({
   message: z
@@ -25,10 +28,12 @@ const chatSchema = z.object({
 })
 
 const AVATAR_CAPACITY_MESSAGE =
-  'الان ظرفیت دستیار هوشیار پر است. لطفاً چند دقیقه دیگر دوباره امتحان کن.'
+  'الان نتونستم به هوش مصنوعی وصل بشم. چند دقیقه دیگر دوباره امتحان کن یا سوالات ساده مثل «تکلیف» یا «XP» بپرس.'
 
 const DAILY_LIMIT_MESSAGE = (remaining: number) =>
   `سقف روزانه ${getAvatarDailyLimit()} پیام تمام شده. فردا دوباره می‌تونی با من حرف بزنی. (باقی‌مانده: ${remaining})`
+
+type AppSupabase = SupabaseClient<Database>
 
 type AuthResult =
   | { ok: false; response: NextResponse }
@@ -36,13 +41,14 @@ type AuthResult =
       ok: true
       user: { id: string }
       ctx: NonNullable<Awaited<ReturnType<typeof loadAvatarUserContext>>>
+      supabase: AppSupabase
       cookieResponse: NextResponse
     }
 
 async function requireUser(request: NextRequest): Promise<AuthResult> {
   const { user, error, supabase, response: cookieResponse } = await getRouteHandlerUser(request)
 
-  if (error || !user) {
+  if (error || !user || !supabase) {
     return {
       ok: false,
       response: NextResponse.json({ error: 'لطفاً وارد شوید' }, { status: 401 }),
@@ -60,7 +66,7 @@ async function requireUser(request: NextRequest): Promise<AuthResult> {
     }
   }
 
-  return { ok: true, user, ctx, cookieResponse }
+  return { ok: true, user, ctx, supabase, cookieResponse }
 }
 
 function jsonWithCookies(
@@ -79,8 +85,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const result = await requireUser(request)
   if (result.ok === false) return result.response
 
-  const { user, ctx, cookieResponse } = result
+  const { user, ctx, supabase, cookieResponse } = result
   const limit = checkAvatarDailyLimit(user.id)
+  const history = await loadAvatarChatHistory(user.id, supabase)
 
   return jsonWithCookies(
     {
@@ -90,6 +97,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       remainingMessages: limit.remaining,
       dailyLimit: limit.limit,
       canChat: limit.allowed,
+      history: history.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+      })),
     },
     cookieResponse
   )
@@ -100,7 +112,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const result = await requireUser(request)
     if (result.ok === false) return result.response
 
-    const { user, ctx, cookieResponse } = result
+    const { user, ctx, supabase, cookieResponse } = result
 
     const body = await request.json()
     const parsed = chatSchema.safeParse(body)
@@ -129,6 +141,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const template = tryTemplateReply(message, ctx)
     if (template) {
       const afterRecord = recordAvatarMessage(user.id)
+      await saveAvatarChatExchange(user.id, supabase, message, template.reply, 'template')
       return jsonWithCookies(
         {
           reply: template.reply,
@@ -144,6 +157,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
       const ai = await callAvatarAI(systemPrompt, message)
       const afterRecord = recordAvatarMessage(user.id)
+      await saveAvatarChatExchange(user.id, supabase, message, ai.content, ai.source)
       return jsonWithCookies(
         {
           reply: ai.content,

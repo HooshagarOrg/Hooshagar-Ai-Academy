@@ -11,7 +11,7 @@ interface AvatarFabProps {
 }
 
 /**
- * دکمه شناور آواتار هوشیار — فقط برای دانش‌آموز نمایش داده می‌شود
+ * دکمه شناور آواتار هوشیار — همه داشبوردها
  */
 export function AvatarFab({ className }: AvatarFabProps) {
   const [open, setOpen] = useState(false)

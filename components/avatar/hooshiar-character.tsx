@@ -2,11 +2,11 @@
 
 import { cn } from '@/lib/utils'
 
-export type HooshiarMood = 'idle' | 'thinking' | 'talking' | 'happy'
+export type HooshiarMood = 'idle' | 'thinking' | 'talking' | 'happy' | 'error'
 
 interface HooshiarCharacterProps {
   mood?: HooshiarMood
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
 
@@ -14,6 +14,7 @@ const sizes = {
   sm: 'h-12 w-12',
   md: 'h-16 w-16',
   lg: 'h-24 w-24',
+  xl: 'h-[200px] w-[200px]',
 }
 
 /**
@@ -32,6 +33,7 @@ export function HooshiarCharacter({
         mood === 'thinking' && 'animate-pulse',
         mood === 'talking' && 'animate-bounce',
         mood === 'happy' && 'scale-105 transition-transform',
+        mood === 'error' && 'animate-[shake_0.4s_ease-in-out]',
         className
       )}
       aria-hidden

@@ -1,5 +1,5 @@
-import { SpectrumLanding } from '@/components/landing/spectrum-landing'
+import { LandingPage } from '@/components/landing/page'
 
-export default function LandingPage() {
-  return <SpectrumLanding />
+export default function Home() {
+  return <LandingPage />
 }

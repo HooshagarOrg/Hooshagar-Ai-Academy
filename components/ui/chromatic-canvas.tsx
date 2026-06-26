@@ -4,10 +4,12 @@ import { useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 export type ChromaticMode = 'immersive' | 'static' | 'role'
+export type ChromaticVariant = 'light' | 'dark'
 
 interface ChromaticCanvasProps {
   className?: string
   mode?: ChromaticMode
+  variant?: ChromaticVariant
   /**
    * برای mode="role" — رنگ arc را مشخص می‌کند
    * مقادیر: 'blue' | 'green' | 'amber' | 'pink' | 'red' | 'teal'
@@ -16,55 +18,83 @@ interface ChromaticCanvasProps {
 }
 
 const ARC_GLOW: Record<NonNullable<ChromaticCanvasProps['arcColor']>, string> = {
-  blue:  'rgba(59,130,246,0.12)',
-  green: 'rgba(16,185,129,0.12)',
-  amber: 'rgba(245,158,11,0.12)',
-  pink:  'rgba(236,72,153,0.12)',
-  red:   'rgba(239,68,68,0.12)',
-  teal:  'rgba(20,184,166,0.12)',
+  blue:  'rgba(84,210,255,0.18)',
+  green: 'rgba(57,217,138,0.16)',
+  amber: 'rgba(255,179,71,0.18)',
+  pink:  'rgba(255,77,166,0.16)',
+  red:   'rgba(255,99,99,0.14)',
+  teal:  'rgba(84,210,255,0.16)',
 }
 
-function ImmersiveLayers() {
+function ImmersiveLayers({ variant }: { variant: ChromaticVariant }) {
+  const isDark = variant === 'dark'
+  const opacity = isDark ? 1 : 0.85
+
   return (
     <>
-      {/* طبقه اصلی aurora — ۵ رنگ قوس */}
       <div
         className="absolute inset-0 z-[1]"
         style={{
-          backgroundImage: [
-            'radial-gradient(ellipse 70% 55% at 15% 20%, rgba(59,130,246,0.14), transparent 60%)',
-            'radial-gradient(ellipse 55% 45% at 85% 15%, rgba(16,185,129,0.11), transparent 58%)',
-            'radial-gradient(ellipse 50% 40% at 75% 85%, rgba(245,158,11,0.10), transparent 55%)',
-            'radial-gradient(ellipse 48% 38% at 25% 80%, rgba(236,72,153,0.09), transparent 52%)',
-            'radial-gradient(ellipse 45% 35% at 50% 50%, rgba(20,184,166,0.07), transparent 60%)',
-          ].join(','),
+          opacity,
+          backgroundImage: isDark
+            ? [
+                'radial-gradient(ellipse 72% 54% at 12% 10%, rgba(139,124,255,0.28), transparent 60%)',
+                'radial-gradient(ellipse 58% 46% at 86% 12%, rgba(84,210,255,0.22), transparent 58%)',
+                'radial-gradient(ellipse 50% 40% at 74% 88%, rgba(255,179,71,0.14), transparent 55%)',
+                'radial-gradient(ellipse 48% 38% at 18% 82%, rgba(255,77,166,0.14), transparent 52%)',
+                'radial-gradient(ellipse 45% 35% at 50% 50%, rgba(57,217,138,0.12), transparent 60%)',
+              ].join(',')
+            : [
+                'radial-gradient(ellipse 72% 54% at 12% 10%, rgba(139,124,255,0.16), transparent 60%)',
+                'radial-gradient(ellipse 58% 46% at 86% 12%, rgba(84,210,255,0.18), transparent 58%)',
+                'radial-gradient(ellipse 50% 40% at 74% 88%, rgba(255,179,71,0.12), transparent 55%)',
+                'radial-gradient(ellipse 48% 38% at 18% 82%, rgba(255,77,166,0.10), transparent 52%)',
+                'radial-gradient(ellipse 45% 35% at 50% 50%, rgba(57,217,138,0.10), transparent 60%)',
+              ].join(','),
         }}
       />
-      {/* انیمیشن aurora drift */}
       <div
         className="absolute inset-0 z-[2] animate-[aurora-drift-a_24s_ease-in-out_infinite] opacity-60"
         style={{
-          backgroundImage: [
-            'radial-gradient(ellipse 40% 30% at 20% 40%, rgba(59,130,246,0.18), transparent 55%)',
-            'radial-gradient(ellipse 35% 28% at 80% 60%, rgba(236,72,153,0.14), transparent 52%)',
-          ].join(','),
+          backgroundImage: isDark
+            ? [
+                'radial-gradient(ellipse 40% 30% at 20% 40%, rgba(139,124,255,0.32), transparent 55%)',
+                'radial-gradient(ellipse 35% 28% at 80% 60%, rgba(255,77,166,0.22), transparent 52%)',
+              ].join(',')
+            : [
+                'radial-gradient(ellipse 40% 30% at 20% 40%, rgba(139,124,255,0.20), transparent 55%)',
+                'radial-gradient(ellipse 35% 28% at 80% 60%, rgba(255,77,166,0.14), transparent 52%)',
+              ].join(','),
         }}
       />
       <div
         className="absolute inset-0 z-[2] animate-[aurora-drift-b_32s_ease-in-out_infinite] opacity-50"
         style={{
-          backgroundImage: [
-            'radial-gradient(ellipse 38% 32% at 60% 25%, rgba(16,185,129,0.12), transparent 55%)',
-            'radial-gradient(ellipse 32% 26% at 35% 70%, rgba(245,158,11,0.10), transparent 50%)',
-          ].join(','),
+          backgroundImage: isDark
+            ? [
+                'radial-gradient(ellipse 38% 32% at 60% 25%, rgba(84,210,255,0.22), transparent 55%)',
+                'radial-gradient(ellipse 32% 26% at 35% 70%, rgba(255,179,71,0.16), transparent 50%)',
+              ].join(',')
+            : [
+                'radial-gradient(ellipse 38% 32% at 60% 25%, rgba(84,210,255,0.14), transparent 55%)',
+                'radial-gradient(ellipse 32% 26% at 35% 70%, rgba(255,179,71,0.12), transparent 50%)',
+              ].join(','),
         }}
       />
     </>
   )
 }
 
-function StaticLayers({ arcColor }: { arcColor?: ChromaticCanvasProps['arcColor'] }) {
+function StaticLayers({
+  arcColor,
+  variant,
+}: {
+  arcColor?: ChromaticCanvasProps['arcColor']
+  variant: ChromaticVariant
+}) {
   const glow = arcColor ? ARC_GLOW[arcColor] : undefined
+  const isDark = variant === 'dark'
+
   return (
     <div
       className="absolute inset-0 z-[1]"
@@ -74,10 +104,15 @@ function StaticLayers({ arcColor }: { arcColor?: ChromaticCanvasProps['arcColor'
               `radial-gradient(ellipse 60% 48% at 70% 15%, ${glow}, transparent 58%)`,
               `radial-gradient(ellipse 50% 38% at 20% 85%, ${glow}, transparent 52%)`,
             ].join(',')
-          : [
-              'radial-gradient(ellipse 55% 42% at 68% 12%, rgba(59,130,246,0.07), transparent 58%)',
-              'radial-gradient(ellipse 48% 38% at 22% 88%, rgba(16,185,129,0.05), transparent 52%)',
-            ].join(','),
+          : isDark
+            ? [
+                'radial-gradient(ellipse 55% 42% at 68% 12%, rgba(139,124,255,0.18), transparent 58%)',
+                'radial-gradient(ellipse 48% 38% at 22% 88%, rgba(84,210,255,0.14), transparent 52%)',
+              ].join(',')
+            : [
+                'radial-gradient(ellipse 55% 42% at 68% 12%, rgba(139,124,255,0.10), transparent 58%)',
+                'radial-gradient(ellipse 48% 38% at 22% 88%, rgba(84,210,255,0.09), transparent 52%)',
+              ].join(','),
       }}
     />
   )
@@ -85,48 +120,49 @@ function StaticLayers({ arcColor }: { arcColor?: ChromaticCanvasProps['arcColor'
 
 /**
  * ChromaticCanvas — پس‌زمینه Chromatic Spectrum
- * mode=immersive → aurora متحرک (لندینگ + auth)
- * mode=static    → گرادیان ثابت (داشبورد)
- * mode=role      → رنگ arc مرتبط با نقش
+ * variant=dark → hero تیره | variant=light → بدنه روشن
  */
 export function ChromaticCanvas({
   className,
   mode = 'static',
+  variant = 'light',
   arcColor,
 }: ChromaticCanvasProps) {
   const reduce = useReducedMotion()
+  const isDark = variant === 'dark'
 
   return (
     <div
       className={cn('pointer-events-none fixed inset-0 z-0 overflow-hidden', className)}
       aria-hidden
     >
-      {/* لایه base */}
-      <div className="absolute inset-0" style={{ backgroundColor: '#07080E' }} />
+      <div
+        className="absolute inset-0"
+        style={{ backgroundColor: isDark ? '#12151C' : '#F4F7FC' }}
+      />
 
       {mode === 'immersive' && !reduce ? (
-        <ImmersiveLayers />
+        <ImmersiveLayers variant={variant} />
       ) : (
-        <StaticLayers arcColor={arcColor} />
+        <StaticLayers arcColor={arcColor} variant={variant} />
       )}
 
-      {/* noise texture */}
       <div
         className="absolute inset-0 opacity-[0.028] z-[3]"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
         }}
       />
-      {/* vignette */}
       <div
         className="absolute inset-0 z-[4]"
         style={{
-          background: 'radial-gradient(ellipse 90% 80% at 50% 45%, transparent 20%, rgba(7,8,14,0.85) 100%)',
+          background: isDark
+            ? 'radial-gradient(ellipse 92% 82% at 50% 40%, transparent 18%, rgba(18,21,28,0.55) 100%)'
+            : 'radial-gradient(ellipse 92% 82% at 50% 40%, transparent 18%, rgba(244,247,252,0.72) 100%)',
         }}
       />
     </div>
   )
 }
 
-/* Backward-compat — ObsidianCanvas استفاده می‌کرده این alias را */
 export { ChromaticCanvas as ObsidianCanvasChromatic }

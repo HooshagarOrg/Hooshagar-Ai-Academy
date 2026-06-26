@@ -1,11 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { X, Send, Loader2 } from 'lucide-react'
+import { X, Send, Loader2, Mic, MicOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 import { HooshiarCharacter, type HooshiarMood } from './hooshiar-character'
+import { useSpeechInput } from '@/hooks/use-speech-input'
 
 interface ChatMessage {
   id: string
@@ -29,6 +30,16 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
+  const appendTranscript = useCallback((text: string) => {
+    setInput((prev) => (prev ? `${prev} ${text}` : text))
+    inputRef.current?.focus()
+  }, [])
+
+  const { supported: speechSupported, listening, toggle: toggleSpeech } = useSpeechInput({
+    lang: 'fa-IR',
+    onTranscript: appendTranscript,
+  })
+
   const scrollToBottom = useCallback(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight
@@ -50,11 +61,15 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
             dailyLimit: number
             canChat: boolean
             welcomeMessage?: string
+            history?: ChatMessage[]
           }
           setRemaining(data.remainingMessages)
           setDailyLimit(data.dailyLimit)
           setCanChat(data.canChat)
-          if (data.welcomeMessage) {
+
+          if (data.history && data.history.length > 0) {
+            setMessages(data.history)
+          } else if (data.welcomeMessage) {
             setMessages([
               {
                 id: 'welcome',
@@ -195,7 +210,6 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
         aria-label="گفتگو با هوشیار"
       >
         <GlassCard luxury glow="scholar" className="flex flex-col h-full overflow-hidden border-0 rounded-t-2xl sm:rounded-2xl">
-          {/* هدر */}
           <div className="flex items-center gap-3 p-4 border-b border-white/10">
             <HooshiarCharacter mood={mood} size="sm" />
             <div className="flex-1 min-w-0">
@@ -204,7 +218,7 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
                 دستیار هوشمند تو
                 {remaining !== null && (
                   <span className="mr-1">
-                    · {remaining}/{dailyLimit} پیام امروز
+                    · {remaining} پیام باقی‌مانده از {dailyLimit}
                   </span>
                 )}
               </p>
@@ -220,7 +234,6 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
             </Button>
           </div>
 
-          {/* پیام‌ها */}
           <div
             ref={listRef}
             className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[12rem] max-h-[50vh] sm:max-h-[18rem]"
@@ -255,14 +268,26 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
             )}
           </div>
 
-          {/* ورودی */}
           <div className="p-3 border-t border-white/10 flex gap-2 items-end">
+            {speechSupported && (
+              <Button
+                type="button"
+                size="icon"
+                variant={listening ? 'default' : 'outline'}
+                onClick={toggleSpeech}
+                disabled={loading || !canChat || (remaining !== null && remaining <= 0)}
+                aria-label={listening ? 'توقف ضبط صدا' : 'ضبط صدا'}
+                className={cn(listening && 'animate-pulse')}
+              >
+                {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+            )}
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="پیامت رو بنویس..."
+              placeholder={speechSupported ? 'پیامت رو بنویس یا میکروفون بزن...' : 'پیامت رو بنویس...'}
               rows={1}
               disabled={loading || !canChat || (remaining !== null && remaining <= 0)}
               className={cn(

@@ -14,6 +14,8 @@ const SIZES = {
 
 export type HooshagarLogoSize = keyof typeof SIZES
 
+export type LogoSurface = 'base' | 'hero' | 'elevated' | 'void' | 'light' | 'transparent'
+
 export interface HooshagarLogoProps {
   showWordmark?: boolean
   subtitle?: string
@@ -22,6 +24,17 @@ export interface HooshagarLogoProps {
   className?: string
   priority?: boolean
   inverted?: boolean
+  /** پس‌زمینه باکس لوگو — همرنگ تم اطراف */
+  surface?: LogoSurface
+}
+
+const SURFACE_BG: Record<LogoSurface, string> = {
+  base: '#0F1117',
+  hero: '#12151C',
+  elevated: '#161B26',
+  void: '#0B0D12',
+  light: '#E6EBF4',
+  transparent: 'transparent',
 }
 
 export function HooshagarLogo({
@@ -32,6 +45,7 @@ export function HooshagarLogo({
   className,
   priority = false,
   inverted = false,
+  surface = 'base',
 }: HooshagarLogoProps) {
   const { box, text } = SIZES[size]
 
@@ -43,7 +57,11 @@ export function HooshagarLogo({
           'transition-transform duration-200 group-hover:scale-[1.02]',
           size === 'hero' && 'shadow-lg shadow-brand-cyan/25',
         )}
-        style={{ width: box, height: box }}
+        style={{
+          width: box,
+          height: box,
+          backgroundColor: SURFACE_BG[surface],
+        }}
       >
         <Image
           src={brandAssets.logo}
@@ -98,10 +116,12 @@ export function HooshagarMark({
   size = 32,
   className,
   priority = false,
+  surface = 'base',
 }: {
   size?: number
   className?: string
   priority?: boolean
+  surface?: LogoSurface
 }) {
   return (
     <span
@@ -109,7 +129,7 @@ export function HooshagarMark({
         'relative inline-flex flex-shrink-0 rounded-2xl overflow-hidden',
         className,
       )}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, backgroundColor: SURFACE_BG[surface] }}
     >
       <Image
         src={brandAssets.logo}

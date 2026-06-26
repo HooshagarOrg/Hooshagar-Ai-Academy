@@ -19,14 +19,14 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <div
-      className={cn('glass-arc p-5', className)}
+      className={cn('hf-card rounded-[1.5rem] p-5', className)}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         {icon && (
           <div
             className={cn(
               'p-2.5 rounded-xl',
-              'bg-[rgba(var(--role-accent-r),0.1)] border border-[rgba(var(--role-accent-r),0.18)]',
+              'bg-[#EAF1FF] border border-[#DCE8FF]',
               accentClass,
             )}
           >
@@ -34,9 +34,9 @@ export function StatCard({
           </div>
         )}
       </div>
-      <p className="text-xs text-white/45 mb-1">{label}</p>
-      <p className="stat-pill-value text-2xl">{value}</p>
-      {hint && <p className="text-xs text-white/35 mt-1.5">{hint}</p>}
+      <p className="text-xs font-bold text-[#64748B] mb-1">{label}</p>
+      <p className="text-2xl font-black tabular-nums tracking-tight text-[#111827]">{value}</p>
+      {hint && <p className="text-xs text-[#64748B] mt-1.5">{hint}</p>}
     </div>
   )
 }

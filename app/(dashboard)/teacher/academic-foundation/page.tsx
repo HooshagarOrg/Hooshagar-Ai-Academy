@@ -29,6 +29,7 @@ import {
   ArrowDown,
   Minus,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   RadarChart,
@@ -325,7 +326,7 @@ function ScoreCard({
   title: string
   score: number
   maxScore: number
-  icon: React.ElementType
+  icon: LucideIcon
   color: string
 }) {
   const percentage = Math.round((score / maxScore) * 100)

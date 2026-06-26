@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
   Home, Users, Brain, BarChart3, Settings, Zap, BookOpen, MessageSquare,
@@ -12,19 +12,25 @@ import {
   Sparkles, Trophy, Compass, Gamepad2, Lightbulb, LogOut, User,
   Heart, PenTool, HelpCircle, Clock, TrendingUp, X, CreditCard, Video,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { HooshagarLogo, HooshagarMark } from '@/components/brand/hooshagar-logo'
 import type { UiTone } from '@/lib/ui/role-tone'
 
 function navActiveClass(_tone: UiTone, active: boolean) {
-  if (!active) return 'cs-sidebar-item text-white/45 hover:text-white'
+  if (!active) return 'cs-sidebar-item text-slate-500 hover:text-slate-900'
   return 'cs-sidebar-item active text-role-accent'
 }
 
 function navIconClass(_tone: UiTone, active: boolean) {
-  if (!active) return 'text-white/40 group-hover:text-white/70'
+  if (!active) return 'text-slate-400 group-hover:text-slate-700'
   return 'text-role-accent'
 }
 
@@ -34,7 +40,7 @@ function navIconClass(_tone: UiTone, active: boolean) {
 type NavItem = {
   title: string
   href: string
-  icon: React.ElementType
+  icon: LucideIcon
   badge?: string | number
   badgeColor?: string
 }
@@ -174,6 +180,7 @@ const navConfig: Record<string, NavGroup[]> = {
       title: 'یادگیری',
       items: [
         { title: 'نمراتم', href: '/student/grades', icon: GraduationCap },
+        { title: 'مسیر یادگیری', href: '/student/learning-journey', icon: Compass },
         { title: 'آزمون‌هایم', href: '/student/exams', icon: ClipboardCheck },
         { title: 'کلاس مجازی', href: '/student#virtual-class', icon: Video },
         { title: 'دستیار مطالعه', href: '/student/study-buddy', icon: BookOpen },
@@ -323,6 +330,12 @@ export function AppSidebar({
   onCollapse,
 }: AppSidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const [logoutOpen, setLogoutOpen] = useState(false)
+
+  function handleLogout() {
+    router.push('/api/auth/logout')
+  }
 
   const navRole = role === 'platform_admin' ? 'admin' : role
   const groups: NavGroup[] = navConfig[navRole] || [
@@ -355,11 +368,13 @@ export function AppSidebar({
               href="/dashboard"
               subtitle={schoolName}
               showWordmark
+              surface="void"
+              inverted
             />
           )}
           {collapsed && (
             <Link href="/dashboard" className="rounded-xl focus-visible:ring-2 focus-visible:ring-brand-magenta/30">
-              <HooshagarMark size={32} />
+              <HooshagarMark size={32} surface="void" />
             </Link>
           )}
           {onCollapse && (
@@ -518,7 +533,7 @@ export function AppSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => { window.location.href = '/api/auth/logout' }}
+                    onClick={() => setLogoutOpen(true)}
                     className="flex items-center justify-center touch-target rounded-xl text-red-400 hover:bg-red-500/10 motion-interactive"
                   >
                     <LogOut className="w-4.5 h-4.5" />
@@ -534,7 +549,7 @@ export function AppSidebar({
                 <span className="font-medium">تنظیمات</span>
               </Link>
               <button
-                onClick={() => { window.location.href = '/api/auth/logout' }}
+                onClick={() => setLogoutOpen(true)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-500/10 motion-interactive group min-h-[44px]"
               >
                 <LogOut className="w-4 h-4" />
@@ -544,6 +559,27 @@ export function AppSidebar({
           )}
         </div>
       </aside>
+
+      {/* ===== دیالوگ تأیید خروج ===== */}
+      <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+        <AlertDialogContent dir="rtl" className="max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-right">خروج از حساب</AlertDialogTitle>
+            <AlertDialogDescription className="text-right">
+              آیا مطمئن هستید که می‌خواهید از حساب کاربری خود خارج شوید؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse gap-2 sm:justify-start">
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              بله، خارج می‌شوم
+            </AlertDialogAction>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </TooltipProvider>
   )
 }

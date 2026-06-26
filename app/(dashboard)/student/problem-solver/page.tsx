@@ -1,12 +1,11 @@
-﻿import { UnderConstruction } from '@/components/ui/under-construction'
+﻿import { Metadata } from 'next'
+import { ProblemSolverClient } from '@/components/student/problem-solver-client'
 
-export default function Page() {
-  return (
-    <UnderConstruction
-      title="حل مسئله از روی عکس"
-      description="با گرفتن عکس از مسئله، راه‌حل را دریافت کنید"
-      backHref="/student"
-    />
-  )
+export const metadata: Metadata = {
+  title: 'حل مسئله | هوشاگر',
+  description: 'حل مسائل درسی از روی عکس با هوش مصنوعی',
 }
 
+export default function ProblemSolverPage() {
+  return <ProblemSolverClient />
+}

@@ -1,8 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { GraduationCap, TrendingUp, TrendingDown, Minus, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { GraduationCap, Loader2, TrendingDown, TrendingUp } from 'lucide-react'
+import { LuxPageHeader } from '@/components/lux/lux-page-header'
+import { LuxCard } from '@/components/lux/lux-card'
+import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 
 type Grade = {
   id: string
@@ -10,15 +13,12 @@ type Grade = {
   score: number
   max_score: number
   exam_type: string
-  comments?: string
   exam_date: string
-  profiles?: { full_name: string }
 }
 
 const EXAM_TYPE_LABELS: Record<string, string> = {
   general: 'کلی', midterm: 'میان‌ترم', final: 'پایان‌ترم',
   quiz: 'پرسش کلاسی', homework: 'تکلیف', project: 'پروژه',
-  oral: 'شفاهی', practical: 'عملی',
 }
 
 export default function StudentGradesPage() {
@@ -27,8 +27,8 @@ export default function StudentGradesPage() {
 
   useEffect(() => {
     fetch('/api/grades')
-      .then(r => r.json())
-      .then(d => setGrades(d.grades || []))
+      .then((r) => r.json())
+      .then((d) => setGrades(d.grades || []))
       .finally(() => setLoading(false))
   }, [])
 
@@ -36,91 +36,47 @@ export default function StudentGradesPage() {
     ? grades.reduce((sum, g) => sum + (g.score / g.max_score) * 20, 0) / grades.length
     : 0
 
-  const subjectAverages: Record<string, { sum: number; count: number; max: number }> = {}
-  grades.forEach(g => {
-    if (!subjectAverages[g.subject]) subjectAverages[g.subject] = { sum: 0, count: 0, max: 20 }
-    subjectAverages[g.subject].sum += (g.score / g.max_score) * 20
-    subjectAverages[g.subject].count += 1
-  })
-
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <GraduationCap className="text-blue-600" /> نمرات من
-        </h1>
-        <p className="text-sm text-gray-500">آخرین نمرات ثبت‌شده توسط معلمان</p>
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-4">
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-gray-500">معدل کل</p>
-          <p className={`text-3xl font-bold ${avg >= 17 ? 'text-green-600' : avg >= 14 ? 'text-blue-600' : avg >= 10 ? 'text-orange-600' : 'text-red-600'}`}>
-            {avg.toFixed(2)}
-          </p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-gray-500">تعداد نمرات</p>
-          <p className="text-3xl font-bold">{grades.length}</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-gray-500">دروس</p>
-          <p className="text-3xl font-bold">{Object.keys(subjectAverages).length}</p>
-        </CardContent></Card>
-      </div>
-
-      {Object.keys(subjectAverages).length > 0 && (
-        <Card>
-          <CardHeader><CardTitle>میانگین هر درس</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-3">
-              {Object.entries(subjectAverages).map(([sub, s]) => {
-                const a = s.sum / s.count
+    <div dir="rtl">
+      <LuxPageHeader title="نمرات من" subtitle={`میانگین کل: ${avg.toFixed(1)} از ۲۰`} />
+      {loading ? (
+        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[var(--lux-primary)]" /></div>
+      ) : grades.length === 0 ? (
+        <LuxEmptyState icon={<GraduationCap className="h-6 w-6" />} title="هنوز نمره‌ای ثبت نشده" description="نمرات از مدرسه همگام می‌شوند." />
+      ) : (
+        <LuxCard className="overflow-x-auto p-0">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--lux-surface)] text-[var(--lux-text-muted)]">
+                <th className="p-4 text-right font-bold">درس</th>
+                <th className="p-4 text-center font-bold">نوع</th>
+                <th className="p-4 text-center font-bold">نمره</th>
+                <th className="p-4 text-center font-bold">روند</th>
+                <th className="p-4 text-center font-bold">تاریخ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {grades.map((g) => {
+                const pct = (g.score / g.max_score) * 20
                 return (
-                  <div key={sub} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="font-medium">{sub}</span>
-                    <span className={`font-bold ${a >= 17 ? 'text-green-600' : a >= 14 ? 'text-blue-600' : a >= 10 ? 'text-orange-600' : 'text-red-600'}`}>
-                      {a.toFixed(2)}
-                      {a >= 17 && <TrendingUp className="inline mr-1" size={16} />}
-                      {a < 10 && <TrendingDown className="inline mr-1" size={16} />}
-                      {a >= 10 && a < 17 && <Minus className="inline mr-1" size={16} />}
-                    </span>
-                  </div>
+                  <tr key={g.id} className="border-b border-[var(--lux-surface)]">
+                    <td className="p-4 font-bold text-[var(--lux-text)]">{g.subject}</td>
+                    <td className="p-4 text-center text-[var(--lux-text-muted)]">{EXAM_TYPE_LABELS[g.exam_type] || g.exam_type}</td>
+                    <td className="p-4 text-center font-black text-[var(--lux-text)]">{g.score}</td>
+                    <td className="p-4 text-center">
+                      {pct >= 17 ? <TrendingUp className="mx-auto h-4 w-4 text-[var(--lux-success)]" /> : <TrendingDown className="mx-auto h-4 w-4 text-[var(--lux-accent)]" />}
+                    </td>
+                    <td className="p-4 text-center text-xs text-[var(--lux-text-muted)]">
+                      {g.exam_date ? new Date(g.exam_date).toLocaleDateString('fa-IR') : '—'}
+                    </td>
+                  </tr>
                 )
               })}
-            </div>
-          </CardContent>
-        </Card>
+            </tbody>
+          </table>
+        </LuxCard>
       )}
-
-      <Card>
-        <CardHeader><CardTitle>تاریخچه نمرات</CardTitle></CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-12"><Loader2 className="animate-spin mx-auto" /></div>
-          ) : grades.length === 0 ? (
-            <p className="text-center py-12 text-gray-400">هنوز نمره‌ای ثبت نشده</p>
-          ) : (
-            <div className="space-y-2">
-              {grades.map(g => (
-                <div key={g.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                  <div className="flex-1">
-                    <p className="font-medium">{g.subject}</p>
-                    <p className="text-xs text-gray-500">
-                      {EXAM_TYPE_LABELS[g.exam_type] || g.exam_type} • {new Date(g.exam_date).toLocaleDateString('fa-IR')}
-                      {g.profiles?.full_name && ` • ${g.profiles.full_name}`}
-                    </p>
-                    {g.comments && <p className="text-xs text-gray-600 mt-1 italic">{g.comments}</p>}
-                  </div>
-                  <div className={`text-2xl font-bold ${g.score >= g.max_score * 0.85 ? 'text-green-600' : g.score >= g.max_score * 0.5 ? 'text-blue-600' : 'text-red-600'}`}>
-                    {g.score}<span className="text-sm text-gray-400">/{g.max_score}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <Link href="/student" className="lux-btn-ghost mt-4 inline-flex text-sm">بازگشت به داشبورد</Link>
     </div>
   )
 }

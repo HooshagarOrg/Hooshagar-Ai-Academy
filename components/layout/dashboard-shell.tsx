@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { AppSidebar } from './app-sidebar'
 import { AppHeader } from './app-header'
+import { LuxStudentHeader } from '@/components/lux/lux-student-header'
 import { MobileNav } from './mobile-nav'
 import { DashboardFrame } from '@/components/motion/dashboard-frame'
 import { ChromaticCanvas } from '@/components/ui/chromatic-canvas'
@@ -47,7 +48,7 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
       data-ui-tone={tone}
       data-role={role}
     >
-      <ChromaticCanvas mode="static" />
+      <ChromaticCanvas mode="static" variant={role === 'student' ? 'dark' : 'light'} />
 
       {mobileSidebarOpen && (
         <div
@@ -86,15 +87,28 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
       </div>
 
       <div className="relative flex flex-col flex-1 min-w-0 overflow-hidden z-10">
-        <AppHeader
-          userName={userName}
-          role={role}
-          tone={tone}
-          onMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-        />
+        {role === 'student' ? (
+          <LuxStudentHeader
+            userName={userName}
+            onMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+          />
+        ) : (
+          <AppHeader
+            userName={userName}
+            role={role}
+            tone={tone}
+            onMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+          />
+        )}
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain lg:pb-0 pb-[calc(4.75rem+var(--safe-bottom))]">
-          <div className="ui-canvas min-h-full" data-ui-tone={tone}>
+          <div
+            className={cn(
+              'ui-canvas min-h-full',
+              role === 'student' && 'lux-student-canvas',
+            )}
+            data-ui-tone={tone}
+          >
             <div className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto w-full px-safe premium-content premium-legacy-bridge">
               <DashboardFrame>{children}</DashboardFrame>
             </div>
@@ -103,7 +117,7 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
 
         <MobileNav role={role} tone={tone} />
 
-        <AvatarFab />
+        {role !== 'student' && <AvatarFab />}
       </div>
     </div>
   )

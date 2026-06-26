@@ -1,12 +1,11 @@
-﻿import { UnderConstruction } from '@/components/ui/under-construction'
+﻿import { Metadata } from 'next'
+import { StudyBuddyClient } from '@/components/student/study-buddy-client'
 
-export default function Page() {
-  return (
-    <UnderConstruction
-      title="دستیار مطالعه"
-      description="کمک‌یار AI برای پاسخ به سوالات درسی"
-      backHref="/student"
-    />
-  )
+export const metadata: Metadata = {
+  title: 'دستیار مطالعه | هوشاگر',
+  description: 'پرسش و پاسخ درسی با دستیار هوشمند',
 }
 
+export default function StudyBuddyPage() {
+  return <StudyBuddyClient />
+}

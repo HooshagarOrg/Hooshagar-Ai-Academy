@@ -19,7 +19,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#020617',
+  themeColor: '#0F1117',
   interactiveWidget: 'resizes-content',
 }
 
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     description: 'سیستم عامل هوشمند مدیریت مدارس با قدرت هوش مصنوعی',
     locale: 'fa_IR',
     type: 'website',
-    images: [{ url: '/logo.png', width: 1024, height: 1024, alt: 'آرم هوشاگر' }],
+    images: [{ url: '/brand/hooshagaar-logo-2026.png', width: 1024, height: 1024, alt: 'آرم هوشاگر' }],
   },
 }
 
@@ -60,14 +60,14 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#020617" />
+        <meta name="theme-color" content="#0F1117" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="هوشاگر" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body className="font-sans antialiased min-h-app bg-[#020617]" suppressHydrationWarning>
+      <body className="font-sans antialiased min-h-app bg-[#0F1117]" suppressHydrationWarning>
         <SmoothScrollProvider>
           <div className="relative z-10 min-h-app">{children}</div>
         </SmoothScrollProvider>

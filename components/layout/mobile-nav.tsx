@@ -15,8 +15,9 @@ import {
   Target,
   MessageSquare,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-type MobileNavItem = { title: string; href: string; icon: React.ElementType }
+type MobileNavItem = { title: string; href: string; icon: LucideIcon }
 
 const mobileNavs: Record<string, MobileNavItem[]> = {
   admin: [

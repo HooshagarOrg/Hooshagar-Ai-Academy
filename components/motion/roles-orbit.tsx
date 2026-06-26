@@ -10,6 +10,7 @@ import {
   BarChart3,
   HelpCircle,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface RoleNode {
@@ -18,7 +19,7 @@ interface RoleNode {
   sublabel: string
   color: string
   glow: string
-  icon: React.ElementType
+  icon: LucideIcon
   href: string
   features: string[]
   angleDeg: number

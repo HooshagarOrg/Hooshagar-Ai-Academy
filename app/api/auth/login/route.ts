@@ -96,26 +96,6 @@ async function queryWithRetry<T>(
   return last
 }
 
-async function withNetworkRetry<T>(fn: () => Promise<T>): Promise<T> {
-  let lastError: unknown
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      return await fn()
-    } catch (err: unknown) {
-      lastError = err
-      const msg = err instanceof Error ? err.message : String(err)
-      const retriable =
-        msg.includes('fetch') ||
-        msg.includes('timeout') ||
-        msg.includes('ECONNRESET') ||
-        msg.includes('aborted')
-      if (!retriable || attempt === 2) break
-      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)))
-    }
-  }
-  throw lastError
-}
-
 // ============================================
 // helper: Supabase Admin (service role)
 // ============================================
@@ -276,24 +256,62 @@ async function handleOtpLogin(phone: string, otp: string) {
   }
 }
 
+const STUDENT_PIN_SELECT =
+  'id, user_id, pin_hash, can_login, full_name, grade, education_stage, profiles!user_id(email, role, must_change_password)'
+
+/** جستجوی دانش‌آموز — student_number یا کد ملی از profiles (بدون national_code روی students) */
+async function lookupStudentForPinLogin(
+  admin: ReturnType<typeof getAdminClient>,
+  code: string
+) {
+  const trimmed = code.trim()
+
+  const byNumber = await queryWithRetry(() =>
+    admin
+      .from('students')
+      .select(STUDENT_PIN_SELECT)
+      .eq('student_number', trimmed)
+      .maybeSingle()
+  )
+  if (byNumber.data || (byNumber.error && !byNumber.error.message?.includes('does not exist'))) {
+    return byNumber
+  }
+
+  if (!/^\d{10}$/.test(trimmed)) {
+    return { data: null, error: byNumber.error }
+  }
+
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('id')
+    .or(`national_code.eq.${trimmed},login_code.eq.${trimmed}`)
+    .maybeSingle()
+
+  if (!profile?.id) {
+    return { data: null, error: byNumber.error }
+  }
+
+  return queryWithRetry(() =>
+    admin
+      .from('students')
+      .select(STUDENT_PIN_SELECT)
+      .eq('user_id', profile.id)
+      .maybeSingle()
+  )
+}
+
 // ============================================
 // روش 3: ورود دانش‌آموز با کد دانش‌آموزی + PIN
 // ============================================
 async function handleStudentPinLogin(
-  supabase: ReturnType<typeof createServerClient>,
   student_number: string,
   pin: string
 ) {
   const admin = getAdminClient()
 
-  // 1. دریافت دانش‌آموز + پروفایل در یک query (join)
-  const { data: student, error: studentError } = await queryWithRetry(() =>
-    admin
-      .from('students')
-      .select('id, user_id, pin_hash, can_login, full_name, grade, education_stage, profiles!user_id(email, role, must_change_password)')
-      .eq('student_number', student_number.trim())
-      .single()
-  )
+  // 1. دریافت دانش‌آموز + پروفایل (کد دانش‌آموزی یا کد ملی از profiles)
+  const trimmed = student_number.trim()
+  const { data: student, error: studentError } = await lookupStudentForPinLogin(admin, trimmed)
 
   if (studentError || !student) {
     console.error('Student lookup failed:', studentError?.message)
@@ -451,7 +469,6 @@ export async function POST(request: NextRequest) {
 
       case 'student_pin': {
         const pinResult = await handleStudentPinLogin(
-          supabase,
           result.data.student_number,
           result.data.pin
         )
@@ -461,16 +478,50 @@ export async function POST(request: NextRequest) {
             { status: 401 }
           )
         }
-        return jsonWithSessionCookies(
-          {
-            success: true,
-            role: pinResult.role,
-            redirect: '/student',
-            student_info: pinResult.student_info,
-          },
-          200,
-          sessionCookies
-        )
+
+        const creds = pinResult.credentials
+        if (!creds?.email || !creds?.password) {
+          return NextResponse.json(
+            { success: false, error: 'خطا در احراز هویت' },
+            { status: 500 }
+          )
+        }
+
+        // signIn server-side از طریق proxy (Cloudflare می‌تواند به supabase.co برسد)
+        const serverSigninClient = createLoginClient(request, sessionCookies)
+
+        const { error: serverSignInError } = await new Promise<{ error: unknown }>((resolve) => {
+          const p = serverSigninClient.auth.signInWithPassword({
+            email: creds.email,
+            password: creds.password,
+          })
+          const timer = setTimeout(() => resolve({ error: new Error('server_signin_timeout') }), 30000)
+          p.then(({ error }) => { clearTimeout(timer); resolve({ error }) })
+           .catch((err) => { clearTimeout(timer); resolve({ error: err }) })
+        })
+
+        if (!serverSignInError) {
+          return jsonWithSessionCookies(
+            {
+              success: true,
+              role: pinResult.role,
+              redirect: '/student',
+              student_info: pinResult.student_info,
+            },
+            200,
+            sessionCookies
+          )
+        }
+
+        // server-side هم ناموفق — credentials برای browser-side fallback
+        console.error('Student server signIn failed:', serverSignInError)
+        return NextResponse.json({
+          success: true,
+          role: pinResult.role,
+          redirect: '/student',
+          credentials: creds,
+          student_info: pinResult.student_info,
+        })
       }
     }
   } catch (err: unknown) {

@@ -300,13 +300,11 @@ export default function LoginPage() {
   }
 
   // ==========================================
-  // روش 3: ورود دانش‌آموز با کد + PIN
-  // تمام عملیات از browser انجام می‌شود (بدون Node.js DB query)
+  // ورود دانش‌آموز — از API سرور (بدون RPC مستقیم مرورگر به Supabase)
   // ==========================================
   const handleStudentLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
-    toast.message('در حال بررسی مشخصات…')
     const formData = new FormData(e.currentTarget)
     const studentNumber = (formData.get('student_number') as string)?.trim()
     const pin = (formData.get('pin') as string)?.trim()
@@ -316,89 +314,53 @@ export default function LoginPage() {
       setIsLoading(false)
       return
     }
-    
-    try {
-      const supabase = createClient()
 
-      // مرحله 1: بررسی PIN از طریق RPC مستقیم از browser (بدون Node.js)
-      const { data: rpcData, error: rpcError } = await supabase.rpc('student_login', {
-        p_student_number: studentNumber,
-        p_pin: pin,
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          method: 'student_pin',
+          student_number: studentNumber,
+          pin,
+        }),
       })
 
-      if (rpcError) {
-        if (rpcError.code === 'PGRST202' || rpcError.message?.includes('Could not find') || rpcError.message?.includes('function')) {
-          // تابع student_login وجود ندارد — fallback به server API
-          toast.message('در حال اتصال به سرور…')
-          await handleStudentLoginFallback(studentNumber, pin, supabase)
+      const data = await response.json() as {
+        success?: boolean
+        error?: string
+        redirect?: string
+        credentials?: { email: string; password: string }
+        student_info?: { full_name?: string }
+      }
+
+      if (!response.ok || !data.success) {
+        toast.error(data.error || 'کد دانش‌آموزی یا رمز اشتباه است')
+        return
+      }
+
+      // اگر credentials برگشت → server-side signIn ناموفق بود، مرورگر تلاش می‌کند
+      if (data.credentials) {
+        const supabase = createClient()
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: data.credentials.email,
+          password: data.credentials.password,
+        })
+        if (signInError) {
+          toast.error('خطا در ورود به سیستم. لطفاً دوباره تلاش کنید.')
           return
         }
-        toast.error('خطای اتصال به سرور. لطفاً دوباره تلاش کنید.')
-        return
       }
+      // اگر credentials نبود → server-side موفق شد و کوکی‌ها set شده‌اند
 
-      const rpc = rpcData as { success: boolean; error?: string; email?: string; password?: string; full_name?: string }
-
-      if (!rpc.success) {
-        const msgs: Record<string, string> = {
-          student_not_found: 'کد دانش‌آموزی یافت نشد',
-          wrong_pin: 'رمز ورود (PIN) اشتباه است',
-          login_disabled: 'دسترسی ورود برای این دانش‌آموز غیرفعال است',
-          no_pin: 'رمز ورود تنظیم نشده — با مدرسه تماس بگیرید',
-          no_profile: 'خطا در احراز هویت — با مدرسه تماس بگیرید',
-        }
-        toast.error(msgs[rpc.error ?? ''] || 'کد دانش‌آموزی یا رمز اشتباه است')
-        return
-      }
-
-      // مرحله 2: ورود با credentials دریافتی از DB function
-      toast.message('در حال ورود به سیستم…')
-
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: rpc.email!,
-        password: rpc.password!,
-      })
-
-      if (signInError) {
-        toast.error('خطا در ورود به سیستم. لطفاً دوباره تلاش کنید.')
-        return
-      }
-
-      toast.success(`خوش آمدید! ${rpc.full_name || ''}`)
-      window.location.replace('/student')
+      toast.success(`خوش آمدید! ${data.student_info?.full_name || ''}`)
+      window.location.replace(data.redirect || '/student')
     } catch {
       toast.error('خطای اتصال به سرور. لطفاً دوباره تلاش کنید.')
     } finally {
       setIsLoading(false)
     }
-  }
-
-  // fallback: اگر student_login RPC وجود نداشت، از server API استفاده کن
-  const handleStudentLoginFallback = async (
-    studentNumber: string,
-    pin: string,
-    supabase: ReturnType<typeof createClient>
-  ) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ method: 'student_pin', student_number: studentNumber, pin }),
-    })
-    const data = await response.json()
-    if (!response.ok || !data.success || !data.credentials) {
-      toast.error(data.error || 'کد دانش‌آموزی یا رمز اشتباه است')
-      return
-    }
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: data.credentials.email,
-      password: data.credentials.password,
-    })
-    if (signInError) {
-      toast.error('خطا در ورود به سیستم. لطفاً دوباره تلاش کنید.')
-      return
-    }
-    toast.success(`خوش آمدید! ${data.student_info?.full_name || ''}`)
-    window.location.replace('/student')
   }
 
   return (

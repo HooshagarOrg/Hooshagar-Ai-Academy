@@ -33,3 +33,12 @@ export async function supabaseFetch(
 export const supabaseGlobalOptions = {
   global: { fetch: supabaseFetch },
 } as const
+
+/**
+ * fetch هوشمند برای clients با proxy — همه مسیرها (از جمله /auth/v1/) از proxy رد می‌شوند
+ * Cloudflare proxy می‌تواند به supabase.co برسد؛ browser/server مستقیم نمی‌توانند (ایران)
+ */
+export function makeAuthRoutingFetch(_proxyUrl: string): typeof supabaseFetch {
+  // همه درخواست‌ها از طریق proxy (URL جاری) → نیازی به routing جداگانه نیست
+  return supabaseFetch
+}

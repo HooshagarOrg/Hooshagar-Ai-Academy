@@ -49,6 +49,12 @@ async function main() {
       })
       .eq('id', existingStudent.id)
 
+    const authPassword = buildAuthPassword(existingStudent.user_id, TEST.pin)
+    await admin.auth.admin.updateUserById(existingStudent.user_id, {
+      password: authPassword,
+      email_confirm: true,
+    })
+
     await ensureTalentGarden(admin, existingStudent.id)
 
     printCredentials({
@@ -123,11 +129,14 @@ async function main() {
     await admin.auth.admin.deleteUser(existingAuth.id)
   }
 
-  const authPassword = `student_${TEST.studentNumber}_${Buffer.from(TEST.pin).toString('base64').slice(0, 8)}`
+  const buildAuthPassword = (userId, secret) => {
+    const uid = userId.replace(/-/g, '').slice(0, 12)
+    return `hg_student_${uid}_${secret}`
+  }
 
   const { data: authUser, error: authError } = await admin.auth.admin.createUser({
     email: TEST.email,
-    password: authPassword,
+    password: `temp_${Date.now()}`,
     email_confirm: true,
     user_metadata: { role: 'student', full_name: TEST.fullName },
   })
@@ -135,6 +144,8 @@ async function main() {
   if (authError) throw new Error('خطا در ساخت auth user: ' + authError.message)
 
   const userId = authUser.user.id
+  const authPassword = buildAuthPassword(userId, TEST.pin)
+  await admin.auth.admin.updateUserById(userId, { password: authPassword })
 
   const { error: profileError } = await admin.from('profiles').upsert({
     id: userId,

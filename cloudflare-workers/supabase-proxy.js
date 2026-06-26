@@ -1,73 +1,76 @@
 /**
- * Cloudflare Worker - Supabase Proxy
- * 
- * این Worker به عنوان proxy برای Supabase عمل می‌کند
- * تا کاربران ایرانی بدون فیلترشکن دسترسی داشته باشند
+ * Supabase Universal Proxy — هوشاگر
+ * تمام مسیرهای Supabase را forward می‌کند: REST, Auth, Realtime, Storage
+ * برای دور زدن فیلترینگ ایران
+ *
+ * deploy: wrangler deploy
  */
 
-export default {
-  async fetch(request, env) {
-    // فقط درخواست‌های از domain خودمان
-    const allowedOrigins = [
-      'https://app.hooshagar.com',
-      'https://hooshagar.com',
-      'http://localhost:3000',
-      'http://localhost:3001',
-    ]
+const SUPABASE_URL = 'https://qcplgczxdbjsjrorkprm.supabase.co'
 
-    const origin = request.headers.get('Origin')
-    const isLocalhost =
-      origin?.startsWith('http://localhost:') ||
-      origin?.startsWith('http://127.0.0.1:')
+// آدرس‌هایی که مجاز به ارسال درخواست هستند
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  // production domain خود را اینجا اضافه کنید:
+  // 'https://hooshagar.ir',
+]
 
-    // بررسی Origin
-    if (origin && !allowedOrigins.includes(origin) && !isLocalhost) {
-      return new Response('Forbidden', { status: 403 })
-    }
-
-    // استخراج URL Supabase از environment
-    const SUPABASE_URL = env.SUPABASE_URL || 'https://qcplgczxdbjsjrorkprm.supabase.co'
-    const url = new URL(request.url)
-    
-    // ساخت URL جدید با domain Supabase
-    const supabaseUrl = new URL(url.pathname + url.search, SUPABASE_URL)
-
-    // کپی کردن headers
-    const headers = new Headers(request.headers)
-    headers.set('Host', new URL(SUPABASE_URL).host)
-    headers.delete('CF-Connecting-IP')
-    headers.delete('CF-RAY')
-    headers.delete('CF-Visitor')
-
-    // ساخت درخواست جدید
-    const modifiedRequest = new Request(supabaseUrl.toString(), {
-      method: request.method,
-      headers: headers,
-      body: request.body,
-    })
-
-    // ارسال درخواست به Supabase
-    let response = await fetch(modifiedRequest)
-
-    // کپی کردن response
-    response = new Response(response.body, response)
-
-    // افزودن CORS headers
-    response.headers.set('Access-Control-Allow-Origin', origin || '*')
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, apikey, x-client-info, X-Supabase-Auth')
-    response.headers.set('Access-Control-Allow-Credentials', 'true')
-    response.headers.set('Access-Control-Max-Age', '86400')
-
-    // پاسخ به OPTIONS (preflight)
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: response.headers
-      })
-    }
-
-    return response
+function corsHeaders(origin) {
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers':
+      'Content-Type, Authorization, apikey, X-Client-Info, X-Supabase-Api-Version, x-client-info',
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Max-Age': '86400',
   }
 }
 
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url)
+    const origin = request.headers.get('Origin') || ''
+
+    // CORS preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders(origin) })
+    }
+
+    // ساخت URL مقصد — همه مسیرها forward می‌شوند
+    const targetUrl = SUPABASE_URL + url.pathname + url.search
+
+    // کپی headers (بدون Host)
+    const headers = new Headers(request.headers)
+    headers.delete('Host')
+
+    // forward درخواست
+    let response
+    try {
+      response = await fetch(targetUrl, {
+        method: request.method,
+        headers,
+        body: ['GET', 'HEAD', 'OPTIONS'].includes(request.method) ? undefined : request.body,
+        redirect: 'follow',
+      })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: 'proxy_fetch_failed', message: String(err) }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
+      })
+    }
+
+    // افزودن CORS headers به response
+    const newHeaders = new Headers(response.headers)
+    const cors = corsHeaders(origin)
+    Object.entries(cors).forEach(([k, v]) => newHeaders.set(k, v))
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: newHeaders,
+    })
+  },
+}

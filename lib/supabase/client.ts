@@ -1,13 +1,13 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { getSupabaseUrl } from '@/lib/supabase/resolve-url'
 
 /**
  * Supabase Client برای Client Components
- * browser باید مستقیم به SUPABASE_URL وصل شود (نه proxy که CORS ندارد)
- * نام کوکی باید با middleware یکسان باشد: sb-hooshagar-auth-token
+ * از پراکسی Cloudflare استفاده می‌کند (ایران) — CORS در worker فعال است
  */
 export function createClient() {
   return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    getSupabaseUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookieOptions: {

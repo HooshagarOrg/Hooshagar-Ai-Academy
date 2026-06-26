@@ -33,7 +33,7 @@ function getAdmin(): SupabaseClient {
 async function existsLoginCode(admin: SupabaseClient, code: string): Promise<boolean> {
   const [{ data: p }, { data: s }] = await Promise.all([
     admin.from('profiles').select('id').or(`login_code.eq.${code},national_code.eq.${code}`).limit(1),
-    admin.from('students').select('id').or(`student_number.eq.${code},national_code.eq.${code}`).limit(1),
+    admin.from('students').select('id').eq('student_number', code).limit(1),
   ])
   return Boolean(p?.length || s?.length)
 }

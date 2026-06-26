@@ -38,11 +38,19 @@ const AVATAR_OR_FALLBACK = process.env.AVATAR_OR_FALLBACK || 'openrouter/free'
 const avatarGoogleKeys: string[] = []
 let avatarGoogleKeyIndex = 0
 
+/** کلیدهای Google AI Studio: AIzaSy… (کلاسیک) یا AQ.… (فرمت جدید) */
+function isValidAvatarGoogleKey(key: string | undefined): key is string {
+  if (!key) return false
+  return key.startsWith('AIza') || key.startsWith('AQ.')
+}
+
+const AVATAR_GOOGLE_KEY_SLOTS = 20
+
 function loadAvatarGoogleKeys(): string[] {
   if (avatarGoogleKeys.length > 0) return avatarGoogleKeys
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= AVATAR_GOOGLE_KEY_SLOTS; i++) {
     const key = process.env[`AVATAR_GOOGLE_API_KEY_${i}`]
-    if (key) avatarGoogleKeys.push(key)
+    if (isValidAvatarGoogleKey(key)) avatarGoogleKeys.push(key)
   }
   return avatarGoogleKeys
 }
@@ -64,7 +72,10 @@ function getAvatarOpenRouterKey(): string {
 function getOpenRouterBaseUrl(): string {
   const proxy = process.env.NEXT_PUBLIC_OPENROUTER_PROXY
   if (!proxy) return 'https://openrouter.ai/api/v1'
-  return proxy.endsWith('/v1') ? proxy : `${proxy.replace(/\/$/, '')}/v1`
+  const base = proxy.replace(/\/$/, '')
+  if (base.endsWith('/api/v1')) return base
+  if (base.endsWith('/v1')) return base.replace(/\/v1$/, '/api/v1')
+  return `${base}/api/v1`
 }
 
 async function callAvatarGemini(systemPrompt: string, userMessage: string): Promise<AvatarAIResponse> {

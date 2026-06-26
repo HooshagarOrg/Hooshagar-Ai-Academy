@@ -7,6 +7,7 @@ import {
   ChevronLeft, Globe, Key, Activity, DollarSign, Calendar,
   Sliders, Users, Building, GraduationCap, Sparkles, Video,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
 import { GlassCard } from '@/components/ui/glass-card'
 import { cn } from '@/lib/utils'
@@ -14,7 +15,7 @@ import { cn } from '@/lib/utils'
 interface SettingsCard {
   title: string
   description: string
-  icon: React.ElementType
+  icon: LucideIcon
   href: string
   color: string
   bg: string

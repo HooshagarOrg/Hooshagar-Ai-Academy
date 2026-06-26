@@ -132,6 +132,7 @@ SELECT _grant_if_exists('ai_response_cache',   'SELECT, INSERT, UPDATE, DELETE',
 SELECT _grant_if_exists('gemini_api_keys',     'SELECT, INSERT, UPDATE',         ARRAY['authenticated']);
 SELECT _grant_if_exists('user_ai_limits',      'SELECT, INSERT, UPDATE',         ARRAY['authenticated']);
 SELECT _grant_if_exists('chat_history',        'SELECT, INSERT',                 ARRAY['authenticated']);
+SELECT _grant_if_exists('avatar_chat_messages','SELECT, INSERT, DELETE',         ARRAY['authenticated']);
 SELECT _grant_if_exists('stories',             'SELECT, INSERT',                 ARRAY['authenticated']);
 SELECT _grant_if_exists('study_materials',     'SELECT, INSERT, UPDATE',         ARRAY['authenticated']);
 SELECT _grant_if_exists('document_embeddings', 'SELECT, INSERT, UPDATE',         ARRAY['authenticated']);

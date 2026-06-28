@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, XCircle, Clock, Users, Calendar, TrendingUp } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
+import { PageErrorState, PageLoading } from '@/components/ui/page-states'
 
 interface AttendanceRecord {
   id: string
@@ -45,6 +47,7 @@ const statusIcon: Record<string, React.ReactNode> = {
 export default function ParentAttendancePage() {
   const [children, setChildren] = useState<Child[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [selected, setSelected] = useState<string>('')
 
   useEffect(() => {
@@ -54,14 +57,16 @@ export default function ParentAttendancePage() {
   async function loadAttendance() {
     try {
       setLoading(true)
+      setError('')
       const res = await fetch('/api/parent/attendance')
+      if (!res.ok) throw new Error('fetch failed')
       const data = await res.json()
       if (data.children) {
         setChildren(data.children)
         if (data.children.length > 0) setSelected(data.children[0].id)
       }
     } catch {
-      // اگر API وجود نداشت، داده نمونه نشان بده
+      setError('دریافت اطلاعات حضور و غیاب ناموفق بود. لطفاً دوباره تلاش کنید.')
       setChildren([])
     } finally {
       setLoading(false)
@@ -76,29 +81,27 @@ export default function ParentAttendancePage() {
   }
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      <div className="flex items-center gap-3 mb-2">
-        <div className="bg-blue-100 p-3 rounded-xl">
-          <Calendar className="w-6 h-6 text-blue-600" />
+    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="rounded-xl bg-blue-100 p-3 w-fit">
+          <Calendar className="h-6 w-6 text-blue-600" aria-hidden />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">حضور و غیاب فرزندان</h1>
-          <p className="text-gray-500 text-sm">وضعیت حضور و غیاب فرزندتان را مشاهده کنید</p>
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">حضور و غیاب فرزندان</h1>
+          <p className="text-sm leading-7 text-gray-500">وضعیت حضور و غیاب فرزندتان را مشاهده کنید</p>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
-              </div>
+        <PageLoading label="در حال بارگذاری حضور و غیاب..." compact />
+      ) : error ? (
+        <PageErrorState message={error} onRetry={loadAttendance} />
       ) : children.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
-            <Users className="w-16 h-16 text-gray-300" />
-            <p className="text-gray-500 text-lg">اطلاعاتی یافت نشد</p>
-            <p className="text-gray-400 text-sm">فرزندی به حساب شما متصل نیست یا اطلاعات حضور ثبت نشده</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Users}
+          title="اطلاعاتی یافت نشد"
+          description="فرزندی به حساب شما متصل نیست یا اطلاعات حضور ثبت نشده است."
+        />
       ) : (
         <>
           {/* انتخاب فرزند */}
@@ -107,11 +110,12 @@ export default function ParentAttendancePage() {
               {children.map(child => (
                 <button
                   key={child.id}
+                  type="button"
                   onClick={() => setSelected(child.id)}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                  className={`lux-focus-ring min-h-10 rounded-xl px-4 py-2 font-medium transition-all ${
                     selected === child.id
                       ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-white text-gray-700 border hover:bg-gray-50'
+                      : 'border bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   {child.full_name}
@@ -195,7 +199,7 @@ export default function ParentAttendancePage() {
                       {activeChild.attendance.map(record => (
                         <div
                           key={record.id}
-                          className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                          className="flex flex-col gap-2 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100 sm:flex-row sm:items-center sm:justify-between"
                         >
                           <div className="flex items-center gap-3">
                             {statusIcon[record.status]}

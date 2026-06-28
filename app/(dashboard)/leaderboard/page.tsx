@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { Trophy, Medal, Award, TrendingUp, Star } from 'lucide-react'
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
+import { EmptyState } from '@/components/ui/empty-state'
+import { PageErrorState, PageLoading } from '@/components/ui/page-states'
 
 interface LeaderboardEntry {
   rank: number
@@ -17,6 +19,7 @@ interface LeaderboardEntry {
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [currentUserRank, setCurrentUserRank] = useState<number | null>(null)
 
   useEffect(() => {
@@ -25,15 +28,20 @@ export default function LeaderboardPage() {
 
   const fetchLeaderboard = async () => {
     try {
+      setIsLoading(true)
+      setLoadError('')
       const response = await fetch('/api/xp/leaderboard?limit=20')
+      if (!response.ok) throw new Error('fetch failed')
       const result = await response.json()
 
       if (result.success) {
         setLeaderboard(result.data.leaderboard)
         setCurrentUserRank(result.data.current_user_rank)
+      } else {
+        throw new Error('invalid response')
       }
-    } catch (error) {
-      console.error('خطا در دریافت رتبه‌بندی:', error)
+    } catch {
+      setLoadError('دریافت جدول افتخارات ناموفق بود. لطفاً دوباره تلاش کنید.')
     } finally {
       setIsLoading(false)
     }
@@ -58,10 +66,16 @@ export default function LeaderboardPage() {
 
   if (isLoading) {
     return (
-      <DashboardPage className="max-w-4xl mx-auto" title="جدول افتخارات" animatedSections={false}>
-        <div className="flex items-center justify-center py-20 text-muted-foreground text-xl">
-          در حال بارگذاری...
-        </div>
+      <DashboardPage className="mx-auto max-w-4xl" title="جدول افتخارات" animatedSections={false}>
+        <PageLoading label="در حال بارگذاری جدول افتخارات..." compact />
+      </DashboardPage>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <DashboardPage className="mx-auto max-w-4xl" title="جدول افتخارات" animatedSections={false}>
+        <PageErrorState message={loadError} onRetry={fetchLeaderboard} />
       </DashboardPage>
     )
   }
@@ -80,7 +94,7 @@ export default function LeaderboardPage() {
     >
         {currentUserRank && (
           <GlassCard className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-6 h-6 text-brand-green" />
                 <span className="font-bold">رتبه شما:</span>
@@ -94,9 +108,11 @@ export default function LeaderboardPage() {
 
       <div className="space-y-3">
         {leaderboard.length === 0 ? (
-          <div className="text-center text-white text-xl py-12">
-            هنوز هیچ رکوردی ثبت نشده است
-          </div>
+          <EmptyState
+            icon={Trophy}
+            title="هنوز رکوردی ثبت نشده"
+            description="با انجام فعالیت‌ها امتیاز بگیر و اولین نفر جدول باش!"
+          />
         ) : (
           leaderboard.map((entry) => (
             <GlassCard
@@ -105,7 +121,7 @@ export default function LeaderboardPage() {
                 entry.rank <= 3 ? 'ring-2 ring-brand-yellow/50' : ''
               }`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 {/* رتبه و آیکون */}
                 <div className="flex items-center gap-4">
                   <div className="w-16 flex justify-center">

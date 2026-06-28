@@ -10,6 +10,7 @@ import ReportStats from '@/components/reports/ReportStats';
 import ReportInsights from '@/components/reports/ReportInsights';
 import { ParentReport } from '@/types/parent-reports.types';
 import { ArrowRight, Calendar, FileText, Download, Share2 } from 'lucide-react';
+import { PageErrorState, PageSkeletonCards } from '@/components/ui/page-states';
 
 export default function ReportDetailPage() {
   const params = useParams();
@@ -65,59 +66,47 @@ export default function ReportDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Card className="animate-pulse">
-          <CardHeader>
-            <div className="h-8 bg-gray-200 rounded w-1/2" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded" />
-              <div className="h-4 bg-gray-200 rounded w-5/6" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6" dir="rtl">
+        <PageSkeletonCards count={2} />
       </div>
     );
   }
 
   if (error || !report) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center text-red-600">
-              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">{error || 'گزارش یافت نشد'}</p>
-              <Button onClick={() => router.back()} variant="outline" className="mt-4">
-                بازگشت
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6" dir="rtl">
+        <PageErrorState
+          message={error || 'گزارش یافت نشد'}
+          onRetry={fetchReport}
+          retryLabel="تلاش مجدد"
+        />
+        <div className="text-center">
+          <Button onClick={() => router.back()} variant="outline" className="min-h-10">
+            بازگشت
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* هدر */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6" dir="rtl">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
           variant="ghost"
           onClick={() => router.back()}
-          className="gap-2"
+          className="min-h-10 w-fit gap-2"
         >
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight className="h-4 w-4" aria-hidden />
           بازگشت
         </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
-            <Download className="h-4 w-4" />
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" className="min-h-10 gap-2">
+            <Download className="h-4 w-4" aria-hidden />
             دانلود PDF
           </Button>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Share2 className="h-4 w-4" />
+          <Button variant="outline" size="sm" className="min-h-10 gap-2">
+            <Share2 className="h-4 w-4" aria-hidden />
             اشتراک‌گذاری
           </Button>
         </div>

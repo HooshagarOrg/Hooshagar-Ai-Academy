@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { GraduationCap, Plus, Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { EmptyState } from '@/components/ui/empty-state'
+import { PageErrorState, PageLoading, PageSkeletonTable } from '@/components/ui/page-states'
 
 type Student = { id: string; full_name: string; grade?: number; student_number?: string }
 type Grade = {
@@ -40,6 +42,7 @@ export default function TeacherGradesPage() {
   const [grades, setGrades] = useState<Grade[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [showAdd, setShowAdd] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -49,11 +52,13 @@ export default function TeacherGradesPage() {
 
   const loadData = async () => {
     setLoading(true)
+    setError('')
     try {
       const [gRes, sRes] = await Promise.all([
         fetch('/api/grades'),
         fetch('/api/admin/users?role=student&limit=200'),
       ])
+      if (!gRes.ok || !sRes.ok) throw new Error('fetch failed')
       const gData = await gRes.json()
       const sData = await sRes.json()
       setGrades(gData.grades || [])
@@ -61,7 +66,7 @@ export default function TeacherGradesPage() {
         id: u.id, full_name: u.full_name, student_number: u.username,
       })))
     } catch {
-      toast.error('خطا در بارگذاری داده‌ها')
+      setError('دریافت نمرات ناموفق بود. لطفاً دوباره تلاش کنید.')
     } finally {
       setLoading(false)
     }
@@ -115,17 +120,19 @@ export default function TeacherGradesPage() {
   }
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <GraduationCap className="text-blue-600" />
+          <h1 className="flex items-center gap-2 text-xl font-bold sm:text-2xl">
+            <GraduationCap className="text-blue-600" aria-hidden />
             ثبت و مدیریت نمرات
           </h1>
-          <p className="text-sm text-gray-500">نمره‌ها بلافاصله برای دانش‌آموز و والدین قابل مشاهده می‌شود.</p>
+          <p className="mt-1 text-sm leading-7 text-muted-foreground">
+            نمره‌ها بلافاصله برای دانش‌آموز و والدین قابل مشاهده می‌شود.
+          </p>
         </div>
-        <Button onClick={() => setShowAdd(true)} className="gap-2 bg-blue-600">
-          <Plus size={18} /> ثبت نمره جدید
+        <Button onClick={() => setShowAdd(true)} className="min-h-10 w-full gap-2 bg-blue-600 sm:w-auto">
+          <Plus size={18} aria-hidden /> ثبت نمره جدید
         </Button>
       </div>
 
@@ -133,12 +140,23 @@ export default function TeacherGradesPage() {
         <CardHeader><CardTitle>لیست نمرات ثبت‌شده ({grades.length})</CardTitle></CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-12"><Loader2 className="animate-spin mx-auto" /></div>
+            <PageSkeletonTable rows={6} />
+          ) : error ? (
+            <PageErrorState message={error} onRetry={loadData} />
           ) : grades.length === 0 ? (
-            <p className="text-center py-12 text-gray-400">هنوز نمره‌ای ثبت نکرده‌اید</p>
+            <EmptyState
+              icon={GraduationCap}
+              title="هنوز نمره‌ای ثبت نکرده‌اید"
+              description="اولین نمره را برای دانش‌آموزان کلاس خود ثبت کنید."
+              action={
+                <Button onClick={() => setShowAdd(true)} className="min-h-10 gap-2">
+                  <Plus size={16} aria-hidden /> ثبت نمره
+                </Button>
+              }
+            />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[640px] text-sm">
                 <thead className="bg-gray-50 border-b">
                   <tr>
                     <th className="p-3 text-right">دانش‌آموز</th>

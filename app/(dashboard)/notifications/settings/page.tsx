@@ -9,6 +9,7 @@ import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import type { NotificationPreferences } from '@/types/notifications.types';
+import { PageErrorState, PageLoading } from '@/components/ui/page-states';
 
 export default function NotificationSettingsPage() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function NotificationSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [loadError, setLoadError] = useState('');
+
   useEffect(() => {
     fetchPreferences();
   }, []);
@@ -24,14 +27,18 @@ export default function NotificationSettingsPage() {
   const fetchPreferences = async () => {
     try {
       setIsLoading(true);
+      setLoadError('');
       const res = await fetch('/api/notifications/preferences');
+      if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
 
       if (data.success) {
         setPreferences(data.preferences);
+      } else {
+        setLoadError(data.error || 'دریافت تنظیمات ناموفق بود');
       }
-    } catch (error) {
-      console.error('خطا در دریافت تنظیمات:', error);
+    } catch {
+      setLoadError('اتصال برقرار نشد. لطفاً دوباره تلاش کنید.');
       toast({
         title: 'خطا',
         description: 'دریافت تنظیمات ناموفق بود',
@@ -89,43 +96,37 @@ export default function NotificationSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">در حال بارگذاری...</div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6" dir="rtl">
+        <PageLoading label="در حال بارگذاری تنظیمات..." compact />
       </div>
     );
   }
 
-  if (!preferences) {
+  if (loadError || !preferences) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center text-red-600">خطا در دریافت تنظیمات</div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6" dir="rtl">
+        <PageErrorState
+          message={loadError || 'دریافت تنظیمات ناموفق بود'}
+          onRetry={fetchPreferences}
+        />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* هدر */}
-      <div className="flex items-center gap-4">
+    <div className="space-y-6" dir="rtl">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <Button
           variant="ghost"
           onClick={() => router.back()}
-          className="gap-2"
+          className="min-h-10 w-fit gap-2"
         >
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight className="h-4 w-4" aria-hidden />
           بازگشت
         </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold">تنظیمات اعلان‌ها</h1>
-          <p className="text-muted-foreground mt-1">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-bold sm:text-3xl">تنظیمات اعلان‌ها</h1>
+          <p className="mt-1 text-sm leading-7 text-muted-foreground">
             مدیریت انواع اعلان‌های دریافتی
           </p>
         </div>
@@ -137,7 +138,7 @@ export default function NotificationSettingsPage() {
           <CardTitle>انواع اعلان‌ها</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="report_published" className="cursor-pointer">
               گزارش منتشر شده
             </Label>
@@ -148,7 +149,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="grade_added" className="cursor-pointer">
               نمره جدید
             </Label>
@@ -159,7 +160,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="attendance_alert" className="cursor-pointer">
               هشدار غیبت
             </Label>
@@ -170,7 +171,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="homework_due" className="cursor-pointer">
               یادآوری تکلیف
             </Label>
@@ -181,7 +182,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="homework_graded" className="cursor-pointer">
               نمره تکلیف
             </Label>
@@ -192,7 +193,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="achievement" className="cursor-pointer">
               دستاوردها
             </Label>
@@ -203,7 +204,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="badge_earned" className="cursor-pointer">
               نشان‌ها
             </Label>
@@ -214,7 +215,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="xp_milestone" className="cursor-pointer">
               سطح جدید
             </Label>
@@ -225,7 +226,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="system" className="cursor-pointer">
               سیستم
             </Label>
@@ -236,7 +237,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="announcement" className="cursor-pointer">
               اطلاعیه‌ها
             </Label>
@@ -255,7 +256,7 @@ export default function NotificationSettingsPage() {
           <CardTitle>کانال‌های دریافت</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="in_app" className="cursor-pointer">
               داخل برنامه
             </Label>
@@ -266,7 +267,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="email" className="cursor-pointer">
               ایمیل
             </Label>
@@ -278,7 +279,7 @@ export default function NotificationSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="push" className="cursor-pointer">
               اعلان Push
             </Label>
@@ -297,11 +298,11 @@ export default function NotificationSettingsPage() {
       </Card>
 
       {/* دکمه ذخیره */}
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={() => router.back()}>
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <Button variant="outline" onClick={() => router.back()} className="min-h-10">
           انصراف
         </Button>
-        <Button onClick={handleSave} disabled={isSaving}>
+        <Button onClick={handleSave} disabled={isSaving} className="min-h-10">
           {isSaving ? 'در حال ذخیره...' : 'ذخیره تنظیمات'}
         </Button>
       </div>

@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { EmptyState } from '@/components/ui/empty-state'
+import { PageLoading } from '@/components/ui/page-states'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -301,9 +302,7 @@ export default function AdminVirtualClassesPage() {
     >
 
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <PageLoading label="در حال بارگذاری کلاس‌های مجازی..." compact />
       ) : items.length === 0 ? (
         <EmptyState
           icon={Video}

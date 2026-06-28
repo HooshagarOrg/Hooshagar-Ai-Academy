@@ -1,13 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AppSidebar } from './app-sidebar'
-import { AppHeader } from './app-header'
+import { LuxNav, LuxMobileNav } from './lux-nav'
+import { LuxRoleHeader } from './lux-role-header'
 import { LuxStudentHeader } from '@/components/lux/lux-student-header'
-import { MobileNav } from './mobile-nav'
 import { DashboardFrame } from '@/components/motion/dashboard-frame'
 import { ChromaticCanvas } from '@/components/ui/chromatic-canvas'
-import { getUiTone } from '@/lib/ui/role-tone'
 import { cn } from '@/lib/utils'
 import { AvatarFab } from '@/components/avatar/avatar-fab'
 
@@ -21,7 +19,7 @@ interface DashboardShellProps {
 export function DashboardShell({ role, userName, schoolName, children }: DashboardShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
-  const tone = getUiTone(role)
+  const isStudent = role === 'student'
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -36,32 +34,28 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
 
   useEffect(() => {
     document.body.style.overflow = mobileSidebarOpen ? 'hidden' : ''
-    return () => {
-      document.body.style.overflow = ''
-    }
+    return () => { document.body.style.overflow = '' }
   }, [mobileSidebarOpen])
 
   return (
     <div
       className="relative flex h-app overflow-hidden"
       dir="rtl"
-      data-ui-tone={tone}
       data-role={role}
     >
-      <ChromaticCanvas mode="static" variant={role === 'student' ? 'dark' : 'light'} />
+      <ChromaticCanvas mode="static" variant={isStudent ? 'dark' : 'light'} />
 
       {mobileSidebarOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm motion-overlay motion-interactive"
+          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
           onClick={() => setMobileSidebarOpen(false)}
           aria-hidden
         />
       )}
 
       <div className="hidden lg:flex flex-col h-full flex-shrink-0 z-20">
-        <AppSidebar
+        <LuxNav
           role={role}
-          tone={tone}
           userName={userName}
           schoolName={schoolName}
           collapsed={sidebarCollapsed}
@@ -72,13 +66,12 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
       <div
         data-sidebar
         className={cn(
-          'lg:hidden fixed top-0 right-0 h-app z-50 motion-drawer will-change-transform',
+          'lg:hidden fixed top-0 right-0 h-app z-50 transition-transform duration-300 will-change-transform',
           mobileSidebarOpen ? 'translate-x-0' : 'translate-x-full',
         )}
       >
-        <AppSidebar
+        <LuxNav
           role={role}
-          tone={tone}
           userName={userName}
           schoolName={schoolName}
           collapsed={false}
@@ -87,16 +80,15 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
       </div>
 
       <div className="relative flex flex-col flex-1 min-w-0 overflow-hidden z-10">
-        {role === 'student' ? (
+        {isStudent ? (
           <LuxStudentHeader
             userName={userName}
             onMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           />
         ) : (
-          <AppHeader
+          <LuxRoleHeader
             userName={userName}
             role={role}
-            tone={tone}
             onMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           />
         )}
@@ -105,19 +97,18 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
           <div
             className={cn(
               'ui-canvas min-h-full',
-              role === 'student' && 'lux-student-canvas',
+              isStudent && 'lux-student-canvas',
             )}
-            data-ui-tone={tone}
+            data-role={role}
           >
-            <div className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto w-full px-safe premium-content premium-legacy-bridge">
+            <div className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto w-full px-safe premium-content">
               <DashboardFrame>{children}</DashboardFrame>
             </div>
           </div>
         </main>
 
-        <MobileNav role={role} tone={tone} />
-
-        {role !== 'student' && <AvatarFab />}
+        <LuxMobileNav role={role} />
+        <AvatarFab />
       </div>
     </div>
   )

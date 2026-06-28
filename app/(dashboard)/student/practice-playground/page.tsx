@@ -22,6 +22,7 @@ import {
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
+import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 
 // ============================================
 // تایپ‌ها
@@ -729,6 +730,8 @@ export default function PracticePlaygroundPage() {
       }
       animatedSections={false}
     >
+      <LuxStagger className="space-y-6" stagger={0.12}>
+        <LuxStaggerItem>
         <main>
           {/* نمایش نتیجه */}
           {gameResult ? (
@@ -755,12 +758,15 @@ export default function PracticePlaygroundPage() {
             <SpellingGame onFinish={handleGameFinish} onBack={handleBack} />
           ) : null}
         </main>
+        </LuxStaggerItem>
 
-        {/* ==================== Footer ==================== */}
+        <LuxStaggerItem>
         <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>🎓 یادگیری با هوشاگر، لذت‌بخش و هوشمند!</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
+        </LuxStaggerItem>
+      </LuxStagger>
     </DashboardPage>
   )
 }

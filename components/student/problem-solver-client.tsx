@@ -14,6 +14,7 @@ import {
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
+import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { cn } from '@/lib/utils'
 
 type SolveResult = {
@@ -169,6 +170,8 @@ export function ProblemSolverClient() {
       description="عکس مسئله را آپلود کنید تا هوش مصنوعی آن را حل کند"
       animatedSections={false}
     >
+      <LuxStagger className="space-y-6" stagger={0.12}>
+        <LuxStaggerItem>
       <GlassCard className="p-6">
         <div
           onDragOver={(e) => {
@@ -261,8 +264,10 @@ export function ProblemSolverClient() {
           </div>
         )}
       </GlassCard>
+        </LuxStaggerItem>
 
       {result && (
+        <LuxStaggerItem>
         <GlassCard className="p-6 space-y-5">
           <h2 className="text-xl font-bold flex items-center gap-2 text-brand-purple">
             <Sparkles className="w-6 h-6" />
@@ -307,11 +312,15 @@ export function ProblemSolverClient() {
             </p>
           )}
         </GlassCard>
+        </LuxStaggerItem>
       )}
 
+      <LuxStaggerItem>
       <p className="text-center text-sm text-muted-foreground">
         برای بهترین نتیجه، عکس واضح با نور کافی بگیرید.
       </p>
+      </LuxStaggerItem>
+      </LuxStagger>
     </DashboardPage>
   )
 }

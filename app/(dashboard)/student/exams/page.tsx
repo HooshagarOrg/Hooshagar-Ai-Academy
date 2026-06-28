@@ -6,6 +6,7 @@ import { Calendar, ChevronLeft, ClipboardCheck, Loader2, PlayCircle } from 'luci
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
+import { LuxDashboardSection, LuxSectionBlock } from '@/components/lux/lux-dashboard-section'
 
 interface Exam {
   id: string
@@ -29,16 +30,18 @@ export default function StudentExamsPage() {
   }, [])
 
   return (
-    <div dir="rtl">
-      <LuxPageHeader title="آزمون‌ها" subtitle="تقویم امتحانات و وضعیت شرکت" />
+    <LuxDashboardSection header={<LuxPageHeader title="آزمون‌ها" subtitle="تقویم امتحانات و وضعیت شرکت" />}>
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[var(--lux-primary)]" /></div>
       ) : exams.length === 0 ? (
-        <LuxEmptyState icon={<ClipboardCheck className="h-6 w-6" />} title="آزمون پیش‌رویی نیست" description="وقتی مدرسه آزمون تعریف کند اینجا نمایش داده می‌شود." />
+        <LuxSectionBlock>
+          <LuxEmptyState icon={<ClipboardCheck className="h-6 w-6" />} title="آزمون پیش‌رویی نیست" description="وقتی مدرسه آزمون تعریف کند اینجا نمایش داده می‌شود." />
+        </LuxSectionBlock>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {exams.map((exam) => (
-            <LuxCard key={exam.id} interactive>
+            <LuxSectionBlock key={exam.id}>
+              <LuxCard interactive>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="font-black text-[var(--lux-text)]">{exam.title}</p>
@@ -54,10 +57,11 @@ export default function StudentExamsPage() {
                 <PlayCircle className="h-4 w-4" /> شروع / ادامه
                 <ChevronLeft className="h-4 w-4" />
               </Link>
-            </LuxCard>
+              </LuxCard>
+            </LuxSectionBlock>
           ))}
         </div>
       )}
-    </div>
+    </LuxDashboardSection>
   )
 }

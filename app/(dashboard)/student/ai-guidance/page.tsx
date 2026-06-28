@@ -20,6 +20,7 @@ import {
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
+import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 
 // ============================================
 // کامپوننت اصلی
@@ -146,6 +147,8 @@ export default function AIGuidancePage() {
       }
       animatedSections={false}
     >
+      <LuxStagger className="space-y-6" stagger={0.1}>
+        <LuxStaggerItem>
         <GlassCard className="p-8 text-center border-brand-cyan/25 bg-gradient-to-bl from-brand-cyan/15 via-card/90 to-brand-purple/10">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-cyan-500/20 mb-4">
             <Brain className="w-10 h-10 text-cyan-400" />
@@ -179,9 +182,10 @@ export default function AIGuidancePage() {
             )}
           </button>
         </GlassCard>
+        </LuxStaggerItem>
 
-        {/* نتایج */}
         {guidance && (
+          <LuxStaggerItem>
           <div className="space-y-6">
             {/* استعدادها */}
             <GlassCard className="p-6">
@@ -331,12 +335,15 @@ export default function AIGuidancePage() {
               </div>
             </div>
           </div>
+          </LuxStaggerItem>
         )}
 
-        {/* Footer */}
+        <LuxStaggerItem>
         <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
         </footer>
+        </LuxStaggerItem>
+      </LuxStagger>
     </DashboardPage>
   )
 }

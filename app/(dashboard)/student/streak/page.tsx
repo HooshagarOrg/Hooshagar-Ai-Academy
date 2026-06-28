@@ -5,6 +5,7 @@ import { Flame, Loader2 } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxStatGrid } from '@/components/lux/lux-stat-grid'
+import { LuxDashboardSection, LuxSectionBlock } from '@/components/lux/lux-dashboard-section'
 
 export default function StudentStreakPage() {
   const [current, setCurrent] = useState(0)
@@ -22,26 +23,29 @@ export default function StudentStreakPage() {
   }, [])
 
   return (
-    <div dir="rtl">
-      <LuxPageHeader title="استریک یادگیری" subtitle="روزهای پیاپی فعالیت" />
+    <LuxDashboardSection header={<LuxPageHeader title="استریک یادگیری" subtitle="روزهای پیاپی فعالیت" />}>
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[#FF6B35]" /></div>
       ) : (
         <>
-          <LuxStatGrid
-            items={[
-              { label: 'استریک فعلی', value: current, icon: <Flame className="h-5 w-5" />, accent: '#FF6B35' },
-              { label: 'رکورد', value: longest, icon: <Flame className="h-5 w-5" />, accent: 'var(--lux-gold)' },
-            ]}
-            className="grid-cols-2 lg:grid-cols-2"
-          />
-          <LuxCard className="mt-5">
-            <p className="text-sm leading-8 text-[var(--lux-text-muted)]">
-              هر روز با یک فعالیت کوتاه در هوشاگر (مطالعه، تمرین یا گفتگو با هوشیار) استریکت را حفظ کن.
-            </p>
-          </LuxCard>
-                        </>
-                      )}
-    </div>
+          <LuxSectionBlock>
+            <LuxStatGrid
+              items={[
+                { label: 'استریک فعلی', value: current, icon: <Flame className="h-5 w-5" />, accent: '#FF6B35' },
+                { label: 'رکورد', value: longest, icon: <Flame className="h-5 w-5" />, accent: 'var(--lux-gold)' },
+              ]}
+              className="grid-cols-2 lg:grid-cols-2"
+            />
+          </LuxSectionBlock>
+          <LuxSectionBlock>
+            <LuxCard>
+              <p className="text-sm leading-8 text-[var(--lux-text-muted)]">
+                هر روز با یک فعالیت کوتاه در هوشاگر (مطالعه، تمرین یا گفتگو با هوشیار) استریکت را حفظ کن.
+              </p>
+            </LuxCard>
+          </LuxSectionBlock>
+        </>
+      )}
+    </LuxDashboardSection>
   )
 }

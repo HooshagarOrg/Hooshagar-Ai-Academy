@@ -19,6 +19,7 @@ import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { StatCard } from '@/components/ui/stat-card'
 import { Button } from '@/components/ui/button'
+import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 
 // ============================================
 // کامپوننت اصلی
@@ -86,6 +87,8 @@ export default function KonkurPage() {
       }
       animatedSections={false}
     >
+      <LuxStagger className="space-y-6" stagger={0.1}>
+        <LuxStaggerItem>
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-3 grid md:grid-cols-4 gap-4">
             <StatCard
@@ -282,10 +285,14 @@ export default function KonkurPage() {
             </GlassCard>
           </div>
         </div>
+        </LuxStaggerItem>
 
+        <LuxStaggerItem>
         <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
         </footer>
+        </LuxStaggerItem>
+      </LuxStagger>
     </DashboardPage>
   )
 }

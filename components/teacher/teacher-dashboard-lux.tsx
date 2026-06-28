@@ -16,6 +16,7 @@ import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxStatGrid } from '@/components/lux/lux-stat-grid'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
+import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 
 type DashboardData = {
   teacher: { name: string; class: { name: string; grade: number } | null }
@@ -64,49 +65,59 @@ export function TeacherDashboardLux() {
 
   return (
     <div className="space-y-6" dir="rtl">
-      <LuxPageHeader
-        kicker="فضای معلم"
-        title={`سلام، ${data.teacher.name}`}
-        subtitle={data.teacher.class ? `کلاس ${data.teacher.class.name} — پایه ${data.teacher.class.grade}` : 'کلاسی اختصاص داده نشده'}
-      />
+      <LuxFadeUp>
+        <LuxPageHeader
+          kicker="فضای معلم"
+          title={`سلام، ${data.teacher.name}`}
+          subtitle={data.teacher.class ? `کلاس ${data.teacher.class.name} — پایه ${data.teacher.class.grade}` : 'کلاسی اختصاص داده نشده'}
+        />
+      </LuxFadeUp>
 
-      <LuxStatGrid
-        items={[
-          { label: 'دانش‌آموزان', value: data.stats.totalStudents, icon: <Users className="h-5 w-5" />, accent: 'var(--arc-teacher)' },
-          { label: 'حضور امروز', value: `${data.stats.attendanceRate}٪`, icon: <ClipboardCheck className="h-5 w-5" />, accent: 'var(--lux-success)' },
-          { label: 'میانگین نمره', value: data.stats.averageGrade.toFixed(1), icon: <BookOpen className="h-5 w-5" />, accent: 'var(--lux-primary)' },
-          { label: 'آزمون پیش‌رو', value: data.stats.upcomingExams, icon: <Sparkles className="h-5 w-5" />, accent: 'var(--lux-gold)' },
-        ]}
-      />
+      <LuxStagger className="space-y-6" stagger={0.1}>
+        <LuxStaggerItem>
+          <LuxStatGrid
+            items={[
+              { label: 'دانش‌آموزان', value: data.stats.totalStudents, icon: <Users className="h-5 w-5" />, accent: 'var(--arc-teacher)' },
+              { label: 'حضور امروز', value: `${data.stats.attendanceRate}٪`, icon: <ClipboardCheck className="h-5 w-5" />, accent: 'var(--lux-success)' },
+              { label: 'میانگین نمره', value: data.stats.averageGrade.toFixed(1), icon: <BookOpen className="h-5 w-5" />, accent: 'var(--lux-primary)' },
+              { label: 'آزمون پیش‌رو', value: data.stats.upcomingExams, icon: <Sparkles className="h-5 w-5" />, accent: 'var(--lux-gold)' },
+            ]}
+          />
+        </LuxStaggerItem>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {tools.map(({ label, href, icon: Icon }) => (
-          <Link key={href} href={href} className="lux-dash-tool">
-            <Icon className="h-5 w-5 text-[var(--arc-teacher)]" />
-            <span className="text-sm font-bold text-[var(--lux-text)]">{label}</span>
-          </Link>
-        ))}
-      </div>
-
-      <LuxCard>
-        <h3 className="mb-4 font-black text-[var(--lux-text)]">وضعیت دانش‌آموزان</h3>
-        {data.students.length === 0 ? (
-          <LuxEmptyState title="دانش‌آموزی در کلاس نیست" />
-        ) : (
-          <div className="space-y-2">
-            {data.students.slice(0, 8).map((s) => (
-              <div key={s.id} className="flex items-center justify-between rounded-xl border border-[var(--lux-surface)] bg-[var(--lux-card)] px-3 py-2">
-                <span className="text-sm font-bold text-[var(--lux-text)]">{s.name}</span>
-                <div className="flex items-center gap-2 text-xs">
-                  {s.needsAttention && <span className="text-[var(--lux-accent)]">نیاز به توجه</span>}
-                  <span className="text-[var(--lux-text-muted)]">{s.lastScore ?? '—'}</span>
-                  <ChevronLeft className="h-3 w-3 text-[var(--lux-text-muted)]" />
-                </div>
-              </div>
+        <LuxStaggerItem>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {tools.map(({ label, href, icon: Icon }) => (
+              <Link key={href} href={href} className="lux-dash-tool">
+                <Icon className="h-5 w-5 text-[var(--arc-teacher)]" />
+                <span className="text-sm font-bold text-[var(--lux-text)]">{label}</span>
+              </Link>
             ))}
           </div>
-        )}
-      </LuxCard>
+        </LuxStaggerItem>
+
+        <LuxStaggerItem>
+          <LuxCard>
+            <h3 className="mb-4 font-black text-[var(--lux-text)]">وضعیت دانش‌آموزان</h3>
+            {data.students.length === 0 ? (
+              <LuxEmptyState title="دانش‌آموزی در کلاس نیست" />
+            ) : (
+              <div className="space-y-2">
+                {data.students.slice(0, 8).map((s) => (
+                  <div key={s.id} className="flex items-center justify-between rounded-xl border border-[var(--lux-surface)] bg-[var(--lux-card)] px-3 py-2">
+                    <span className="text-sm font-bold text-[var(--lux-text)]">{s.name}</span>
+                    <div className="flex items-center gap-2 text-xs">
+                      {s.needsAttention && <span className="text-[var(--lux-accent)]">نیاز به توجه</span>}
+                      <span className="text-[var(--lux-text-muted)]">{s.lastScore ?? '—'}</span>
+                      <ChevronLeft className="h-3 w-3 text-[var(--lux-text-muted)]" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </LuxCard>
+        </LuxStaggerItem>
+      </LuxStagger>
     </div>
   )
 }

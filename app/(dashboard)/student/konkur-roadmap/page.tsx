@@ -34,6 +34,7 @@ import {
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
+import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 
 // ============================================
 // تایپ‌ها
@@ -568,7 +569,9 @@ export default function KonkurRoadmapPage() {
       }
       animatedSections={false}
     >
+      <LuxStagger className="space-y-6" stagger={0.1}>
         {!showPlan && (
+          <LuxStaggerItem>
           <GlassCard className="p-6 mb-6">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
               <FileText className="w-5 h-5 text-emerald-400" />
@@ -675,10 +678,11 @@ export default function KonkurRoadmapPage() {
               )}
             </button>
           </GlassCard>
+          </LuxStaggerItem>
         )}
 
-        {/* ==================== نمایش برنامه ==================== */}
         {showPlan && (
+          <LuxStaggerItem>
           <div className="space-y-6">
             {/* دکمه‌های عملیاتی */}
             <div className="flex flex-wrap gap-3">
@@ -743,12 +747,16 @@ export default function KonkurRoadmapPage() {
               </p>
             </GlassCard>
           </div>
+          </LuxStaggerItem>
         )}
 
+        <LuxStaggerItem>
         <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
+        </LuxStaggerItem>
+      </LuxStagger>
     </DashboardPage>
   )
 }

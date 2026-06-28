@@ -53,6 +53,7 @@ import {
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
+import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 
 // ============================================
 // تایپ‌ها
@@ -517,6 +518,8 @@ export default function FutureCompassPage() {
       }
       animatedSections={false}
     >
+      <LuxStagger className="space-y-6" stagger={0.1}>
+        <LuxStaggerItem>
         <div className="grid lg:grid-cols-2 gap-6">
           <GlassCard className="p-6">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -576,7 +579,9 @@ export default function FutureCompassPage() {
             </div>
           </GlassCard>
         </div>
+        </LuxStaggerItem>
 
+        <LuxStaggerItem>
         <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -625,8 +630,9 @@ export default function FutureCompassPage() {
             )}
           </button>
         </GlassCard>
+        </LuxStaggerItem>
 
-        {/* ==================== دکمه تحلیل هوشمند ==================== */}
+        <LuxStaggerItem>
         <div className="mb-6">
           <button
             onClick={handleAnalyze}
@@ -651,9 +657,10 @@ export default function FutureCompassPage() {
             )}
           </button>
         </div>
+        </LuxStaggerItem>
 
-        {/* ==================== نتایج تحلیل ==================== */}
         {showResults && (
+          <LuxStaggerItem>
           <div className="space-y-6">
             {/* Privacy Notice */}
             <PrivacyNotice accessLevel={accessLevel} userRole={userRole} />
@@ -857,13 +864,16 @@ export default function FutureCompassPage() {
               </button>
             )}
           </div>
+          </LuxStaggerItem>
         )}
 
-        {/* ==================== Footer ==================== */}
+        <LuxStaggerItem>
         <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
           <p className="text-xs mt-1">نسخه ۱.۰.۰</p>
         </footer>
+        </LuxStaggerItem>
+      </LuxStagger>
     </DashboardPage>
   )
 }

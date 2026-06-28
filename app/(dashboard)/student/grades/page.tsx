@@ -6,6 +6,7 @@ import { GraduationCap, Loader2, TrendingDown, TrendingUp } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
+import { LuxDashboardSection, LuxSectionBlock } from '@/components/lux/lux-dashboard-section'
 
 type Grade = {
   id: string
@@ -37,14 +38,18 @@ export default function StudentGradesPage() {
     : 0
 
   return (
-    <div dir="rtl">
-      <LuxPageHeader title="نمرات من" subtitle={`میانگین کل: ${avg.toFixed(1)} از ۲۰`} />
+    <LuxDashboardSection
+      header={<LuxPageHeader title="نمرات من" subtitle={`میانگین کل: ${avg.toFixed(1)} از ۲۰`} />}
+    >
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[var(--lux-primary)]" /></div>
       ) : grades.length === 0 ? (
-        <LuxEmptyState icon={<GraduationCap className="h-6 w-6" />} title="هنوز نمره‌ای ثبت نشده" description="نمرات از مدرسه همگام می‌شوند." />
+        <LuxSectionBlock>
+          <LuxEmptyState icon={<GraduationCap className="h-6 w-6" />} title="هنوز نمره‌ای ثبت نشده" description="نمرات از مدرسه همگام می‌شوند." />
+        </LuxSectionBlock>
       ) : (
-        <LuxCard className="overflow-x-auto p-0">
+        <LuxSectionBlock>
+          <LuxCard className="overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--lux-surface)] text-[var(--lux-text-muted)]">
@@ -74,9 +79,12 @@ export default function StudentGradesPage() {
               })}
             </tbody>
           </table>
-        </LuxCard>
+          </LuxCard>
+        </LuxSectionBlock>
       )}
-      <Link href="/student" className="lux-btn-ghost mt-4 inline-flex text-sm">بازگشت به داشبورد</Link>
-    </div>
+      <LuxSectionBlock>
+        <Link href="/student" className="lux-btn-ghost inline-flex text-sm">بازگشت به داشبورد</Link>
+      </LuxSectionBlock>
+    </LuxDashboardSection>
   )
 }

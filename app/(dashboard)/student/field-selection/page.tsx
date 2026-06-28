@@ -17,6 +17,7 @@ import {
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
+import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 
 // ============================================
 // تایپ‌ها
@@ -142,6 +143,8 @@ export default function FieldSelectionPage() {
       }
       animatedSections={false}
     >
+      <LuxStagger className="space-y-6" stagger={0.12}>
+        <LuxStaggerItem>
         {!isSubmitted ? (
           <div className="grid lg:grid-cols-2 gap-6">
             {/* ستون چپ: تحلیل AI */}
@@ -358,10 +361,14 @@ export default function FieldSelectionPage() {
             </Link>
           </GlassCard>
         )}
+        </LuxStaggerItem>
 
+        <LuxStaggerItem>
         <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
           <p>سیستم هوشمند مدیریت مدارس - هوشاگر</p>
         </footer>
+        </LuxStaggerItem>
+      </LuxStagger>
     </DashboardPage>
   )
 }

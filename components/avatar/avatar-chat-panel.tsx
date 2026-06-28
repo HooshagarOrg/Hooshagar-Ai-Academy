@@ -1,17 +1,23 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { X, Send, Loader2, Mic, MicOff } from 'lucide-react'
+import { X, Send, Loader2, Mic, MicOff, Volume2, VolumeX, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 import { HooshiarCharacter, type HooshiarMood } from './hooshiar-character'
 import { useSpeechInput } from '@/hooks/use-speech-input'
+import { useSpeechOutput } from '@/hooks/use-speech-output'
 
 interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
+}
+
+interface QuickAction {
+  label: string
+  message: string
 }
 
 interface AvatarChatPanelProps {
@@ -23,10 +29,13 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [clearing, setClearing] = useState(false)
   const [mood, setMood] = useState<HooshiarMood>('idle')
   const [remaining, setRemaining] = useState<number | null>(null)
   const [canChat, setCanChat] = useState(true)
   const [dailyLimit, setDailyLimit] = useState(15)
+  const [quickActions, setQuickActions] = useState<QuickAction[]>([])
+  const [ttsEnabled, setTtsEnabled] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -40,9 +49,20 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
     onTranscript: appendTranscript,
   })
 
+  const { supported: ttsSupported, speaking, speak, stop: stopSpeak } = useSpeechOutput({
+    lang: 'fa-IR',
+    enabled: ttsEnabled,
+  })
+
   const scrollToBottom = useCallback(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight
+    }
+  }, [])
+
+  const applyWelcome = useCallback((welcomeMessage?: string) => {
+    if (welcomeMessage) {
+      setMessages([{ id: 'welcome', role: 'assistant', content: welcomeMessage }])
     }
   }, [])
 
@@ -61,22 +81,18 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
             dailyLimit: number
             canChat: boolean
             welcomeMessage?: string
+            quickActions?: QuickAction[]
             history?: ChatMessage[]
           }
           setRemaining(data.remainingMessages)
           setDailyLimit(data.dailyLimit)
           setCanChat(data.canChat)
+          setQuickActions(data.quickActions ?? [])
 
           if (data.history && data.history.length > 0) {
             setMessages(data.history)
-          } else if (data.welcomeMessage) {
-            setMessages([
-              {
-                id: 'welcome',
-                role: 'assistant',
-                content: data.welcomeMessage,
-              },
-            ])
+          } else {
+            applyWelcome(data.welcomeMessage)
           }
         }
       } catch {
@@ -86,7 +102,7 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
 
     void fetchStatus()
     inputRef.current?.focus()
-  }, [open])
+  }, [open, applyWelcome])
 
   useEffect(() => {
     scrollToBottom()
@@ -109,8 +125,12 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
     }
   }, [open])
 
-  const sendMessage = async () => {
-    const text = input.trim()
+  useEffect(() => {
+    if (!open) stopSpeak()
+  }, [open, stopSpeak])
+
+  const sendMessage = async (textOverride?: string) => {
+    const text = (textOverride ?? input).trim()
     if (!text || loading) return
 
     const userMsg: ChatMessage = {
@@ -122,6 +142,7 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
     setInput('')
     setLoading(true)
     setMood('thinking')
+    stopSpeak()
 
     try {
       const res = await fetch('/api/avatar/chat', {
@@ -144,6 +165,7 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
       }
 
       if (!res.ok) {
+        setMood('error')
         setMessages((prev) => [
           ...prev,
           {
@@ -152,21 +174,24 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
             content: data.error || 'متأسفانه خطایی پیش اومد. دوباره امتحان کن.',
           },
         ])
-        setMood('idle')
+        setTimeout(() => setMood('idle'), 800)
         return
       }
 
+      const reply = data.reply || 'پاسخی دریافت نشد.'
       setMood('talking')
       setMessages((prev) => [
         ...prev,
         {
           id: `a-${Date.now()}`,
           role: 'assistant',
-          content: data.reply || 'پاسخی دریافت نشد.',
+          content: reply,
         },
       ])
+      speak(reply)
       setTimeout(() => setMood('idle'), 1200)
     } catch {
+      setMood('error')
       setMessages((prev) => [
         ...prev,
         {
@@ -175,9 +200,27 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
           content: 'اتصال برقرار نشد. اینترنتت رو چک کن.',
         },
       ])
-      setMood('idle')
+      setTimeout(() => setMood('idle'), 800)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const clearHistory = async () => {
+    if (clearing) return
+    setClearing(true)
+    stopSpeak()
+    try {
+      const res = await fetch('/api/avatar/chat', {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      })
+      const data = (await res.json()) as { welcomeMessage?: string; error?: string }
+      if (res.ok) {
+        applyWelcome(data.welcomeMessage)
+      }
+    } finally {
+      setClearing(false)
     }
   }
 
@@ -218,11 +261,32 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
                 دستیار هوشمند تو
                 {remaining !== null && (
                   <span className="mr-1">
-                    · {remaining} پیام باقی‌مانده از {dailyLimit}
+                    · {remaining} پیام AI باقی‌مانده از {dailyLimit}
                   </span>
                 )}
               </p>
             </div>
+            {ttsSupported && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setTtsEnabled((v) => !v)}
+                aria-label={ttsEnabled ? 'خاموش کردن صدا' : 'روشن کردن صدا'}
+              >
+                {ttsEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => void clearHistory()}
+              disabled={clearing || messages.length === 0}
+              aria-label="پاک کردن تاریخچه"
+            >
+              {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            </Button>
             <Button
               type="button"
               variant="ghost"
@@ -233,6 +297,22 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
               <X className="h-5 w-5" />
             </Button>
           </div>
+
+          {quickActions.length > 0 && (
+            <div className="flex gap-2 px-4 pt-3 pb-1 overflow-x-auto">
+              {quickActions.map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  disabled={loading}
+                  onClick={() => void sendMessage(action.message)}
+                  className="shrink-0 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-foreground hover:bg-white/10 transition-colors"
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div
             ref={listRef}
@@ -262,7 +342,7 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
               <div className="flex justify-end">
                 <div className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  داره فکر می‌کنه...
+                  {speaking ? 'داره می‌گه...' : 'داره فکر می‌کنه...'}
                 </div>
               </div>
             )}
@@ -275,7 +355,7 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
                 size="icon"
                 variant={listening ? 'default' : 'outline'}
                 onClick={toggleSpeech}
-                disabled={loading || !canChat || (remaining !== null && remaining <= 0)}
+                disabled={loading}
                 aria-label={listening ? 'توقف ضبط صدا' : 'ضبط صدا'}
                 className={cn(listening && 'animate-pulse')}
               >
@@ -287,9 +367,13 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={speechSupported ? 'پیامت رو بنویس یا میکروفون بزن...' : 'پیامت رو بنویس...'}
+              placeholder={
+                speechSupported
+                  ? 'پیامت رو بنویس یا میکروفون بزن...'
+                  : 'پیامت رو بنویس...'
+              }
               rows={1}
-              disabled={loading || !canChat || (remaining !== null && remaining <= 0)}
+              disabled={loading}
               className={cn(
                 'flex-1 resize-none rounded-xl border border-white/10 bg-white/5',
                 'px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground',
@@ -302,7 +386,7 @@ export function AvatarChatPanel({ open, onClose }: AvatarChatPanelProps) {
               type="button"
               size="icon"
               onClick={() => void sendMessage()}
-              disabled={loading || !input.trim() || !canChat || (remaining !== null && remaining <= 0)}
+              disabled={loading || !input.trim()}
               aria-label="ارسال"
             >
               {loading ? (

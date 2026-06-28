@@ -11,7 +11,8 @@ export default {
     const allowedOrigins = [
       'https://app.hooshagar.com',
       'https://hooshagar.com',
-      'http://localhost:3000'
+      'http://localhost:3000',
+      'http://localhost:3001',
     ]
 
     const origin = request.headers.get('Origin')

@@ -1,6 +1,7 @@
 /**
  * POST /api/avatar/chat — گفتگوی آواتار هوشیار (همه نقش‌ها)
- * GET  /api/avatar/chat — وضعیت سقف روزانه + تاریخچه چت
+ * GET  /api/avatar/chat — وضعیت + تاریخچه + پیشنهادهای سریع
+ * DELETE /api/avatar/chat — پاک کردن تاریخچه
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -9,13 +10,14 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { callAvatarAI, AvatarAIExhaustedError } from '@/lib/ai/avatar-provider'
 import { loadAvatarUserContext, buildAvatarSystemPrompt } from '@/lib/avatar/context'
 import { tryTemplateReply } from '@/lib/avatar/templates'
-import { buildHooshiarWelcome } from '@/lib/avatar/greeting'
+import { buildProactiveWelcome } from '@/lib/avatar/greeting'
+import { getAvatarQuickActions } from '@/lib/avatar/quick-actions'
 import {
   checkAvatarDailyLimit,
-  recordAvatarMessage,
+  recordAvatarAIMessage,
   getAvatarDailyLimit,
 } from '@/lib/avatar/rate-limit'
-import { loadAvatarChatHistory, saveAvatarChatExchange } from '@/lib/avatar/history'
+import { loadAvatarChatHistory, saveAvatarChatExchange, clearAvatarChatHistory } from '@/lib/avatar/history'
 import { getRouteHandlerUser } from '@/lib/supabase/route-handler'
 import { log } from '@/lib/logger'
 import type { Database } from '@/types/database.types'
@@ -31,7 +33,7 @@ const AVATAR_CAPACITY_MESSAGE =
   'الان نتونستم به هوش مصنوعی وصل بشم. چند دقیقه دیگر دوباره امتحان کن یا سوالات ساده مثل «تکلیف» یا «XP» بپرس.'
 
 const DAILY_LIMIT_MESSAGE = (remaining: number) =>
-  `سقف روزانه ${getAvatarDailyLimit()} پیام تمام شده. فردا دوباره می‌تونی با من حرف بزنی. (باقی‌مانده: ${remaining})`
+  `سقف روزانه ${getAvatarDailyLimit()} پیام AI تمام شده. پاسخ‌های ساده مثل «تکلیف» و «XP» هنوز رایگانه. فردا دوباره می‌تونی با AI حرف بزنی. (باقی‌مانده: ${remaining})`
 
 type AppSupabase = SupabaseClient<Database>
 
@@ -86,14 +88,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (result.ok === false) return result.response
 
   const { user, ctx, supabase, cookieResponse } = result
-  const limit = checkAvatarDailyLimit(user.id)
+  const limit = await checkAvatarDailyLimit(user.id, supabase)
   const history = await loadAvatarChatHistory(user.id, supabase)
 
   return jsonWithCookies(
     {
       name: 'هوشیار',
       firstName: ctx.firstName,
-      welcomeMessage: buildHooshiarWelcome(ctx.fullName, ctx.role),
+      role: ctx.role,
+      welcomeMessage: buildProactiveWelcome(ctx),
+      quickActions: getAvatarQuickActions(ctx.role),
       remainingMessages: limit.remaining,
       dailyLimit: limit.limit,
       canChat: limit.allowed,
@@ -113,6 +117,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (result.ok === false) return result.response
 
     const { user, ctx, supabase, cookieResponse } = result
+    const beforeLimit = await checkAvatarDailyLimit(user.id, supabase)
 
     const body = await request.json()
     const parsed = chatSchema.safeParse(body)
@@ -124,7 +129,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    const beforeLimit = checkAvatarDailyLimit(user.id)
+    const { message } = parsed.data
+
+    const template = tryTemplateReply(message, ctx)
+    if (template) {
+      await saveAvatarChatExchange(user.id, supabase, message, template.reply, 'template')
+      return jsonWithCookies(
+        {
+          reply: template.reply,
+          source: 'template' as const,
+          remainingMessages: beforeLimit.remaining,
+          countsTowardLimit: false,
+        },
+        cookieResponse
+      )
+    }
+
     if (!beforeLimit.allowed) {
       return jsonWithCookies(
         {
@@ -136,27 +156,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    const { message } = parsed.data
-
-    const template = tryTemplateReply(message, ctx)
-    if (template) {
-      const afterRecord = recordAvatarMessage(user.id)
-      await saveAvatarChatExchange(user.id, supabase, message, template.reply, 'template')
-      return jsonWithCookies(
-        {
-          reply: template.reply,
-          source: 'template' as const,
-          remainingMessages: afterRecord.remaining,
-        },
-        cookieResponse
-      )
-    }
-
     const systemPrompt = buildAvatarSystemPrompt(ctx)
 
     try {
       const ai = await callAvatarAI(systemPrompt, message)
-      const afterRecord = recordAvatarMessage(user.id)
+      const afterRecord = await recordAvatarAIMessage(user.id, supabase)
       await saveAvatarChatExchange(user.id, supabase, message, ai.content, ai.source)
       return jsonWithCookies(
         {
@@ -164,6 +168,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           source: ai.source,
           model: ai.model,
           remainingMessages: afterRecord.remaining,
+          countsTowardLimit: true,
         },
         cookieResponse
       )
@@ -185,4 +190,28 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     log.error('Avatar chat error', error)
     return NextResponse.json({ error: 'خطای داخلی سرور' }, { status: 500 })
   }
+}
+
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
+  const result = await requireUser(request)
+  if (result.ok === false) return result.response
+
+  const { user, ctx, supabase, cookieResponse } = result
+  const cleared = await clearAvatarChatHistory(user.id, supabase)
+
+  if (!cleared) {
+    return jsonWithCookies(
+      { error: 'پاک کردن تاریخچه ناموفق بود' },
+      cookieResponse,
+      { status: 500 }
+    )
+  }
+
+  return jsonWithCookies(
+    {
+      success: true,
+      welcomeMessage: buildProactiveWelcome(ctx),
+    },
+    cookieResponse
+  )
 }

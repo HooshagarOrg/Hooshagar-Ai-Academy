@@ -59,3 +59,19 @@ export async function saveAvatarChatExchange(
     console.warn('Avatar chat history save failed:', error.message)
   }
 }
+
+export async function clearAvatarChatHistory(
+  userId: string,
+  supabase: AppSupabase
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('avatar_chat_messages')
+    .delete()
+    .eq('user_id', userId)
+
+  if (error) {
+    console.warn('Avatar chat history clear failed:', error.message)
+    return false
+  }
+  return true
+}

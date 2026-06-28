@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { StaffImportRow, StudentImportRow } from '@/lib/bulk-import/types'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
 
 type Step = 'upload' | 'preview' | 'done'
 
@@ -142,9 +143,10 @@ export default function BulkImportPage() {
   const errorCount = allRows.filter((r) => r.status === 'error').length
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto" dir="rtl">
+    <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6" dir="rtl">
+      <LuxFadeUp className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold sm:text-3xl">
           <Upload className="text-blue-600" /> واردسازی گروهی کاربران
         </h1>
         <p className="text-sm text-gray-500 mt-1">
@@ -333,6 +335,7 @@ export default function BulkImportPage() {
           </CardContent>
         </Card>
       )}
+      </LuxFadeUp>
     </div>
   )
 }

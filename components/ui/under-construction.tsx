@@ -1,7 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import { Construction, ArrowRight, Sparkles, Clock } from 'lucide-react'
 import { Button } from './button'
 import { GlassCard } from './glass-card'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
 
 interface UnderConstructionProps {
   title: string
@@ -19,7 +22,8 @@ export function UnderConstruction({
   features,
 }: UnderConstructionProps) {
   return (
-    <div dir="rtl" className="min-h-[60vh] flex items-center justify-center px-4">
+    <div dir="rtl" className="flex min-h-[60vh] items-center justify-center px-4">
+      <LuxFadeUp>
       <GlassCard className="max-w-md w-full text-center p-8">
         <div className="relative inline-block mb-6">
           <div className="w-24 h-24 rounded-3xl bg-brand-purple/15 border border-brand-purple/20 flex items-center justify-center mx-auto">
@@ -57,6 +61,7 @@ export function UnderConstruction({
           </Button>
         </Link>
       </GlassCard>
+      </LuxFadeUp>
     </div>
   )
 }

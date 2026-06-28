@@ -33,6 +33,9 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion';
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageErrorState, PageSkeletonCards } from '@/components/ui/page-states';
 
 export default function AdminReportsPage() {
   const [reports, setReports] = useState<ParentReport[]>([]);
@@ -71,6 +74,7 @@ export default function AdminReportsPage() {
       }
 
       const res = await fetch(url);
+      if (!res.ok) throw new Error('network');
       const data = await res.json();
 
       if (!data.success) {
@@ -79,9 +83,8 @@ export default function AdminReportsPage() {
       }
 
       setReports(data.reports);
-    } catch (err) {
-      console.error('خطا در دریافت گزارش‌ها:', err);
-      setError('خطای شبکه. لطفاً دوباره تلاش کنید.');
+    } catch {
+      setError('اتصال برقرار نشد. لطفاً دوباره تلاش کنید.');
     } finally {
       setIsLoading(false);
     }
@@ -227,9 +230,10 @@ export default function AdminReportsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
+      <LuxFadeUp>
       {/* هدر */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold">مدیریت گزارش‌ها</h1>
           <p className="text-muted-foreground mt-1">
@@ -315,7 +319,10 @@ export default function AdminReportsPage() {
           </DialogContent>
         </Dialog>
       </div>
+      </LuxFadeUp>
 
+      <LuxStagger className="space-y-6" stagger={0.08}>
+      <LuxStaggerItem>
       {/* فیلترها و جستجو */}
       <Card>
         <CardHeader>
@@ -371,49 +378,20 @@ export default function AdminReportsPage() {
           </div>
         </CardContent>
       </Card>
+      </LuxStaggerItem>
 
+      <LuxStaggerItem>
       {/* لیست گزارش‌ها */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-6 bg-gray-200 rounded w-3/4" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded" />
-                  <div className="h-4 bg-gray-200 rounded w-5/6" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <PageSkeletonCards count={3} />
       ) : error ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center text-red-600">
-              <p>{error}</p>
-              <Button onClick={fetchReports} variant="outline" className="mt-4">
-                تلاش مجدد
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <PageErrorState message={error} onRetry={fetchReports} />
       ) : filteredReports.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">
-                {searchQuery ? 'گزارشی یافت نشد' : 'هنوز گزارشی ایجاد نشده است'}
-              </p>
-              <p className="text-sm mt-2">
-                برای شروع، روی دکمه "ایجاد گزارش جدید" کلیک کنید.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={FileText}
+          title={searchQuery ? 'گزارشی یافت نشد' : 'هنوز گزارشی ایجاد نشده'}
+          description='برای شروع، روی دکمه «ایجاد گزارش جدید» کلیک کنید.'
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredReports.map((report) => (
@@ -456,6 +434,8 @@ export default function AdminReportsPage() {
           ))}
         </div>
       )}
+      </LuxStaggerItem>
+      </LuxStagger>
     </div>
   );
 }

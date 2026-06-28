@@ -60,7 +60,8 @@ import {
 } from '@/components/ui/table'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { PageSkeletonCards } from '@/components/ui/page-states'
 import { toast } from 'sonner'
 import {
   Badge as BadgeType,
@@ -339,21 +340,15 @@ export default function TeacherAwardBadgesPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6" dir="rtl">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-40 w-full rounded-xl" />
-        <Skeleton className="h-12 w-full" />
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <Skeleton key={i} className="h-40 rounded-xl" />
-          ))}
-        </div>
+      <div className="container mx-auto space-y-6 p-4 sm:p-6" dir="rtl">
+        <PageSkeletonCards count={4} />
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6" dir="rtl">
+    <div className="container mx-auto space-y-6 p-4 sm:p-6" dir="rtl">
+      <LuxFadeUp className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -608,6 +603,8 @@ export default function TeacherAwardBadgesPage() {
           </Table>
         </CardContent>
       </Card>
+
+      </LuxFadeUp>
 
       {/* دیالوگ اعطای نشان */}
       <Dialog open={showAwardDialog} onOpenChange={setShowAwardDialog}>

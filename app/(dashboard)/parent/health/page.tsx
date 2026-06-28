@@ -29,6 +29,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import GrowthChart from '@/components/health/growth-chart'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
 
 // داده نمونه
 const studentHealth = {
@@ -85,10 +86,11 @@ export default function ParentHealthPage() {
   const vaccinationProgress = Math.round((studentHealth.vaccinations.completed / studentHealth.vaccinations.total) * 100)
 
   return (
-    <div className="container mx-auto py-6 px-4">
+    <div className="container mx-auto px-4 py-6 sm:px-6" dir="rtl">
+      <LuxFadeUp className="space-y-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+      <div className="mb-2">
+        <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl">
           <Stethoscope className="w-8 h-8 text-teal-500" />
           سلامت فرزند من
         </h1>
@@ -478,6 +480,7 @@ export default function ParentHealthPage() {
           </div>
         </CardContent>
       </Card>
+      </LuxFadeUp>
     </div>
   )
 }

@@ -33,7 +33,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/hooks/use-toast'
-import { cn } from '@/lib/utils'
+import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
+import { PageErrorState, PageLoading } from '@/components/ui/page-states'
 
 // ============================================
 // تایپ‌ها
@@ -138,7 +139,8 @@ export default function TeacherExamsPage() {
     new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(dateStr))
 
   return (
-    <div dir="rtl">
+    <div className="space-y-6" dir="rtl">
+      <LuxFadeUp>
       <PageHeader
         title="آزمون‌های من"
         description="مدیریت و برگزاری آزمون‌های آنلاین"
@@ -162,17 +164,22 @@ export default function TeacherExamsPage() {
           </div>
         }
       />
+      </LuxFadeUp>
 
+      <LuxStagger className="space-y-6" stagger={0.08}>
+      <LuxStaggerItem>
       {/* آمار */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard label="کل آزمون‌ها" value={stats.total} accentClass="text-brand-cyan" />
         <StatCard label="فعال / منتشر" value={stats.active} accentClass="text-brand-green" />
         <StatCard label="پایان یافته" value={stats.closed} accentClass="text-brand-purple" />
         <StatCard label="کل شرکت‌کنندگان" value={stats.submissions} accentClass="text-brand-yellow" />
       </div>
+      </LuxStaggerItem>
 
+      <LuxStaggerItem>
       {/* جستجو و فیلتر */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -202,18 +209,14 @@ export default function TeacherExamsPage() {
           ))}
         </div>
       </div>
+      </LuxStaggerItem>
 
+      <LuxStaggerItem>
       {/* لیست آزمون‌ها */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
-        </div>
+        <PageLoading label="در حال بارگذاری آزمون‌ها..." compact />
       ) : error ? (
-        <GlassCard className="p-6 text-center border-destructive/30">
-          <AlertCircle className="w-8 h-8 text-destructive mx-auto mb-2" />
-          <p className="text-destructive font-medium">{error}</p>
-          <Button variant="outline" size="sm" className="mt-3" onClick={fetchExams}>تلاش مجدد</Button>
-        </GlassCard>
+        <PageErrorState message={error} onRetry={fetchExams} />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
@@ -359,6 +362,8 @@ export default function TeacherExamsPage() {
           })}
         </div>
       )}
+      </LuxStaggerItem>
+      </LuxStagger>
 
       {/* دیالوگ حذف */}
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>

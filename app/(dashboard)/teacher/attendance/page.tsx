@@ -38,6 +38,7 @@ import { Separator } from '@/components/ui/separator'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { toast } from 'sonner'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 
 // Types
@@ -327,9 +328,10 @@ export default function TeacherAttendancePage() {
   ].filter(item => item.value > 0)
 
   return (
-    <div className="container mx-auto py-6 px-4">
+    <div className="container mx-auto px-4 py-6 sm:px-6" dir="rtl">
+      <LuxFadeUp className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div className="mb-2 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
             <Users className="w-8 h-8 text-blue-500" />
@@ -698,6 +700,7 @@ export default function TeacherAttendancePage() {
           </Card>
         </div>
       </div>
+      </LuxFadeUp>
 
       {/* Note Dialog */}
       <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>

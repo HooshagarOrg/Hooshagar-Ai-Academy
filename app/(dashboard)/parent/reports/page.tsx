@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import ReportCard from '@/components/reports/ReportCard';
 import { ParentReport } from '@/types/parent-reports.types';
 import { FileText, Filter, Calendar } from 'lucide-react';
+import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion';
 import {
   Select,
   SelectContent,
@@ -53,7 +54,8 @@ export default function ParentReportsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
+      <LuxFadeUp>
       {/* هدر */}
       <div className="flex items-center justify-between">
         <div>
@@ -68,7 +70,10 @@ export default function ParentReportsPage() {
           </Badge>
         </div>
       </div>
+      </LuxFadeUp>
 
+      <LuxStagger className="space-y-6" stagger={0.1}>
+      <LuxStaggerItem>
       {/* فیلترها */}
       <Card>
         <CardHeader>
@@ -108,7 +113,9 @@ export default function ParentReportsPage() {
           </div>
         </CardContent>
       </Card>
+      </LuxStaggerItem>
 
+      <LuxStaggerItem>
       {/* لیست گزارش‌ها */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -157,6 +164,8 @@ export default function ParentReportsPage() {
           ))}
         </div>
       )}
+      </LuxStaggerItem>
+      </LuxStagger>
     </div>
   );
 }

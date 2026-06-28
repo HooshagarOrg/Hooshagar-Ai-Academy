@@ -5,6 +5,7 @@ import type { Database } from '@/types/database.types'
 import StudentsTable from './StudentsTable'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { TeacherStudentsMotion } from '@/components/teacher/teacher-students-motion'
 
 // =====================================
 // Helper: ایجاد Supabase Client
@@ -114,7 +115,7 @@ export default async function TeacherStudentsPage() {
   const { students, message, error } = await getStudents()
   
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <TeacherStudentsMotion>
       <Card>
         <CardContent className="pt-6">
           {error ? (
@@ -133,7 +134,7 @@ export default async function TeacherStudentsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </TeacherStudentsMotion>
   )
 }
 

@@ -25,6 +25,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/hooks/use-toast'
+import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 
 interface School {
   id: string
@@ -150,6 +151,7 @@ export default function AdminSchoolsPage() {
 
   return (
     <div dir="rtl">
+      <LuxFadeUp>
       <PageHeader
         title="مدیریت مدارس"
         description={`${schools.length} مدرسه ثبت شده`}
@@ -166,7 +168,10 @@ export default function AdminSchoolsPage() {
           </div>
         }
       />
+      </LuxFadeUp>
 
+      <LuxStagger className="space-y-6" stagger={0.08}>
+      <LuxStaggerItem>
       <div className="relative mb-6">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
@@ -176,7 +181,9 @@ export default function AdminSchoolsPage() {
           className="pr-9"
         />
       </div>
+      </LuxStaggerItem>
 
+      <LuxStaggerItem>
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
@@ -258,6 +265,8 @@ export default function AdminSchoolsPage() {
           ))}
         </div>
       )}
+      </LuxStaggerItem>
+      </LuxStagger>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent dir="rtl" className="max-w-md">

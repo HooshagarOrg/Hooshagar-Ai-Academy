@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 
 // ============================================
 // تایپ‌ها
@@ -199,6 +200,7 @@ export default function AdminUsersPage() {
 
   return (
     <div dir="rtl">
+      <LuxFadeUp>
       <PageHeader
         title="مدیریت کاربران"
         description={`${users.length} کاربر در سیستم`}
@@ -217,7 +219,10 @@ export default function AdminUsersPage() {
           </div>
         }
       />
+      </LuxFadeUp>
 
+      <LuxStagger className="space-y-6" stagger={0.08}>
+      <LuxStaggerItem>
       {/* آمار نقش‌ها */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
         {ROLES.slice(0, 12).map(r => {
@@ -242,7 +247,9 @@ export default function AdminUsersPage() {
           )
         })}
       </div>
+      </LuxStaggerItem>
 
+      <LuxStaggerItem>
       {/* جستجو */}
       <div className="flex gap-3 mb-6">
         <div className="relative flex-1">
@@ -267,7 +274,9 @@ export default function AdminUsersPage() {
           </SelectContent>
         </Select>
       </div>
+      </LuxStaggerItem>
 
+      <LuxStaggerItem>
       {/* لیست کاربران */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
@@ -357,6 +366,8 @@ export default function AdminUsersPage() {
           </div>
         </GlassCard>
       )}
+      </LuxStaggerItem>
+      </LuxStagger>
 
       {/* دیالوگ ساخت کاربر */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>

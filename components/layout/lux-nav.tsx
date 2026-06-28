@@ -49,7 +49,7 @@ export function LuxNav({
   const arc = getArcColor(role)
 
   const itemBase =
-    'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-150 min-h-[44px] group cursor-pointer'
+    'lux-focus-ring flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-150 min-h-[44px] group cursor-pointer'
   const itemInactive = 'text-[var(--lux-text-muted)] hover:text-[var(--lux-text)] hover:bg-white/[0.04]'
 
   return (
@@ -84,7 +84,7 @@ export function LuxNav({
             <button
               type="button"
               onClick={() => onCollapse(!collapsed)}
-              className="p-1.5 rounded-lg hover:bg-white/[0.06] text-[var(--lux-text-muted)] hover:text-[var(--lux-text)] transition-colors"
+              className="lux-focus-ring p-1.5 rounded-lg hover:bg-white/[0.06] text-[var(--lux-text-muted)] hover:text-[var(--lux-text)] transition-colors"
               aria-label={collapsed ? 'باز کردن منو' : 'جمع کردن منو'}
             >
               {collapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -96,7 +96,7 @@ export function LuxNav({
           <div className="px-3 py-3" style={{ borderBottom: '1px solid rgba(232,236,244,0.06)' }}>
             <Link
               href="/profile"
-              className="flex items-center gap-3 p-2.5 rounded-2xl transition-colors"
+              className="lux-focus-ring flex items-center gap-3 p-2.5 rounded-2xl transition-colors"
               style={{ background: `color-mix(in srgb, ${arc} 8%, transparent)` }}
             >
               <div
@@ -134,11 +134,12 @@ export function LuxNav({
                     <TooltipTrigger asChild>
                       <Link
                         href={item.href}
-                        className="flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-colors"
+                        className="lux-focus-ring flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-colors min-h-[44px]"
                         style={active
                           ? { color: arc, background: `color-mix(in srgb, ${arc} 14%, transparent)` }
                           : undefined}
                         aria-current={active ? 'page' : undefined}
+                        aria-label={item.title}
                       >
                         <Icon className={cn('w-4.5 h-4.5', !active && 'text-[var(--lux-text-muted)]')} />
                       </Link>
@@ -181,8 +182,9 @@ export function LuxNav({
                   <TooltipTrigger asChild>
                     <Link
                       href={item.href}
-                      className="flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-colors"
+                      className="lux-focus-ring flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-colors min-h-[44px]"
                       style={active ? { color: arc, background: `color-mix(in srgb, ${arc} 14%, transparent)` } : undefined}
+                      aria-label={item.title}
                     >
                       <Icon className={cn('w-4.5 h-4.5', !active && 'text-[var(--lux-text-muted)]')} />
                     </Link>
@@ -211,7 +213,8 @@ export function LuxNav({
                 <TooltipTrigger asChild>
                   <Link
                     href="/settings"
-                    className="flex items-center justify-center touch-target rounded-xl text-[var(--lux-text-muted)] hover:bg-white/[0.06] hover:text-[var(--lux-text)] transition-colors"
+                    className="lux-focus-ring flex items-center justify-center touch-target rounded-xl text-[var(--lux-text-muted)] hover:bg-white/[0.06] hover:text-[var(--lux-text)] transition-colors min-h-[44px] min-w-[44px]"
+                    aria-label="تنظیمات"
                   >
                     <Settings className="w-4.5 h-4.5" />
                   </Link>
@@ -223,7 +226,8 @@ export function LuxNav({
                   <button
                     type="button"
                     onClick={() => setLogoutOpen(true)}
-                    className="flex items-center justify-center touch-target rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="lux-focus-ring flex items-center justify-center touch-target rounded-xl text-red-400 hover:bg-red-500/10 transition-colors min-h-[44px] min-w-[44px]"
+                    aria-label="خروج از حساب"
                   >
                     <LogOut className="w-4.5 h-4.5" />
                   </button>
@@ -240,7 +244,7 @@ export function LuxNav({
               <button
                 type="button"
                 onClick={() => setLogoutOpen(true)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-colors min-h-[44px]"
+                className="lux-focus-ring w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-colors min-h-[44px]"
               >
                 <LogOut className="w-4 h-4" />
                 <span>خروج از حساب</span>
@@ -299,8 +303,9 @@ export function LuxMobileNav({ role }: { role: string }) {
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-colors min-h-[3rem]"
+              className="lux-focus-ring flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-colors min-h-[3rem]"
               aria-current={active ? 'page' : undefined}
+              aria-label={item.title}
             >
               <div
                 className="touch-target w-11 h-11 rounded-xl flex items-center justify-center transition-colors"

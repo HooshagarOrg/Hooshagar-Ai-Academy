@@ -24,7 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { notificationIcons } from '@/types/notifications.types';
-import type { NotificationType } from '@/types/notifications.types';
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageErrorState, PageLoading } from '@/components/ui/page-states';
 
 export default function NotificationsPage() {
   const [filterType, setFilterType] = useState<string>('all');
@@ -67,22 +68,21 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* هدر */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6" dir="rtl">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">اعلان‌ها</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl font-bold sm:text-3xl">اعلان‌ها</h1>
+          <p className="mt-1 text-sm leading-7 text-muted-foreground sm:text-base">
             مشاهده و مدیریت اعلان‌های خود
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="text-sm">
             {unreadCount} خوانده نشده
           </Badge>
           <Link href="/notifications/settings">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Settings className="h-4 w-4" />
+            <Button variant="outline" size="sm" className="min-h-10 gap-2">
+              <Settings className="h-4 w-4" aria-hidden />
               تنظیمات
             </Button>
           </Link>
@@ -98,11 +98,11 @@ export default function NotificationsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
               <span className="text-sm">نوع:</span>
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -121,10 +121,10 @@ export default function NotificationsPage() {
               </Select>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
               <span className="text-sm">وضعیت:</span>
               <Select value={filterRead} onValueChange={setFilterRead}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-full sm:w-[140px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -137,13 +137,13 @@ export default function NotificationsPage() {
 
             <div className="flex-1" />
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:mr-auto">
               {unreadCount > 0 && (
                 <Button
                   onClick={markAllAsRead}
                   variant="outline"
                   size="sm"
-                  className="gap-2"
+                  className="min-h-10 flex-1 gap-2 sm:flex-none"
                 >
                   <CheckCheck className="h-4 w-4" />
                   خواندن همه
@@ -153,7 +153,7 @@ export default function NotificationsPage() {
                 onClick={refresh}
                 variant="outline"
                 size="sm"
-                className="gap-2"
+                className="min-h-10 flex-1 gap-2 sm:flex-none"
               >
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                 بروزرسانی
@@ -165,39 +165,22 @@ export default function NotificationsPage() {
 
       {/* لیست اعلان‌ها */}
       {error ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center text-red-600">
-              <p>{error}</p>
-              <Button onClick={refresh} variant="outline" className="mt-4">
-                تلاش مجدد
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <PageErrorState
+          message={error || 'دریافت اعلان‌ها ناموفق بود. لطفاً دوباره تلاش کنید.'}
+          onRetry={refresh}
+        />
       ) : isLoading && notifications.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4" />
-              <p>در حال بارگذاری...</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PageLoading label="در حال بارگذاری اعلان‌ها..." compact />
       ) : filteredNotifications.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">
-              <Bell className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">اعلانی یافت نشد</p>
-              <p className="text-sm mt-2">
-                {filterType !== 'all' || filterRead !== 'all'
-                  ? 'فیلترهای دیگری را امتحان کنید'
-                  : 'اعلانی برای نمایش وجود ندارد'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Bell}
+          title="اعلانی یافت نشد"
+          description={
+            filterType !== 'all' || filterRead !== 'all'
+              ? 'فیلترهای دیگری را امتحان کنید'
+              : 'اعلانی برای نمایش وجود ندارد'
+          }
+        />
       ) : (
         <div className="space-y-2">
           {filteredNotifications.map((notif) => {

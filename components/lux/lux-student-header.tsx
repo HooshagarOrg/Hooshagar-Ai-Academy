@@ -52,7 +52,7 @@ export function LuxStudentHeader({ userName, onMenuToggle }: LuxStudentHeaderPro
         <button
           type="button"
           onClick={onMenuToggle}
-          className="touch-target rounded-xl p-2 text-[var(--lux-text-muted)] hover:bg-[var(--lux-surface)] hover:text-[var(--lux-text)] lg:hidden"
+          className="touch-target lux-focus-ring rounded-xl p-2 text-[var(--lux-text-muted)] hover:bg-[var(--lux-surface)] hover:text-[var(--lux-text)] lg:hidden"
           aria-label="منو"
         >
           <Menu className="h-5 w-5" />

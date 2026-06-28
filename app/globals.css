@@ -327,6 +327,21 @@
   .cs-sidebar-item.active {
     background: rgba(139, 124, 255, 0.14);
   }
+
+  .lux-focus-ring {
+    outline: none;
+  }
+
+  .lux-focus-ring:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--lux-primary) 70%, white);
+    outline-offset: 2px;
+  }
+
+  .lux-btn-accent:focus-visible,
+  .lux-btn-ghost:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--lux-primary) 70%, white);
+    outline-offset: 2px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

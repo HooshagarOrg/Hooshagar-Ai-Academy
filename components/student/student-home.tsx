@@ -16,6 +16,7 @@ import {
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
+import { LuxErrorState, LuxSkeletonCards } from '@/components/lux/lux-page-states'
 import { HooshiarCharacter } from '@/components/avatar/hooshiar-character'
 
 type DashboardPayload = {
@@ -119,15 +120,26 @@ function buildInsight(data: DashboardPayload): string {
 export function StudentHome() {
   const [data, setData] = useState<DashboardPayload>({})
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  useEffect(() => {
+  const loadDashboard = () => {
+    setLoading(true)
+    setError('')
     fetch('/api/student/dashboard')
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) throw new Error('fetch failed')
+        return r.json()
+      })
       .then((d) => {
         if (d.success) setData(d)
+        else setError('دریافت داشبورد ناموفق بود.')
       })
-      .catch(() => {})
+      .catch(() => setError('اتصال برقرار نشد. لطفاً دوباره تلاش کنید.'))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadDashboard()
   }, [])
 
   const dailyPlan = useMemo(() => buildDailyPlan(data.homework), [data.homework])
@@ -141,10 +153,16 @@ export function StudentHome() {
 
   if (loading) {
     return (
-      <div className="space-y-4" dir="rtl">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="lux-dash-card h-32 animate-pulse" />
-        ))}
+      <div dir="rtl">
+        <LuxSkeletonCards count={4} variant="lux" className="sm:grid-cols-2" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div dir="rtl">
+        <LuxErrorState message={error} onRetry={loadDashboard} variant="lux" />
       </div>
     )
   }
@@ -155,12 +173,12 @@ export function StudentHome() {
       <div className="grid gap-5 lg:grid-cols-12">
         <LuxStaggerItem className="lg:col-span-7">
           <LuxCard>
-            <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="lux-kicker mb-1">برنامه هوشمند امروز</p>
                 <h2 className="text-lg font-black text-[var(--lux-text)]">مسیر یادگیری روزانه</h2>
               </div>
-              <Sparkles className="h-5 w-5 text-[var(--lux-primary)]" />
+              <Sparkles className="h-5 w-5 shrink-0 text-[var(--lux-primary)]" aria-hidden />
             </div>
             {dailyPlan.length === 0 ? (
               <LuxEmptyState
@@ -193,9 +211,9 @@ export function StudentHome() {
 
         <LuxStaggerItem className="lg:col-span-5">
           <LuxCard gradientBorder>
-            <div className="flex items-start gap-3">
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
               <HooshiarCharacter mood="idle" size="md" />
-              <div>
+              <div className="min-w-0 text-center sm:text-right">
                 <p className="text-xs font-bold text-[var(--lux-accent)]">بینش هوشیار</p>
                 <h3 className="mt-1 text-base font-black text-[var(--lux-text)]">پیام امروز</h3>
                 <p className="mt-2 text-sm leading-8 text-[var(--lux-text-muted)]">{insight}</p>
@@ -279,12 +297,12 @@ export function StudentHome() {
 
       <LuxStaggerItem>
         <LuxCard>
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="lux-kicker mb-1">پیشنهاد هوشمند</p>
               <h3 className="font-black text-[var(--lux-text)]">درس‌های پیشنهادی AI</h3>
             </div>
-            <TrendingUp className="h-5 w-5 text-[var(--lux-gold)]" />
+            <TrendingUp className="h-5 w-5 shrink-0 text-[var(--lux-gold)]" aria-hidden />
           </div>
           <div className="lux-recommendations-scroll">
             {DEFAULT_RECOMMENDATIONS.map((rec) => (

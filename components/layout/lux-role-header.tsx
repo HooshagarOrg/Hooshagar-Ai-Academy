@@ -28,7 +28,7 @@ export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderPro
       <button
         type="button"
         onClick={onMenuToggle}
-        className="lg:hidden touch-target rounded-xl hover:bg-white/[0.06] text-[var(--lux-text-muted)] hover:text-[var(--lux-text)] transition-colors"
+        className="lg:hidden touch-target lux-focus-ring rounded-xl hover:bg-white/[0.06] text-[var(--lux-text-muted)] hover:text-[var(--lux-text)] transition-colors"
         aria-label="منو"
       >
         <Menu className="w-5 h-5" />
@@ -54,6 +54,8 @@ export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderPro
           className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ring-2 ring-white/10"
           style={{ background: `color-mix(in srgb, ${arc} 35%, #1a1f2e)` }}
           title={userName}
+          aria-label={`پروفایل ${userName}`}
+          role="img"
         >
           {userName.charAt(0)}
         </div>

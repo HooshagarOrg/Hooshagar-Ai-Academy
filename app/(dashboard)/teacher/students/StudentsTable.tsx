@@ -24,6 +24,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { EmptyState } from '@/components/ui/empty-state'
 
 // =====================================
 // Types
@@ -152,21 +153,31 @@ export default function StudentsTable({ initialStudents }: StudentsTableProps) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold">دانش‌آموزان</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl font-bold sm:text-2xl">دانش‌آموزان</h2>
+          <p className="text-sm text-muted-foreground">
             مدیریت دانش‌آموزان کلاس‌های شما
           </p>
         </div>
-        <Button onClick={() => setIsAddModalOpen(true)}>
+        <Button onClick={() => setIsAddModalOpen(true)} className="min-h-10 w-full sm:w-auto">
           افزودن دانش‌آموز
         </Button>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
+      {students.length === 0 ? (
+        <EmptyState
+          title="هنوز دانش‌آموزی ثبت نشده"
+          description="اولین دانش‌آموز کلاس خود را اضافه کنید."
+          action={
+            <Button onClick={() => setIsAddModalOpen(true)} className="min-h-10">
+              افزودن دانش‌آموز
+            </Button>
+          }
+        />
+      ) : (
+      <div className="overflow-x-auto rounded-md border">
+        <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow>
               <TableHead>نام و نام خانوادگی</TableHead>
@@ -176,14 +187,7 @@ export default function StudentsTable({ initialStudents }: StudentsTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {students.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                  هیچ دانش‌آموزی یافت نشد
-                </TableCell>
-              </TableRow>
-            ) : (
-              students.map((student) => (
+            {students.map((student) => (
                 <TableRow key={student.id}>
                   <TableCell className="font-medium">
                     {student.user.full_name}
@@ -193,10 +197,11 @@ export default function StudentsTable({ initialStudents }: StudentsTableProps) {
                   </TableCell>
                   <TableCell>{student.class.name}</TableCell>
                   <TableCell className="text-left">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
+                        className="min-h-9"
                         onClick={() => handleViewDetails(student.id)}
                       >
                         جزئیات
@@ -204,6 +209,7 @@ export default function StudentsTable({ initialStudents }: StudentsTableProps) {
                       <Button
                         variant="destructive"
                         size="sm"
+                        className="min-h-9"
                         onClick={() => {
                           setSelectedStudentId(student.id)
                           setIsDeleteModalOpen(true)
@@ -214,11 +220,11 @@ export default function StudentsTable({ initialStudents }: StudentsTableProps) {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+              ))}
           </TableBody>
         </Table>
       </div>
+      )}
 
       {/* Add Student Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>

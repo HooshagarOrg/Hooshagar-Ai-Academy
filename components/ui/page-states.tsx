@@ -150,6 +150,9 @@ export function PageSkeletonCards({
   )
 }
 
+/** alias برای یکپارچگی API فاز ۶ */
+export { EmptyState as PageEmptyState } from '@/components/ui/empty-state'
+
 interface PageSkeletonTableProps {
   rows?: number
   className?: string

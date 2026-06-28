@@ -349,6 +349,10 @@
     scroll-behavior: auto;
   }
 
+  .animate-spin {
+    animation-duration: 1.5s;
+  }
+
   .lux-card:hover,
   .lux-card-lit:hover,
   .lux-btn-accent:hover,

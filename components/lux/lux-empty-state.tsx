@@ -23,11 +23,11 @@ export function LuxEmptyState({
   const action =
     actionLabel &&
     (actionHref ? (
-      <Link href={actionHref} className="lux-btn-accent mt-4 inline-flex min-h-10 px-5 text-sm">
+      <Link href={actionHref} className="lux-btn-accent lux-focus-ring mt-4 inline-flex min-h-10 px-5 text-sm">
         {actionLabel}
       </Link>
     ) : onAction ? (
-      <button type="button" onClick={onAction} className="lux-btn-accent mt-4 inline-flex min-h-10 px-5 text-sm">
+      <button type="button" onClick={onAction} className="lux-btn-accent lux-focus-ring mt-4 inline-flex min-h-10 px-5 text-sm">
         {actionLabel}
       </button>
     ) : null)

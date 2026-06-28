@@ -93,7 +93,18 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
           />
         )}
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain lg:pb-0 pb-[calc(4.75rem+var(--safe-bottom))]">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 focus:z-[100] focus:rounded-xl focus:bg-[var(--lux-primary)] focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white lux-focus-ring"
+        >
+          رفتن به محتوای اصلی
+        </a>
+
+        <main
+          id="main-content"
+          className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain lg:pb-0 pb-[calc(4.75rem+var(--safe-bottom))]"
+          tabIndex={-1}
+        >
           <div
             className={cn(
               'ui-canvas min-h-full',

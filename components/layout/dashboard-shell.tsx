@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { LuxNav, LuxMobileNav } from './lux-nav'
 import { LuxRoleHeader } from './lux-role-header'
 import { LuxStudentHeader } from '@/components/lux/lux-student-header'
-import { DashboardFrame } from '@/components/motion/dashboard-frame'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
 import { ChromaticCanvas } from '@/components/ui/chromatic-canvas'
 import { cn } from '@/lib/utils'
 import { AvatarFab } from '@/components/avatar/avatar-fab'
@@ -113,7 +113,7 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
             data-role={role}
           >
             <div className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto w-full px-safe premium-content">
-              <DashboardFrame>{children}</DashboardFrame>
+              <LuxFadeUp className="space-y-6">{children}</LuxFadeUp>
             </div>
           </div>
         </main>

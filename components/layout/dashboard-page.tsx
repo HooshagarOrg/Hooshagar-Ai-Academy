@@ -1,9 +1,9 @@
 'use client'
 
 import { PageHeader } from '@/components/layout/page-header'
-import { DashboardFrame, DashboardSection } from '@/components/motion/dashboard-frame'
+import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { cn } from '@/lib/utils'
-import type { ComponentProps } from 'react'
+import type { ReactNode } from 'react'
 
 type DashboardPageProps = {
   title: React.ReactNode
@@ -13,7 +13,7 @@ type DashboardPageProps = {
   children: React.ReactNode
   className?: string
   headerClassName?: string
-  /** بخش‌های داخلی با انیمیشن scroll */
+  /** بخش‌های داخلی با LuxStagger */
   animatedSections?: boolean
 }
 
@@ -27,38 +27,40 @@ export function DashboardPage({
   headerClassName,
   animatedSections = true,
 }: DashboardPageProps) {
+  const showHeader = title !== '' || meta !== '' || description !== undefined || actions !== undefined
+
   const body = animatedSections ? (
-    <DashboardSection className={cn('space-y-6', className)}>{children}</DashboardSection>
+    <LuxStagger className={cn('space-y-6', className)} stagger={0.08}>
+      {children}
+    </LuxStagger>
   ) : (
     <div className={cn('space-y-6', className)}>{children}</div>
   )
 
-  const showHeader = title !== '' || meta !== '' || description !== undefined || actions !== undefined
-
   return (
-    <DashboardFrame>
+    <div className="space-y-6" dir="rtl">
       {showHeader && (
-        <PageHeader
-          title={title}
-          description={description}
-          meta={meta}
-          actions={actions}
-          className={headerClassName}
-        />
+        <LuxFadeUp>
+          <PageHeader
+            title={title}
+            description={description}
+            meta={meta}
+            actions={actions}
+            className={headerClassName}
+          />
+        </LuxFadeUp>
       )}
       {body}
-    </DashboardFrame>
+    </div>
   )
 }
 
 export function DashboardSectionBlock({
   children,
   className,
-  ...props
-}: ComponentProps<typeof DashboardSection>) {
-  return (
-    <DashboardSection className={className} {...props}>
-      {children}
-    </DashboardSection>
-  )
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return <LuxStaggerItem className={className}>{children}</LuxStaggerItem>
 }

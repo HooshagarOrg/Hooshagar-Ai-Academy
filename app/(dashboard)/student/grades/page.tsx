@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { GraduationCap, Loader2, TrendingDown, TrendingUp } from 'lucide-react'
+import { GraduationCap, TrendingDown, TrendingUp } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxDashboardSection, LuxSectionBlock } from '@/components/lux/lux-dashboard-section'
+import { LuxErrorState, LuxSkeletonTable } from '@/components/lux/lux-page-states'
 
 type Grade = {
   id: string
@@ -25,12 +26,23 @@ const EXAM_TYPE_LABELS: Record<string, string> = {
 export default function StudentGradesPage() {
   const [grades, setGrades] = useState<Grade[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const loadGrades = () => {
+    setLoading(true)
+    setError('')
+    fetch('/api/grades')
+      .then(async (r) => {
+        if (!r.ok) throw new Error('fetch failed')
+        return r.json()
+      })
+      .then((d) => setGrades(d.grades || []))
+      .catch(() => setError('دریافت نمرات ناموفق بود. لطفاً دوباره تلاش کنید.'))
+      .finally(() => setLoading(false))
+  }
 
   useEffect(() => {
-    fetch('/api/grades')
-      .then((r) => r.json())
-      .then((d) => setGrades(d.grades || []))
-      .finally(() => setLoading(false))
+    loadGrades()
   }, [])
 
   const avg = grades.length > 0
@@ -42,7 +54,11 @@ export default function StudentGradesPage() {
       header={<LuxPageHeader title="نمرات من" subtitle={`میانگین کل: ${avg.toFixed(1)} از ۲۰`} />}
     >
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[var(--lux-primary)]" /></div>
+        <LuxSectionBlock><LuxSkeletonTable variant="lux" /></LuxSectionBlock>
+      ) : error ? (
+        <LuxSectionBlock>
+          <LuxErrorState message={error} onRetry={loadGrades} variant="lux" />
+        </LuxSectionBlock>
       ) : grades.length === 0 ? (
         <LuxSectionBlock>
           <LuxEmptyState icon={<GraduationCap className="h-6 w-6" />} title="هنوز نمره‌ای ثبت نشده" description="نمرات از مدرسه همگام می‌شوند." />
@@ -50,7 +66,7 @@ export default function StudentGradesPage() {
       ) : (
         <LuxSectionBlock>
           <LuxCard className="overflow-x-auto p-0">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[640px] text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-[var(--lux-surface)] text-[var(--lux-text-muted)]">
                 <th className="p-4 text-right font-bold">درس</th>

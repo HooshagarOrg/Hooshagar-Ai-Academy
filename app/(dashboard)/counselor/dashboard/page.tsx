@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { FileText, Loader2, Users } from 'lucide-react'
+import { FileText, Users } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
+import { LuxLoading } from '@/components/lux/lux-page-states'
 import { useEffect, useState } from 'react'
 
 export default function CounselorDashboardLuxPage() {
@@ -17,7 +18,7 @@ export default function CounselorDashboardLuxPage() {
   }, [])
 
   if (loading) {
-    return <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[var(--arc-counselor)]" /></div>
+    return <LuxLoading variant="lux" label="در حال بارگذاری پرونده‌ها..." />
   }
 
   return (

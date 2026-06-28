@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/hooks/use-toast'
 import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
+import { PageSkeletonCards } from '@/components/ui/page-states'
 
 interface School {
   id: string
@@ -185,9 +186,7 @@ export default function AdminSchoolsPage() {
 
       <LuxStaggerItem>
       {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
-        </div>
+        <PageSkeletonCards count={6} className="md:grid-cols-2 lg:grid-cols-3" />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Building}

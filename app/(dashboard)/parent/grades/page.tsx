@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { GraduationCap, Loader2, User } from 'lucide-react'
+import { GraduationCap, User } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
+import { PageErrorState, PageSkeletonCards } from '@/components/ui/page-states'
 
 type Grade = {
   id: string
@@ -26,46 +28,65 @@ const EXAM_TYPE_LABELS: Record<string, string> = {
 export default function ParentGradesPage() {
   const [grades, setGrades] = useState<Grade[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const loadGrades = () => {
+    setLoading(true)
+    setError('')
+    fetch('/api/grades')
+      .then(async (r) => {
+        if (!r.ok) throw new Error('fetch failed')
+        return r.json()
+      })
+      .then((d) => setGrades(d.grades || []))
+      .catch(() => setError('دریافت نمرات ناموفق بود. لطفاً دوباره تلاش کنید.'))
+      .finally(() => setLoading(false))
+  }
 
   useEffect(() => {
-    fetch('/api/grades')
-      .then(r => r.json())
-      .then(d => setGrades(d.grades || []))
-      .finally(() => setLoading(false))
+    loadGrades()
   }, [])
 
-  // گروه‌بندی بر اساس فرزند
   const byChild: Record<string, { name: string; grades: Grade[] }> = {}
-  grades.forEach(g => {
+  grades.forEach((g) => {
     const id = g.student_id
     if (!byChild[id]) byChild[id] = { name: g.students?.full_name || 'دانش‌آموز', grades: [] }
     byChild[id].grades.push(g)
   })
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
+    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <GraduationCap className="text-green-600" /> نمرات فرزندان
+        <h1 className="flex items-center gap-2 text-2xl font-bold sm:text-3xl">
+          <GraduationCap className="text-green-600" aria-hidden />
+          نمرات فرزندان
         </h1>
-        <p className="text-sm text-gray-500">آخرین نمرات ثبت‌شده برای فرزندان شما</p>
+        <p className="mt-1 text-sm leading-7 text-muted-foreground">
+          آخرین نمرات ثبت‌شده برای فرزندان شما
+        </p>
       </div>
 
       {loading ? (
-        <div className="text-center py-12"><Loader2 className="animate-spin mx-auto" /></div>
+        <PageSkeletonCards count={2} />
+      ) : error ? (
+        <PageErrorState message={error} onRetry={loadGrades} />
       ) : Object.keys(byChild).length === 0 ? (
-        <Card><CardContent className="p-12 text-center text-gray-400">
-          <GraduationCap size={48} className="mx-auto mb-3 opacity-30" />
-          هنوز نمره‌ای برای فرزندان شما ثبت نشده است.
-        </CardContent></Card>
+        <EmptyState
+          icon={GraduationCap}
+          title="هنوز نمره‌ای ثبت نشده"
+          description="به محض ثبت نمرات توسط مدرسه، اینجا نمایش داده می‌شود."
+        />
       ) : (
         Object.entries(byChild).map(([id, child]) => {
           const avg = child.grades.reduce((s, g) => s + (g.score / g.max_score) * 20, 0) / child.grades.length
           return (
             <Card key={id}>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2"><User className="text-green-600" /> {child.name}</span>
+                <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="flex items-center gap-2">
+                    <User className="text-green-600" aria-hidden />
+                    {child.name}
+                  </span>
                   <span className={`text-lg ${avg >= 17 ? 'text-green-600' : avg >= 14 ? 'text-blue-600' : avg >= 10 ? 'text-orange-600' : 'text-red-600'}`}>
                     معدل: {avg.toFixed(2)}
                   </span>
@@ -73,18 +94,21 @@ export default function ParentGradesPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {child.grades.map(g => (
-                    <div key={g.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                      <div className="flex-1">
+                  {child.grades.map((g) => (
+                    <div
+                      key={g.id}
+                      className="flex flex-col gap-2 rounded-lg border p-3 hover:bg-muted/30 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="flex-1 min-w-0">
                         <p className="font-medium">{g.subject}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           {EXAM_TYPE_LABELS[g.exam_type] || g.exam_type} • {new Date(g.exam_date).toLocaleDateString('fa-IR')}
                           {g.profiles?.full_name && ` • معلم: ${g.profiles.full_name}`}
                         </p>
-                        {g.comments && <p className="text-xs text-gray-600 mt-1 italic">{g.comments}</p>}
+                        {g.comments && <p className="mt-1 text-xs italic text-muted-foreground">{g.comments}</p>}
                       </div>
-                      <div className={`text-2xl font-bold ${g.score >= g.max_score * 0.85 ? 'text-green-600' : g.score >= g.max_score * 0.5 ? 'text-blue-600' : 'text-red-600'}`}>
-                        {g.score}<span className="text-sm text-gray-400">/{g.max_score}</span>
+                      <div className={`text-2xl font-bold shrink-0 ${g.score >= g.max_score * 0.85 ? 'text-green-600' : g.score >= g.max_score * 0.5 ? 'text-blue-600' : 'text-red-600'}`}>
+                        {g.score}<span className="text-sm text-muted-foreground">/{g.max_score}</span>
                       </div>
                     </div>
                   ))}

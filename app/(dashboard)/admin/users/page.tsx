@@ -31,6 +31,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
+import { PageLoading } from '@/components/ui/page-states'
 
 // ============================================
 // تایپ‌ها
@@ -279,9 +280,7 @@ export default function AdminUsersPage() {
       <LuxStaggerItem>
       {/* لیست کاربران */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-cyan" />
-        </div>
+        <PageLoading label="در حال بارگذاری کاربران..." />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Users}

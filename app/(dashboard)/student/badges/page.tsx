@@ -1,21 +1,28 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Award, Loader2 } from 'lucide-react'
+import { Award } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxDashboardSection, LuxSectionBlock } from '@/components/lux/lux-dashboard-section'
+import { LuxErrorState, LuxSkeletonCards } from '@/components/lux/lux-page-states'
 
 type Badge = { id: string; name: string; description: string; earned: boolean }
 
 export default function StudentBadgesPage() {
   const [badges, setBadges] = useState<Badge[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  useEffect(() => {
+  const loadBadges = () => {
+    setLoading(true)
+    setError('')
     fetch('/api/xp/balance')
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) throw new Error('fetch failed')
+        return r.json()
+      })
       .then((d) => {
         const level = d.level ?? 1
         setBadges([
@@ -25,13 +32,22 @@ export default function StudentBadgesPage() {
           { id: '4', name: 'نابغه آینده', description: 'سطح ۵ و بالاتر', earned: level >= 5 },
         ])
       })
+      .catch(() => setError('دریافت نشان‌ها ناموفق بود. لطفاً دوباره تلاش کنید.'))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadBadges()
   }, [])
 
   return (
     <LuxDashboardSection header={<LuxPageHeader title="گالری نشان‌ها" subtitle="دستاوردهای یادگیری و گیمیفیکیشن" />}>
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[var(--lux-gold)]" /></div>
+        <LuxSectionBlock><LuxSkeletonCards count={4} variant="lux" className="sm:grid-cols-2 lg:grid-cols-3" /></LuxSectionBlock>
+      ) : error ? (
+        <LuxSectionBlock>
+          <LuxErrorState message={error} onRetry={loadBadges} variant="lux" />
+        </LuxSectionBlock>
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

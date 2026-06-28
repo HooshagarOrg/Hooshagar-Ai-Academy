@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Calendar, ChevronLeft, ClipboardCheck, Loader2, PlayCircle } from 'lucide-react'
+import { Calendar, ChevronLeft, ClipboardCheck, PlayCircle } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxDashboardSection, LuxSectionBlock } from '@/components/lux/lux-dashboard-section'
+import { LuxErrorState, LuxSkeletonCards } from '@/components/lux/lux-page-states'
 
 interface Exam {
   id: string
@@ -21,18 +22,33 @@ interface Exam {
 export default function StudentExamsPage() {
   const [exams, setExams] = useState<Exam[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const loadExams = () => {
+    setLoading(true)
+    setError('')
+    fetch('/api/exams?filter=upcoming')
+      .then(async (r) => {
+        if (!r.ok) throw new Error('fetch failed')
+        return r.json()
+      })
+      .then((d) => setExams(d.exams || []))
+      .catch(() => setError('دریافت آزمون‌ها ناموفق بود. لطفاً دوباره تلاش کنید.'))
+      .finally(() => setLoading(false))
+  }
 
   useEffect(() => {
-    fetch('/api/exams?filter=upcoming')
-      .then((r) => r.json())
-      .then((d) => setExams(d.exams || []))
-      .finally(() => setLoading(false))
+    loadExams()
   }, [])
 
   return (
     <LuxDashboardSection header={<LuxPageHeader title="آزمون‌ها" subtitle="تقویم امتحانات و وضعیت شرکت" />}>
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[var(--lux-primary)]" /></div>
+        <LuxSectionBlock><LuxSkeletonCards variant="lux" className="sm:grid-cols-2 lg:grid-cols-3" /></LuxSectionBlock>
+      ) : error ? (
+        <LuxSectionBlock>
+          <LuxErrorState message={error} onRetry={loadExams} variant="lux" />
+        </LuxSectionBlock>
       ) : exams.length === 0 ? (
         <LuxSectionBlock>
           <LuxEmptyState icon={<ClipboardCheck className="h-6 w-6" />} title="آزمون پیش‌رویی نیست" description="وقتی مدرسه آزمون تعریف کند اینجا نمایش داده می‌شود." />

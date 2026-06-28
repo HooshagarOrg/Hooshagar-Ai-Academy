@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Coins, Loader2, ShoppingBag } from 'lucide-react'
+import { Coins, ShoppingBag } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxDashboardSection, LuxSectionBlock } from '@/components/lux/lux-dashboard-section'
+import { LuxErrorState, LuxSkeletonCards } from '@/components/lux/lux-page-states'
 
 type ShopItem = { id: string; name: string; description: string; price_coins: number }
 
@@ -14,17 +15,31 @@ export default function StudentShopPage() {
   const [items, setItems] = useState<ShopItem[]>([])
   const [coins, setCoins] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  useEffect(() => {
+  const loadShop = () => {
+    setLoading(true)
+    setError('')
     Promise.all([
-      fetch('/api/shop/items').then((r) => r.json()),
-      fetch('/api/xp/balance').then((r) => r.json()),
+      fetch('/api/shop/items').then(async (r) => {
+        if (!r.ok) throw new Error('shop failed')
+        return r.json()
+      }),
+      fetch('/api/xp/balance').then(async (r) => {
+        if (!r.ok) throw new Error('xp failed')
+        return r.json()
+      }),
     ])
       .then(([shop, xp]) => {
         setItems(shop.items || [])
         setCoins(xp.coins ?? 0)
       })
+      .catch(() => setError('دریافت فروشگاه ناموفق بود. لطفاً دوباره تلاش کنید.'))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadShop()
   }, [])
 
   return (
@@ -42,7 +57,11 @@ export default function StudentShopPage() {
       }
     >
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[var(--lux-gold)]" /></div>
+        <LuxSectionBlock><LuxSkeletonCards variant="lux" className="sm:grid-cols-2 lg:grid-cols-3" /></LuxSectionBlock>
+      ) : error ? (
+        <LuxSectionBlock>
+          <LuxErrorState message={error} onRetry={loadShop} variant="lux" />
+        </LuxSectionBlock>
       ) : items.length === 0 ? (
         <LuxSectionBlock>
           <LuxEmptyState icon={<ShoppingBag className="h-6 w-6" />} title="آیتمی برای فروش نیست" description="به‌زودی آیتم‌های جدید اضافه می‌شوند." />

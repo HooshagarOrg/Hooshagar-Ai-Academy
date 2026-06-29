@@ -23,6 +23,8 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
   return (
     <div
+      role="status"
+      aria-label={title}
       className={cn(
         'flex flex-col items-center justify-center text-center py-10 px-4 rounded-2xl border border-dashed border-white/[0.1] bg-white/[0.02]',
         className,
@@ -37,7 +39,7 @@ export function EmptyState({ icon, title, description, action, className }: Empt
       {description && (
         <p className="text-sm text-muted-foreground mt-1 max-w-sm">{description}</p>
       )}
-      {action && <div className="mt-4">{action}</div>}
+      {action && <div className="mt-4 lux-focus-ring rounded-xl">{action}</div>}
     </div>
   )
 }

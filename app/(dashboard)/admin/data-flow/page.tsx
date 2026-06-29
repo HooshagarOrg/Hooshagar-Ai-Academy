@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Activity, AlertTriangle, CheckCircle, Database, Loader2, RefreshCw, Users, GraduationCap, MessageSquare, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { PageLoading } from '@/components/ui/page-states'
 
 type Stats = {
   students_total?: number
@@ -63,7 +65,7 @@ export default function AdminDataFlowPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20"><Loader2 className="animate-spin mx-auto" size={32} /></div>
+        <PageLoading label="در حال بارگذاری سلامت داده..." compact />
       ) : (
         <>
           {/* آمار کلی */}

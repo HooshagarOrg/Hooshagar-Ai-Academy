@@ -9,6 +9,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/ui/page-header'
+import { EmptyState } from '@/components/ui/empty-state'
+import { PageLoading } from '@/components/ui/page-states'
 import { cn } from '@/lib/utils'
 
 // ============================================
@@ -197,17 +199,13 @@ export default function SecurityDashboard() {
 
       {/* لیست لاگ‌ها */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-red-500" />
-        </div>
+        <PageLoading label="در حال بارگذاری لاگ‌های امنیتی..." compact />
       ) : filtered.length === 0 ? (
-        <div className="bg-gray-50 rounded-2xl p-12 text-center border border-gray-100">
-          <Shield className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">لاگی یافت نشد</p>
-          <p className="text-gray-400 text-sm mt-1">
-            پس از اجرای Migration لاگ‌های امنیتی اینجا نمایش داده می‌شوند
-          </p>
-        </div>
+        <EmptyState
+          icon={Shield}
+          title="لاگی یافت نشد"
+          description="پس از اجرای Migration لاگ‌های امنیتی اینجا نمایش داده می‌شوند."
+        />
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <div className="divide-y divide-gray-50">

@@ -9,6 +9,7 @@ import { StatCard } from '@/components/ui/stat-card'
 import { GlassCard } from '@/components/ui/glass-card'
 import { getRoleExperienceLabel } from '@/lib/ui/role-tone'
 import { cn } from '@/lib/utils'
+import { PageLoading } from '@/components/ui/page-states'
 import {
   Users,
   BookOpen,
@@ -498,10 +499,7 @@ export default function DashboardPage() {
   if (isLoading || !userRole) {
     return (
       <div className="flex items-center justify-center py-24" dir="rtl">
-        <div className="text-center glass-panel-quiet p-8">
-          <Loader2 className="w-10 h-10 text-brand-cyan animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">در حال بارگذاری...</p>
-        </div>
+        <PageLoading label="در حال بارگذاری داشبورد..." compact />
       </div>
     )
   }

@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Shuffle, Plus, Play, Trash2, Loader2, ChevronDown, ChevronUp, Users, School } from 'lucide-react'
 // Badge intentionally unused — reserved for future status display
 import { toast } from 'sonner'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { PageLoading } from '@/components/ui/page-states'
 
 type Period = {
   id: string; title: string; academic_year: string
@@ -172,8 +174,9 @@ export default function AdminLotteryPage() {
   }
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
+      <LuxFadeUp className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Shuffle className="text-purple-600" /> قرعه‌کشی ثبت‌نام کلاس
@@ -186,7 +189,7 @@ export default function AdminLotteryPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20"><Loader2 className="animate-spin mx-auto" size={32} /></div>
+        <PageLoading label="در حال بارگذاری قرعه‌کشی..." compact />
       ) : periods.length === 0 ? (
         <Card><CardContent className="p-12 text-center text-gray-400">
           <Shuffle size={48} className="mx-auto mb-3 opacity-30" />
@@ -340,6 +343,8 @@ export default function AdminLotteryPage() {
           )
         })
       )}
+
+      </LuxFadeUp>
 
       {/* دیالوگ ساخت دوره */}
       <Dialog open={showPeriod} onOpenChange={setShowPeriod}>

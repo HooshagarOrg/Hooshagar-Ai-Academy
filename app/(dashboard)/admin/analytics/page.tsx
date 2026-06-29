@@ -6,6 +6,8 @@ import {
   Users, BookOpen, TrendingUp, Award, BarChart3,
   GraduationCap, CheckCircle2, XCircle, Star
 } from 'lucide-react'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { PageErrorState, PageLoading } from '@/components/ui/page-states'
 
 interface AnalyticsData {
   overview: {
@@ -41,15 +43,19 @@ interface AnalyticsData {
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     async function load() {
       try {
+        setError('')
         const res = await fetch('/api/admin/analytics')
+        if (!res.ok) throw new Error('fetch failed')
         const json = await res.json()
-        if (!json.error) setData(json)
+        if (json.error) throw new Error(json.error)
+        setData(json)
       } catch {
-        // silent fail
+        setError('دریافت گزارش تحلیلی ناموفق بود. لطفاً دوباره تلاش کنید.')
       } finally {
         setLoading(false)
       }
@@ -59,8 +65,16 @@ export default function AdminAnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-32">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
+      <div className="p-4 sm:p-6" dir="rtl">
+        <PageLoading label="در حال بارگذاری گزارش تحلیلی..." compact />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 sm:p-6" dir="rtl">
+        <PageErrorState message={error} onRetry={() => window.location.reload()} />
       </div>
     )
   }
@@ -72,8 +86,9 @@ export default function AdminAnalyticsPage() {
   const exams    = data?.exams
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      <div className="flex items-center gap-3 mb-2">
+    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
+      <LuxFadeUp className="space-y-6">
+      <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="bg-purple-100 p-3 rounded-xl">
           <BarChart3 className="w-6 h-6 text-purple-600" />
         </div>
@@ -293,6 +308,7 @@ export default function AdminAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+      </LuxFadeUp>
     </div>
   )
 }

@@ -38,6 +38,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { LuxFadeUp } from '@/components/lux/lux-motion';
+import { PageLoading } from '@/components/ui/page-states';
 
 interface GeneralSettings {
   id: string;
@@ -230,16 +232,14 @@ export default function AISystemPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96" dir="rtl">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">در حال بارگذاری...</p>
-        </div>
+        <PageLoading label="در حال بارگذاری سیستم AI..." compact />
       </div>
     );
   }
 
   return (
-    <div className="p-8 space-y-6" dir="rtl">
+    <div className="space-y-6 p-4 sm:p-8" dir="rtl">
+      <LuxFadeUp className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -545,6 +545,7 @@ export default function AISystemPage() {
           </Table>
         </CardContent>
       </Card>
+      </LuxFadeUp>
     </div>
   );
 }

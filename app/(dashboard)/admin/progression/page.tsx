@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/ui/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
+import { PageLoading } from '@/components/ui/page-states'
 import {
   Select,
   SelectContent,
@@ -324,9 +325,7 @@ export default function ProgressionPage() {
 
           {/* جدول */}
           {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-            </div>
+            <PageLoading label="در حال بارگذاری دانش‌آموزان..." compact />
           ) : filtered.length === 0 ? (
             <EmptyState
               icon={Users}
@@ -484,9 +483,9 @@ function ProgressionHistory() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-                </div>
+      <div className="p-4 sm:p-6" dir="rtl">
+        <PageLoading label="در حال بارگذاری تاریخچه..." compact />
+      </div>
     )
   }
 

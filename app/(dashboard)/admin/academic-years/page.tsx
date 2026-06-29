@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Calendar, CheckCircle, Plus, Rocket, BarChart3, Edit, Eye } from 'lucide-react'
 import { toast } from 'sonner'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { PageLoading } from '@/components/ui/page-states'
 import type { AcademicYear, PromotionResult } from '@/lib/types/academic.types'
 
 export default function AcademicYearsPage() {
@@ -123,14 +125,15 @@ export default function AcademicYearsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">در حال بارگذاری...</div>
+      <div className="container mx-auto p-4 sm:p-6" dir="rtl">
+        <PageLoading label="در حال بارگذاری سال‌های تحصیلی..." compact />
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6 p-4 sm:p-6" dir="rtl">
+      <LuxFadeUp className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -338,6 +341,8 @@ export default function AcademicYearsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      </LuxFadeUp>
 
       {/* Dialog تأیید ارتقا */}
       <AlertDialog open={showPromoteDialog} onOpenChange={setShowPromoteDialog}>

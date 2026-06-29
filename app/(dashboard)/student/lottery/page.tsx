@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BookOpen, GripVertical, CheckCircle, Clock, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { PageLoading } from '@/components/ui/page-states'
 
 type Period = {
   id: string; title: string; academic_year: string
@@ -101,10 +103,17 @@ export default function StudentLotteryPage() {
     toast.success(data.message || 'اولویت‌ها ثبت شدند')
   }
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin" size={32} /></div>
+  if (loading) {
+    return (
+      <div className="p-4 sm:p-6" dir="rtl">
+        <PageLoading label="در حال بارگذاری قرعه‌کشی..." compact />
+      </div>
+    )
+  }
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
+    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
+      <LuxFadeUp className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <BookOpen className="text-purple-600" /> ثبت‌نام کلاس
@@ -201,6 +210,7 @@ export default function StudentLotteryPage() {
           </CardContent>
         </Card>
       )}
+      </LuxFadeUp>
     </div>
   )
 }

@@ -27,6 +27,8 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PageSkeletonCards } from '@/components/ui/page-states'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
 import {
   Table,
   TableBody,
@@ -314,25 +316,15 @@ export default function MyItemsPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6" dir="rtl">
-        <Skeleton className="h-10 w-48" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
-          ))}
-        </div>
-        <Skeleton className="h-12 w-full" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <Skeleton key={i} className="h-48 rounded-xl" />
-          ))}
-        </div>
+      <div className="container mx-auto p-4 sm:p-6" dir="rtl">
+        <PageSkeletonCards count={4} />
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6" dir="rtl">
+    <div className="container mx-auto space-y-6 p-4 sm:p-6" dir="rtl">
+      <LuxFadeUp className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -642,6 +634,7 @@ export default function MyItemsPage() {
           </Table>
         </CardContent>
       </Card>
+      </LuxFadeUp>
     </div>
   )
 }

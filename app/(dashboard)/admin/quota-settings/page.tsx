@@ -10,6 +10,8 @@ import {
   Loader2, Info, Building2,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { PageLoading } from '@/components/ui/page-states'
 
 // ────────────────────────────────────────────────────────────
 // تایپ‌ها
@@ -92,14 +94,17 @@ export default function QuotaSettingsPage() {
     }
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-64">
-      <Loader2 className="animate-spin w-8 h-8 text-indigo-500" />
-    </div>
-  )
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-4xl p-4 sm:p-6" dir="rtl">
+        <PageLoading label="در حال بارگذاری تنظیمات ظرفیت..." compact />
+      </div>
+    )
+  }
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto" dir="rtl">
+    <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6" dir="rtl">
+      <LuxFadeUp className="space-y-6">
 
       <div>
         <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
@@ -286,7 +291,7 @@ export default function QuotaSettingsPage() {
           </div>
         </CardContent>
       </Card>
-
+      </LuxFadeUp>
     </div>
   )
 }

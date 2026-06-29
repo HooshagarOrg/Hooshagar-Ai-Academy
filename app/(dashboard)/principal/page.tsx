@@ -13,6 +13,7 @@ import {
   FileText,
 } from 'lucide-react'
 import { DashboardPage } from '@/components/layout/dashboard-page'
+import { PageLoading } from '@/components/ui/page-states'
 import { StatCard } from '@/components/ui/stat-card'
 import { GlassCard } from '@/components/ui/glass-card'
 import { PremiumPanel } from '@/components/ui/premium-panel'
@@ -59,8 +60,8 @@ export default function PrincipalDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="animate-spin w-10 h-10 text-brand-purple" />
+      <div className="flex items-center justify-center py-24" dir="rtl">
+        <PageLoading label="در حال بارگذاری داشبورد مدیر مدرسه..." compact />
       </div>
     )
   }

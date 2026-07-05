@@ -1,106 +1,119 @@
 'use client'
 
-import Link from 'next/link'
-import { motion, useReducedMotion } from 'framer-motion'
+import { useRef } from 'react'
+import dynamic from 'next/dynamic'
+import { useGSAP } from '@gsap/react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useReducedMotion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
-import { EASE } from '@/components/landing/motion'
+import { HeroTextReveal, MagneticButton } from '@/components/landing/gsap'
+import { HeroSceneStatic } from '@/components/landing/hero-scene'
 
-const VIDEO = '/videos/ai-processor-reveal.mp4'
+gsap.registerPlugin(ScrollTrigger)
+
+const HeroScene = dynamic(
+  () => import('@/components/landing/hero-scene').then((m) => m.HeroScene),
+  {
+    ssr: false,
+    loading: () => <HeroSceneStatic className="absolute inset-0" />,
+  },
+)
 
 export function LandingHero() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const sceneRef = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
 
+  useGSAP(
+    () => {
+      if (!sectionRef.current || reduce) return
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 0.8,
+        },
+      })
+
+      if (contentRef.current) {
+        tl.to(contentRef.current, { opacity: 0, y: -60, scale: 0.96, ease: 'none' }, 0)
+      }
+      if (sceneRef.current) {
+        tl.to(sceneRef.current, { scale: 1.15, opacity: 0.35, ease: 'none' }, 0)
+      }
+    },
+    { scope: sectionRef, dependencies: [reduce] },
+  )
+
   return (
-    <section className="relative h-[100dvh] min-h-[540px] w-full overflow-hidden">
-      <motion.div
-        className="absolute inset-0"
-        initial={reduce ? false : { scale: 1.05 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 2, ease: EASE }}
-      >
-        <video
-          className="absolute inset-0 h-full w-full object-cover"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          aria-hidden
-        >
-          <source src={VIDEO} type="video/mp4" />
-        </video>
-      </motion.div>
+    <section
+      ref={sectionRef}
+      className="relative h-[100dvh] min-h-[540px] w-full overflow-hidden"
+      aria-label="صفحه اصلی هوشاگر"
+    >
+      <div ref={sceneRef} className="absolute inset-0">
+        <HeroScene className="absolute inset-0" />
+      </div>
 
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, rgba(15,17,23,0.88) 0%, rgba(15,17,23,0.42) 48%, rgba(15,17,23,0.82) 100%)',
+            'linear-gradient(180deg, rgba(13,15,20,0.55) 0%, rgba(15,17,23,0.35) 45%, rgba(15,17,23,0.88) 100%)',
         }}
       />
 
-      <div className="relative z-10 flex h-full flex-col px-4 sm:px-6">
+      <div ref={contentRef} className="relative z-10 flex h-full flex-col px-4 sm:px-6">
         <header className="flex items-center justify-between pt-6 sm:pt-8">
           <HooshagarLogo size="sm" href="/" surface="hero" priority showWordmark />
           <nav className="flex gap-2">
-            <Link href="/login" className="lux-btn-ghost min-h-10 px-4 text-sm">
+            <MagneticButton href="/login" className="lux-btn-ghost min-h-10 px-4 text-sm">
               ورود
-            </Link>
-            <Link href="/register" className="lux-btn-accent hidden min-h-10 px-4 text-sm sm:inline-flex">
+            </MagneticButton>
+            <MagneticButton href="/register" className="lux-btn-accent hidden min-h-10 px-4 text-sm sm:inline-flex">
               شروع رایگان
-            </Link>
+            </MagneticButton>
           </nav>
         </header>
 
         <div className="flex flex-1 flex-col justify-center pb-24 pt-8 text-right">
-          <motion.h1
-            className="lux-display max-w-3xl"
-            initial={reduce ? false : { opacity: 0, y: 32 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, delay: 0.3, ease: EASE }}
-          >
-            یادگیری هوشمند،
-            <span className="mt-1 block bg-gradient-to-l from-[#8B7CFF] via-[#54D2FF] to-[#FF4DA6] bg-clip-text text-transparent">
-              استعداد بی‌نهایت
+          <h1 className="lux-display max-w-3xl">
+            <HeroTextReveal delay={0.2}>یادگیری هوشمند،</HeroTextReveal>
+            <span className="mt-2 block lux-gradient-text-animated">
+              <HeroTextReveal delay={0.45}>استعداد بی‌نهایت</HeroTextReveal>
             </span>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            className="mt-5 max-w-xl text-base leading-[1.9] text-[#8B95A8] sm:text-lg"
-            initial={reduce ? false : { opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.5, ease: EASE }}
-          >
-            نسل جدید یادگیری با هوش مصنوعی — برای نوجوانان ایرانی
-          </motion.p>
+          <p className="mt-5 max-w-xl text-base leading-[1.9] text-[var(--lux-text-muted)] sm:text-lg">
+            <HeroTextReveal delay={0.65}>نسل جدید یادگیری با هوش مصنوعی — برای نوجوانان ایرانی</HeroTextReveal>
+          </p>
 
-          <motion.div
-            className="mt-8 flex flex-col gap-3 sm:flex-row"
-            initial={reduce ? false : { opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.7, ease: EASE }}
-          >
-            <Link href="/register" className="lux-btn-accent">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <MagneticButton href="/register" className="lux-btn-accent shadow-[0_0_40px_var(--lux-glow-accent)]">
               شروع تجربه هوشاگر
-            </Link>
-            <Link href="/login" className="lux-btn-ghost">
+            </MagneticButton>
+            <MagneticButton href="/login" className="lux-btn-ghost border-[rgba(201,169,98,0.25)]">
               ورود به حساب
-            </Link>
-          </motion.div>
+            </MagneticButton>
+          </div>
         </div>
 
-        <motion.button
+        <button
           type="button"
           onClick={() => document.getElementById('ai-companion')?.scrollIntoView({ behavior: 'smooth' })}
-          className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1 text-[#8B95A8] hover:text-[#E8ECF4]"
-          aria-label="ادامه"
-          animate={reduce ? undefined : { y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-[var(--lux-text-muted)] transition-colors hover:text-[var(--lux-text)]"
+          aria-label="ادامه به بخش بعدی"
         >
           <span className="text-xs font-bold">کشف کنید</span>
-          <ChevronDown className="h-5 w-5" />
-        </motion.button>
+          <span className="relative flex h-10 w-6 items-start justify-center rounded-full border border-[rgba(232,236,244,0.2)] p-1">
+            <ChevronDown className="h-4 w-4 animate-bounce" />
+          </span>
+        </button>
       </div>
     </section>
   )

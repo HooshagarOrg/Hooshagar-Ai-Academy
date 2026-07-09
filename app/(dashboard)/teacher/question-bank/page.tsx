@@ -1,13 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -575,76 +570,81 @@ export default function QuestionBankPage() {
     }
   };
 
+  const pageTitle = (
+    <span className="flex items-center gap-2">
+      <BookOpen className="w-6 h-6" />
+      بانک سوالات
+    </span>
+  );
+
+  const pageActions = (
+    <div className="flex gap-2">
+      <Button variant="outline" size="sm">
+        <Download className="w-4 h-4 ml-1" />
+        خروجی
+      </Button>
+      <Button variant="outline" size="sm">
+        <Upload className="w-4 h-4 ml-1" />
+        ورود
+      </Button>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogTrigger asChild>
+          <Button
+            onClick={() => {
+              setEditQuestion(null);
+              setDialogOpen(true);
+            }}
+          >
+            <Plus className="w-4 h-4 ml-1" />
+            سوال جدید
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editQuestion ? 'ویرایش سوال' : 'افزودن سوال جدید'}
+            </DialogTitle>
+            <DialogDescription>
+              اطلاعات سوال را وارد کنید
+            </DialogDescription>
+          </DialogHeader>
+          <CreateQuestionForm
+            onClose={() => {
+              setDialogOpen(false);
+              setEditQuestion(null);
+            }}
+            onSubmit={handleSubmitQuestion}
+            editQuestion={editQuestion}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-96 w-full" />
-      </div>
+      <DashboardPage
+        title={pageTitle}
+        description="مدیریت و سازماندهی سوالات امتحانی"
+      >
+        <DashboardSectionBlock className="space-y-6">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-96 w-full" />
+        </DashboardSectionBlock>
+      </DashboardPage>
     );
   }
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      {/* هدر */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="w-6 h-6" />
-                بانک سوالات
-              </CardTitle>
-              <CardDescription>
-                مدیریت و سازماندهی سوالات امتحانی
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Download className="w-4 h-4 ml-1" />
-                خروجی
-              </Button>
-              <Button variant="outline" size="sm">
-                <Upload className="w-4 h-4 ml-1" />
-                ورود
-              </Button>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    onClick={() => {
-                      setEditQuestion(null);
-                      setDialogOpen(true);
-                    }}
-                  >
-                    <Plus className="w-4 h-4 ml-1" />
-                    سوال جدید
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editQuestion ? 'ویرایش سوال' : 'افزودن سوال جدید'}
-                    </DialogTitle>
-                    <DialogDescription>
-                      اطلاعات سوال را وارد کنید
-                    </DialogDescription>
-                  </DialogHeader>
-                  <CreateQuestionForm
-                    onClose={() => {
-                      setDialogOpen(false);
-                      setEditQuestion(null);
-                    }}
-                    onSubmit={handleSubmitQuestion}
-                    editQuestion={editQuestion}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* فیلترها */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <DashboardPage
+      title={pageTitle}
+      description="مدیریت و سازماندهی سوالات امتحانی"
+      actions={pageActions}
+    >
+      <DashboardSectionBlock>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Select
               value={filters.subject}
               onValueChange={(v) =>
@@ -733,11 +733,12 @@ export default function QuestionBankPage() {
               />
             </div>
           </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </DashboardSectionBlock>
 
-      {/* جدول سوالات */}
-      <Card>
+      <DashboardSectionBlock>
+        <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -845,10 +846,11 @@ export default function QuestionBankPage() {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+        </Card>
+      </DashboardSectionBlock>
 
-      {/* آمار */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <DashboardSectionBlock>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-primary">{total}</div>
@@ -879,9 +881,9 @@ export default function QuestionBankPage() {
             <div className="text-sm text-muted-foreground">سخت</div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </DashboardSectionBlock>
 
-      {/* دیالوگ مشاهده */}
       <Dialog open={!!viewQuestion} onOpenChange={() => setViewQuestion(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -928,6 +930,6 @@ export default function QuestionBankPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardPage>
   );
 }

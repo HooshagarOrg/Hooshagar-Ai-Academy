@@ -1,4 +1,13 @@
 import '@testing-library/jest-dom';
+import { TextEncoder, TextDecoder } from 'util';
+import { ReadableStream, WritableStream, TransformStream } from 'stream/web';
+
+// Polyfill for undici / Supabase in Jest
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+global.ReadableStream = ReadableStream;
+global.WritableStream = WritableStream;
+global.TransformStream = TransformStream;
 
 // Mock environment variables برای تست
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';

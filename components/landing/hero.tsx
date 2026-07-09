@@ -1,119 +1,258 @@
 'use client'
 
-import { useRef } from 'react'
-import dynamic from 'next/dynamic'
-import { useGSAP } from '@gsap/react'
+/**
+ * Hero سینمایی لندینگ — میدان ستاره‌ای Canvas + هالهٔ نور + متن فارسی با reveal
+ * بدون هیچ asset خارجی؛ همه‌چیز رویه‌ای (procedural) رندر می‌شود.
+ */
+
+import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useReducedMotion } from 'framer-motion'
-import { ChevronDown } from 'lucide-react'
-import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
-import { HeroTextReveal, MagneticButton } from '@/components/landing/gsap'
-import { HeroSceneStatic } from '@/components/landing/hero-scene'
+import { useGSAP } from '@gsap/react'
+import { ArrowLeft, Sparkles } from 'lucide-react'
+import { BrandLogoImage } from '@/components/brand/brand-logo-image'
+import { MagneticButton, TextReveal } from './motion'
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger, useGSAP)
 
-const HeroScene = dynamic(
-  () => import('@/components/landing/hero-scene').then((m) => m.HeroScene),
-  {
-    ssr: false,
-    loading: () => <HeroSceneStatic className="absolute inset-0" />,
-  },
-)
+interface Star {
+  x: number
+  y: number
+  z: number
+  r: number
+  hue: number
+  tw: number
+}
 
-export function LandingHero() {
+interface StarfieldCanvasProps {
+  density?: number
+  brightness?: number
+  className?: string
+}
+
+export function StarfieldCanvas({
+  density = 1,
+  brightness = 1,
+  className = 'absolute inset-0 h-full w-full',
+}: StarfieldCanvasProps): JSX.Element {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let width = 0
+    let height = 0
+    let raf = 0
+    let stars: Star[] = []
+    const pointer = { x: 0.5, y: 0.5 }
+    // پالت: بنفش، فیروزه‌ای، طلایی
+    const hues = [252, 195, 44]
+
+    const resize = (): void => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      width = canvas.clientWidth
+      height = canvas.clientHeight
+      canvas.width = width * dpr
+      canvas.height = height * dpr
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      const count = Math.min(420, Math.floor((width * height) / (9000 / density)))
+      stars = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        z: 0.25 + Math.random() * 0.75,
+        r: 0.6 + Math.random() * 2,
+        hue: hues[Math.floor(Math.random() * hues.length)],
+        tw: Math.random() * Math.PI * 2,
+      }))
+    }
+
+    const draw = (t: number): void => {
+      ctx.clearRect(0, 0, width, height)
+      const px = (pointer.x - 0.5) * 24
+      const py = (pointer.y - 0.5) * 24
+      for (const s of stars) {
+        const twinkle = 0.55 + 0.45 * Math.sin(t * 0.0011 + s.tw)
+        const x = s.x + px * s.z
+        const y = s.y + py * s.z - (reduced ? 0 : (t * 0.008 * s.z) % height)
+        const yy = ((y % height) + height) % height
+        ctx.beginPath()
+        ctx.arc(x, yy, s.r * s.z, 0, Math.PI * 2)
+        const alpha = Math.min(1, 0.58 * twinkle * s.z * brightness)
+        ctx.fillStyle = `hsla(${s.hue}, 85%, 78%, ${alpha})`
+        ctx.fill()
+      }
+      raf = requestAnimationFrame(draw)
+    }
+
+    const onPointer = (e: PointerEvent): void => {
+      pointer.x = e.clientX / window.innerWidth
+      pointer.y = e.clientY / window.innerHeight
+    }
+
+    resize()
+    window.addEventListener('resize', resize)
+    if (!reduced) {
+      window.addEventListener('pointermove', onPointer)
+      raf = requestAnimationFrame(draw)
+    } else {
+      draw(0)
+      cancelAnimationFrame(raf)
+    }
+
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('resize', resize)
+      window.removeEventListener('pointermove', onPointer)
+    }
+  }, [])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className={className}
+      aria-hidden="true"
+    />
+  )
+}
+
+export default function LandingHero(): JSX.Element {
   const sectionRef = useRef<HTMLElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
-  const sceneRef = useRef<HTMLDivElement>(null)
-  const reduce = useReducedMotion()
 
   useGSAP(
     () => {
-      if (!sectionRef.current || reduce) return
+      if (!sectionRef.current) return
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (reduced) return
 
-      const tl = gsap.timeline({
+      // ورود عناصر پایین hero
+      gsap.fromTo(
+        '[data-hero-fade]',
+        { opacity: 0, y: 28 },
+        { opacity: 1, y: 0, duration: 1, stagger: 0.14, delay: 0.9, ease: 'power3.out' },
+      )
+
+      // خروج سینمایی هنگام اسکرول
+      gsap.to('[data-hero-content]', {
+        opacity: 0,
+        y: -90,
+        scale: 0.96,
+        ease: 'none',
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: 'bottom top',
-          scrub: 0.8,
+          end: '75% top',
+          scrub: 0.5,
         },
       })
-
-      if (contentRef.current) {
-        tl.to(contentRef.current, { opacity: 0, y: -60, scale: 0.96, ease: 'none' }, 0)
-      }
-      if (sceneRef.current) {
-        tl.to(sceneRef.current, { scale: 1.15, opacity: 0.35, ease: 'none' }, 0)
-      }
     },
-    { scope: sectionRef, dependencies: [reduce] },
+    { scope: sectionRef },
   )
 
   return (
     <section
       ref={sectionRef}
-      className="relative h-[100dvh] min-h-[540px] w-full overflow-hidden"
-      aria-label="صفحه اصلی هوشاگر"
+      className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-transparent"
+      aria-label="معرفی هوشاگر"
     >
-      <div ref={sceneRef} className="absolute inset-0">
-        <HeroScene className="absolute inset-0" />
-      </div>
+      {/* پرتوهای طلایی عمودی */}
+      <div className="lp-beam right-[18%] top-0 h-full opacity-60" aria-hidden="true" />
+      <div className="lp-beam left-[22%] top-0 h-full opacity-40" aria-hidden="true" />
 
+      {/* هالهٔ مرکزی */}
       <div
-        className="pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[62vmin] w-[62vmin] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
         style={{
           background:
-            'linear-gradient(180deg, rgba(13,15,20,0.55) 0%, rgba(15,17,23,0.35) 45%, rgba(15,17,23,0.88) 100%)',
+            'radial-gradient(circle, rgba(139,124,255,0.22), rgba(84,210,255,0.08) 55%, transparent 72%)',
         }}
+        aria-hidden="true"
       />
 
-      <div ref={contentRef} className="relative z-10 flex h-full flex-col px-4 sm:px-6">
-        <header className="flex items-center justify-between pt-6 sm:pt-8">
-          <HooshagarLogo size="sm" href="/" surface="hero" priority showWordmark />
-          <nav className="flex gap-2">
-            <MagneticButton href="/login" className="lux-btn-ghost min-h-10 px-4 text-sm">
-              ورود
-            </MagneticButton>
-            <MagneticButton href="/register" className="lux-btn-accent hidden min-h-10 px-4 text-sm sm:inline-flex">
-              شروع رایگان
-            </MagneticButton>
-          </nav>
-        </header>
-
-        <div className="flex flex-1 flex-col justify-center pb-24 pt-8 text-right">
-          <h1 className="lux-display max-w-3xl">
-            <HeroTextReveal delay={0.2}>یادگیری هوشمند،</HeroTextReveal>
-            <span className="mt-2 block lux-gradient-text-animated">
-              <HeroTextReveal delay={0.45}>استعداد بی‌نهایت</HeroTextReveal>
-            </span>
-          </h1>
-
-          <p className="mt-5 max-w-xl text-base leading-[1.9] text-[var(--lux-text-muted)] sm:text-lg">
-            <HeroTextReveal delay={0.65}>نسل جدید یادگیری با هوش مصنوعی — برای نوجوانان ایرانی</HeroTextReveal>
-          </p>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <MagneticButton href="/register" className="lux-btn-accent shadow-[0_0_40px_var(--lux-glow-accent)]">
-              شروع تجربه هوشاگر
-            </MagneticButton>
-            <MagneticButton href="/login" className="lux-btn-ghost border-[rgba(201,169,98,0.25)]">
-              ورود به حساب
-            </MagneticButton>
-          </div>
+      <div data-hero-content className="lux-container relative z-10 py-24 text-center">
+        <div className="relative mx-auto mb-8 flex justify-center">
+          <BrandLogoImage
+            alt="لوگوی هوشاگر"
+            width={120}
+            height={120}
+            priority
+            className="relative animate-[lp-logo-float_6s_ease-in-out_infinite]"
+          />
         </div>
 
-        <button
-          type="button"
-          onClick={() => document.getElementById('ai-companion')?.scrollIntoView({ behavior: 'smooth' })}
-          className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-[var(--lux-text-muted)] transition-colors hover:text-[var(--lux-text)]"
-          aria-label="ادامه به بخش بعدی"
+        <div
+          data-hero-fade
+          className="mx-auto mb-7 inline-flex items-center gap-2 rounded-full border border-[rgba(201,169,98,0.35)] bg-[rgba(201,169,98,0.08)] px-4 py-1.5 text-xs font-extrabold text-[var(--lux-gold)]"
+          style={{ opacity: 0 }}
         >
-          <span className="text-xs font-bold">کشف کنید</span>
-          <span className="relative flex h-10 w-6 items-start justify-center rounded-full border border-[rgba(232,236,244,0.2)] p-1">
-            <ChevronDown className="h-4 w-4 animate-bounce" />
-          </span>
-        </button>
+          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+          سیستم‌عامل هوشمند مدارس ایران
+        </div>
+
+        <TextReveal
+          text="مدرسه‌ای که آیندهٔ فرزندتان را می‌بیند"
+          as="h1"
+          className="lux-display mx-auto max-w-4xl"
+        />
+
+        <div className="mt-3">
+          <TextReveal
+            text="با قدرت هوش مصنوعی"
+            as="h2"
+            gradient
+            delay={0.5}
+            className="text-[clamp(1.9rem,5.5vw,3.6rem)] font-black leading-tight"
+          />
+        </div>
+
+        <p
+          data-hero-fade
+          className="lux-body mx-auto mt-7 max-w-2xl text-balance text-[1.05rem]"
+          style={{ opacity: 0 }}
+        >
+          هوشاگر تحلیل تحصیلی، کشف استعداد، همراه مطالعهٔ هوشمند و گزارش‌های عمیق
+          برای والدین را در یک تجربهٔ یکپارچه گرد هم می‌آورد — برای دانش‌آموز، معلم،
+          والدین و مدیر مدرسه.
+        </p>
+
+        <div
+          data-hero-fade
+          className="mt-10 flex flex-wrap items-center justify-center gap-4"
+          style={{ opacity: 0 }}
+        >
+          <MagneticButton href="/login" className="lux-btn-accent px-8 text-base">
+            ورود به هوشاگر
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          </MagneticButton>
+          <MagneticButton href="#cinematic" className="lux-btn-ghost px-8 text-base">
+            تماشای ویدیو
+          </MagneticButton>
+        </div>
+
+        <div
+          data-hero-fade
+          className="mx-auto mt-16 flex max-w-md items-center justify-center gap-8 text-xs font-bold text-[var(--lux-text-muted)]"
+          style={{ opacity: 0 }}
+        >
+          <span>۱۲ قابلیت هوش مصنوعی</span>
+          <span className="h-4 w-px bg-[rgba(232,236,244,0.18)]" aria-hidden="true" />
+          <span>۴ نقش کاربری</span>
+          <span className="h-4 w-px bg-[rgba(232,236,244,0.18)]" aria-hidden="true" />
+          <span>فارسی و بومی</span>
+        </div>
+      </div>
+
+      {/* اشارهٔ اسکرول */}
+      <div
+        className="absolute bottom-7 left-1/2 -translate-x-1/2 text-[var(--lux-text-muted)]"
+        aria-hidden="true"
+      >
+        <div className="flex h-9 w-5 items-start justify-center rounded-full border border-[rgba(232,236,244,0.25)] p-1">
+          <div className="h-2 w-1 animate-bounce rounded-full bg-[var(--lux-gold)]" />
+        </div>
       </div>
     </section>
   )

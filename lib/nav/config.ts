@@ -201,6 +201,13 @@ export const simpleNavs: Record<string, NavItem[]> = {
     { title: 'پرونده‌ها', href: '/health-vp/students', icon: Users },
     { title: 'گزارش‌ها', href: '/health-vp/reports', icon: FileText },
   ],
+  financial_vp: [
+    { title: 'داشبورد', href: '/financial-vp', icon: Home },
+    { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: CreditCard },
+    { title: 'پیامک', href: '/financial-vp/sms', icon: MessageSquare },
+    { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: DollarSign },
+    { title: 'درآمد', href: '/financial-vp/reports/income', icon: TrendingUp },
+  ],
   art_teacher: [
     { title: 'داشبورد', href: '/art-teacher', icon: Home },
     { title: 'گزارشات هنری', href: '/art-teacher/art-reports', icon: FileText },

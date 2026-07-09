@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { AUTH_ERRORS, secureErrorResponse } from '@/lib/security/error-handler'
-import { applyRateLimit } from '@/lib/security/rate-limiter'
+import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
+
+export const maxDuration = 60
 
 const storySchema = z.object({
   topic: z.string().min(2, 'موضوع باید حداقل 2 کاراکتر باشد'),
@@ -19,7 +21,7 @@ const lengthMap = {
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const rateLimitRes = applyRateLimit(request, 'ai_generate')
+    const rateLimitRes = await applyRateLimitAsync(request, 'ai_generate')
     if (rateLimitRes) return rateLimitRes
 
     // احراز هویت اجباری

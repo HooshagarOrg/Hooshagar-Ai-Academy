@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { PageHeader } from '@/components/ui/page-header'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
@@ -30,7 +30,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
-import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { PageLoading } from '@/components/ui/page-states'
 
 // ============================================
@@ -200,30 +199,30 @@ export default function AdminUsersPage() {
     d ? new Intl.DateTimeFormat('fa-IR').format(new Date(d)) : '-'
 
   return (
-    <div dir="rtl">
-      <LuxFadeUp>
-      <PageHeader
-        title="مدیریت کاربران"
-        description={`${users.length} کاربر در سیستم`}
-        icon={Users}
-        iconColor="text-brand-cyan"
-        iconBg="bg-brand-cyan/15 border border-brand-cyan/20"
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchUsers}>
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-            <Button className="bg-brand-cyan hover:opacity-90 text-space gap-2" onClick={openCreate}>
-              <Plus className="w-4 h-4" />
-              کاربر جدید
-            </Button>
-          </div>
-        }
-      />
-      </LuxFadeUp>
-
-      <LuxStagger className="space-y-6" stagger={0.08}>
-      <LuxStaggerItem>
+    <>
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 rounded-xl bg-brand-cyan/15 border border-brand-cyan/20 flex items-center justify-center">
+            <Users className="w-6 h-6 text-brand-cyan" />
+          </span>
+          مدیریت کاربران
+        </span>
+      }
+      description={`${users.length} کاربر در سیستم`}
+      actions={
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={fetchUsers}>
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+          <Button className="bg-brand-cyan hover:opacity-90 text-space gap-2" onClick={openCreate}>
+            <Plus className="w-4 h-4" />
+            کاربر جدید
+          </Button>
+        </div>
+      }
+    >
+      <DashboardSectionBlock>
       {/* آمار نقش‌ها */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
         {ROLES.slice(0, 12).map(r => {
@@ -248,9 +247,9 @@ export default function AdminUsersPage() {
           )
         })}
       </div>
-      </LuxStaggerItem>
+      </DashboardSectionBlock>
 
-      <LuxStaggerItem>
+      <DashboardSectionBlock>
       {/* جستجو */}
       <div className="flex gap-3 mb-6">
         <div className="relative flex-1">
@@ -275,9 +274,9 @@ export default function AdminUsersPage() {
           </SelectContent>
         </Select>
       </div>
-      </LuxStaggerItem>
+      </DashboardSectionBlock>
 
-      <LuxStaggerItem>
+      <DashboardSectionBlock>
       {/* لیست کاربران */}
       {isLoading ? (
         <PageLoading label="در حال بارگذاری کاربران..." />
@@ -365,8 +364,8 @@ export default function AdminUsersPage() {
           </div>
         </GlassCard>
       )}
-      </LuxStaggerItem>
-      </LuxStagger>
+      </DashboardSectionBlock>
+    </DashboardPage>
 
       {/* دیالوگ ساخت کاربر */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
@@ -535,6 +534,6 @@ export default function AdminUsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   )
 }

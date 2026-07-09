@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { CheckCircle, XCircle, Eye, Clock, ArrowRightLeft } from 'lucide-react'
 import { toast } from 'sonner'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { PageLoading } from '@/components/ui/page-states'
 import type { TransferWithDetails } from '@/lib/types/academic.types'
 
@@ -122,20 +122,23 @@ export default function TransfersPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-4 sm:p-6" dir="rtl">
+      <DashboardPage title="درخواست‌های انتقال" description="مدیریت درخواست‌های انتقال دانش‌آموزان">
         <PageLoading label="در حال بارگذاری درخواست‌های انتقال..." compact />
-      </div>
+      </DashboardPage>
     )
   }
 
   return (
-    <div className="container mx-auto space-y-6 p-4 sm:p-6" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">درخواست‌های انتقال</h1>
-        <p className="text-muted-foreground">مدیریت درخواست‌های انتقال دانش‌آموزان</p>
-      </div>
-
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <ArrowRightLeft className="text-[var(--lux-primary)]" />
+          درخواست‌های انتقال
+        </span>
+      }
+      description="مدیریت درخواست‌های انتقال دانش‌آموزان"
+    >
+      <DashboardSectionBlock>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -223,6 +226,7 @@ export default function TransfersPage() {
           </Table>
         </CardContent>
       </Card>
+      </DashboardSectionBlock>
 
       {/* Dialog تأیید/رد انتقال */}
       <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
@@ -320,8 +324,7 @@ export default function TransfersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </LuxFadeUp>
-    </div>
+    </DashboardPage>
   )
 }
 

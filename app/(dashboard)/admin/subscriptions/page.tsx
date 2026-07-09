@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CreditCard, Loader2, CheckCircle, Clock, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 type Sub = {
   id: string; status: string; expires_at: string | null
@@ -62,21 +63,25 @@ export default function AdminSubscriptionsPage() {
     .reduce((sum, s) => sum + s.price_monthly, 0)
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <CreditCard className="text-indigo-600" /> مدیریت اشتراک‌ها
-        </h1>
-        <p className="text-sm text-gray-500">مدیریت پلن‌های مدارس — فعلاً همه روی پلن رایگان</p>
-      </div>
-
-      <div className="grid md:grid-cols-4 gap-4">
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <CreditCard className="text-[var(--lux-primary)]" />
+          مدیریت اشتراک‌ها
+        </span>
+      }
+      description="مدیریت پلن‌های مدارس — فعلاً همه روی پلن رایگان"
+    >
+      <DashboardSectionBlock>
+      <div className="grid gap-4 md:grid-cols-4">
         <StatCard label="کل اشتراک‌ها" value={subs.length} color="blue" />
         <StatCard label="پلن رایگان" value={subs.filter(s => s.plan_name === 'free').length} color="gray" />
         <StatCard label="پلن پولی" value={subs.filter(s => s.plan_name !== 'free').length} color="green" />
         <StatCard label="درآمد ماهانه (تومان)" value={totalRevenue} color="purple" />
       </div>
+      </DashboardSectionBlock>
 
+      <DashboardSectionBlock>
       <Card>
         <CardHeader><CardTitle>لیست اشتراک‌ها</CardTitle></CardHeader>
         <CardContent>
@@ -87,7 +92,7 @@ export default function AdminSubscriptionsPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b">
+                <thead className="border-b border-white/[0.08] bg-white/[0.03]">
                   <tr>
                     <th className="p-3 text-right">مدرسه</th>
                     <th className="p-3 text-right">پلن فعلی</th>
@@ -145,26 +150,34 @@ export default function AdminSubscriptionsPage() {
           )}
         </CardContent>
       </Card>
+      </DashboardSectionBlock>
 
-      <Card className="border-blue-100 bg-blue-50">
+      <DashboardSectionBlock>
+      <Card className="border-[var(--lux-secondary)]/30 bg-[var(--lux-secondary)]/8">
         <CardContent className="p-4">
-          <p className="text-sm text-blue-800 font-medium">
-            💡 برای فعال‌سازی درگاه پرداخت زرین‌پال، کلید <code>ZARINPAL_MERCHANT_ID</code> را در <code>.env.local</code> تنظیم کنید.
+          <p className="text-sm font-medium text-[var(--lux-text)]">
+            💡 برای فعال‌سازی درگاه پرداخت زرین‌پال، کلید <code className="rounded bg-white/10 px-1">ZARINPAL_MERCHANT_ID</code> را در <code className="rounded bg-white/10 px-1">.env.local</code> تنظیم کنید.
           </p>
         </CardContent>
       </Card>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }
 
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   const colors: Record<string, string> = {
-    blue: 'text-blue-600', gray: 'text-gray-500', green: 'text-green-600', purple: 'text-purple-600'
+    blue: 'text-[var(--lux-secondary)]',
+    gray: 'text-[var(--lux-text-muted)]',
+    green: 'text-emerald-400',
+    purple: 'text-[var(--lux-primary)]',
   }
   return (
-    <Card><CardContent className="p-4">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className={`text-2xl font-bold ${colors[color]}`}>{value.toLocaleString('fa-IR')}</p>
-    </CardContent></Card>
+    <Card>
+      <CardContent className="lux-dash-stat p-4">
+        <p className="text-xs text-[var(--lux-text-muted)]">{label}</p>
+        <p className={`text-2xl font-bold ${colors[color]}`}>{value.toLocaleString('fa-IR')}</p>
+      </CardContent>
+    </Card>
   )
 }

@@ -9,8 +9,7 @@ const path = require('path')
 
 const SOURCE = process.argv[2] || path.join(__dirname, '../assets/logo-source.png')
 
-const OUT_MASTER = path.join(__dirname, '../public/logo.png')
-const OUT_BRAND = path.join(__dirname, '../public/brand/logo-full.png')
+const OUT_BRAND = path.join(__dirname, '../public/brand/logo.png')
 const MASTER_SIZE = 1024
 /** نزدیک سفید — فقط نواحی متصل به لبهٔ تصویر شفاف می‌شوند */
 const WHITE_THRESHOLD = 238
@@ -129,12 +128,10 @@ async function main() {
       : `🎨 Removing edge-connected white (threshold ${WHITE_THRESHOLD})…`,
   )
 
-  await sharp(buffer).toFile(OUT_MASTER)
   await sharp(buffer).toFile(OUT_BRAND)
 
-  const outMeta = await sharp(OUT_MASTER).metadata()
-  console.log(`✅ ${OUT_MASTER} (${outMeta.width}×${outMeta.height}, alpha)`)
-  console.log(`✅ ${OUT_BRAND}`)
+  const outMeta = await sharp(OUT_BRAND).metadata()
+  console.log(`✅ ${OUT_BRAND} (${outMeta.width}×${outMeta.height}, alpha)`)
 }
 
 main().catch((err) => {

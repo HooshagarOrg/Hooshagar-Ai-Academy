@@ -7,8 +7,6 @@ const CACHE_NAME = `hooshagar-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
 ];
 
 // Install event
@@ -120,8 +118,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body || 'اعلان جدید',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-96x96.png',
+    icon: '/',
+    badge: '/',
     dir: 'rtl',
     lang: 'fa',
   };

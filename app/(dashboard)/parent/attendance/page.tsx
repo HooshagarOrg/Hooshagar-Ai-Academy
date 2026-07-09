@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, XCircle, Clock, Users, Calendar, TrendingUp } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageErrorState, PageLoading } from '@/components/ui/page-states'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { cn } from '@/lib/utils'
 
 interface AttendanceRecord {
   id: string
@@ -30,19 +32,25 @@ const statusLabel: Record<string, string> = {
   excused: 'موجه',
 }
 
-const statusColor: Record<string, string> = {
-  present: 'bg-green-100 text-green-800',
-  absent: 'bg-red-100 text-red-800',
-  late: 'bg-yellow-100 text-yellow-800',
-  excused: 'bg-blue-100 text-blue-800',
+const statusBadge: Record<string, string> = {
+  present: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  absent: 'bg-red-500/15 text-red-300 border-red-500/30',
+  late: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+  excused: 'bg-[var(--lux-secondary)]/15 text-[var(--lux-secondary)] border-[var(--lux-secondary)]/30',
 }
 
 const statusIcon: Record<string, React.ReactNode> = {
-  present: <CheckCircle2 className="w-4 h-4 text-green-600" />,
-  absent: <XCircle className="w-4 h-4 text-red-600" />,
-  late: <Clock className="w-4 h-4 text-yellow-600" />,
-  excused: <CheckCircle2 className="w-4 h-4 text-blue-600" />,
+  present: <CheckCircle2 className="h-4 w-4 text-emerald-400" />,
+  absent: <XCircle className="h-4 w-4 text-red-400" />,
+  late: <Clock className="h-4 w-4 text-amber-400" />,
+  excused: <CheckCircle2 className="h-4 w-4 text-[var(--lux-secondary)]" />,
 }
+
+const statCards = [
+  { key: 'present' as const, label: 'روز حاضر', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+  { key: 'absent' as const, label: 'روز غیبت', icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10' },
+  { key: 'late' as const, label: 'بار تأخیر', icon: Clock, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+]
 
 export default function ParentAttendancePage() {
   const [children, setChildren] = useState<Child[]>([])
@@ -73,7 +81,7 @@ export default function ParentAttendancePage() {
     }
   }
 
-  const activeChild = children.find(c => c.id === selected)
+  const activeChild = children.find((c) => c.id === selected)
 
   const attendancePercent = (child: Child) => {
     if (!child.stats.total) return 0
@@ -81,152 +89,158 @@ export default function ParentAttendancePage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="rounded-xl bg-blue-100 p-3 w-fit">
-          <Calendar className="h-6 w-6 text-blue-600" aria-hidden />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">حضور و غیاب فرزندان</h1>
-          <p className="text-sm leading-7 text-gray-500">وضعیت حضور و غیاب فرزندتان را مشاهده کنید</p>
-        </div>
-      </div>
-
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <Calendar className="text-[var(--lux-primary)]" aria-hidden />
+          حضور و غیاب فرزندان
+        </span>
+      }
+      description="وضعیت حضور و غیاب فرزندتان را مشاهده کنید"
+    >
       {loading ? (
-        <PageLoading label="در حال بارگذاری حضور و غیاب..." compact />
+        <DashboardSectionBlock>
+          <PageLoading label="در حال بارگذاری حضور و غیاب..." compact />
+        </DashboardSectionBlock>
       ) : error ? (
-        <PageErrorState message={error} onRetry={loadAttendance} />
+        <DashboardSectionBlock>
+          <PageErrorState message={error} onRetry={loadAttendance} />
+        </DashboardSectionBlock>
       ) : children.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="اطلاعاتی یافت نشد"
-          description="فرزندی به حساب شما متصل نیست یا اطلاعات حضور ثبت نشده است."
-        />
+        <DashboardSectionBlock>
+          <EmptyState
+            icon={Users}
+            title="اطلاعاتی یافت نشد"
+            description="فرزندی به حساب شما متصل نیست یا اطلاعات حضور ثبت نشده است."
+          />
+        </DashboardSectionBlock>
       ) : (
         <>
-          {/* انتخاب فرزند */}
           {children.length > 1 && (
-            <div className="flex gap-3 flex-wrap">
-              {children.map(child => (
-                <button
-                  key={child.id}
-                  type="button"
-                  onClick={() => setSelected(child.id)}
-                  className={`lux-focus-ring min-h-10 rounded-xl px-4 py-2 font-medium transition-all ${
-                    selected === child.id
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'border bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {child.full_name}
-                  <span className="mr-2 text-sm opacity-70">پایه {child.grade}</span>
-                </button>
-              ))}
-            </div>
+            <DashboardSectionBlock>
+              <div className="flex flex-wrap gap-3">
+                {children.map((child) => (
+                  <button
+                    key={child.id}
+                    type="button"
+                    onClick={() => setSelected(child.id)}
+                    className={cn(
+                      'lux-focus-ring min-h-10 rounded-xl px-4 py-2 font-medium transition-all',
+                      selected === child.id
+                        ? 'bg-[var(--lux-primary)] text-white shadow-md'
+                        : 'border border-white/[0.12] bg-white/[0.04] text-[var(--lux-text)] hover:bg-white/[0.08]',
+                    )}
+                  >
+                    {child.full_name}
+                    <span className="mr-2 text-sm opacity-70">پایه {child.grade}</span>
+                  </button>
+                ))}
+              </div>
+            </DashboardSectionBlock>
           )}
 
           {activeChild && (
             <>
-              {/* آمار کلی */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="border-0 shadow-sm bg-green-50">
-                  <CardContent className="p-4 text-center">
-                    <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-green-700">{activeChild.stats.present}</p>
-                    <p className="text-sm text-green-600">روز حاضر</p>
-          </CardContent>
-        </Card>
-                <Card className="border-0 shadow-sm bg-red-50">
-                  <CardContent className="p-4 text-center">
-                    <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-red-700">{activeChild.stats.absent}</p>
-                    <p className="text-sm text-red-600">روز غیبت</p>
-          </CardContent>
-        </Card>
-                <Card className="border-0 shadow-sm bg-yellow-50">
-                  <CardContent className="p-4 text-center">
-                    <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-yellow-700">{activeChild.stats.late}</p>
-                    <p className="text-sm text-yellow-600">بار تأخیر</p>
-          </CardContent>
-        </Card>
-                <Card className="border-0 shadow-sm bg-blue-50">
-                  <CardContent className="p-4 text-center">
-                    <TrendingUp className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-blue-700">{attendancePercent(activeChild)}%</p>
-                    <p className="text-sm text-blue-600">درصد حضور</p>
-          </CardContent>
-        </Card>
-      </div>
+              <DashboardSectionBlock>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                  {statCards.map(({ key, label, icon: Icon, color, bg }) => (
+                    <div key={key} className={cn('lux-dash-stat text-center', bg)}>
+                      <Icon className={cn('mx-auto mb-2 h-8 w-8', color)} />
+                      <p className={cn('text-2xl font-bold', color)}>{activeChild.stats[key]}</p>
+                      <p className="text-sm text-[var(--lux-text-muted)]">{label}</p>
+                    </div>
+                  ))}
+                  <div className="lux-dash-stat bg-[var(--lux-primary)]/10 text-center">
+                    <TrendingUp className="mx-auto mb-2 h-8 w-8 text-[var(--lux-primary)]" />
+                    <p className="text-2xl font-bold text-[var(--lux-primary)]">
+                      {attendancePercent(activeChild)}%
+                    </p>
+                    <p className="text-sm text-[var(--lux-text-muted)]">درصد حضور</p>
+                  </div>
+                </div>
+              </DashboardSectionBlock>
 
-              {/* نوار پیشرفت */}
-          <Card>
-            <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-blue-600" />
-                    نرخ حضور {activeChild.full_name}
-                  </CardTitle>
-            </CardHeader>
-            <CardContent>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          attendancePercent(activeChild) >= 80 ? 'bg-green-500' :
-                          attendancePercent(activeChild) >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
-                        style={{ width: `${attendancePercent(activeChild)}%` }}
-                      />
-              </div>
-                    <span className="font-bold text-gray-700 w-12">{attendancePercent(activeChild)}%</span>
-        </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {activeChild.stats.present} از {activeChild.stats.total} روز تحصیلی
-                  </p>
-            </CardContent>
-          </Card>
-
-              {/* جدول تاریخچه */}
-          <Card>
-            <CardHeader>
-                  <CardTitle className="text-base">تاریخچه حضور و غیاب</CardTitle>
-            </CardHeader>
-            <CardContent>
-                  {activeChild.attendance.length === 0 ? (
-                    <p className="text-center text-gray-400 py-8">هنوز اطلاعاتی ثبت نشده</p>
-                  ) : (
-                    <div className="space-y-2 max-h-96 overflow-y-auto">
-                      {activeChild.attendance.map(record => (
+              <DashboardSectionBlock>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <TrendingUp className="h-5 w-5 text-[var(--lux-primary)]" />
+                      نرخ حضور {activeChild.full_name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-3">
+                      <div className="h-4 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
                         <div
-                          key={record.id}
-                          className="flex flex-col gap-2 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100 sm:flex-row sm:items-center sm:justify-between"
-                        >
-                          <div className="flex items-center gap-3">
-                            {statusIcon[record.status]}
-                            <div>
-                              <p className="font-medium text-gray-800 text-sm">
-                                {new Date(record.date).toLocaleDateString('fa-IR', {
-                                  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                                })}
-                              </p>
-                              {record.notes && (
-                                <p className="text-xs text-gray-500">{record.notes}</p>
-                              )}
+                          className={cn(
+                            'h-full rounded-full transition-all',
+                            attendancePercent(activeChild) >= 80
+                              ? 'bg-emerald-500'
+                              : attendancePercent(activeChild) >= 60
+                                ? 'bg-amber-500'
+                                : 'bg-red-500',
+                          )}
+                          style={{ width: `${attendancePercent(activeChild)}%` }}
+                        />
+                      </div>
+                      <span className="w-12 font-bold text-[var(--lux-text)]">
+                        {attendancePercent(activeChild)}%
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs text-[var(--lux-text-muted)]">
+                      {activeChild.stats.present} از {activeChild.stats.total} روز تحصیلی
+                    </p>
+                  </CardContent>
+                </Card>
+              </DashboardSectionBlock>
+
+              <DashboardSectionBlock>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">تاریخچه حضور و غیاب</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {activeChild.attendance.length === 0 ? (
+                      <p className="py-8 text-center text-[var(--lux-text-muted)]">
+                        هنوز اطلاعاتی ثبت نشده
+                      </p>
+                    ) : (
+                      <div className="max-h-96 space-y-2 overflow-y-auto">
+                        {activeChild.attendance.map((record) => (
+                          <div
+                            key={record.id}
+                            className="flex flex-col gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06] sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div className="flex items-center gap-3">
+                              {statusIcon[record.status]}
+                              <div>
+                                <p className="text-sm font-medium text-[var(--lux-text)]">
+                                  {new Date(record.date).toLocaleDateString('fa-IR', {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                  })}
+                                </p>
+                                {record.notes && (
+                                  <p className="text-xs text-[var(--lux-text-muted)]">{record.notes}</p>
+                                )}
+                              </div>
                             </div>
+                            <Badge variant="outline" className={statusBadge[record.status]}>
+                              {statusLabel[record.status]}
+                            </Badge>
                           </div>
-                          <Badge className={`${statusColor[record.status]} border-0`}>
-                            {statusLabel[record.status]}
-                          </Badge>
-                        </div>
-                      ))}
-              </div>
-                  )}
-            </CardContent>
-          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </DashboardSectionBlock>
             </>
           )}
         </>
       )}
-    </div>
+    </DashboardPage>
   )
 }

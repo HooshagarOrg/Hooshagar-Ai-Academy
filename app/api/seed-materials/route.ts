@@ -196,16 +196,24 @@ async function getEmbedding(text: string): Promise<number[] | null> {
 }
 
 export async function GET(request: NextRequest) {
-  // این endpoint فقط در محیط توسعه یا توسط platform_admin قابل استفاده است
-  if (process.env.APP_ENV === 'production') {
-    const authClient = await createServerClient()
-    const { data: { user } } = await authClient.auth.getUser()
-    if (!user) return AUTH_ERRORS.unauthorized()
-    const { data: profile } = await authClient
-      .from('profiles').select('role').eq('id', user.id).single()
-    if (!profile || profile.role !== 'platform_admin') {
-      return AUTH_ERRORS.forbidden()
-    }
+  // فقط platform_admin — در همه محیط‌ها
+  const authClient = await createServerClient()
+  const { data: { user } } = await authClient.auth.getUser()
+  if (!user) return AUTH_ERRORS.unauthorized()
+  const { data: profile } = await authClient
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  if (!profile || profile.role !== 'platform_admin') {
+    return AUTH_ERRORS.forbidden()
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'این endpoint در production غیرفعال است' },
+      { status: 403 }
+    )
   }
 
   try {

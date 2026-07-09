@@ -434,7 +434,7 @@ export default function ExamResultsPage() {
                     .map(topic => (
                       <div key={topic.topic} className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                         <p className="font-medium text-yellow-700">
-                          💡 موضوع "{topic.topic}" نیاز به تمرین بیشتر دارد
+                          💡 موضوع «{topic.topic}» نیاز به تمرین بیشتر دارد
                         </p>
                         <p className="text-sm text-yellow-600 mt-1">
                           پیشنهاد: تمرینات بیشتری در این موضوع انجام دهید.

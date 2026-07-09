@@ -332,16 +332,16 @@ function ConversationItem({
       onClick={onClick}
       className={cn(
         'w-full flex items-start gap-3 p-3 rounded-xl transition-colors text-right',
-        isActive ? 'bg-blue-100' : 'hover:bg-gray-100'
+        isActive ? 'bg-[var(--lux-primary)]/15' : 'hover:bg-white/5'
       )}
     >
       {/* Avatar */}
       <div className="relative flex-shrink-0">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+        <div className="w-12 h-12 bg-gradient-to-br from-[var(--lux-primary)] to-[var(--lux-secondary)] rounded-full flex items-center justify-center text-white font-bold text-lg">
           {participant.name.charAt(0)}
         </div>
         {participant.isOnline && (
-          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-[var(--lux-card)]" />
         )}
       </div>
 
@@ -349,25 +349,25 @@ function ConversationItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-800 truncate">{participant.name}</span>
+            <span className="font-semibold text-[var(--lux-text)] truncate">{participant.name}</span>
             {conversation.isStarred && <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />}
           </div>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-[var(--lux-text-muted)]">
             {lastMessage && formatTime(lastMessage.createdAt)}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600 truncate max-w-[180px]">
-            {isMyMessage && <span className="text-gray-400">شما: </span>}
+          <p className="text-sm text-[var(--lux-text-muted)] truncate max-w-[180px]">
+            {isMyMessage && <span className="text-[var(--lux-text-muted)]/70">شما: </span>}
             {lastMessage?.content || 'مکالمه جدید'}
           </p>
           {conversation.unreadCount > 0 && (
-            <Badge className="bg-blue-500 text-white h-5 min-w-[20px] text-xs">
+            <Badge className="bg-[var(--lux-primary)] text-white h-5 min-w-[20px] text-xs">
               {conversation.unreadCount}
             </Badge>
           )}
         </div>
-        <p className="text-xs text-gray-400 mt-0.5">{getRoleLabel(participant.role)}</p>
+        <p className="text-xs text-[var(--lux-text-muted)] mt-0.5">{getRoleLabel(participant.role)}</p>
       </div>
     </button>
   )
@@ -391,7 +391,7 @@ function MessageBubble({
         <div
           className={cn(
             'w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0',
-            isMe ? 'bg-blue-500' : 'bg-gradient-to-br from-purple-400 to-blue-500'
+            isMe ? 'bg-[var(--lux-primary)]' : 'bg-gradient-to-br from-[var(--lux-secondary)] to-[var(--lux-primary)]'
           )}
         >
           {isMe ? 'م' : 'ع'}
@@ -406,21 +406,21 @@ function MessageBubble({
           className={cn(
             'rounded-2xl px-4 py-2 relative',
             isMe
-              ? 'bg-blue-500 text-white rounded-br-md'
-              : 'bg-gray-100 text-gray-800 rounded-bl-md'
+              ? 'bg-[var(--lux-primary)] text-white rounded-br-md'
+              : 'bg-white/10 text-[var(--lux-text)] rounded-bl-md'
           )}
         >
           {hasAttachment && (
             <div
               className={cn(
                 'flex items-center gap-2 p-2 rounded-lg mb-2',
-                isMe ? 'bg-blue-600' : 'bg-gray-200'
+                isMe ? 'bg-[var(--lux-primary)]/80' : 'bg-white/10'
               )}
             >
               <FileText className="w-8 h-8" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{message.attachmentName}</p>
-                <p className={cn('text-xs', isMe ? 'text-blue-200' : 'text-gray-500')}>
+                <p className={cn('text-xs', isMe ? 'text-white/70' : 'text-[var(--lux-text-muted)]')}>
                   {message.attachmentType?.split('/')[1]?.toUpperCase()}
                 </p>
               </div>
@@ -439,9 +439,9 @@ function MessageBubble({
 
         {/* Time & Status */}
         <div className={cn('flex items-center gap-1 mt-1', isMe ? 'flex-row-reverse' : 'flex-row')}>
-          <span className="text-xs text-gray-400">{formatMessageTime(message.createdAt)}</span>
+          <span className="text-xs text-[var(--lux-text-muted)]">{formatMessageTime(message.createdAt)}</span>
           {isMe && (
-            <span className="text-blue-500">
+            <span className="text-[var(--lux-secondary)]">
               {message.isRead ? <CheckCheck className="w-4 h-4" /> : <Check className="w-4 h-4" />}
             </span>
           )}
@@ -454,14 +454,14 @@ function MessageBubble({
 function TypingIndicator() {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold">
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--lux-secondary)] to-[var(--lux-primary)] flex items-center justify-center text-white text-sm font-bold">
         ع
       </div>
-      <div className="bg-gray-100 rounded-2xl rounded-bl-md px-4 py-2">
+      <div className="bg-white/10 rounded-2xl rounded-bl-md px-4 py-2">
         <div className="flex gap-1">
-          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <span className="w-2 h-2 bg-[var(--lux-text-muted)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <span className="w-2 h-2 bg-[var(--lux-text-muted)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <span className="w-2 h-2 bg-[var(--lux-text-muted)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
       </div>
     </div>
@@ -472,7 +472,7 @@ function DateSeparator({ date }: { date: string }) {
   return (
     <div className="flex items-center gap-4 my-4">
       <Separator className="flex-1" />
-      <span className="text-xs text-gray-400 bg-white px-2">{date}</span>
+      <span className="text-xs text-[var(--lux-text-muted)] bg-[var(--lux-card)] px-2">{date}</span>
       <Separator className="flex-1" />
     </div>
   )
@@ -491,7 +491,7 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
         <button
           key={emoji}
           onClick={() => onSelect(emoji)}
-          className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg"
+          className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded text-lg"
         >
           {emoji}
         </button>
@@ -766,17 +766,17 @@ export default function MessagesPage() {
   // ============================================
 
   return (
-    <div className="h-[calc(100vh-100px)] bg-gray-50 rounded-xl overflow-hidden flex" dir="rtl">
+    <div className="lux-dash-card h-[calc(100vh-100px)] overflow-hidden flex border border-white/10" dir="rtl">
       {/* Sidebar */}
-      <div className="w-[350px] bg-white border-l flex flex-col">
+      <div className="w-[350px] bg-[var(--lux-card)] border-l border-white/10 flex flex-col">
         {/* Sidebar Header */}
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-white/[0.06]">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <MessageSquare className="w-6 h-6 text-blue-600" />
+            <h1 className="text-xl font-bold text-[var(--lux-text)] flex items-center gap-2">
+              <MessageSquare className="w-6 h-6 text-[var(--lux-primary)]" />
               پیام‌ها
               {totalUnread > 0 && (
-                <Badge className="bg-blue-500">{totalUnread}</Badge>
+                <Badge className="bg-[var(--lux-primary)]">{totalUnread}</Badge>
               )}
             </h1>
             <Button onClick={() => setNewDialogOpen(true)} size="icon" className="rounded-full">
@@ -786,7 +786,7 @@ export default function MessagesPage() {
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--lux-text-muted)]" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -817,8 +817,8 @@ export default function MessagesPage() {
           <div className="p-2 space-y-1">
             {filteredConversations.length === 0 ? (
               <div className="text-center py-10">
-                <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">مکالمه‌ای یافت نشد</p>
+                <MessageSquare className="w-12 h-12 text-[var(--lux-text-muted)] mx-auto mb-3" />
+                <p className="text-[var(--lux-text-muted)]">مکالمه‌ای یافت نشد</p>
               </div>
             ) : (
               filteredConversations.map((conversation) => (
@@ -835,27 +835,27 @@ export default function MessagesPage() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-white">
+      <div className="flex-1 flex flex-col bg-[var(--lux-card)]">
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b flex items-center justify-between">
+            <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[var(--lux-primary)] to-[var(--lux-secondary)] rounded-full flex items-center justify-center text-white font-bold text-lg">
                     {selectedConversation.participants[0].name.charAt(0)}
                   </div>
                   {selectedConversation.participants[0].isOnline && (
-                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-[var(--lux-card)]" />
                   )}
                 </div>
                 <div>
-                  <h2 className="font-bold text-gray-800">
+                  <h2 className="font-bold text-[var(--lux-text)]">
                     {selectedConversation.participants[0].name}
                   </h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-[var(--lux-text-muted)]">
                     {selectedConversation.participants[0].isOnline ? (
-                      <span className="text-green-600">آنلاین</span>
+                      <span className="text-emerald-400">آنلاین</span>
                     ) : (
                       selectedConversation.participants[0].lastSeen || 'آفلاین'
                     )}
@@ -912,7 +912,7 @@ export default function MessagesPage() {
             <div
               ref={messagesContainerRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto p-4 bg-gray-50"
+              className="flex-1 overflow-y-auto p-4 bg-[var(--lux-surface)]"
             >
               <DateSeparator date="امروز" />
 
@@ -945,7 +945,7 @@ export default function MessagesPage() {
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t bg-white">
+            <div className="p-4 border-t border-white/[0.06] bg-[var(--lux-card)]">
               <div className="flex items-end gap-2">
                 {/* File Upload */}
                 <input
@@ -1000,12 +1000,12 @@ export default function MessagesPage() {
           </>
         ) : (
           /* Empty State */
-          <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-              <MessageSquare className="w-10 h-10 text-blue-600" />
+          <div className="flex-1 flex flex-col items-center justify-center bg-[var(--lux-surface)]">
+            <div className="w-20 h-20 bg-[var(--lux-primary)]/15 rounded-full flex items-center justify-center mb-4">
+              <MessageSquare className="w-10 h-10 text-[var(--lux-primary)]" />
             </div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">پیام‌های شما</h3>
-            <p className="text-gray-500 mb-4">یک مکالمه را انتخاب کنید یا پیام جدید بفرستید</p>
+            <h3 className="text-xl font-bold text-[var(--lux-text)] mb-2">پیام‌های شما</h3>
+            <p className="text-[var(--lux-text-muted)] mb-4">یک مکالمه را انتخاب کنید یا پیام جدید بفرستید</p>
             <Button onClick={() => setNewDialogOpen(true)} className="gap-2">
               <Plus className="w-4 h-4" />
               پیام جدید
@@ -1019,7 +1019,7 @@ export default function MessagesPage() {
         <DialogContent className="max-w-lg" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plus className="w-5 h-5 text-blue-600" />
+              <Plus className="w-5 h-5 text-[var(--lux-primary)]" />
               پیام جدید
             </DialogTitle>
             <DialogDescription>
@@ -1048,12 +1048,12 @@ export default function MessagesPage() {
                           onSelect={() => setSelectedRecipients([...selectedRecipients, user])}
                           className="flex items-center gap-3 cursor-pointer"
                         >
-                          <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                          <div className="w-8 h-8 bg-gradient-to-br from-[var(--lux-primary)] to-[var(--lux-secondary)] rounded-full flex items-center justify-center text-white text-sm font-bold">
                             {user.name.charAt(0)}
                           </div>
                           <div className="flex-1">
                             <p className="font-medium">{user.name}</p>
-                            <p className="text-xs text-gray-500">{getRoleLabel(user.role)}</p>
+                            <p className="text-xs text-[var(--lux-text-muted)]">{getRoleLabel(user.role)}</p>
                           </div>
                           {user.isOnline && (
                             <Circle className="w-3 h-3 fill-green-500 text-green-500" />
@@ -1074,7 +1074,7 @@ export default function MessagesPage() {
                         onClick={() =>
                           setSelectedRecipients(selectedRecipients.filter((r) => r.id !== user.id))
                         }
-                        className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                        className="ml-1 hover:bg-white/20 rounded-full p-0.5"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1098,10 +1098,10 @@ export default function MessagesPage() {
             {/* File Upload */}
             <div className="space-y-2">
               <label className="text-sm font-medium">پیوست (اختیاری)</label>
-              <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer">
-                <Paperclip className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">آپلود فایل (PDF, DOCX, JPG, PNG)</p>
-                <p className="text-xs text-gray-400">حداکثر 5MB</p>
+              <div className="border-2 border-dashed border-white/10 rounded-lg p-4 text-center hover:bg-white/5 cursor-pointer">
+                <Paperclip className="w-6 h-6 text-[var(--lux-text-muted)] mx-auto mb-2" />
+                <p className="text-sm text-[var(--lux-text-muted)]">آپلود فایل (PDF, DOCX, JPG, PNG)</p>
+                <p className="text-xs text-[var(--lux-text-muted)]">حداکثر 5MB</p>
               </div>
             </div>
           </div>

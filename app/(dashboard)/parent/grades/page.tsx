@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { GraduationCap, User } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageErrorState, PageSkeletonCards } from '@/components/ui/page-states'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 type Grade = {
   id: string
@@ -23,6 +24,20 @@ const EXAM_TYPE_LABELS: Record<string, string> = {
   general: 'کلی', midterm: 'میان‌ترم', final: 'پایان‌ترم',
   quiz: 'پرسش کلاسی', homework: 'تکلیف', project: 'پروژه',
   oral: 'شفاهی', practical: 'عملی',
+}
+
+function scoreColor(score: number, max: number): string {
+  const ratio = score / max
+  if (ratio >= 0.85) return 'text-emerald-400'
+  if (ratio >= 0.5) return 'text-[var(--lux-secondary)]'
+  return 'text-red-400'
+}
+
+function avgColor(avg: number): string {
+  if (avg >= 17) return 'text-emerald-400'
+  if (avg >= 14) return 'text-[var(--lux-secondary)]'
+  if (avg >= 10) return 'text-amber-400'
+  return 'text-red-400'
 }
 
 export default function ParentGradesPage() {
@@ -55,69 +70,78 @@ export default function ParentGradesPage() {
   })
 
   return (
-    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold sm:text-3xl">
-          <GraduationCap className="text-green-600" aria-hidden />
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <GraduationCap className="text-[var(--lux-primary)]" aria-hidden />
           نمرات فرزندان
-        </h1>
-        <p className="mt-1 text-sm leading-7 text-muted-foreground">
-          آخرین نمرات ثبت‌شده برای فرزندان شما
-        </p>
-      </div>
-
+        </span>
+      }
+      description="آخرین نمرات ثبت‌شده برای فرزندان شما"
+    >
       {loading ? (
-        <PageSkeletonCards count={2} />
+        <DashboardSectionBlock>
+          <PageSkeletonCards count={2} />
+        </DashboardSectionBlock>
       ) : error ? (
-        <PageErrorState message={error} onRetry={loadGrades} />
+        <DashboardSectionBlock>
+          <PageErrorState message={error} onRetry={loadGrades} />
+        </DashboardSectionBlock>
       ) : Object.keys(byChild).length === 0 ? (
-        <EmptyState
-          icon={GraduationCap}
-          title="هنوز نمره‌ای ثبت نشده"
-          description="به محض ثبت نمرات توسط مدرسه، اینجا نمایش داده می‌شود."
-        />
+        <DashboardSectionBlock>
+          <EmptyState
+            icon={GraduationCap}
+            title="هنوز نمره‌ای ثبت نشده"
+            description="به محض ثبت نمرات توسط مدرسه، اینجا نمایش داده می‌شود."
+          />
+        </DashboardSectionBlock>
       ) : (
         Object.entries(byChild).map(([id, child]) => {
           const avg = child.grades.reduce((s, g) => s + (g.score / g.max_score) * 20, 0) / child.grades.length
           return (
-            <Card key={id}>
-              <CardHeader>
-                <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="flex items-center gap-2">
-                    <User className="text-green-600" aria-hidden />
-                    {child.name}
-                  </span>
-                  <span className={`text-lg ${avg >= 17 ? 'text-green-600' : avg >= 14 ? 'text-blue-600' : avg >= 10 ? 'text-orange-600' : 'text-red-600'}`}>
-                    معدل: {avg.toFixed(2)}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {child.grades.map((g) => (
-                    <div
-                      key={g.id}
-                      className="flex flex-col gap-2 rounded-lg border p-3 hover:bg-muted/30 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium">{g.subject}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {EXAM_TYPE_LABELS[g.exam_type] || g.exam_type} • {new Date(g.exam_date).toLocaleDateString('fa-IR')}
-                          {g.profiles?.full_name && ` • معلم: ${g.profiles.full_name}`}
-                        </p>
-                        {g.comments && <p className="mt-1 text-xs italic text-muted-foreground">{g.comments}</p>}
+            <DashboardSectionBlock key={id}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="flex items-center gap-2">
+                      <User className="text-[var(--lux-primary)]" aria-hidden />
+                      {child.name}
+                    </span>
+                    <span className={`text-lg font-bold ${avgColor(avg)}`}>
+                      معدل: {avg.toFixed(2)}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {child.grades.map((g) => (
+                      <div
+                        key={g.id}
+                        className="flex flex-col gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06] sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-[var(--lux-text)]">{g.subject}</p>
+                          <p className="text-xs leading-6 text-[var(--lux-text-muted)]">
+                            {EXAM_TYPE_LABELS[g.exam_type] || g.exam_type} • {new Date(g.exam_date).toLocaleDateString('fa-IR')}
+                            {g.profiles?.full_name && ` • معلم: ${g.profiles.full_name}`}
+                          </p>
+                          {g.comments && (
+                            <p className="mt-1 text-xs italic text-[var(--lux-text-muted)]">{g.comments}</p>
+                          )}
+                        </div>
+                        <div className={`shrink-0 text-2xl font-bold ${scoreColor(g.score, g.max_score)}`}>
+                          {g.score}
+                          <span className="text-sm text-[var(--lux-text-muted)]">/{g.max_score}</span>
+                        </div>
                       </div>
-                      <div className={`text-2xl font-bold shrink-0 ${g.score >= g.max_score * 0.85 ? 'text-green-600' : g.score >= g.max_score * 0.5 ? 'text-blue-600' : 'text-red-600'}`}>
-                        {g.score}<span className="text-sm text-muted-foreground">/{g.max_score}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </DashboardSectionBlock>
           )
         })
       )}
-    </div>
+    </DashboardPage>
   )
 }

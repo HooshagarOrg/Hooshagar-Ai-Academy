@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { AUTH_ERRORS, secureErrorResponse } from '@/lib/security/error-handler'
+import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
+
+export const maxDuration = 60
 
 // لیست سفید domain‌های مجاز برای imageUrl (جلوگیری از SSRF)
 const ALLOWED_IMAGE_DOMAINS = [
@@ -34,6 +37,9 @@ const ocrSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitRes = await applyRateLimitAsync(request, 'ai_ocr')
+    if (rateLimitRes) return rateLimitRes
+
     // احراز هویت اجباری
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

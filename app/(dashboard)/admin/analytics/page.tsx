@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Users, BookOpen, TrendingUp, Award, BarChart3,
-  GraduationCap, CheckCircle2, XCircle, Star
+  GraduationCap, CheckCircle2, XCircle, Star,
 } from 'lucide-react'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
 import { PageErrorState, PageLoading } from '@/components/ui/page-states'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { cn } from '@/lib/utils'
 
 interface AnalyticsData {
   overview: {
@@ -40,6 +41,22 @@ interface AnalyticsData {
   }
 }
 
+const overviewStats = [
+  { key: 'total_students' as const, label: 'دانش‌آموز', icon: Users, color: 'text-[var(--lux-secondary)]', bg: 'bg-[var(--lux-secondary)]/10' },
+  { key: 'total_teachers' as const, label: 'معلم', icon: GraduationCap, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+  { key: 'total_parents' as const, label: 'والدین', icon: Users, color: 'text-[var(--lux-primary)]', bg: 'bg-[var(--lux-primary)]/10' },
+  { key: 'total_schools' as const, label: 'مدرسه', icon: BookOpen, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+]
+
+function StatRow({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-[var(--lux-text-muted)]">{label}</span>
+      <span className={cn('text-xl font-bold', valueClass ?? 'text-[var(--lux-text)]')}>{value}</span>
+    </div>
+  )
+}
+
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -65,250 +82,169 @@ export default function AdminAnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="p-4 sm:p-6" dir="rtl">
+      <DashboardPage title="گزارش تحلیلی" description="آمار و تحلیل جامع سیستم">
         <PageLoading label="در حال بارگذاری گزارش تحلیلی..." compact />
-      </div>
+      </DashboardPage>
     )
   }
 
   if (error) {
     return (
-      <div className="p-4 sm:p-6" dir="rtl">
+      <DashboardPage title="گزارش تحلیلی" description="آمار و تحلیل جامع سیستم">
         <PageErrorState message={error} onRetry={() => window.location.reload()} />
-      </div>
+      </DashboardPage>
     )
   }
 
   const overview = data?.overview
-  const grades   = data?.grades
-  const attend   = data?.attendance
-  const game     = data?.gamification
-  const exams    = data?.exams
+  const grades = data?.grades
+  const attend = data?.attendance
+  const game = data?.gamification
+  const exams = data?.exams
 
   return (
-    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-      <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="bg-purple-100 p-3 rounded-xl">
-          <BarChart3 className="w-6 h-6 text-purple-600" />
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <BarChart3 className="text-[var(--lux-primary)]" aria-hidden />
+          گزارش تحلیلی
+        </span>
+      }
+      description="آمار و تحلیل جامع سیستم"
+    >
+      <DashboardSectionBlock>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {overviewStats.map(({ key, label, icon: Icon, color, bg }) => (
+            <div key={key} className={cn('lux-dash-stat', bg)}>
+              <div className="mb-2 flex items-center justify-between">
+                <Icon className={cn('h-8 w-8', color)} />
+                <span className={cn('text-2xl font-bold', color)}>
+                  {overview?.[key] ?? '—'}
+                </span>
+              </div>
+              <p className="text-sm font-medium text-[var(--lux-text-muted)]">{label}</p>
+            </div>
+          ))}
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">گزارش تحلیلی</h1>
-          <p className="text-gray-500 text-sm">آمار و تحلیل جامع سیستم</p>
-        </div>
-      </div>
+      </DashboardSectionBlock>
 
-      {/* کارت‌های خلاصه */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="w-8 h-8 text-blue-600" />
-              <span className="text-2xl font-bold text-blue-700">{overview?.total_students ?? '—'}</span>
-            </div>
-            <p className="text-sm text-blue-600 font-medium">دانش‌آموز</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-green-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <GraduationCap className="w-8 h-8 text-green-600" />
-              <span className="text-2xl font-bold text-green-700">{overview?.total_teachers ?? '—'}</span>
-            </div>
-            <p className="text-sm text-green-600 font-medium">معلم</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="w-8 h-8 text-purple-600" />
-              <span className="text-2xl font-bold text-purple-700">{overview?.total_parents ?? '—'}</span>
-            </div>
-            <p className="text-sm text-purple-600 font-medium">والدین</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-50 to-orange-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <BookOpen className="w-8 h-8 text-orange-600" />
-              <span className="text-2xl font-bold text-orange-700">{overview?.total_schools ?? '—'}</span>
-            </div>
-            <p className="text-sm text-orange-600 font-medium">مدرسه</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* آمار نمرات */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Star className="w-5 h-5 text-yellow-500" />
-              آمار نمرات
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">میانگین کلی</span>
-              <span className={`text-xl font-bold ${
-                (grades?.average_score ?? 0) >= 14 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {grades?.average_score?.toFixed(1) ?? '—'} / ۲۰
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">نرخ قبولی</span>
-              <span className="text-xl font-bold text-blue-600">
-                {grades?.passing_rate?.toFixed(0) ?? '—'}٪
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">تعداد نمرات ثبت شده</span>
-              <span className="text-lg font-semibold text-gray-800">
-                {grades?.total_grades?.toLocaleString('fa-IR') ?? '—'}
-              </span>
-            </div>
-            {grades?.subject_averages && grades.subject_averages.length > 0 && (
-              <div className="mt-4 space-y-2">
-                <p className="text-sm font-medium text-gray-700">میانگین هر درس</p>
-                {grades.subject_averages.slice(0, 5).map(s => (
-                  <div key={s.subject} className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600 w-24 truncate">{s.subject}</span>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${s.avg >= 14 ? 'bg-green-500' : 'bg-yellow-500'}`}
-                        style={{ width: `${(s.avg / 20) * 100}%` }}
-                      />
+      <DashboardSectionBlock>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Star className="h-5 w-5 text-amber-400" />
+                آمار نمرات
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <StatRow
+                label="میانگین کلی"
+                value={`${grades?.average_score?.toFixed(1) ?? '—'} / ۲۰`}
+                valueClass={(grades?.average_score ?? 0) >= 14 ? 'text-emerald-400' : 'text-red-400'}
+              />
+              <StatRow
+                label="نرخ قبولی"
+                value={`${grades?.passing_rate?.toFixed(0) ?? '—'}٪`}
+                valueClass="text-[var(--lux-secondary)]"
+              />
+              <StatRow
+                label="تعداد نمرات ثبت شده"
+                value={grades?.total_grades?.toLocaleString('fa-IR') ?? '—'}
+              />
+              {grades?.subject_averages && grades.subject_averages.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <p className="text-sm font-medium text-[var(--lux-text)]">میانگین هر درس</p>
+                  {grades.subject_averages.slice(0, 5).map((s) => (
+                    <div key={s.subject} className="flex items-center gap-2">
+                      <span className="w-24 truncate text-sm text-[var(--lux-text-muted)]">{s.subject}</span>
+                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
+                        <div
+                          className={cn('h-full rounded-full', s.avg >= 14 ? 'bg-emerald-500' : 'bg-amber-500')}
+                          style={{ width: `${(s.avg / 20) * 100}%` }}
+                        />
+                      </div>
+                      <span className="w-8 text-sm font-medium text-[var(--lux-text)]">{s.avg.toFixed(1)}</span>
                     </div>
-                    <span className="text-sm font-medium w-8">{s.avg.toFixed(1)}</span>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                آمار حضور و غیاب
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <StatRow
+                label="نرخ حضور"
+                value={`${attend?.average_rate?.toFixed(1) ?? '—'}٪`}
+                valueClass={(attend?.average_rate ?? 0) >= 80 ? 'text-emerald-400' : 'text-red-400'}
+              />
+              <StatRow
+                label="کل رکوردهای ثبت شده"
+                value={attend?.total_records?.toLocaleString('fa-IR') ?? '—'}
+              />
+              <StatRow
+                label="تعداد غیبت‌ها"
+                value={attend?.absent_count?.toLocaleString('fa-IR') ?? '—'}
+                valueClass="text-red-400"
+              />
+              {attend && (
+                <div className="mt-4">
+                  <div className="mb-1 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                    <span className="text-sm text-[var(--lux-text-muted)]">حضور</span>
+                    <XCircle className="mr-4 h-4 w-4 text-red-400" />
+                    <span className="text-sm text-[var(--lux-text-muted)]">غیبت</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* آمار حضور */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-              آمار حضور و غیاب
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">نرخ حضور</span>
-              <span className={`text-xl font-bold ${
-                (attend?.average_rate ?? 0) >= 80 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {attend?.average_rate?.toFixed(1) ?? '—'}٪
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">کل رکوردهای ثبت شده</span>
-              <span className="text-lg font-semibold text-gray-800">
-                {attend?.total_records?.toLocaleString('fa-IR') ?? '—'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">تعداد غیبت‌ها</span>
-              <span className="text-xl font-bold text-red-600">
-                {attend?.absent_count?.toLocaleString('fa-IR') ?? '—'}
-              </span>
-            </div>
-            {attend && (
-              <div className="mt-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-gray-600">حضور</span>
-                  <XCircle className="w-4 h-4 text-red-500 mr-4" />
-                  <span className="text-sm text-gray-600">غیبت</span>
+                  <div className="flex h-4 overflow-hidden rounded-full bg-white/[0.08]">
+                    <div className="h-full bg-emerald-500" style={{ width: `${attend.average_rate}%` }} />
+                    <div className="h-full bg-red-400" style={{ width: `${100 - attend.average_rate}%` }} />
+                  </div>
                 </div>
-                <div className="h-4 bg-gray-100 rounded-full overflow-hidden flex">
-                  <div
-                    className="h-full bg-green-500"
-                    style={{ width: `${attend.average_rate}%` }}
-                  />
-                  <div
-                    className="h-full bg-red-400"
-                    style={{ width: `${100 - attend.average_rate}%` }}
-                  />
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* گیمیفیکیشن */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Award className="w-5 h-5 text-yellow-500" />
-              آمار گیمیفیکیشن
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">کل XP اهدایی</span>
-              <span className="text-xl font-bold text-yellow-600">
-                {game?.total_xp_awarded?.toLocaleString('fa-IR') ?? '—'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">کاربران فعال</span>
-              <span className="text-xl font-bold text-green-600">
-                {game?.active_users?.toLocaleString('fa-IR') ?? '—'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">نشان اهدا شده</span>
-              <span className="text-xl font-bold text-purple-600">
-                {game?.badges_awarded?.toLocaleString('fa-IR') ?? '—'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">میانگین سطح</span>
-              <span className="text-xl font-bold text-blue-600">
-                {game?.avg_level?.toFixed(1) ?? '—'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Award className="h-5 w-5 text-amber-400" />
+                آمار گیمیفیکیشن
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <StatRow label="کل XP اهدایی" value={game?.total_xp_awarded?.toLocaleString('fa-IR') ?? '—'} valueClass="text-amber-400" />
+              <StatRow label="کاربران فعال" value={game?.active_users?.toLocaleString('fa-IR') ?? '—'} valueClass="text-emerald-400" />
+              <StatRow label="نشان اهدا شده" value={game?.badges_awarded?.toLocaleString('fa-IR') ?? '—'} valueClass="text-[var(--lux-primary)]" />
+              <StatRow label="میانگین سطح" value={game?.avg_level?.toFixed(1) ?? '—'} valueClass="text-[var(--lux-secondary)]" />
+            </CardContent>
+          </Card>
 
-        {/* آزمون‌ها */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <TrendingUp className="w-5 h-5 text-blue-500" />
-              آمار آزمون‌ها
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">کل آزمون‌ها</span>
-              <span className="text-xl font-bold text-blue-600">
-                {exams?.total_exams?.toLocaleString('fa-IR') ?? '—'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">میانگین نرخ قبولی</span>
-              <span className={`text-xl font-bold ${
-                (exams?.avg_pass_rate ?? 0) >= 70 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {exams?.avg_pass_rate?.toFixed(0) ?? '—'}٪
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">آزمون‌های اخیر (۳۰ روز)</span>
-              <span className="text-xl font-bold text-gray-800">
-                {exams?.recent_count?.toLocaleString('fa-IR') ?? '—'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      </LuxFadeUp>
-    </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <TrendingUp className="h-5 w-5 text-[var(--lux-secondary)]" />
+                آمار آزمون‌ها
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <StatRow label="کل آزمون‌ها" value={exams?.total_exams?.toLocaleString('fa-IR') ?? '—'} valueClass="text-[var(--lux-secondary)]" />
+              <StatRow
+                label="میانگین نرخ قبولی"
+                value={`${exams?.avg_pass_rate?.toFixed(0) ?? '—'}٪`}
+                valueClass={(exams?.avg_pass_rate ?? 0) >= 70 ? 'text-emerald-400' : 'text-red-400'}
+              />
+              <StatRow label="آزمون‌های اخیر (۳۰ روز)" value={exams?.recent_count?.toLocaleString('fa-IR') ?? '—'} />
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }

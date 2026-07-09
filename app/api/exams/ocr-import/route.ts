@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { applyRateLimit } from '@/lib/security/rate-limiter'
+import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
 
 // ============================================
 // API استخراج سوال از PDF/عکس با AI
@@ -19,7 +19,7 @@ interface ExtractedQuestion {
 export async function POST(request: NextRequest) {
   try {
     // Rate Limit: 10 بار در ساعت per IP
-    const rateLimitRes = applyRateLimit(request, 'ai_ocr')
+    const rateLimitRes = await applyRateLimitAsync(request, 'ai_ocr')
     if (rateLimitRes) return rateLimitRes
 
     const supabase = await createClient()

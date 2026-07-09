@@ -1,6 +1,5 @@
 /**
  * سقف روزانه پیام AI آواتار — ۱۵ پیام/روز (فقط پاسخ‌های AI)
- * پاسخ template از سقف کم نمی‌شود
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -60,11 +59,23 @@ function recordMemoryMessage(userId: string): AvatarRateLimitResult {
   return buildResult(count)
 }
 
+function failClosedLimit(): AvatarRateLimitResult {
+  return {
+    allowed: false,
+    remaining: 0,
+    limit: DAILY_LIMIT,
+    resetLabel: 'نیمه‌شب',
+  }
+}
+
 export async function checkAvatarDailyLimit(
   userId: string,
   supabase?: AppSupabase
 ): Promise<AvatarRateLimitResult> {
-  if (!supabase) return checkMemoryLimit(userId)
+  if (!supabase) {
+    if (process.env.NODE_ENV === 'production') return failClosedLimit()
+    return checkMemoryLimit(userId)
+  }
 
   const dateKey = getTehranDateKey()
   const { data, error } = await supabase
@@ -75,51 +86,72 @@ export async function checkAvatarDailyLimit(
     .maybeSingle()
 
   if (error) {
-    console.warn('Avatar rate limit read failed, using memory:', error.message)
+    console.warn('Avatar rate limit read failed:', error.message)
+    if (process.env.NODE_ENV === 'production') return failClosedLimit()
     return checkMemoryLimit(userId)
   }
 
   return buildResult(data?.ai_message_count ?? 0)
 }
 
+/** رزرو اتمیک سهمیه قبل از فراخوانی AI */
+export async function reserveAvatarAIMessage(
+  userId: string,
+  supabase: AppSupabase
+): Promise<AvatarRateLimitResult> {
+  const { data, error } = await supabase.rpc('increment_avatar_ai_usage', {
+    p_user_id: userId,
+    p_limit: DAILY_LIMIT,
+  })
+
+  if (error) {
+    console.warn('Avatar atomic reserve failed:', error.message)
+    if (process.env.NODE_ENV === 'production') return failClosedLimit()
+    return recordMemoryMessage(userId)
+  }
+
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row || typeof row !== 'object') {
+    return failClosedLimit()
+  }
+
+  const r = row as {
+    allowed: boolean
+    new_count: number
+    remaining: number
+    daily_limit: number
+  }
+
+  return {
+    allowed: r.allowed,
+    remaining: r.remaining,
+    limit: r.daily_limit ?? DAILY_LIMIT,
+    resetLabel: 'نیمه‌شب',
+  }
+}
+
+/** @deprecated از reserveAvatarAIMessage قبل از AI استفاده کنید */
 export async function recordAvatarAIMessage(
   userId: string,
   supabase?: AppSupabase
 ): Promise<AvatarRateLimitResult> {
-  if (!supabase) return recordMemoryMessage(userId)
-
-  const dateKey = getTehranDateKey()
-  const current = await checkAvatarDailyLimit(userId, supabase)
-  const nextCount = current.limit - current.remaining + 1
-
-  const { error } = await supabase.from('avatar_daily_usage').upsert(
-    {
-      user_id: userId,
-      usage_date: dateKey,
-      ai_message_count: nextCount,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,usage_date' }
-  )
-
-  if (error) {
-    console.warn('Avatar rate limit write failed, using memory:', error.message)
+  if (!supabase) {
+    if (process.env.NODE_ENV === 'production') return failClosedLimit()
     return recordMemoryMessage(userId)
   }
-
-  return buildResult(nextCount)
+  return reserveAvatarAIMessage(userId, supabase)
 }
 
 export function getAvatarDailyLimit(): number {
   return DAILY_LIMIT
 }
 
-/** @deprecated از checkAvatarDailyLimit async استفاده کنید */
+/** @deprecated */
 export function checkAvatarDailyLimitSync(userId: string): AvatarRateLimitResult {
   return checkMemoryLimit(userId)
 }
 
-/** @deprecated از recordAvatarAIMessage async استفاده کنید */
+/** @deprecated */
 export function recordAvatarMessage(userId: string): AvatarRateLimitResult {
   return recordMemoryMessage(userId)
 }

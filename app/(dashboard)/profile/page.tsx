@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { KeyRound, Mail, School, Shield, User } from 'lucide-react'
-import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
-import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { LuxErrorState, LuxSkeletonCards } from '@/components/lux/lux-page-states'
 import { getRoleExperienceLabel } from '@/lib/ui/role-tone'
 
@@ -41,25 +40,22 @@ export default function ProfilePage() {
   const name = profile?.full_name || 'کاربر'
 
   return (
-    <div dir="rtl">
-      <LuxFadeUp>
-        <LuxPageHeader
-          title="پروفایل من"
-          subtitle="اطلاعات حساب و تنظیمات"
-          action={
-            <Link href="/change-password" className="lux-btn-ghost min-h-10 w-full px-4 text-sm sm:w-auto">
-              <KeyRound className="h-4 w-4" aria-hidden /> تغییر رمز
-            </Link>
-          }
-        />
-      </LuxFadeUp>
+    <DashboardPage
+      title="پروفایل من"
+      description="اطلاعات حساب و تنظیمات"
+      actions={
+        <Link href="/change-password" className="lux-btn-ghost min-h-10 w-full px-4 text-sm sm:w-auto">
+          <KeyRound className="h-4 w-4" aria-hidden /> تغییر رمز
+        </Link>
+      }
+    >
       {loading ? (
         <LuxSkeletonCards count={2} variant="lux" className="lg:grid-cols-3" />
       ) : error ? (
         <LuxErrorState message={error} onRetry={loadProfile} variant="lux" />
       ) : (
-        <LuxStagger className="grid gap-5 lg:grid-cols-3" stagger={0.1}>
-          <LuxStaggerItem className="lg:col-span-1">
+        <div className="grid gap-5 lg:grid-cols-3">
+          <DashboardSectionBlock className="lg:col-span-1">
             <LuxCard className="text-center h-full">
               <div
                 className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl text-3xl font-black text-[var(--lux-text)]"
@@ -73,8 +69,8 @@ export default function ProfilePage() {
                 {profile?.role ? getRoleExperienceLabel(profile.role) : '—'}
               </p>
             </LuxCard>
-          </LuxStaggerItem>
-          <LuxStaggerItem className="lg:col-span-2">
+          </DashboardSectionBlock>
+          <DashboardSectionBlock className="lg:col-span-2">
             <LuxCard className="space-y-4 h-full">
               {[
                 { icon: User, label: 'نام', value: name },
@@ -91,9 +87,9 @@ export default function ProfilePage() {
                 </div>
               ))}
             </LuxCard>
-          </LuxStaggerItem>
-        </LuxStagger>
+          </DashboardSectionBlock>
+        </div>
       )}
-    </div>
+    </DashboardPage>
   )
 }

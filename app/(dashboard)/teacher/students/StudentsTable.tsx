@@ -152,14 +152,7 @@ export default function StudentsTable({ initialStudents }: StudentsTableProps) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-xl font-bold sm:text-2xl">دانش‌آموزان</h2>
-          <p className="text-sm text-muted-foreground">
-            مدیریت دانش‌آموزان کلاس‌های شما
-          </p>
-        </div>
+      <div className="flex justify-end">
         <Button onClick={() => setIsAddModalOpen(true)} className="min-h-10 w-full sm:w-auto">
           افزودن دانش‌آموز
         </Button>
@@ -176,7 +169,7 @@ export default function StudentsTable({ initialStudents }: StudentsTableProps) {
           }
         />
       ) : (
-      <div className="overflow-x-auto rounded-md border">
+      <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
         <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow>

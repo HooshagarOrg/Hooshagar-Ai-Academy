@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { PageHeader } from '@/components/ui/page-header'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -25,7 +25,6 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/hooks/use-toast'
-import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { PageSkeletonCards } from '@/components/ui/page-states'
 
 interface School {
@@ -151,28 +150,28 @@ export default function AdminSchoolsPage() {
   )
 
   return (
-    <div dir="rtl">
-      <LuxFadeUp>
-      <PageHeader
-        title="مدیریت مدارس"
-        description={`${schools.length} مدرسه ثبت شده`}
-        icon={Building}
-        iconColor="text-brand-purple"
-        iconBg="bg-brand-purple/15 border border-brand-purple/20"
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchSchools}><RefreshCw className="w-4 h-4" /></Button>
-            <Button className="bg-brand-purple hover:opacity-90 text-space gap-2" onClick={openCreate}>
-              <Plus className="w-4 h-4" />
-              مدرسه جدید
-            </Button>
-          </div>
-        }
-      />
-      </LuxFadeUp>
-
-      <LuxStagger className="space-y-6" stagger={0.08}>
-      <LuxStaggerItem>
+    <>
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 rounded-xl bg-brand-purple/15 border border-brand-purple/20 flex items-center justify-center">
+            <Building className="w-6 h-6 text-brand-purple" />
+          </span>
+          مدیریت مدارس
+        </span>
+      }
+      description={`${schools.length} مدرسه ثبت شده`}
+      actions={
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={fetchSchools}><RefreshCw className="w-4 h-4" /></Button>
+          <Button className="bg-brand-purple hover:opacity-90 text-space gap-2" onClick={openCreate}>
+            <Plus className="w-4 h-4" />
+            مدرسه جدید
+          </Button>
+        </div>
+      }
+    >
+      <DashboardSectionBlock>
       <div className="relative mb-6">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
@@ -182,9 +181,9 @@ export default function AdminSchoolsPage() {
           className="pr-9"
         />
       </div>
-      </LuxStaggerItem>
+      </DashboardSectionBlock>
 
-      <LuxStaggerItem>
+      <DashboardSectionBlock>
       {isLoading ? (
         <PageSkeletonCards count={6} className="md:grid-cols-2 lg:grid-cols-3" />
       ) : filtered.length === 0 ? (
@@ -264,8 +263,8 @@ export default function AdminSchoolsPage() {
           ))}
         </div>
       )}
-      </LuxStaggerItem>
-      </LuxStagger>
+      </DashboardSectionBlock>
+    </DashboardPage>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent dir="rtl" className="max-w-md">
@@ -338,6 +337,6 @@ export default function AdminSchoolsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   )
 }

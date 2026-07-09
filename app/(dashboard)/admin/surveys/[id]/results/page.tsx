@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page';
 import {
   Accordion,
   AccordionContent,
@@ -270,22 +271,22 @@ export default function SurveyResultsPage() {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
+      <DashboardPage title="نتایج نظرسنجی" description="در حال بارگذاری...">
         <Skeleton className="h-32 w-full" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
         </div>
-      </div>
+      </DashboardPage>
     );
   }
 
   if (!survey || !results) {
     return (
-      <div className="p-6 text-center">
-        <p>نتایجی یافت نشد</p>
-      </div>
+      <DashboardPage title="نتایج نظرسنجی" description="داده‌ای یافت نشد">
+        <p className="text-center text-[var(--lux-text-muted)]">نتایجی یافت نشد</p>
+      </DashboardPage>
     );
   }
 
@@ -354,48 +355,35 @@ export default function SurveyResultsPage() {
   ];
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      {/* هدر */}
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <BarChart3 className="h-6 w-6 text-[var(--lux-primary)]" />
+          نتایج: {survey.title}
+        </span>
+      }
+      description={survey.description}
+      meta={<Badge>{SURVEY_TYPE_LABELS[survey.survey_type]}</Badge>}
+      actions={
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => handleExport('excel')}>
+            <Download className="w-4 h-4 ml-1" />
+            Excel
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleExport('pdf')}>
+            <FileText className="w-4 h-4 ml-1" />
+            PDF
+          </Button>
+          <Button variant="outline" size="sm">
+            <Mail className="w-4 h-4 ml-1" />
+            ایمیل
+          </Button>
+        </div>
+      }
+    >
+      <DashboardSectionBlock>
       <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <Badge className="mb-2">
-                {SURVEY_TYPE_LABELS[survey.survey_type]}
-              </Badge>
-              <CardTitle className="text-2xl flex items-center gap-2">
-                <BarChart3 className="w-6 h-6" />
-                نتایج: {survey.title}
-              </CardTitle>
-              <CardDescription className="mt-2">
-                {survey.description}
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExport('excel')}
-              >
-                <Download className="w-4 h-4 ml-1" />
-                Excel
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExport('pdf')}
-              >
-                <FileText className="w-4 h-4 ml-1" />
-                PDF
-              </Button>
-              <Button variant="outline" size="sm">
-                <Mail className="w-4 h-4 ml-1" />
-                ایمیل
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 rounded-lg bg-muted/50">
               <div className="flex items-center gap-2 text-muted-foreground text-sm">
@@ -476,8 +464,9 @@ export default function SurveyResultsPage() {
           </div>
         </CardContent>
       </Card>
+      </DashboardSectionBlock>
 
-      {/* نمودارهای اصلی */}
+      <DashboardSectionBlock>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* گیج میانگین کلی */}
         <Card>
@@ -911,6 +900,7 @@ export default function SurveyResultsPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   );
 }

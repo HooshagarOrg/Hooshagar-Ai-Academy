@@ -10,8 +10,8 @@ import {
   Loader2, Info, Building2,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
 import { PageLoading } from '@/components/ui/page-states'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 
 // ────────────────────────────────────────────────────────────
 // تایپ‌ها
@@ -96,25 +96,24 @@ export default function QuotaSettingsPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-4xl p-4 sm:p-6" dir="rtl">
+      <DashboardPage title="مدیریت ظرفیت و سهمیه" description="تنظیمات سراسری ظرفیت کلاس‌ها">
         <PageLoading label="در حال بارگذاری تنظیمات ظرفیت..." compact />
-      </div>
+      </DashboardPage>
     )
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-
-      <div>
-        <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-          <Settings2 className="text-indigo-600" /> مدیریت ظرفیت و سهمیه
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          تنظیمات سراسری ظرفیت کلاس‌ها و سهمیه‌های قرعه‌کشی — فقط platform_admin
-        </p>
-      </div>
-
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <Settings2 className="text-[var(--lux-primary)]" />
+          مدیریت ظرفیت و سهمیه
+        </span>
+      }
+      description="تنظیمات سراسری ظرفیت کلاس‌ها و سهمیه‌های قرعه‌کشی — فقط platform_admin"
+      className="max-w-4xl"
+      animatedSections={false}
+    >
       {/* ── ظرفیت کلاس‌ها ── */}
       <Card>
         <CardHeader className="pb-3">
@@ -277,12 +276,12 @@ export default function QuotaSettingsPage() {
       </Card>
 
       {/* راهنما */}
-      <Card className="border-indigo-100 bg-indigo-50">
-        <CardContent className="p-4 flex items-start gap-3">
-          <Info className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
-          <div className="text-sm text-indigo-800 space-y-1">
-            <p className="font-bold">نحوه اعمال تنظیمات</p>
-            <ul className="text-indigo-600 space-y-1 text-xs list-disc list-inside">
+      <Card className="border-[var(--lux-primary)]/30 bg-[var(--lux-primary)]/8">
+        <CardContent className="flex items-start gap-3 p-4">
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-[var(--lux-primary)]" />
+          <div className="space-y-1 text-sm text-[var(--lux-text-muted)]">
+            <p className="font-bold text-[var(--lux-text)]">نحوه اعمال تنظیمات</p>
+            <ul className="list-inside list-disc space-y-1 text-xs">
               <li>ظرفیت per grade برای کلاس‌های جدید به‌صورت پیش‌فرض اعمال می‌شود</li>
               <li>مدیر مدرسه می‌تواند ظرفیت هر کلاس را تغییر دهد (در محدوده min-max)</li>
               <li>platform_admin می‌تواند هر کلاس را به‌صورت مستقل override کند</li>
@@ -291,7 +290,6 @@ export default function QuotaSettingsPage() {
           </div>
         </CardContent>
       </Card>
-      </LuxFadeUp>
-    </div>
+    </DashboardPage>
   )
 }

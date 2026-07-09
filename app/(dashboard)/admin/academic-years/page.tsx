@@ -12,8 +12,8 @@ import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Calendar, CheckCircle, Plus, Rocket, BarChart3, Edit, Eye } from 'lucide-react'
 import { toast } from 'sonner'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
 import { PageLoading } from '@/components/ui/page-states'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import type { AcademicYear, PromotionResult } from '@/lib/types/academic.types'
 
 export default function AcademicYearsPage() {
@@ -125,22 +125,14 @@ export default function AcademicYearsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-4 sm:p-6" dir="rtl">
+      <DashboardPage title="مدیریت سال‌های تحصیلی" description="مدیریت سال تحصیلی و ارتقای خودکار دانش‌آموزان">
         <PageLoading label="در حال بارگذاری سال‌های تحصیلی..." compact />
-      </div>
+      </DashboardPage>
     )
   }
 
-  return (
-    <div className="container mx-auto space-y-6 p-4 sm:p-6" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">مدیریت سال‌های تحصیلی</h1>
-          <p className="text-muted-foreground">مدیریت سال تحصیلی و ارتقای خودکار دانش‌آموزان</p>
-        </div>
-        <Dialog open={showNewYearDialog} onOpenChange={setShowNewYearDialog}>
+  const newYearDialog = (
+    <Dialog open={showNewYearDialog} onOpenChange={setShowNewYearDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="ml-2 h-4 w-4" />
@@ -226,12 +218,18 @@ export default function AcademicYearsPage() {
               </DialogFooter>
             </form>
           </DialogContent>
-        </Dialog>
-      </div>
+    </Dialog>
+  )
 
-      {/* کارت سال فعلی */}
+  return (
+    <DashboardPage
+      title="مدیریت سال‌های تحصیلی"
+      description="مدیریت سال تحصیلی و ارتقای خودکار دانش‌آموزان"
+      actions={newYearDialog}
+    >
+      <DashboardSectionBlock>
       {currentYear && (
-        <Card className="border-primary">
+        <Card className="border-[var(--lux-primary)]/40">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -282,7 +280,7 @@ export default function AcademicYearsPage() {
 
       {/* نتیجه ارتقا */}
       {promotionResult && (
-        <Card className="border-green-500 bg-green-50 dark:bg-green-950">
+        <Card className="border-emerald-500/40 bg-emerald-500/10">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
@@ -342,9 +340,8 @@ export default function AcademicYearsPage() {
         </CardContent>
       </Card>
 
-      </LuxFadeUp>
+      </DashboardSectionBlock>
 
-      {/* Dialog تأیید ارتقا */}
       <AlertDialog open={showPromoteDialog} onOpenChange={setShowPromoteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -367,7 +364,7 @@ export default function AcademicYearsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </DashboardPage>
   )
 }
 

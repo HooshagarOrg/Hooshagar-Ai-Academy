@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Download, Mail, Printer, BookOpen, Users, Heart, Activity, Sparkles, TrendingUp, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { Bar, BarChart, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import type { AnnualReport } from '@/lib/types/academic.types'
@@ -136,27 +137,31 @@ export default function AnnualReportPage({ params }: { params: { yearId: string 
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">در حال بارگذاری...</div>
-      </div>
+      <DashboardPage title="گزارش جامع سال تحصیلی" className="container mx-auto p-6">
+        <DashboardSectionBlock>
+          <div className="text-center py-12">در حال بارگذاری...</div>
+        </DashboardSectionBlock>
+      </DashboardPage>
     )
   }
 
   if (!report) {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>گزارش جامع یافت نشد</CardTitle>
-            <CardDescription>برای مشاهده گزارش، ابتدا باید آن را تولید کنید</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={handleGenerateReport} disabled={generating}>
-              {generating ? 'در حال تولید...' : '📊 تولید گزارش جامع'}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardPage title="گزارش جامع سال تحصیلی" className="container mx-auto p-6">
+        <DashboardSectionBlock>
+          <Card>
+            <CardHeader>
+              <CardTitle>گزارش جامع یافت نشد</CardTitle>
+              <CardDescription>برای مشاهده گزارش، ابتدا باید آن را تولید کنید</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={handleGenerateReport} disabled={generating}>
+                {generating ? 'در حال تولید...' : '📊 تولید گزارش جامع'}
+              </Button>
+            </CardContent>
+          </Card>
+        </DashboardSectionBlock>
+      </DashboardPage>
     )
   }
 
@@ -170,38 +175,35 @@ export default function AnnualReportPage({ params }: { params: { yearId: string 
   }))
 
   return (
-    <div className="container mx-auto p-6 space-y-6 print:p-2">
-      {/* Header */}
+    <DashboardPage
+      className="container mx-auto p-6 print:p-2"
+      title="گزارش جامع سال تحصیلی"
+      description={
+        <span className="space-y-1">
+          <span className="block text-lg font-medium text-foreground">{summary.student_name}</span>
+          <span className="block">پایه {summary.grade}</span>
+        </span>
+      }
+      actions={
+        <div className="flex gap-2 print:hidden">
+          <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+            <Download className="ml-2 h-4 w-4" />
+            PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleSendEmail}>
+            <Mail className="ml-2 h-4 w-4" />
+            ایمیل
+          </Button>
+          <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Printer className="ml-2 h-4 w-4" />
+            چاپ
+          </Button>
+        </div>
+      }
+    >
+      <DashboardSectionBlock>
       <Card className="print:shadow-none">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-2xl flex items-center gap-2">
-                📊 گزارش جامع سال تحصیلی
-              </CardTitle>
-              <CardDescription className="mt-2 space-y-1">
-                <p className="text-lg font-medium text-foreground">{summary.student_name}</p>
-                <p>پایه {summary.grade}</p>
-              </CardDescription>
-            </div>
-            <div className="flex gap-2 print:hidden">
-              <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
-                <Download className="ml-2 h-4 w-4" />
-                PDF
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleSendEmail}>
-                <Mail className="ml-2 h-4 w-4" />
-                ایمیل
-              </Button>
-              <Button variant="outline" size="sm" onClick={handlePrint}>
-                <Printer className="ml-2 h-4 w-4" />
-                چاپ
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
               <p className="text-3xl font-bold text-blue-600">{summary.overall_gpa || 0}</p>
@@ -222,8 +224,9 @@ export default function AnnualReportPage({ params }: { params: { yearId: string 
           </div>
         </CardContent>
       </Card>
+      </DashboardSectionBlock>
 
-      {/* Tabs */}
+      <DashboardSectionBlock>
       <Tabs defaultValue="grades" className="space-y-4">
         <TabsList className="grid grid-cols-6 w-full print:hidden">
           <TabsTrigger value="grades">
@@ -510,7 +513,8 @@ export default function AnnualReportPage({ params }: { params: { yearId: string 
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }
 

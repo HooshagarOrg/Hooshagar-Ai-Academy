@@ -2,13 +2,15 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { AUTH_ERRORS } from '@/lib/security/error-handler'
-import { applyRateLimit } from '@/lib/security/rate-limiter'
+import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
 import { z } from 'zod'
 
 const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey  = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const openrouterKey = process.env.OPENROUTER_API_KEY!
 const googleApiKey  = process.env.GOOGLE_API_KEY
+
+export const maxDuration = 60
 
 const studyBuddySchema = z.object({
   question: z.string().min(3, 'سوال باید حداقل 3 کاراکتر باشد'),
@@ -163,7 +165,7 @@ ${context}
 export async function POST(request: NextRequest) {
   try {
     // Rate Limit
-    const rlRes = applyRateLimit(request, 'ai_heavy')
+    const rlRes = await applyRateLimitAsync(request, 'ai_heavy')
     if (rlRes) return rlRes
 
     // احراز هویت اجباری

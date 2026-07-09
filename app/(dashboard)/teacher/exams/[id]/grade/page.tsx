@@ -8,11 +8,12 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { PageHeader } from '@/components/ui/page-header'
 import { GlassCard } from '@/components/ui/glass-card'
 import { StatCard } from '@/components/ui/stat-card'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { PageLoading } from '@/components/ui/page-states'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 interface ExamSession {
   id: string
@@ -127,9 +128,9 @@ export default function ExamGradePage({ params }: { params: Promise<{ id: string
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-64">
-        <Loader2 className="animate-spin w-8 h-8 text-brand-purple" />
-      </div>
+      <DashboardPage title="تصحیح آزمون" description="در حال بارگذاری...">
+        <PageLoading label="در حال بارگذاری جلسات آزمون..." compact />
+      </DashboardPage>
     )
   }
 
@@ -141,51 +142,56 @@ export default function ExamGradePage({ params }: { params: Promise<{ id: string
       : '—'
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto" dir="rtl">
-      <PageHeader
-        title={`تصحیح آزمون — ${exam?.title || ''}`}
-        description={
-          exam
-            ? `${exam.subject} · پایه ${exam.grade} · ${exam.total_questions} سوال`
-            : undefined
-        }
-        icon={Brain}
-        iconColor="text-brand-purple"
-        iconBg="bg-brand-purple/15 border border-brand-purple/20"
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/teacher/exams"
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+    <DashboardPage
+      className="max-w-5xl mx-auto"
+      title={
+        <span className="flex items-center gap-2">
+          <Brain className="h-8 w-8 text-[var(--lux-primary)]" />
+          تصحیح آزمون — {exam?.title || ''}
+        </span>
+      }
+      description={
+        exam
+          ? `${exam.subject} · پایه ${exam.grade} · ${exam.total_questions} سوال`
+          : undefined
+      }
+      actions={
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/teacher/exams"
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowRight className="w-4 h-4" />
+            بازگشت به آزمون‌ها
+          </Link>
+          {pendingSessions.length > 0 && (
+            <Button
+              onClick={gradeAllPending}
+              disabled={gradingAll}
+              className="bg-brand-purple hover:opacity-90 text-space gap-2"
             >
-              <ArrowRight className="w-4 h-4" />
-              بازگشت به آزمون‌ها
-            </Link>
-            {pendingSessions.length > 0 && (
-              <Button
-                onClick={gradeAllPending}
-                disabled={gradingAll}
-                className="bg-brand-purple hover:opacity-90 text-space gap-2"
-              >
-                {gradingAll ? (
-                  <Loader2 className="animate-spin w-4 h-4" />
-                ) : (
-                  <Sparkles className="w-4 h-4" />
-                )}
-                تصحیح همه با AI ({pendingSessions.length})
-              </Button>
-            )}
-          </div>
-        }
-      />
+              {gradingAll ? (
+                <Loader2 className="animate-spin w-4 h-4" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              تصحیح همه با AI ({pendingSessions.length})
+            </Button>
+          )}
+        </div>
+      }
+    >
 
+      <DashboardSectionBlock>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="کل شرکت‌کننده" value={sessions.length} accentClass="text-brand-cyan" />
         <StatCard label="در انتظار تصحیح" value={pendingSessions.length} accentClass="text-brand-yellow" />
         <StatCard label="تصحیح‌شده" value={gradedSessions.length} accentClass="text-brand-green" />
         <StatCard label="میانگین نمره" value={avgScore} accentClass="text-brand-purple" />
       </div>
+      </DashboardSectionBlock>
 
+      <DashboardSectionBlock>
       <GlassCard className="overflow-hidden p-0">
         <div className="p-4 border-b border-white/[0.06]">
           <h2 className="text-base font-bold flex items-center gap-2">
@@ -284,7 +290,9 @@ export default function ExamGradePage({ params }: { params: Promise<{ id: string
           </div>
         )}
       </GlassCard>
+      </DashboardSectionBlock>
 
+      <DashboardSectionBlock>
       <GlassCard quiet className="p-4 border-brand-purple/25">
         <div className="flex items-start gap-3">
           <Star className="w-5 h-5 text-brand-purple shrink-0 mt-0.5" />
@@ -298,6 +306,7 @@ export default function ExamGradePage({ params }: { params: Promise<{ id: string
           </div>
         </div>
       </GlassCard>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }

@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { Award } from 'lucide-react'
-import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
-import { LuxDashboardSection, LuxSectionBlock } from '@/components/lux/lux-dashboard-section'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { LuxErrorState, LuxSkeletonCards } from '@/components/lux/lux-page-states'
 
 type Badge = { id: string; name: string; description: string; earned: boolean }
@@ -41,18 +40,21 @@ export default function StudentBadgesPage() {
   }, [])
 
   return (
-    <LuxDashboardSection header={<LuxPageHeader title="گالری نشان‌ها" subtitle="دستاوردهای یادگیری و گیمیفیکیشن" />}>
+    <DashboardPage
+      title="گالری نشان‌ها"
+      description="دستاوردهای یادگیری و گیمیفیکیشن"
+    >
       {loading ? (
-        <LuxSectionBlock><LuxSkeletonCards count={4} variant="lux" className="sm:grid-cols-2 lg:grid-cols-3" /></LuxSectionBlock>
+        <DashboardSectionBlock><LuxSkeletonCards count={4} variant="lux" className="sm:grid-cols-2 lg:grid-cols-3" /></DashboardSectionBlock>
       ) : error ? (
-        <LuxSectionBlock>
+        <DashboardSectionBlock>
           <LuxErrorState message={error} onRetry={loadBadges} variant="lux" />
-        </LuxSectionBlock>
+        </DashboardSectionBlock>
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {badges.map((b) => (
-              <LuxSectionBlock key={b.id}>
+              <DashboardSectionBlock key={b.id}>
                 <LuxCard className={!b.earned ? 'opacity-50' : ''}>
               <Award className="mb-3 h-8 w-8 text-[var(--lux-gold)]" />
               <p className="font-black text-[var(--lux-text)]">{b.name}</p>
@@ -61,16 +63,16 @@ export default function StudentBadgesPage() {
                 {b.earned ? 'کسب شده' : 'قفل'}
               </p>
                 </LuxCard>
-              </LuxSectionBlock>
+              </DashboardSectionBlock>
             ))}
           </div>
           {badges.every((b) => !b.earned) && (
-            <LuxSectionBlock>
+            <DashboardSectionBlock>
               <LuxEmptyState className="mt-4" title="هنوز نشانی کسب نکردی" description="با مطالعه و فعالیت در هوشاگر نشان‌ها را باز کن." actionLabel="شروع یادگیری" actionHref="/student/study-buddy" />
-            </LuxSectionBlock>
+            </DashboardSectionBlock>
           )}
         </>
       )}
-    </LuxDashboardSection>
+    </DashboardPage>
   )
 }

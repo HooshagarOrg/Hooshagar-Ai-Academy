@@ -28,6 +28,7 @@ import {
   XCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 
 interface GeminiKey {
   id: string
@@ -157,18 +158,17 @@ export default function AISettingsPage() {
   }
 
   return (
-    <div className="container mx-auto py-10 max-w-7xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-          <Settings className="w-8 h-8 text-primary" />
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <Settings className="h-8 w-8 text-[var(--lux-primary)]" />
           تنظیمات سیستم AI
-        </h1>
-        <p className="text-muted-foreground">
-          مدیریت کلیدها، لایه‌ها و کش سیستم هوش مصنوعی
-        </p>
-      </div>
-
+        </span>
+      }
+      description="مدیریت کلیدها، لایه‌ها و کش سیستم هوش مصنوعی"
+      className="max-w-7xl"
+      animatedSections={false}
+    >
       <Tabs defaultValue="stats" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4 lg:w-auto">
           <TabsTrigger value="stats">
@@ -590,7 +590,7 @@ export default function AISettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </DashboardPage>
   )
 }
 

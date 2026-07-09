@@ -29,7 +29,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import GrowthChart from '@/components/health/growth-chart'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 // داده نمونه
 const studentHealth = {
@@ -86,24 +86,20 @@ export default function ParentHealthPage() {
   const vaccinationProgress = Math.round((studentHealth.vaccinations.completed / studentHealth.vaccinations.total) * 100)
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:px-6" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-      {/* Header */}
-      <div className="mb-2">
-        <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl">
-          <Stethoscope className="w-8 h-8 text-teal-500" />
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <Stethoscope className="h-8 w-8 text-teal-400" />
           سلامت فرزند من
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          پرونده سلامت {studentHealth.name} - {studentHealth.className}
-        </p>
-      </div>
-
+        </span>
+      }
+      description={`پرونده سلامت ${studentHealth.name} — ${studentHealth.className}`}
+    >
       {/* Alert Messages */}
       {healthMessages.filter(m => m.priority === 'high').length > 0 && (
-        <Card className="mb-6 border-orange-200 bg-orange-50 dark:bg-orange-900/20">
+        <Card className="mb-6 border-amber-500/30 bg-amber-500/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-orange-700 flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-amber-200">
               <AlertTriangle className="w-5 h-5" />
               پیام مهم از بهیار مدرسه
             </CardTitle>
@@ -480,8 +476,7 @@ export default function ParentHealthPage() {
           </div>
         </CardContent>
       </Card>
-      </LuxFadeUp>
-    </div>
+    </DashboardPage>
   )
 }
 

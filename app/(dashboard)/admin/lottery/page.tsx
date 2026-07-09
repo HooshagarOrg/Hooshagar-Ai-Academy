@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Shuffle, Plus, Play, Trash2, Loader2, ChevronDown, ChevronUp, Users, School } from 'lucide-react'
 // Badge intentionally unused — reserved for future status display
 import { toast } from 'sonner'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
 import { PageLoading } from '@/components/ui/page-states'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 type Period = {
   id: string; title: string; academic_year: string
@@ -29,12 +29,12 @@ type LotteryResult = {
 }
 
 const STATUS_LABEL: { [key: string]: { label: string; color: string } | undefined } = {
-  pending: { label: 'در انتظار', color: 'bg-gray-100 text-gray-700' },
-  open: { label: 'باز برای ثبت', color: 'bg-blue-100 text-blue-700' },
-  closed: { label: 'بسته', color: 'bg-orange-100 text-orange-700' },
-  done: { label: 'قرعه‌کشی انجام شد', color: 'bg-green-100 text-green-700' },
+  pending: { label: 'در انتظار', color: 'bg-white/10 text-[var(--lux-text-muted)]' },
+  open: { label: 'باز برای ثبت', color: 'bg-[var(--lux-secondary)]/15 text-[var(--lux-secondary)]' },
+  closed: { label: 'بسته', color: 'bg-amber-500/15 text-amber-300' },
+  done: { label: 'قرعه‌کشی انجام شد', color: 'bg-emerald-500/15 text-emerald-300' },
 }
-const DEFAULT_STATUS = { label: 'در انتظار', color: 'bg-gray-100 text-gray-700' }
+const DEFAULT_STATUS = { label: 'در انتظار', color: 'bg-white/10 text-[var(--lux-text-muted)]' }
 const RESULT_LABEL: Record<string, { label: string; color: string }> = {
   assigned: { label: 'تخصیص یافت', color: 'text-green-700' },
   waitlisted: { label: 'لیست انتظار', color: 'text-orange-700' },
@@ -174,24 +174,25 @@ export default function AdminLotteryPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Shuffle className="text-purple-600" /> قرعه‌کشی ثبت‌نام کلاس
-          </h1>
-          <p className="text-sm text-gray-500">مدیریت دوره‌های ثبت‌نام، کلاس‌ها، اولویت‌ها و قرعه‌کشی</p>
-        </div>
-        <Button onClick={() => setShowPeriod(true)} className="bg-purple-600 gap-2">
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <Shuffle className="text-[var(--lux-primary)]" />
+          قرعه‌کشی ثبت‌نام کلاس
+        </span>
+      }
+      description="مدیریت دوره‌های ثبت‌نام، کلاس‌ها، اولویت‌ها و قرعه‌کشی"
+      actions={
+        <Button onClick={() => setShowPeriod(true)} className="gap-2">
           <Plus size={18} /> دوره جدید
         </Button>
-      </div>
-
+      }
+    >
+      <DashboardSectionBlock>
       {loading ? (
         <PageLoading label="در حال بارگذاری قرعه‌کشی..." compact />
       ) : periods.length === 0 ? (
-        <Card><CardContent className="p-12 text-center text-gray-400">
+        <Card><CardContent className="p-12 text-center text-[var(--lux-text-muted)]">
           <Shuffle size={48} className="mx-auto mb-3 opacity-30" />
           هنوز دوره ثبت‌نامی تعریف نشده
         </CardContent></Card>
@@ -212,7 +213,7 @@ export default function AdminLotteryPage() {
                     {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                     <div>
                       <p className="font-bold text-lg">{period.title}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-[var(--lux-text-muted)]">
                         پایه {period.from_grade} → پایه {period.for_grade} | {period.academic_year}
                       </p>
                     </div>
@@ -344,7 +345,7 @@ export default function AdminLotteryPage() {
         })
       )}
 
-      </LuxFadeUp>
+      </DashboardSectionBlock>
 
       {/* دیالوگ ساخت دوره */}
       <Dialog open={showPeriod} onOpenChange={setShowPeriod}>
@@ -443,6 +444,6 @@ export default function AdminLotteryPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardPage>
   )
 }

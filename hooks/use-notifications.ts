@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { Notification } from '@/types/notifications.types';
 import { subscribeToNotifications } from '@/lib/notifications/realtime';
 import { createClient } from '@/lib/supabase-client';
@@ -8,25 +8,36 @@ import { createClient } from '@/lib/supabase-client';
 interface UseNotificationsOptions {
   limit?: number;
   unreadOnly?: boolean;
+  /** Realtime فعال + polling پشتیبان کند */
   realtime?: boolean;
+  /** polling پشتیبان (ms) — فقط وقتی تب visible است */
+  fallbackPollMs?: number;
 }
+
+const DEFAULT_FALLBACK_POLL_MS = 60_000;
 
 export function useNotifications(options: UseNotificationsOptions = {}) {
   const {
     limit = 20,
     unreadOnly = false,
     realtime = true,
+    fallbackPollMs = DEFAULT_FALLBACK_POLL_MS,
   } = options;
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string>('');
+  const initialLoadDone = useRef(false);
 
-  // دریافت اعلان‌ها
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (silent = false) => {
     try {
-      setIsLoading(true);
+      if (!silent && !initialLoadDone.current) {
+        setIsLoading(true);
+      } else if (silent) {
+        setIsRefreshing(true);
+      }
       setError('');
 
       let url = `/api/notifications?limit=${limit}`;
@@ -44,15 +55,15 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
 
       setNotifications(data.notifications);
       setUnreadCount(data.unread_count);
-    } catch (err) {
-      console.error('خطا در دریافت اعلان‌ها:', err);
+      initialLoadDone.current = true;
+    } catch {
       setError('خطای شبکه');
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   }, [limit, unreadOnly]);
 
-  // خواندن یک اعلان
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
       const res = await fetch('/api/notifications/read', {
@@ -64,7 +75,6 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       const data = await res.json();
 
       if (data.success) {
-        // بروزرسانی local state
         setNotifications((prev) =>
           prev.map((n) =>
             n.id === notificationId ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
@@ -74,13 +84,11 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       }
 
       return data.success;
-    } catch (err) {
-      console.error('خطا در خواندن اعلان:', err);
+    } catch {
       return false;
     }
   }, []);
 
-  // خواندن همه اعلان‌ها
   const markAllAsRead = useCallback(async () => {
     try {
       const res = await fetch('/api/notifications/read', {
@@ -92,7 +100,6 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       const data = await res.json();
 
       if (data.success) {
-        // بروزرسانی local state
         setNotifications((prev) =>
           prev.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
         );
@@ -100,82 +107,78 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       }
 
       return data.success;
-    } catch (err) {
-      console.error('خطا در خواندن همه اعلان‌ها:', err);
+    } catch {
       return false;
     }
   }, []);
 
-  // بارگذاری اولیه
   useEffect(() => {
-    fetchNotifications();
+    void fetchNotifications(false);
   }, [fetchNotifications]);
 
-  // Real-time subscription
   useEffect(() => {
-    if (!realtime) {
-      console.log('⏸️ Realtime disabled');
-      return;
-    }
+    if (!realtime) return;
 
-    console.log('🔌 Attempting to setup realtime subscription...');
     const supabase = createClient();
     let unsubscribe: (() => void) | null = null;
-    
-    // دریافت user_id و subscribe
-    supabase.auth.getUser().then(({ data }) => {
-      console.log('👤 User from getUser():', data.user ? data.user.id : 'NO USER');
-      
-      if (!data.user) {
-        console.error('❌ No authenticated user found for realtime!');
-        return;
-      }
 
-      console.log(`🚀 Subscribing to notifications for user: ${data.user.id}`);
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+
       unsubscribe = subscribeToNotifications(data.user.id, {
         onInsert: (notification) => {
-          console.log('🔔 New notification received:', notification);
-          // اضافه کردن اعلان جدید
           setNotifications((prev) => [notification, ...prev].slice(0, limit));
           if (!notification.is_read) {
             setUnreadCount((prev) => prev + 1);
           }
         },
         onUpdate: (notification) => {
-          console.log('🔄 Notification updated:', notification);
-          // بروزرسانی اعلان
           setNotifications((prev) =>
             prev.map((n) => (n.id === notification.id ? notification : n))
           );
-          // بروزرسانی تعداد خوانده نشده
-          fetchNotifications();
+          if (notification.is_read) {
+            setUnreadCount((prev) => Math.max(0, prev - 1));
+          }
         },
         onDelete: (id) => {
-          console.log('🗑️ Notification deleted:', id);
-          // حذف اعلان
-          setNotifications((prev) => prev.filter((n) => n.id !== id));
-          fetchNotifications();
+          setNotifications((prev) => {
+            const removed = prev.find((n) => n.id === id);
+            if (removed && !removed.is_read) {
+              setUnreadCount((count) => Math.max(0, count - 1));
+            }
+            return prev.filter((n) => n.id !== id);
+          });
         },
       });
     });
 
-    // Cleanup function
     return () => {
-      if (unsubscribe) {
-        console.log('🔌 Unsubscribing from notifications');
-        unsubscribe();
-      }
+      unsubscribe?.();
     };
-  }, [realtime, limit, fetchNotifications]);
+  }, [realtime, limit]);
+
+  useEffect(() => {
+    if (!realtime || fallbackPollMs <= 0) return;
+
+    const tick = () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        return;
+      }
+      void fetchNotifications(true);
+    };
+
+    const intervalId = setInterval(tick, fallbackPollMs);
+    return () => clearInterval(intervalId);
+  }, [realtime, fallbackPollMs, fetchNotifications]);
 
   return {
     notifications,
     unreadCount,
     isLoading,
+    isRefreshing,
     error,
     markAsRead,
     markAllAsRead,
-    refresh: fetchNotifications,
+    refresh: () => fetchNotifications(true),
   };
 }
-

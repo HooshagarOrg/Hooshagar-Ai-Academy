@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { PageHeader } from '@/components/ui/page-header'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageLoading } from '@/components/ui/page-states'
 import { cn } from '@/lib/utils'
@@ -111,22 +111,24 @@ export default function SecurityDashboard() {
     }).format(new Date(dateStr))
 
   return (
-    <div dir="rtl">
-      <PageHeader
-        title="مرکز امنیت"
-        description="پایش رویدادهای امنیتی و لاگ حسابرسی"
-        icon={Shield}
-        iconColor="text-red-600"
-        iconBg="bg-red-50"
-        actions={
-          <Button variant="outline" onClick={fetchData} className="gap-2">
-            <RefreshCw className="w-4 h-4" />
-            بروزرسانی
-          </Button>
-        }
-      />
-
-      {/* آمار کلی */}
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 rounded-xl bg-red-500/15 border border-red-500/20 flex items-center justify-center">
+            <Shield className="w-6 h-6 text-red-600" />
+          </span>
+          مرکز امنیت
+        </span>
+      }
+      description="پایش رویدادهای امنیتی و لاگ حسابرسی"
+      actions={
+        <Button variant="outline" onClick={fetchData} className="gap-2">
+          <RefreshCw className="w-4 h-4" />
+          بروزرسانی
+        </Button>
+      }
+    >
+      <DashboardSectionBlock>
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           {[
@@ -149,8 +151,9 @@ export default function SecurityDashboard() {
           })}
         </div>
       )}
+      </DashboardSectionBlock>
 
-      {/* وضعیت امنیتی کلی */}
+      <DashboardSectionBlock>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {[
           { title: 'Rate Limiting', status: 'فعال', ok: true, desc: 'محدودیت ۵ تلاش/دقیقه روی Login' },
@@ -177,8 +180,9 @@ export default function SecurityDashboard() {
           </div>
         ))}
       </div>
+      </DashboardSectionBlock>
 
-      {/* فیلترها */}
+      <DashboardSectionBlock>
       <div className="flex flex-wrap gap-2 mb-4">
         <div className="flex gap-1 flex-wrap">
           <Button size="sm" variant={filter === 'all' ? 'default' : 'outline'} onClick={() => setFilter('all')} className="text-xs">همه</Button>
@@ -196,7 +200,9 @@ export default function SecurityDashboard() {
           ))}
         </div>
       </div>
+      </DashboardSectionBlock>
 
+      <DashboardSectionBlock>
       {/* لیست لاگ‌ها */}
       {isLoading ? (
         <PageLoading label="در حال بارگذاری لاگ‌های امنیتی..." compact />
@@ -261,6 +267,7 @@ export default function SecurityDashboard() {
           </div>
         </div>
       )}
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }

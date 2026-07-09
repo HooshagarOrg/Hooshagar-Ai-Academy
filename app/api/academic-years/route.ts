@@ -1,9 +1,11 @@
+import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import type { AcademicYear, CreateAcademicYearInput } from '@/lib/types/academic.types'
+import { withAuth, ADMIN_ROLES, type AllowedRole } from '@/lib/security/api-guard'
 
-// Schema برای ایجاد سال تحصیلی جدید
+const ACADEMIC_YEAR_ROLES: AllowedRole[] = [...ADMIN_ROLES, 'principal']
+
 const createYearSchema = z.object({
   year_name: z.string().min(7).max(9).regex(/^\d{4}-\d{4}$/),
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -12,97 +14,67 @@ const createYearSchema = z.object({
   auto_promotion_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 })
 
-/**
- * GET: دریافت لیست سال‌های تحصیلی
- */
-export async function GET() {
-  try {
-    const supabase = await createServerClient()
+export async function GET(request: NextRequest) {
+  return withAuth(
+    request,
+    async () => {
+      try {
+        const supabase = await createServerClient()
+        const { data: years, error } = await supabase
+          .from('academic_years')
+          .select('*')
+          .order('start_date', { ascending: false })
 
-    const { data: years, error } = await supabase
-      .from('academic_years')
-      .select('*')
-      .order('start_date', { ascending: false })
+        if (error) throw error
 
-    if (error) throw error
-
-    return NextResponse.json({
-      success: true,
-      data: years as AcademicYear[],
-    })
-  } catch (error: any) {
-    console.error('خطا در دریافت سال‌های تحصیلی:', error)
-    return NextResponse.json(
-      { success: false, error: error.message || 'خطای سرور' },
-      { status: 500 }
-    )
-  }
+        return NextResponse.json({
+          success: true,
+          data: years as AcademicYear[],
+        })
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'خطای سرور'
+        console.error('خطا در دریافت سال‌های تحصیلی:', error)
+        return NextResponse.json({ success: false, error: message }, { status: 500 })
+      }
+    },
+    { roles: ACADEMIC_YEAR_ROLES, rateLimit: 'api_default' },
+  )
 }
 
-/**
- * POST: ایجاد سال تحصیلی جدید
- */
-export async function POST(request: Request) {
-  try {
-    const supabase = await createServerClient()
+export async function POST(request: NextRequest) {
+  return withAuth(
+    request,
+    async () => {
+      try {
+        const supabase = await createServerClient()
+        const body = await request.json()
+        const validated = createYearSchema.parse(body) as CreateAcademicYearInput
 
-    // بررسی نقش کاربر
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'کاربر احراز هویت نشده است' },
-        { status: 401 }
-      )
-    }
+        const { data: newYear, error } = await supabase
+          .from('academic_years')
+          .insert([validated])
+          .select()
+          .single()
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+        if (error) throw error
 
-    if (!profile || !['admin', 'principal'].includes(profile.role)) {
-      return NextResponse.json(
-        { success: false, error: 'شما دسترسی لازم را ندارید' },
-        { status: 403 }
-      )
-    }
-
-    const body = await request.json()
-    const validated = createYearSchema.parse(body) as CreateAcademicYearInput
-
-    // ایجاد سال جدید
-    const { data: newYear, error } = await supabase
-      .from('academic_years')
-      .insert([validated])
-      .select()
-      .single()
-
-    if (error) throw error
-
-    return NextResponse.json({
-      success: true,
-      data: newYear as AcademicYear,
-      message: 'سال تحصیلی با موفقیت ایجاد شد',
-    })
-  } catch (error: any) {
-    console.error('خطا در ایجاد سال تحصیلی:', error)
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: 'داده‌های نامعتبر', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { success: false, error: error.message || 'خطای سرور' },
-      { status: 500 }
-    )
-  }
+        return NextResponse.json({
+          success: true,
+          data: newYear as AcademicYear,
+          message: 'سال تحصیلی با موفقیت ایجاد شد',
+        })
+      } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+          return NextResponse.json(
+            { success: false, error: 'داده‌های نامعتبر', details: error.errors },
+            { status: 400 },
+          )
+        }
+        const message = error instanceof Error ? error.message : 'خطای سرور'
+        console.error('خطا در ایجاد سال تحصیلی:', error)
+        return NextResponse.json({ success: false, error: message }, { status: 500 })
+      }
+    },
+    { roles: ACADEMIC_YEAR_ROLES, rateLimit: 'admin_action' },
+  )
 }
-
-
-
-
-

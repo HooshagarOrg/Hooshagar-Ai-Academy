@@ -24,12 +24,12 @@ export function PageHeader({
       )}
     >
       <div className="min-w-0 space-y-1">
-        {meta && <div className="text-sm text-muted-foreground">{meta}</div>}
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground text-balance">
+        {meta && <div className="text-sm text-[var(--lux-text-muted)]">{meta}</div>}
+        <h1 className="text-2xl font-black tracking-tight text-[var(--lux-text)] text-balance md:text-3xl">
           {title}
         </h1>
         {description && (
-          <p className="text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed">
+          <p className="max-w-2xl text-sm leading-8 text-[var(--lux-text-muted)] md:text-base">
             {description}
           </p>
         )}

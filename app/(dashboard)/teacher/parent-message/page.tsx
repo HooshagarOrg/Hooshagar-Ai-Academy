@@ -316,7 +316,7 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
   }
 
   // استفاده از الگو
-  const useTemplate = (template: MessageTemplate): void => {
+  const applyTemplate = (template: MessageTemplate): void => {
     setGeneratedMessage(template.content)
     setEditedMessage(template.content)
     setMessageType(template.type)
@@ -555,7 +555,7 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                           <p className="text-white/50 text-sm">{template.preview}</p>
                         </div>
                         <button
-                          onClick={() => useTemplate(template)}
+                          onClick={() => applyTemplate(template)}
                           className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg transition-all whitespace-nowrap"
                         >
                           استفاده
@@ -577,7 +577,7 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                   <li>• نوع پیام را مشخص کنید (تشویقی، انتقادی، ...)</li>
                   <li>• حداقل یک موضوع پیام را انتخاب کنید</li>
                   <li>• در صورت نیاز توضیحات اضافی بنویسید</li>
-                  <li>• دکمه "تولید پیش‌نویس" را بزنید</li>
+                  <li>• دکمه «تولید پیش‌نویس» را بزنید</li>
                   <li>• پیام را ویرایش کرده و ارسال کنید</li>
                 </ul>
               </GlassCard>

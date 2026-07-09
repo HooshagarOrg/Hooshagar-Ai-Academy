@@ -1,4 +1,7 @@
 // بررسی تمام environment variables مورد نیاز
+require('dotenv').config({ path: '.env.local' })
+require('dotenv').config()
+
 const required = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',

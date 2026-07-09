@@ -60,7 +60,7 @@ import {
 } from '@/components/ui/table'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { PageSkeletonCards } from '@/components/ui/page-states'
 import { toast } from 'sonner'
 import {
@@ -347,21 +347,17 @@ export default function TeacherAwardBadgesPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-6 p-4 sm:p-6" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Award className="h-8 w-8 text-amber-500" />
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <Award className="h-8 w-8 text-amber-400" />
           اعطای نشان به دانش‌آموزان
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          به دانش‌آموزان برتر نشان اعطا کنید
-        </p>
-      </div>
-
-      {/* انتخاب دانش‌آموز */}
-      <Card>
+        </span>
+      }
+      description="به دانش‌آموزان برتر نشان اعطا کنید"
+    >
+      <DashboardSectionBlock>
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -456,8 +452,10 @@ export default function TeacherAwardBadgesPage() {
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </DashboardSectionBlock>
 
+      <DashboardSectionBlock>
       {/* انتخاب نشان */}
       {selectedStudent && (
         <Card>
@@ -603,8 +601,7 @@ export default function TeacherAwardBadgesPage() {
           </Table>
         </CardContent>
       </Card>
-
-      </LuxFadeUp>
+      </DashboardSectionBlock>
 
       {/* دیالوگ اعطای نشان */}
       <Dialog open={showAwardDialog} onOpenChange={setShowAwardDialog}>
@@ -711,7 +708,7 @@ export default function TeacherAwardBadgesPage() {
           animation: bounce-slow 2s ease-in-out infinite;
         }
       `}</style>
-    </div>
+    </DashboardPage>
   )
 }
 

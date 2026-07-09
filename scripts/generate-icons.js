@@ -6,7 +6,7 @@
  * این اسکریپت از یک تصویر لوگو، آیکون‌های PWA در سایزهای مختلف تولید می‌کند.
  * 
  * استفاده:
- *   1. فایل لوگوی اصلی را در public/logo.png قرار دهید
+ *   1. فایل لوگوی اصلی را در public/brand/logo.png قرار دهید
  *   2. اجرا کنید: node scripts/generate-icons.js
  * 
  * یا با npm:
@@ -25,7 +25,7 @@ const path = require('path')
 
 const CONFIG = {
   // فایل لوگوی اصلی (حداقل 512x512 پیکسل)
-  inputFile: path.join(__dirname, '../public/logo.png'),
+  inputFile: path.join(__dirname, '../public/brand/logo.png'),
   
   // پوشه خروجی
   outputDir: path.join(__dirname, '../public/icons'),
@@ -66,7 +66,7 @@ async function generateIcons() {
   // بررسی فایل ورودی
   if (!fs.existsSync(CONFIG.inputFile)) {
     console.error(`❌ فایل لوگو پیدا نشد: ${CONFIG.inputFile}`)
-    console.log('   یک فایل logo.png (حداقل 512x512) در پوشه public قرار دهید.')
+    console.log('   یک فایل logo.png (حداقل 512x512) در پوشه public/brand قرار دهید.')
     
     // ساخت یک لوگوی پیش‌فرض ساده
     console.log('\n📝 در حال ساخت لوگوی پیش‌فرض...')

@@ -31,9 +31,16 @@ export async function POST(
     }
 
     // تصحیح خودکار با function
+    if (!session_id || typeof session_id !== 'string') {
+      return NextResponse.json(
+        { error: 'شناسه جلسه آزمون الزامی است' },
+        { status: 400 }
+      );
+    }
+
     const { data: gradeResult, error: gradeError } = await supabase
       .rpc('submit_exam', {
-        p_exam_id: params.id,
+        p_session_id: session_id,
         p_student_id: student.id,
       });
 

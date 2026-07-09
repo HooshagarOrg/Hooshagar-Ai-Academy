@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { applyRateLimit, RATE_LIMIT_CONFIGS } from './rate-limiter'
+import { applyRateLimitAsync, RATE_LIMIT_CONFIGS } from './rate-limiter'
 
 // ============================================
 // تایپ‌ها
@@ -43,7 +43,7 @@ export async function withAuth(
   // 1. Rate Limiting
   if (!options.skipRateLimit) {
     const scope = options.rateLimit || 'api_default'
-    const rateLimitResponse = applyRateLimit(request, scope)
+    const rateLimitResponse = await applyRateLimitAsync(request, scope)
     if (rateLimitResponse) return rateLimitResponse
   }
 

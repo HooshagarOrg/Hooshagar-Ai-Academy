@@ -306,7 +306,8 @@
     color: transparent;
   }
 
-  .lux-gradient-text-animated {
+  /* ── Landing (cinematic luxury) ── */
+  .lp-gradient-text-animated {
     background: linear-gradient(
       270deg,
       var(--lux-primary),
@@ -319,10 +320,10 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: lux-gradient-shift 8s ease infinite;
+    animation: lp-gradient-shift 9s ease infinite;
   }
 
-  @keyframes lux-gradient-shift {
+  @keyframes lp-gradient-shift {
     0%,
     100% {
       background-position: 0% 50%;
@@ -332,11 +333,7 @@
     }
   }
 
-  .lux-kicker-gold {
-    color: var(--lux-gold);
-  }
-
-  .lux-glass-deep {
+  .lp-glass {
     border: 1px solid transparent;
     border-radius: 1.75rem;
     background:
@@ -350,57 +347,51 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
-  .lux-noise {
+  .lp-noise {
     position: relative;
   }
 
-  .lux-noise::before {
+  .lp-noise::after {
     content: '';
-    position: absolute;
+    position: fixed;
     inset: 0;
-    border-radius: inherit;
-    opacity: 0.035;
+    z-index: 80;
+    opacity: 0.04;
     pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 128px 128px;
+    background-size: 160px 160px;
   }
 
-  .lux-perspective {
-    perspective: 1200px;
-    perspective-origin: 50% 50%;
+  .lp-kicker-gold {
+    color: var(--lux-gold);
+    letter-spacing: 0.14em;
   }
 
-  .lux-scene-3d {
-    transform-style: preserve-3d;
-    will-change: transform;
-  }
-
-  .lux-hero-gradient {
+  .lp-gold-border {
+    border: 1px solid transparent;
     background:
-      radial-gradient(ellipse 80% 60% at 70% 20%, rgba(139, 124, 255, 0.28), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 20% 80%, rgba(84, 210, 255, 0.18), transparent 50%),
-      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255, 77, 166, 0.12), transparent 60%),
-      linear-gradient(180deg, var(--lux-void-warm) 0%, var(--lux-base) 100%);
+      linear-gradient(var(--lux-depth-2), var(--lux-depth-2)) padding-box,
+      linear-gradient(135deg, var(--lux-gold), var(--lux-primary), var(--lux-secondary)) border-box;
   }
 
-  .lux-aurora-bg {
+  .lp-aurora {
     position: relative;
     overflow: hidden;
   }
 
-  .lux-aurora-bg::before {
+  .lp-aurora::before {
     content: '';
     position: absolute;
     inset: -40%;
     background:
       radial-gradient(ellipse at 30% 20%, rgba(139, 124, 255, 0.18), transparent 45%),
       radial-gradient(ellipse at 70% 60%, rgba(84, 210, 255, 0.14), transparent 42%),
-      radial-gradient(ellipse at 50% 80%, rgba(255, 77, 166, 0.1), transparent 40%);
-    animation: lux-aurora-drift 18s ease-in-out infinite alternate;
+      radial-gradient(ellipse at 50% 80%, rgba(201, 169, 98, 0.1), transparent 40%);
+    animation: lp-aurora-drift 18s ease-in-out infinite alternate;
     pointer-events: none;
   }
 
-  @keyframes lux-aurora-drift {
+  @keyframes lp-aurora-drift {
     0% {
       transform: translate(0, 0) rotate(0deg);
     }
@@ -409,23 +400,17 @@
     }
   }
 
-  .lux-gradient-border-gold {
-    border: 1px solid transparent;
-    background:
-      linear-gradient(var(--lux-depth-2), var(--lux-depth-2)) padding-box,
-      linear-gradient(135deg, var(--lux-gold), var(--lux-primary), var(--lux-secondary)) border-box;
-  }
-
-  .lux-floating-nav {
+  .lp-nav {
     position: fixed;
     top: 1rem;
     left: 50%;
-    z-index: 50;
+    z-index: 60;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 0.5rem;
-    width: min(calc(100% - 2rem), 720px);
-    padding: 0.5rem 0.75rem;
+    width: min(calc(100% - 2rem), 760px);
+    padding: 0.5rem 1rem;
     border-radius: 999px;
     border: 1px solid rgba(232, 236, 244, 0.12);
     background: rgba(15, 17, 23, 0.72);
@@ -434,7 +419,7 @@
     box-shadow:
       0 12px 40px rgba(0, 0, 0, 0.35),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    transform: translateX(-50%) translateY(-120%);
+    transform: translateX(-50%) translateY(-130%);
     opacity: 0;
     transition:
       transform 400ms var(--ease-lux),
@@ -442,42 +427,119 @@
     pointer-events: none;
   }
 
-  .lux-floating-nav.is-visible {
+  .lp-nav.is-visible {
     transform: translateX(-50%) translateY(0);
     opacity: 1;
     pointer-events: auto;
   }
 
-  .lux-tilt-card {
+  .lp-tilt {
     transform-style: preserve-3d;
     transition: box-shadow 280ms var(--ease-lux);
   }
 
-  .lux-tilt-card-glare {
+  .lp-tilt-glare {
     position: absolute;
     inset: 0;
     border-radius: inherit;
     opacity: 0;
     pointer-events: none;
-    background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255, 255, 255, 0.12), transparent 55%);
+    background: radial-gradient(
+      circle at var(--glare-x, 50%) var(--glare-y, 50%),
+      rgba(255, 255, 255, 0.12),
+      transparent 55%
+    );
     transition: opacity 280ms var(--ease-lux);
   }
 
-  .lux-tilt-card:hover .lux-tilt-card-glare {
+  .lp-tilt:hover .lp-tilt-glare {
     opacity: 1;
   }
 
-  .lux-section-depth {
-    position: relative;
-    background: var(--lux-depth-1);
+  .lp-beam {
+    position: absolute;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(201, 169, 98, 0.5), transparent);
+    pointer-events: none;
   }
 
-  .lux-section-depth::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(139, 124, 255, 0.06), transparent 70%);
-    pointer-events: none;
+  /* لوگو — PNG شفاف */
+  /* لوگو — بدون قاب مربعی */
+  .lp-brand-logo,
+  .lp-brand-logo img {
+    background: transparent !important;
+  }
+
+  .lp-logo-float {
+    animation: lp-logo-float 6s ease-in-out infinite;
+  }
+
+  @keyframes lp-logo-float {
+    0%,
+    100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-10px) scale(1.02);
+    }
+  }
+
+  .lp-auth-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border-radius: 0.875rem;
+    border: 1px solid rgba(232, 236, 244, 0.1);
+    background: rgba(15, 17, 23, 0.6);
+  }
+
+  .lp-auth-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border-radius: 0.625rem;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--lux-text-muted);
+    transition:
+      background 160ms var(--ease-lux),
+      color 160ms var(--ease-lux),
+      box-shadow 160ms var(--ease-lux);
+  }
+
+  .lp-auth-tab[data-state='active'] {
+    color: var(--lux-text);
+    background: rgba(139, 124, 255, 0.18);
+    box-shadow: 0 4px 16px rgba(139, 124, 255, 0.15);
+  }
+
+  .lp-auth-hint {
+    margin-bottom: 1rem;
+    border-radius: 0.875rem;
+    border: 1px solid rgba(232, 236, 244, 0.1);
+    background: rgba(139, 124, 255, 0.08);
+    padding: 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: var(--lux-text-muted);
+  }
+
+  .lp-input-dark {
+    border-color: rgba(232, 236, 244, 0.12) !important;
+    background: rgba(15, 17, 23, 0.65) !important;
+    color: var(--lux-text) !important;
+  }
+
+  .lp-input-dark::placeholder {
+    color: rgba(139, 154, 176, 0.6);
+  }
+
+  .lp-input-dark:focus-visible {
+    border-color: rgba(139, 124, 255, 0.45) !important;
+    box-shadow: 0 0 0 2px rgba(139, 124, 255, 0.2);
   }
 
   .lux-empty {
@@ -549,8 +611,8 @@
     animation-duration: 1.5s;
   }
 
-  .lux-gradient-text-animated,
-  .lux-aurora-bg::before {
+  .lp-gradient-text-animated,
+  .lp-aurora::before {
     animation: none;
   }
 

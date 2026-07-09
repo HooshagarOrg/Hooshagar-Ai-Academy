@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Calendar, ChevronLeft, ClipboardCheck, PlayCircle } from 'lucide-react'
-import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
-import { LuxDashboardSection, LuxSectionBlock } from '@/components/lux/lux-dashboard-section'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { LuxErrorState, LuxSkeletonCards } from '@/components/lux/lux-page-states'
 
 interface Exam {
@@ -42,21 +41,24 @@ export default function StudentExamsPage() {
   }, [])
 
   return (
-    <LuxDashboardSection header={<LuxPageHeader title="آزمون‌ها" subtitle="تقویم امتحانات و وضعیت شرکت" />}>
+    <DashboardPage
+      title="آزمون‌ها"
+      description="تقویم امتحانات و وضعیت شرکت"
+    >
       {loading ? (
-        <LuxSectionBlock><LuxSkeletonCards variant="lux" className="sm:grid-cols-2 lg:grid-cols-3" /></LuxSectionBlock>
+        <DashboardSectionBlock><LuxSkeletonCards variant="lux" className="sm:grid-cols-2 lg:grid-cols-3" /></DashboardSectionBlock>
       ) : error ? (
-        <LuxSectionBlock>
+        <DashboardSectionBlock>
           <LuxErrorState message={error} onRetry={loadExams} variant="lux" />
-        </LuxSectionBlock>
+        </DashboardSectionBlock>
       ) : exams.length === 0 ? (
-        <LuxSectionBlock>
+        <DashboardSectionBlock>
           <LuxEmptyState icon={<ClipboardCheck className="h-6 w-6" />} title="آزمون پیش‌رویی نیست" description="وقتی مدرسه آزمون تعریف کند اینجا نمایش داده می‌شود." />
-        </LuxSectionBlock>
+        </DashboardSectionBlock>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {exams.map((exam) => (
-            <LuxSectionBlock key={exam.id}>
+            <DashboardSectionBlock key={exam.id}>
               <LuxCard interactive>
               <div className="flex items-start justify-between gap-2">
                 <div>
@@ -74,10 +76,10 @@ export default function StudentExamsPage() {
                 <ChevronLeft className="h-4 w-4" />
               </Link>
               </LuxCard>
-            </LuxSectionBlock>
+            </DashboardSectionBlock>
           ))}
         </div>
       )}
-    </LuxDashboardSection>
+    </DashboardPage>
   )
 }

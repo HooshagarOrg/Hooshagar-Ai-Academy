@@ -8,12 +8,14 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { Megaphone } from 'lucide-react'
 
 export default function AdminBroadcastPage() {
   const [loading, setLoading] = useState(false)
@@ -61,15 +63,19 @@ export default function AdminBroadcastPage() {
   }
 
   return (
-    <div className="container mx-auto py-8" dir="rtl">
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl font-vazir">ارسال پیام گروهی</CardTitle>
-          <CardDescription className="font-vazir">
-            ارسال اطلاع‌رسانی موردی به کاربران (پیامک + اعلان داخلی)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <Megaphone className="text-[var(--lux-primary)]" aria-hidden />
+          ارسال پیام گروهی
+        </span>
+      }
+      description="ارسال اطلاع‌رسانی موردی به کاربران (پیامک + اعلان داخلی)"
+      className="max-w-2xl"
+    >
+      <DashboardSectionBlock>
+      <Card>
+        <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div className="space-y-2">
@@ -99,7 +105,7 @@ export default function AdminBroadcastPage() {
                 className="font-vazir"
                 dir="rtl"
               />
-              <p className="text-sm text-gray-500 font-vazir">
+              <p className="text-sm text-[var(--lux-text-muted)]">
                 {formData.message.length}/500 کاراکتر
               </p>
             </div>
@@ -160,17 +166,16 @@ export default function AdminBroadcastPage() {
             </div>
 
             {/* Preview */}
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <p className="font-medium text-sm mb-2 font-vazir">👁️ پیش‌نمایش پیامک:</p>
-              <div className="text-sm text-gray-700 bg-white p-3 rounded border-r-4 border-blue-400 font-vazir">
+            <div className="rounded-xl border border-[var(--lux-secondary)]/30 bg-[var(--lux-secondary)]/10 p-4">
+              <p className="mb-2 text-sm font-medium text-[var(--lux-text)]">👁️ پیش‌نمایش پیامک:</p>
+              <div className="rounded-lg border-r-4 border-[var(--lux-secondary)] bg-white/[0.04] p-3 text-sm text-[var(--lux-text)]">
                 <p className="font-bold">{formData.title || '[عنوان]'}</p>
                 <p className="mt-1">{formData.message || '[متن پیام]'}</p>
-                <p className="mt-2 text-gray-500">hooshagar.com</p>
+                <p className="mt-2 text-[var(--lux-text-muted)]">hooshagar.com</p>
               </div>
             </div>
 
-            {/* Warning */}
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg text-sm font-vazir">
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
               <p className="font-medium">⚠️ توجه:</p>
               <p className="mt-1">
                 این پیام به همه کاربران منتخب ارسال می‌شود. لطفاً از صحت اطلاعات اطمینان حاصل کنید.
@@ -188,7 +193,8 @@ export default function AdminBroadcastPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }
 

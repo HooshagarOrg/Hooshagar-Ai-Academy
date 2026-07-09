@@ -6,6 +6,7 @@ import {
   clearLegacyAuthCookies,
   LEGACY_SUPABASE_AUTH_COOKIES,
 } from '@/lib/supabase/auth-cookie'
+import { isPublicApiRoute } from '@/lib/security/public-api-routes'
 
 // ============================================
 // تایپ‌ها
@@ -50,17 +51,22 @@ const PUBLIC_ROUTES = [
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/change-password',
+  '/activate',
   '/terms',
+  '/privacy',
+  '/pricing',
+  '/checkout',
+  '/help',
+  '/offline',
 ]
 
-// مسیرهایی که middleware نباید بررسی کند
+// مسیرهای استاتیک که middleware نباید بررسی کند (بدون /api)
 const EXCLUDED_ROUTES = [
-  '/api',
   '/_next',
   '/favicon.ico',
   '/apple-touch-icon.png',
   '/manifest.json',
-  '/logo.png',
   '/images',
   '/videos',
   '/brand',
@@ -111,9 +117,11 @@ function isExcludedRoute(pathname: string): boolean {
 // هلپر: بررسی مسیرهای عمومی
 // ============================================
 function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}?`)
-  )
+  const pathOnly = pathname.split('?')[0] ?? pathname
+  return PUBLIC_ROUTES.some((route) => {
+    if (route === '/') return pathOnly === '/'
+    return pathOnly === route || pathOnly.startsWith(`${route}/`)
+  })
 }
 
 // ============================================
@@ -175,24 +183,77 @@ function checkGradeRestriction(
 }
 
 // ============================================
+// محافظ API — session اجباری به‌جز مسیرهای عمومی
+// ============================================
+async function handleApiRoute(request: NextRequest): Promise<NextResponse> {
+  const { pathname } = request.nextUrl
+
+  if (isPublicApiRoute(pathname)) {
+    return NextResponse.next()
+  }
+
+  let response = NextResponse.next({ request: { headers: request.headers } })
+
+  const supabase = createServerClient(
+    getSupabaseMiddlewareUrl(),
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookieOptions: supabaseAuthCookieOptions,
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value)
+          })
+          response = NextResponse.next({ request: { headers: request.headers } })
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
+        },
+      },
+    },
+  )
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json(
+      { success: false, error: 'احراز هویت الزامی است', error_code: 'UNAUTHORIZED' },
+      { status: 401 },
+    )
+  }
+
+  return response
+}
+
+// ============================================
 // Middleware اصلی
 // ============================================
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // 1. مسیرهای مستثنی - عبور بدون بررسی
+  // 1. مسیرهای استاتیک — عبور بدون بررسی
   if (isExcludedRoute(pathname)) {
     return NextResponse.next()
   }
 
-  // 2. ایجاد Response برای مدیریت کوکی‌ها
+  // 2. API — session اجباری (به‌جز public list)
+  if (pathname.startsWith('/api')) {
+    return handleApiRoute(request)
+  }
+
+  // 3. ایجاد Response برای مدیریت کوکی‌ها
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   })
 
-  // 3. ایجاد Supabase Client
+  // 4. ایجاد Supabase Client
   const supabase = createServerClient(
     getSupabaseMiddlewareUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -219,11 +280,15 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // 4. دریافت session از JWT کوکی — بدون network call به Auth API
+  // مسیرهای تست — فقط در development
+  if (process.env.NODE_ENV === 'production' && pathname.startsWith('/test-')) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // 5. احراز هویت — getUser اعتبار JWT را با Auth API تأیید می‌کند
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  const user = session?.user ?? null
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // حذف کوکی‌های legacy
   if (!user) {

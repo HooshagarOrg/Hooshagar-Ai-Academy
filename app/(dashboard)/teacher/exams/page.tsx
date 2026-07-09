@@ -11,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { PageHeader } from '@/components/ui/page-header'
 import { GlassCard } from '@/components/ui/glass-card'
 import { StatCard } from '@/components/ui/stat-card'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -34,8 +33,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
-import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { PageErrorState, PageLoading } from '@/components/ui/page-states'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 // ============================================
 // تایپ‌ها
@@ -140,35 +139,32 @@ export default function TeacherExamsPage() {
     new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(dateStr))
 
   return (
-    <div className="space-y-6" dir="rtl">
-      <LuxFadeUp>
-      <PageHeader
-        title="آزمون‌های من"
-        description="مدیریت و برگزاری آزمون‌های آنلاین"
-        icon={ClipboardList}
-        iconColor="text-brand-purple"
-        iconBg="bg-brand-purple/15 border border-brand-purple/20"
-        actions={
-          <div className="flex gap-2">
-            <Link href="/teacher/exams/upload">
-              <Button variant="outline" className="gap-2">
-                <Upload className="w-4 h-4" />
-                آپلود PDF
-              </Button>
-            </Link>
-            <Link href="/teacher/exams/create">
-              <Button className="bg-brand-purple hover:opacity-90 text-space gap-2">
-                <Plus className="w-4 h-4" />
-                آزمون جدید
-              </Button>
-            </Link>
-          </div>
-        }
-      />
-      </LuxFadeUp>
-
-      <LuxStagger className="space-y-6" stagger={0.08}>
-      <LuxStaggerItem>
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <ClipboardList className="h-8 w-8 text-[var(--lux-primary)]" />
+          آزمون‌های من
+        </span>
+      }
+      description="مدیریت و برگزاری آزمون‌های آنلاین"
+      actions={
+        <div className="flex gap-2">
+          <Link href="/teacher/exams/upload">
+            <Button variant="outline" className="gap-2">
+              <Upload className="w-4 h-4" />
+              آپلود PDF
+            </Button>
+          </Link>
+          <Link href="/teacher/exams/create">
+            <Button className="bg-brand-purple hover:opacity-90 text-space gap-2">
+              <Plus className="w-4 h-4" />
+              آزمون جدید
+            </Button>
+          </Link>
+        </div>
+      }
+    >
+      <DashboardSectionBlock>
       {/* آمار */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard label="کل آزمون‌ها" value={stats.total} accentClass="text-brand-cyan" />
@@ -176,9 +172,9 @@ export default function TeacherExamsPage() {
         <StatCard label="پایان یافته" value={stats.closed} accentClass="text-brand-purple" />
         <StatCard label="کل شرکت‌کنندگان" value={stats.submissions} accentClass="text-brand-yellow" />
       </div>
-      </LuxStaggerItem>
+      </DashboardSectionBlock>
 
-      <LuxStaggerItem>
+      <DashboardSectionBlock>
       {/* جستجو و فیلتر */}
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
@@ -210,9 +206,9 @@ export default function TeacherExamsPage() {
           ))}
         </div>
       </div>
-      </LuxStaggerItem>
+      </DashboardSectionBlock>
 
-      <LuxStaggerItem>
+      <DashboardSectionBlock>
       {/* لیست آزمون‌ها */}
       {isLoading ? (
         <PageLoading label="در حال بارگذاری آزمون‌ها..." compact />
@@ -363,8 +359,7 @@ export default function TeacherExamsPage() {
           })}
         </div>
       )}
-      </LuxStaggerItem>
-      </LuxStagger>
+      </DashboardSectionBlock>
 
       {/* دیالوگ حذف */}
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
@@ -387,6 +382,6 @@ export default function TeacherExamsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </DashboardPage>
   )
 }

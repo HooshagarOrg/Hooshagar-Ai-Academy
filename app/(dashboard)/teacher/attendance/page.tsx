@@ -38,8 +38,13 @@ import { Separator } from '@/components/ui/separator'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { toast } from 'sonner'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import dynamic from 'next/dynamic'
+
+const AttendancePieChart = dynamic(
+  () => import('@/components/teacher/attendance-pie-chart').then((m) => m.AttendancePieChart),
+  { ssr: false, loading: () => <div className="h-[200px] animate-pulse rounded-xl bg-white/[0.04]" /> },
+)
 
 // Types
 interface Student {
@@ -153,8 +158,7 @@ export default function TeacherAttendancePage() {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [tempNote, setTempNote] = useState('')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [tempCertificate, setTempCertificate] = useState<File | null>(null)
+  const [, setTempCertificate] = useState<File | null>(null)
   const [notifyParent, setNotifyParent] = useState(true)
   const [notifyVP, setNotifyVP] = useState(false)
 
@@ -328,27 +332,23 @@ export default function TeacherAttendancePage() {
   ].filter(item => item.value > 0)
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:px-6" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-      {/* Header */}
-      <div className="mb-2 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-            <Users className="w-8 h-8 text-blue-500" />
-            ثبت حضور و غیاب
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {format(selectedDate, 'EEEE d MMMM yyyy', { locale: faIR })}
-          </p>
-        </div>
-        
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <Users className="h-8 w-8 text-[var(--lux-primary)]" />
+          ثبت حضور و غیاب
+        </span>
+      }
+      description={format(selectedDate, 'EEEE d MMMM yyyy', { locale: faIR })}
+      actions={
         <Button variant="outline" className="gap-2">
-          <BarChart3 className="w-4 h-4" />
+          <BarChart3 className="h-4 w-4" />
           گزارش‌ها
         </Button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      }
+    >
+      <DashboardSectionBlock>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         {/* Main Content */}
         <div className="lg:col-span-3 space-y-6">
           {/* Selection Card */}
@@ -650,27 +650,7 @@ export default function TeacherAttendancePage() {
                 {/* Mini Pie Chart */}
                 {chartData.length > 0 && (
                   <div className="h-[180px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={chartData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={70}
-                          paddingAngle={2}
-                          dataKey="value"
-                        >
-                          {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value, name) => [`${value} نفر`, name]}
-                          contentStyle={{ fontFamily: 'inherit' }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <AttendancePieChart data={chartData} />
                   </div>
                 )}
 
@@ -700,7 +680,7 @@ export default function TeacherAttendancePage() {
           </Card>
         </div>
       </div>
-      </LuxFadeUp>
+      </DashboardSectionBlock>
 
       {/* Note Dialog */}
       <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
@@ -780,7 +760,7 @@ export default function TeacherAttendancePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardPage>
   )
 }
 

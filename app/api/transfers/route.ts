@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { withAuth, STAFF_ROLES } from '@/lib/security/api-guard'
 import type { TransferRequest, CreateTransferRequestInput } from '@/lib/types/academic.types'
 
 const createTransferSchema = z.object({
@@ -16,7 +17,8 @@ const createTransferSchema = z.object({
 /**
  * GET: دریافت لیست درخواست‌های انتقال
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  return withAuth(request, async () => {
   try {
     const supabase = await createServerClient()
 
@@ -62,13 +64,15 @@ export async function GET(request: Request) {
       success: true,
       data: formatted,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'خطای سرور'
     console.error('خطا در دریافت درخواست‌های انتقال:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'خطای سرور' },
+      { success: false, error: message },
       { status: 500 }
     )
   }
+  }, { roles: STAFF_ROLES })
 }
 
 /**

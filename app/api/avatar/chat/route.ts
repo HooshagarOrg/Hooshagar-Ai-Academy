@@ -14,13 +14,15 @@ import { buildProactiveWelcome } from '@/lib/avatar/greeting'
 import { getAvatarQuickActions } from '@/lib/avatar/quick-actions'
 import {
   checkAvatarDailyLimit,
-  recordAvatarAIMessage,
+  reserveAvatarAIMessage,
   getAvatarDailyLimit,
 } from '@/lib/avatar/rate-limit'
 import { loadAvatarChatHistory, saveAvatarChatExchange, clearAvatarChatHistory } from '@/lib/avatar/history'
 import { getRouteHandlerUser } from '@/lib/supabase/route-handler'
 import { log } from '@/lib/logger'
 import type { Database } from '@/types/database.types'
+
+export const maxDuration = 60
 
 const chatSchema = z.object({
   message: z
@@ -156,18 +158,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
+    const reserved = await reserveAvatarAIMessage(user.id, supabase)
+    if (!reserved.allowed) {
+      return jsonWithCookies(
+        {
+          error: DAILY_LIMIT_MESSAGE(reserved.remaining),
+          remainingMessages: reserved.remaining,
+        },
+        cookieResponse,
+        { status: 429 }
+      )
+    }
+
     const systemPrompt = buildAvatarSystemPrompt(ctx)
 
     try {
       const ai = await callAvatarAI(systemPrompt, message)
-      const afterRecord = await recordAvatarAIMessage(user.id, supabase)
       await saveAvatarChatExchange(user.id, supabase, message, ai.content, ai.source)
       return jsonWithCookies(
         {
           reply: ai.content,
           source: ai.source,
           model: ai.model,
-          remainingMessages: afterRecord.remaining,
+          remainingMessages: reserved.remaining,
           countsTowardLimit: true,
         },
         cookieResponse

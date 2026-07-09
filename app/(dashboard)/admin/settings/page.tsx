@@ -8,7 +8,7 @@ import {
   Sliders, Users, Building, GraduationCap, Sparkles, Video,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { PageHeader } from '@/components/ui/page-header'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { cn } from '@/lib/utils'
 
@@ -187,45 +187,45 @@ const SETTINGS_GROUPS: { title: string; cards: SettingsCard[] }[] = [
 
 export default function AdminSettingsPage() {
   return (
-    <div dir="rtl">
-      <PageHeader
-        title="تنظیمات سیستم"
-        description="پیکربندی کامل پلتفرم هوشاگر"
-        icon={Settings}
-        iconColor="text-brand-cyan"
-        iconBg="bg-brand-cyan/15 border border-brand-cyan/20"
-      />
-
-      <div className="space-y-8">
-        {SETTINGS_GROUPS.map((group, gIdx) => (
-          <div key={gIdx}>
-            <h2 className="text-sm font-bold text-muted-foreground mb-3 px-1">{group.title}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {group.cards.map((card, cIdx) => {
-                const Icon = card.icon
-                return (
-                  <Link key={cIdx} href={card.href} className="block group">
-                    <GlassCard hover className="p-5 h-full">
-                      <div className="flex items-start gap-3">
-                        <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0', card.bg)}>
-                          <Icon className={cn('w-5 h-5', card.color)} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-sm mb-1 group-hover:text-brand-cyan transition-colors">
-                            {card.title}
-                          </h3>
-                          <p className="text-xs text-muted-foreground leading-relaxed">{card.description}</p>
-                        </div>
-                        <ChevronLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0 mt-1" />
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 rounded-xl bg-brand-cyan/15 border border-brand-cyan/20 flex items-center justify-center">
+            <Settings className="w-6 h-6 text-brand-cyan" />
+          </span>
+          تنظیمات سیستم
+        </span>
+      }
+      description="پیکربندی کامل پلتفرم هوشاگر"
+    >
+      {SETTINGS_GROUPS.map((group, gIdx) => (
+        <DashboardSectionBlock key={gIdx}>
+          <h2 className="text-sm font-bold text-muted-foreground mb-3 px-1">{group.title}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {group.cards.map((card, cIdx) => {
+              const Icon = card.icon
+              return (
+                <Link key={cIdx} href={card.href} className="block group">
+                  <GlassCard hover className="p-5 h-full">
+                    <div className="flex items-start gap-3">
+                      <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0', card.bg)}>
+                        <Icon className={cn('w-5 h-5', card.color)} />
                       </div>
-                    </GlassCard>
-                  </Link>
-                )
-              })}
-            </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-sm mb-1 group-hover:text-brand-cyan transition-colors">
+                          {card.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{card.description}</p>
+                      </div>
+                      <ChevronLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0 mt-1" />
+                    </div>
+                  </GlassCard>
+                </Link>
+              )
+            })}
           </div>
-        ))}
-      </div>
-    </div>
+        </DashboardSectionBlock>
+      ))}
+    </DashboardPage>
   )
 }

@@ -5,6 +5,8 @@ import { callAI } from '@/lib/ai-provider'
 import { z } from 'zod'
 import { AUTH_ERRORS, secureErrorResponse } from '@/lib/security/error-handler'
 
+export const maxDuration = 60
+
 const analyzeSchema = z.object({
   studentId: z.string().uuid(),
   analysisType: z.enum(['academic', 'behavioral', 'comprehensive']).optional().default('comprehensive'),

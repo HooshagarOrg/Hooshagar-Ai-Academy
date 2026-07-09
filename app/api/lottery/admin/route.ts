@@ -387,8 +387,12 @@ export async function PATCH(request: NextRequest) {
 
         if (results?.length) {
           const provider = createSmsProvider()
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const messages = results.map((r: any) => {
+          type LotterySmsRow = {
+            status: string
+            students?: { full_name?: string; profiles?: { phone?: string } } | null
+            lottery_classes?: { class_name?: string; teacher_name?: string } | null
+          }
+          const messages = (results as LotterySmsRow[]).map((r) => {
             const name  = r.students?.full_name ?? ''
             const phone = r.students?.profiles?.phone ?? ''
             const cls   = r.lottery_classes

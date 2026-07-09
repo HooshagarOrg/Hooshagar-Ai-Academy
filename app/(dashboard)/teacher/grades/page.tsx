@@ -10,7 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { GraduationCap, Plus, Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/ui/empty-state'
-import { PageErrorState, PageLoading, PageSkeletonTable } from '@/components/ui/page-states'
+import { PageErrorState, PageSkeletonTable } from '@/components/ui/page-states'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { cn } from '@/lib/utils'
 
 type Student = { id: string; full_name: string; grade?: number; student_number?: string }
 type Grade = {
@@ -120,78 +122,89 @@ export default function TeacherGradesPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold sm:text-2xl">
-            <GraduationCap className="text-blue-600" aria-hidden />
-            ثبت و مدیریت نمرات
-          </h1>
-          <p className="mt-1 text-sm leading-7 text-muted-foreground">
-            نمره‌ها بلافاصله برای دانش‌آموز و والدین قابل مشاهده می‌شود.
-          </p>
-        </div>
-        <Button onClick={() => setShowAdd(true)} className="min-h-10 w-full gap-2 bg-blue-600 sm:w-auto">
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <GraduationCap className="text-[var(--lux-primary)]" aria-hidden />
+          ثبت و مدیریت نمرات
+        </span>
+      }
+      description="نمره‌ها بلافاصله برای دانش‌آموز و والدین قابل مشاهده می‌شود."
+      actions={
+        <Button onClick={() => setShowAdd(true)} className="min-h-10 w-full gap-2 sm:w-auto">
           <Plus size={18} aria-hidden /> ثبت نمره جدید
         </Button>
-      </div>
-
-      <Card>
-        <CardHeader><CardTitle>لیست نمرات ثبت‌شده ({grades.length})</CardTitle></CardHeader>
-        <CardContent>
-          {loading ? (
-            <PageSkeletonTable rows={6} />
-          ) : error ? (
-            <PageErrorState message={error} onRetry={loadData} />
-          ) : grades.length === 0 ? (
-            <EmptyState
-              icon={GraduationCap}
-              title="هنوز نمره‌ای ثبت نکرده‌اید"
-              description="اولین نمره را برای دانش‌آموزان کلاس خود ثبت کنید."
-              action={
-                <Button onClick={() => setShowAdd(true)} className="min-h-10 gap-2">
-                  <Plus size={16} aria-hidden /> ثبت نمره
-                </Button>
-              }
-            />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] text-sm">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="p-3 text-right">دانش‌آموز</th>
-                    <th className="p-3 text-right">درس</th>
-                    <th className="p-3 text-right">نمره</th>
-                    <th className="p-3 text-right">نوع</th>
-                    <th className="p-3 text-right">تاریخ</th>
-                    <th className="p-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {grades.map(g => (
-                    <tr key={g.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">{g.students?.full_name || '-'}</td>
-                      <td className="p-3">{g.subject}</td>
-                      <td className="p-3">
-                        <span className={`font-bold ${g.score >= g.max_score * 0.5 ? 'text-green-600' : 'text-red-600'}`}>
-                          {g.score} / {g.max_score}
-                        </span>
-                      </td>
-                      <td className="p-3">{EXAM_TYPES.find(t => t.value === g.exam_type)?.label || g.exam_type}</td>
-                      <td className="p-3 text-gray-500">{new Date(g.exam_date).toLocaleDateString('fa-IR')}</td>
-                      <td className="p-3">
-                        <Button size="sm" variant="ghost" onClick={() => handleDelete(g.id)}>
-                          <Trash2 size={16} className="text-red-500" />
-                        </Button>
-                      </td>
+      }
+    >
+      <DashboardSectionBlock>
+        <Card>
+          <CardHeader>
+            <CardTitle>لیست نمرات ثبت‌شده ({grades.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <PageSkeletonTable rows={6} />
+            ) : error ? (
+              <PageErrorState message={error} onRetry={loadData} />
+            ) : grades.length === 0 ? (
+              <EmptyState
+                icon={GraduationCap}
+                title="هنوز نمره‌ای ثبت نکرده‌اید"
+                description="اولین نمره را برای دانش‌آموزان کلاس خود ثبت کنید."
+                action={
+                  <Button onClick={() => setShowAdd(true)} className="min-h-10 gap-2">
+                    <Plus size={16} aria-hidden /> ثبت نمره
+                  </Button>
+                }
+              />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-sm">
+                  <thead className="border-b border-white/[0.08] bg-white/[0.03]">
+                    <tr>
+                      <th className="p-3 text-right font-semibold text-[var(--lux-text-muted)]">دانش‌آموز</th>
+                      <th className="p-3 text-right font-semibold text-[var(--lux-text-muted)]">درس</th>
+                      <th className="p-3 text-right font-semibold text-[var(--lux-text-muted)]">نمره</th>
+                      <th className="p-3 text-right font-semibold text-[var(--lux-text-muted)]">نوع</th>
+                      <th className="p-3 text-right font-semibold text-[var(--lux-text-muted)]">تاریخ</th>
+                      <th className="p-3" />
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </thead>
+                  <tbody>
+                    {grades.map((g) => (
+                      <tr key={g.id} className="border-b border-white/[0.06] transition-colors hover:bg-white/[0.04]">
+                        <td className="p-3 text-[var(--lux-text)]">{g.students?.full_name || '-'}</td>
+                        <td className="p-3 text-[var(--lux-text)]">{g.subject}</td>
+                        <td className="p-3">
+                          <span
+                            className={cn(
+                              'font-bold',
+                              g.score >= g.max_score * 0.5 ? 'text-emerald-400' : 'text-red-400',
+                            )}
+                          >
+                            {g.score} / {g.max_score}
+                          </span>
+                        </td>
+                        <td className="p-3 text-[var(--lux-text-muted)]">
+                          {EXAM_TYPES.find((t) => t.value === g.exam_type)?.label || g.exam_type}
+                        </td>
+                        <td className="p-3 text-[var(--lux-text-muted)]">
+                          {new Date(g.exam_date).toLocaleDateString('fa-IR')}
+                        </td>
+                        <td className="p-3">
+                          <Button size="sm" variant="ghost" onClick={() => handleDelete(g.id)}>
+                            <Trash2 size={16} className="text-red-400" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </DashboardSectionBlock>
 
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent dir="rtl">
@@ -256,12 +269,12 @@ export default function TeacherGradesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAdd(false)}>انصراف</Button>
-            <Button onClick={handleSave} disabled={saving} className="bg-blue-600">
+            <Button onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="animate-spin" /> : 'ثبت نمره'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardPage>
   )
 }

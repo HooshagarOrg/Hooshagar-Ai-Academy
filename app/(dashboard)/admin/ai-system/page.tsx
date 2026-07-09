@@ -32,13 +32,12 @@ import {
   DollarSign, 
   Zap, 
   AlertTriangle,
-  
-  
-  
-  CheckCircle2
+  CheckCircle2,
+  RefreshCw,
+  Brain,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { LuxFadeUp } from '@/components/lux/lux-motion';
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page';
 import { PageLoading } from '@/components/ui/page-states';
 
 interface GeneralSettings {
@@ -231,29 +230,41 @@ export default function AISystemPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96" dir="rtl">
+      <DashboardPage
+        title={
+          <span className="flex items-center gap-3">
+            <span className="w-12 h-12 rounded-xl bg-brand-purple/15 border border-brand-purple/20 flex items-center justify-center">
+              <Brain className="w-6 h-6 text-brand-purple" />
+            </span>
+            سیستم مدیریت AI
+          </span>
+        }
+        description="مدیریت 6 لایه AI با fallback خودکار"
+      >
         <PageLoading label="در حال بارگذاری سیستم AI..." compact />
-      </div>
+      </DashboardPage>
     );
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-8" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">🤖 سیستم مدیریت AI</h1>
-          <p className="text-muted-foreground mt-1">
-            مدیریت 6 لایه AI با fallback خودکار
-          </p>
-        </div>
-        <Button variant="outline" onClick={fetchData} disabled={loading}>
-          🔄 بروزرسانی
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 rounded-xl bg-brand-purple/15 border border-brand-purple/20 flex items-center justify-center">
+            <Brain className="w-6 h-6 text-brand-purple" />
+          </span>
+          سیستم مدیریت AI
+        </span>
+      }
+      description="مدیریت 6 لایه AI با fallback خودکار"
+      actions={
+        <Button variant="outline" onClick={fetchData} disabled={loading} className="gap-2">
+          <RefreshCw className="w-4 h-4" />
+          بروزرسانی
         </Button>
-      </div>
-
-      {/* هشدارهای فعال */}
+      }
+    >
+      <DashboardSectionBlock>
       {alerts.filter(a => !a.acknowledged).length > 0 && (
         <div className="space-y-2">
           {alerts.filter(a => !a.acknowledged).map((alert) => (
@@ -286,7 +297,9 @@ export default function AISystemPage() {
           ))}
         </div>
       )}
+      </DashboardSectionBlock>
 
+      <DashboardSectionBlock>
       {/* آمار کلی */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -363,7 +376,9 @@ export default function AISystemPage() {
           </CardContent>
         </Card>
       </div>
+      </DashboardSectionBlock>
 
+      <DashboardSectionBlock>
       {/* کنترل Tier های پولی */}
       <Card className="border-orange-500 border-2">
         <CardHeader>
@@ -479,7 +494,9 @@ export default function AISystemPage() {
           </div>
         </CardContent>
       </Card>
+      </DashboardSectionBlock>
 
+      <DashboardSectionBlock>
       {/* جدول مدل‌های قابلیت‌ها */}
       <Card>
         <CardHeader>
@@ -545,8 +562,8 @@ export default function AISystemPage() {
           </Table>
         </CardContent>
       </Card>
-      </LuxFadeUp>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   );
 }
 

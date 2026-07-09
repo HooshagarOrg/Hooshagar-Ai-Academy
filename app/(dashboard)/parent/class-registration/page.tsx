@@ -44,6 +44,7 @@ import {
   AlertTitle,
 } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { toast } from 'sonner'
 import { Label } from '@/components/ui/label'
 import {
@@ -246,30 +247,41 @@ export default function ClassRegistrationPage() {
     return cls ? `${cls.name} - ${cls.teacher_name}` : null
   }
 
+  const pageTitle = (
+    <span className="flex items-center gap-2">
+      <GraduationCap className="h-8 w-8 text-blue-500" />
+      ثبت‌نام کلاس درسی
+    </span>
+  )
+
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6" dir="rtl">
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-40 w-full rounded-xl" />
-        <Skeleton className="h-64 w-full rounded-xl" />
-      </div>
+      <DashboardPage title={pageTitle} description="در حال بارگذاری اطلاعات ثبت‌نام...">
+        <DashboardSectionBlock className="space-y-6">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-40 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </DashboardSectionBlock>
+      </DashboardPage>
     )
   }
 
   // اگر قرعه‌کشی فعالی نیست
   if (!lotterySetting) {
     return (
-      <div className="container mx-auto p-6" dir="rtl">
-        <Card className="py-12">
-          <CardContent className="text-center">
-            <AlertCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-bold mb-2">ثبت‌نام فعالی وجود ندارد</h2>
-            <p className="text-muted-foreground">
-              در حال حاضر قرعه‌کشی فعالی برای پایه بعدی {student.full_name} وجود ندارد.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardPage title={pageTitle} description={`ثبت‌نام ${student.full_name}`}>
+        <DashboardSectionBlock>
+          <Card className="py-12">
+            <CardContent className="text-center">
+              <AlertCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-xl font-bold mb-2">ثبت‌نام فعالی وجود ندارد</h2>
+              <p className="text-muted-foreground">
+                در حال حاضر قرعه‌کشی فعالی برای پایه بعدی {student.full_name} وجود ندارد.
+              </p>
+            </CardContent>
+          </Card>
+        </DashboardSectionBlock>
+      </DashboardPage>
     )
   }
 
@@ -280,12 +292,16 @@ export default function ClassRegistrationPage() {
     const isFailed = existingRegistration.status === 'failed'
     
     return (
-      <div className="container mx-auto p-6 space-y-6" dir="rtl">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Trophy className="h-8 w-8 text-amber-500" />
-          نتیجه قرعه‌کشی
-        </h1>
-        
+      <DashboardPage
+        title={
+          <span className="flex items-center gap-2">
+            <Trophy className="h-8 w-8 text-amber-500" />
+            نتیجه قرعه‌کشی
+          </span>
+        }
+        description={`نتیجه ثبت‌نام ${student.full_name}`}
+      >
+        <DashboardSectionBlock>
         <Card className={`${
           isSuccess ? 'border-green-500 bg-green-50' : 
           isFailed ? 'border-red-500 bg-red-50' : ''
@@ -336,8 +352,9 @@ export default function ClassRegistrationPage() {
             )}
           </CardContent>
         </Card>
+        </DashboardSectionBlock>
 
-        {/* انتخاب‌ها */}
+        <DashboardSectionBlock>
         <Card>
           <CardHeader>
             <CardTitle>انتخاب‌های شما</CardTitle>
@@ -378,24 +395,17 @@ export default function ClassRegistrationPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </DashboardSectionBlock>
+      </DashboardPage>
     )
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6" dir="rtl">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <GraduationCap className="h-8 w-8 text-blue-500" />
-          ثبت‌نام کلاس درسی
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          ثبت‌نام {student.full_name} برای پایه {gradeToText(student.next_grade)}
-        </p>
-      </div>
-
-      {/* اطلاعات قرعه‌کشی */}
+    <DashboardPage
+      title={pageTitle}
+      description={`ثبت‌نام ${student.full_name} برای پایه ${gradeToText(student.next_grade)}`}
+    >
+      <DashboardSectionBlock>
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -445,8 +455,9 @@ export default function ClassRegistrationPage() {
           </div>
         </CardContent>
       </Card>
+      </DashboardSectionBlock>
 
-      {/* فرم انتخاب */}
+      <DashboardSectionBlock>
       <Card>
         <CardHeader>
           <CardTitle>انتخاب کلاس‌ها</CardTitle>
@@ -565,8 +576,9 @@ export default function ClassRegistrationPage() {
           )}
         </CardFooter>
       </Card>
+      </DashboardSectionBlock>
 
-      {/* آمار کلاس‌ها */}
+      <DashboardSectionBlock>
       <Card>
         <CardHeader>
           <CardTitle>میزان تقاضای کلاس‌ها</CardTitle>
@@ -597,9 +609,10 @@ export default function ClassRegistrationPage() {
           })}
         </CardContent>
       </Card>
+      </DashboardSectionBlock>
 
-      {/* ثبت‌نام موجود */}
       {existingRegistration && (
+        <DashboardSectionBlock>
         <Alert className="bg-green-50 border-green-200">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertTitle className="text-green-800">ثبت‌نام شما انجام شده است</AlertTitle>
@@ -625,9 +638,9 @@ export default function ClassRegistrationPage() {
             </p>
           </AlertDescription>
         </Alert>
+        </DashboardSectionBlock>
       )}
 
-      {/* دیالوگ تأیید */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent dir="rtl">
           <DialogHeader>
@@ -705,7 +718,7 @@ export default function ClassRegistrationPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardPage>
   )
 }
 

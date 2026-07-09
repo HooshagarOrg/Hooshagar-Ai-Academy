@@ -7,7 +7,6 @@ import {
   User, Smartphone, GraduationCap, Shield,
   Loader2, Eye, EyeOff, KeyRound,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -202,19 +201,12 @@ export default function LoginPage() {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({ method: 'otp', phone, otp }),
     })
     const data = await response.json()
-    if (!response.ok || !data.success || !data.credentials) {
+    if (!response.ok || !data.success) {
       toast.error(data.error || 'کد تأیید نامعتبر است')
-      return
-    }
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: data.credentials.email,
-      password: data.credentials.password,
-    })
-    if (signInError) {
-      toast.error('خطا در ورود به سیستم')
       return
     }
     toast.success(`خوش آمدید! ${data.full_name || ''}`)
@@ -331,7 +323,6 @@ export default function LoginPage() {
         success?: boolean
         error?: string
         redirect?: string
-        credentials?: { email: string; password: string }
         student_info?: { full_name?: string }
       }
 
@@ -339,20 +330,6 @@ export default function LoginPage() {
         toast.error(data.error || 'کد دانش‌آموزی یا رمز اشتباه است')
         return
       }
-
-      // اگر credentials برگشت → server-side signIn ناموفق بود، مرورگر تلاش می‌کند
-      if (data.credentials) {
-        const supabase = createClient()
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: data.credentials.email,
-          password: data.credentials.password,
-        })
-        if (signInError) {
-          toast.error('خطا در ورود به سیستم. لطفاً دوباره تلاش کنید.')
-          return
-        }
-      }
-      // اگر credentials نبود → server-side موفق شد و کوکی‌ها set شده‌اند
 
       toast.success(`خوش آمدید! ${data.student_info?.full_name || ''}`)
       window.location.replace(data.redirect || '/student')
@@ -366,32 +343,20 @@ export default function LoginPage() {
   return (
     <div className="w-full" dir="rtl">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="mb-6 grid w-full grid-cols-4 rounded-xl border border-[#E2E8F0] bg-[#F4F7FC] p-1">
-                <TabsTrigger
-                  value="staff"
-                  className="gap-1 rounded-lg text-xs text-[#64748B] data-[state=active]:bg-white data-[state=active]:text-[#3B82F6] data-[state=active]:shadow-sm"
-                >
+              <TabsList className="lp-auth-tabs mb-6 h-auto w-full bg-transparent p-1">
+                <TabsTrigger value="staff" className="lp-auth-tab">
                   <User className="w-3.5 h-3.5" />
                   کارکنان
                 </TabsTrigger>
-                <TabsTrigger
-                  value="parent"
-                  className="gap-1 rounded-lg text-xs text-[#64748B] data-[state=active]:bg-white data-[state=active]:text-[#10B981] data-[state=active]:shadow-sm"
-                >
+                <TabsTrigger value="parent" className="lp-auth-tab">
                   <User className="w-3.5 h-3.5" />
                   والدین
                 </TabsTrigger>
-                <TabsTrigger
-                  value="student"
-                  className="gap-1 rounded-lg text-xs text-[#64748B] data-[state=active]:bg-white data-[state=active]:text-[#F59E0B] data-[state=active]:shadow-sm"
-                >
+                <TabsTrigger value="student" className="lp-auth-tab">
                   <GraduationCap className="w-3.5 h-3.5" />
                   دانش‌آموز
                 </TabsTrigger>
-                <TabsTrigger
-                  value="sms"
-                  className="gap-1 rounded-lg text-xs text-[#64748B] data-[state=active]:bg-white data-[state=active]:text-[#8B5CF6] data-[state=active]:shadow-sm"
-                >
+                <TabsTrigger value="sms" className="lp-auth-tab">
                   <Smartphone className="w-3.5 h-3.5" />
                   پیامک
                 </TabsTrigger>
@@ -399,7 +364,7 @@ export default function LoginPage() {
 
               {/* ===== تب کارکنان ===== */}
               <TabsContent value="staff" className="space-y-1">
-                <p className="text-xs text-muted-foreground mb-4 bg-brand-cyan/10 rounded-xl p-3 border border-brand-cyan/20">
+                <p className="lp-auth-hint">
                   نام کاربری لاتین یا کد ۱۰ رقمی (کد ملی / موبایل بدون صفر) + رمز عبور
                 </p>
                 <form onSubmit={handleStaffLogin} className="space-y-4">
@@ -413,7 +378,7 @@ export default function LoginPage() {
               required
               disabled={isLoading}
                       autoComplete="username"
-                      className="text-left"
+                      className="lp-input-dark text-left"
                       dir="ltr"
             />
           </div>
@@ -421,7 +386,7 @@ export default function LoginPage() {
           <div className="space-y-2">
                     <div className="flex items-center justify-between">
             <Label htmlFor="password">رمز عبور</Label>
-                      <Link href="/help" className="text-xs text-muted-foreground hover:text-primary">
+                      <Link href="/forgot-password" className="text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-primary)]">
                         فراموشی رمز؟
                       </Link>
                     </div>
@@ -434,7 +399,7 @@ export default function LoginPage() {
               required
               disabled={isLoading}
                         autoComplete="current-password"
-                        className="text-left pl-10"
+                        className="lp-input-dark text-left pl-10"
                       dir="ltr"
             />
                       <button
@@ -448,9 +413,9 @@ export default function LoginPage() {
                     </div>
           </div>
 
-                  <Button type="submit" className="hf-btn-primary w-full" disabled={isLoading}>
+                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
                     {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
-                  </Button>
+                  </button>
                   <button
                     type="button"
                     className="w-full text-xs text-[#3B82F6] hover:underline"
@@ -463,7 +428,7 @@ export default function LoginPage() {
 
               {/* ===== تب والدین ===== */}
               <TabsContent value="parent" className="space-y-1">
-                <p className="text-xs text-muted-foreground mb-4 bg-brand-green/10 rounded-xl p-3 border border-brand-green/20">
+                <p className="lp-auth-hint">
                   کد ۱۰ رقمی (کد ملی یا موبایل بدون صفر اول) + رمز عبور
                 </p>
                 <form onSubmit={handleParentLogin} className="space-y-4">
@@ -491,13 +456,13 @@ export default function LoginPage() {
                       placeholder="••••"
                       required
                       disabled={isLoading}
-                      className="text-left"
+                      className="lp-input-dark text-left"
                       dir="ltr"
                     />
                   </div>
-                  <Button type="submit" className="hf-btn-primary w-full" disabled={isLoading}>
+                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
                     {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
-                  </Button>
+                  </button>
                   <button
                     type="button"
                     className="w-full text-xs text-[#10B981] hover:underline"
@@ -510,7 +475,7 @@ export default function LoginPage() {
 
               {/* ===== تب دانش‌آموز ===== */}
               <TabsContent value="student" className="space-y-1">
-                <p className="text-xs text-muted-foreground mb-4 bg-brand-orange/10 rounded-xl p-3 border border-brand-orange/20">
+                <p className="lp-auth-hint">
                   کد دانش‌آموزی یا کد ملی ۱۰ رقمی + PIN
                 </p>
                 <form onSubmit={handleStudentLogin} className="space-y-4">
@@ -551,9 +516,9 @@ export default function LoginPage() {
                     />
                   </div>
 
-                  <Button type="submit" className="hf-btn-primary w-full" disabled={isLoading}>
+                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
                     {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
-          </Button>
+          </button>
                   <button
                     type="button"
                     className="w-full text-xs text-[#F59E0B] hover:underline"
@@ -566,7 +531,7 @@ export default function LoginPage() {
 
               {/* ===== تب ورود با پیامک (مشترک) ===== */}
               <TabsContent value="sms" className="space-y-1">
-                <p className="text-xs text-muted-foreground mb-4 rounded-xl border border-[#E9D5FF] bg-[#F5F3FF] p-3">
+                <p className="lp-auth-hint">
                   والدین و کارکنان: شماره ثبت‌شده در مدرسه. دانش‌آموز: فقط اگر موبایل اختصاصی در سیستم ثبت شده باشد.
                 </p>
                 {!otpSent ? (
@@ -586,9 +551,9 @@ export default function LoginPage() {
                         maxLength={11}
                       />
                     </div>
-                    <Button type="submit" className="hf-btn-primary w-full" disabled={isLoading}>
+                    <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
                       {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />ارسال کد...</> : 'دریافت کد تأیید'}
-                    </Button>
+                    </button>
                   </form>
                 ) : (
                   <form onSubmit={handleVerifyOtp} className="space-y-4">
@@ -617,36 +582,39 @@ export default function LoginPage() {
                         ارسال شده به {otpPhone}
                       </p>
                     </div>
-                    <Button type="submit" className="hf-btn-primary w-full" disabled={isLoading}>
+                    <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
                       {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال تأیید...</> : 'تأیید و ورود'}
-                    </Button>
+                    </button>
                     {otpTimer === 0 && (
-                      <Button type="button" variant="ghost" className="w-full" onClick={() => setOtpSent(false)}>
+                      <button
+                        type="button"
+                        className="lux-btn-ghost w-full"
+                        onClick={() => setOtpSent(false)}
+                      >
                         ارسال مجدد کد
-                      </Button>
+                      </button>
                     )}
-                    <Button
+                    <button
                       type="button"
-                      variant="ghost"
-                      className="w-full text-xs"
+                      className="w-full text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-text)]"
                       onClick={() => { setOtpSent(false); setOtpPhone('') }}
                       disabled={isLoading}
                     >
                       تغییر شماره موبایل
-                    </Button>
+                    </button>
                   </form>
                 )}
               </TabsContent>
             </Tabs>
 
-      <div className="mt-6 flex flex-col gap-3 border-t border-[#E2E8F0] pt-5">
+      <div className="mt-6 flex flex-col gap-3 border-t border-[rgba(232,236,244,0.1)] pt-5">
         <TermsAcceptanceNotice />
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <Shield className="w-3 h-3 text-brand-green" />
+        <div className="flex items-center justify-center gap-2 text-xs text-[var(--lux-text-muted)]">
+          <Shield className="w-3 h-3 text-[var(--lux-success)]" />
           <span>ورود شما با امنیت بالا محافظت می‌شود</span>
         </div>
         <div className="text-center">
-          <Link href="/help" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+          <Link href="/help" className="text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-primary)] transition-colors">
             راهنما و پشتیبانی
           </Link>
         </div>

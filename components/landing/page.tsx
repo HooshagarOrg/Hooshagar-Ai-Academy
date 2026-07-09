@@ -1,396 +1,435 @@
 'use client'
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+/**
+ * لندینگ‌پیج هوشاگر — لاکچری و سینمایی
+ * دارک، بدون asset خارجی، GSAP ScrollTrigger، فارسی RTL.
+ */
+
+import { useEffect, useState, type ReactNode } from 'react'
 import {
-  Award,
-  Brain,
-  Building2,
-  ChevronLeft,
-  Flame,
+  ArrowLeft,
+  BarChart3,
+  BookOpen,
+  Bot,
+  BrainCircuit,
+  GraduationCap,
   HeartHandshake,
-  Quote,
+  LineChart,
+  MessageCircle,
+  ScanText,
+  School,
   Sparkles,
-  Target,
-  TrendingUp,
-  Zap,
+  Sprout,
+  Trophy,
+  Users,
+  Wand2,
 } from 'lucide-react'
-import {
-  DashboardMock,
-  HooshiarMark,
-  LearningPathNodes,
-  ParentPhone,
-  ParticleField,
-  ScrollCounter,
-  TalentRadar,
-} from '@/components/landing/graphics'
-import { FloatingNav } from '@/components/landing/floating-nav'
-import { LandingHero } from '@/components/landing/hero'
-import { JourneySection } from '@/components/landing/journey-section'
-import {
-  MagneticButton,
-  ScrubProgress,
-  SectionReveal,
-  StaggerItem,
-  StaggerReveal,
-  TextReveal,
-  TiltCard,
-  ScrollProgressBar,
-} from '@/components/landing/gsap'
-import { EASE } from '@/components/landing/motion'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
-import { useRef } from 'react'
+import {
+  GlowCounter,
+  MagneticButton,
+  ScrollProgressBar,
+  SectionReveal,
+  StaggerReveal,
+  TiltCard,
+} from './motion'
+import LandingHero, { StarfieldCanvas } from './hero'
+import { CinematicVideoSection } from './cinematic-video-section'
 
-const TALENT_CARDS = [
-  { icon: Target, title: 'رادار چندبعدی', text: 'منطق، خلاقیت، زبان و مهارت اجتماعی در یک نگاه.' },
-  { icon: TrendingUp, title: 'روند واقعی', text: 'رشد در طول زمان — نه فقط نمره پایان ترم.' },
-  { icon: Brain, title: 'تفسیر هوشمند', text: 'هوشاگر الگوها را به زبان ساده توضیح می‌دهد.' },
-]
+/* ── ناوبری شناور ── */
+function FloatingNav(): JSX.Element {
+  const [visible, setVisible] = useState(false)
 
-const TESTIMONIALS = [
-  {
-    q: 'پسرم دیگر مدرسه را مثل یک بازی می‌بیند. هر روز می‌پرسد امروز چه مسیری داریم.',
-    n: 'مریم رضایی',
-    r: 'والدین — تهران',
-  },
-  {
-    q: 'تحلیل کلاس با AI کمک کرد زودتر به دانش‌آموزان نیازمند توجه برسم.',
-    n: 'امیر حسینی',
-    r: 'معلم علوم — اصفهان',
-  },
-  {
-    q: 'گزارش استعداد دخترم اولین‌بار نشان داد کجا قوی است و کجا نیاز به حمایت دارد.',
-    n: 'زهرا کاظمی',
-    r: 'والدین — شیراز',
-  },
-]
+  useEffect(() => {
+    const onScroll = (): void => {
+      setVisible(window.scrollY > window.innerHeight * 0.7)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
-const FAQ = [
-  {
-    q: 'هوشاگر با سامانه‌های مدرسه‌ای چه فرقی دارد؟',
-    a: 'تمرکز روی یادگیری شخصی، کشف استعداد و همراه AI است — نه فقط ثبت نمره و حضور.',
-  },
-  {
-    q: 'برای چه سنی مناسب است؟',
-    a: 'از ۶ تا ۱۸ سال با رابط ساده، تصویری و کاملاً فارسی طراحی شده است.',
-  },
-  {
-    q: 'والدین چه گزارش‌هایی می‌بینند؟',
-    a: 'رشد تحصیلی، استعداد، استریک یادگیری و پیشنهاد گفت‌وگو با فرزند.',
-  },
-  {
-    q: 'آیا برای مدارس هم مناسب است؟',
-    a: 'بله. ثبت‌نام انبوه، مدیریت نقش‌ها و گزارش‌های تحلیلی در مقیاس مدرسه.',
-  },
-  {
-    q: 'هوشیار چه کاری می‌کند؟',
-    a: 'مفاهیم را مرحله‌ای توضیح می‌دهد، تمرین پیشنهاد می‌کند و در تکلیف راهنمایی می‌کند.',
-  },
-  {
-    q: 'امنیت داده‌ها چطور است؟',
-    a: 'احراز هویت نقش‌محور، RLS در پایگاه داده و رمزنگاری استاندارد.',
-  },
-]
-
-function FaqRow({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false)
   return (
-    <div
-      className="border-b border-[rgba(232,236,244,0.08)] transition-colors"
-      style={{
-        borderImage: open
-          ? 'linear-gradient(270deg, var(--lux-gold), var(--lux-primary)) 1'
-          : undefined,
-      }}
-    >
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full cursor-pointer items-center justify-between py-5 text-right text-sm font-black text-[var(--lux-text)]"
+    <nav className={`lp-nav ${visible ? 'is-visible' : ''}`} aria-label="ناوبری اصلی">
+      <HooshagarLogo size="sm" href="/" inverted showWordmark priority />
+      <div className="hidden items-center gap-5 text-sm font-bold text-[var(--lux-text-muted)] sm:flex">
+        <a href="#cinematic" className="transition-colors hover:text-[var(--lux-text)]">
+          سینما
+        </a>
+        <a href="#hooshiar" className="transition-colors hover:text-[var(--lux-text)]">
+          هوشیار
+        </a>
+        <a href="#features" className="transition-colors hover:text-[var(--lux-text)]">
+          قابلیت‌ها
+        </a>
+        <a href="#roles" className="transition-colors hover:text-[var(--lux-text)]">
+          نقش‌ها
+        </a>
+      </div>
+      <a
+        href="/login"
+        className="rounded-full bg-[var(--lux-primary)] px-4 py-1.5 text-sm font-extrabold text-white transition-transform hover:-translate-y-0.5"
       >
-        {q}
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.25, ease: EASE }}>
-          <ChevronLeft className="h-4 w-4 rotate-[-90deg] text-[var(--lux-text-muted)]" />
-        </motion.span>
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: EASE }}
-            className="overflow-hidden"
-          >
-            <p className="pb-5 text-sm leading-8 text-[var(--lux-text-muted)]">{a}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+        ورود
+      </a>
+    </nav>
   )
 }
 
-export function LandingPage() {
-  const progressSectionRef = useRef<HTMLElement>(null)
+/* ── سکشن هوشیار (همراه هوش مصنوعی) ── */
+function HooshiarSection(): JSX.Element {
+  const chat: Array<{ from: 'ai' | 'user'; text: string }> = [
+    { from: 'user', text: 'هوشیار، فردا امتحان ریاضی دارم و استرس دارم!' },
+    {
+      from: 'ai',
+      text: 'نگران نباش! بر اساس کارنامه‌ات، فقط مبحث «معادلات» نیاز به مرور دارد. یک برنامهٔ ۹۰ دقیقه‌ای برایت چیدم. شروع کنیم؟',
+    },
+    { from: 'user', text: 'آره، بزن بریم 💪' },
+  ]
 
   return (
-    <main className="lux-noise overflow-x-hidden bg-[var(--lux-base)]" dir="rtl">
+    <section id="hooshiar" className="lux-section lp-aurora relative" aria-label="هوشیار">
+      <div className="lux-container relative z-10 grid items-center gap-12 lg:grid-cols-2">
+        <SectionReveal>
+          <p className="lux-kicker lp-kicker-gold mb-4">همراه همیشگی</p>
+          <h2 className="lux-h2 mb-5">
+            با <span className="lp-gradient-text-animated">هوشیار</span> آشنا شوید
+          </h2>
+          <p className="lux-body max-w-lg">
+            هوشیار، همراه هوش مصنوعی هوشاگر است؛ سؤال حل می‌کند، برنامهٔ مطالعه
+            می‌چیند، از روی عکسِ مسئله راه‌حل می‌نویسد و با قصه‌های اختصاصی،
+            یادگیری را برای بچه‌ها شیرین می‌کند. ۱۲ قابلیت هوش مصنوعی با پشتیبانی
+            کامل از زبان فارسی.
+          </p>
+          <ul className="mt-7 space-y-3 text-sm font-bold text-[var(--lux-text)]">
+            {[
+              'پاسخ‌گویی ۲۴ ساعته با درک عمیق از سطح هر دانش‌آموز',
+              'حل مسئله از روی عکس با OCR فارسی',
+              'قصه‌سازی آموزشی متناسب با سن و علاقه',
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-3">
+                <Sparkles
+                  className="mt-1 h-4 w-4 shrink-0 text-[var(--lux-gold)]"
+                  aria-hidden="true"
+                />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </SectionReveal>
+
+        <SectionReveal delay={0.15}>
+          <TiltCard className="lp-glass p-6" maxTilt={5}>
+            <div className="mb-5 flex items-center gap-3 border-b border-[rgba(232,236,244,0.08)] pb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--lux-primary)] to-[var(--lux-secondary)]">
+                <Bot className="h-5 w-5 text-white" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-[var(--lux-text)]">هوشیار</p>
+                <p className="text-xs text-[var(--lux-success)]">آنلاین</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {chat.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-7 ${
+                    msg.from === 'ai'
+                      ? 'ml-auto bg-[rgba(139,124,255,0.14)] text-[var(--lux-text)]'
+                      : 'bg-[rgba(232,236,244,0.06)] text-[var(--lux-text-muted)]'
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              ))}
+              <div className="mr-1 flex gap-1 pt-1" aria-hidden="true">
+                {[0, 1, 2].map((d) => (
+                  <span
+                    key={d}
+                    className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--lux-primary)]"
+                    style={{ animationDelay: `${d * 140}ms` }}
+                  />
+                ))}
+              </div>
+            </div>
+          </TiltCard>
+        </SectionReveal>
+      </div>
+    </section>
+  )
+}
+
+/* ── قابلیت‌ها ── */
+interface Feature {
+  icon: ReactNode
+  title: string
+  desc: string
+  accent: string
+}
+
+function FeaturesSection(): JSX.Element {
+  const features: Feature[] = [
+    {
+      icon: <BrainCircuit className="h-6 w-6" aria-hidden="true" />,
+      title: 'تحلیلگر تحصیلی',
+      desc: 'نقاط قوت، ضعف و سطح ریسک هر دانش‌آموز با تحلیل هوش مصنوعی از نمرات و رفتار.',
+      accent: 'var(--lux-primary)',
+    },
+    {
+      icon: <ScanText className="h-6 w-6" aria-hidden="true" />,
+      title: 'حل مسئله از عکس',
+      desc: 'عکس مسئله را بفرست؛ راه‌حل گام‌به‌گام با توضیح فارسی دریافت کن.',
+      accent: 'var(--lux-secondary)',
+    },
+    {
+      icon: <BookOpen className="h-6 w-6" aria-hidden="true" />,
+      title: 'همراه مطالعه',
+      desc: 'پرسش‌وپاسخ هوشمند از منابع درسی با جست‌وجوی معنایی و منابع دقیق.',
+      accent: 'var(--lux-gold)',
+    },
+    {
+      icon: <Wand2 className="h-6 w-6" aria-hidden="true" />,
+      title: 'قصه‌ساز جادویی',
+      desc: 'قصه‌های آموزشی اختصاصی بر اساس سن، علاقه و درس هر کودک.',
+      accent: 'var(--lux-accent)',
+    },
+    {
+      icon: <Sprout className="h-6 w-6" aria-hidden="true" />,
+      title: 'باغ استعداد',
+      desc: 'گیمیفیکیشن با XP، نشان و جدول امتیازات؛ رشد مهارت‌ها مثل یک باغ.',
+      accent: 'var(--lux-success)',
+    },
+    {
+      icon: <LineChart className="h-6 w-6" aria-hidden="true" />,
+      title: 'گزارش والدین',
+      desc: 'گزارش‌های دوره‌ای عمیق با بینش هوش مصنوعی، مستقیم برای پدر و مادر.',
+      accent: 'var(--lux-parent)',
+    },
+  ]
+
+  return (
+    <section
+      id="features"
+      className="lux-section relative"
+      aria-label="قابلیت‌ها"
+    >
+      <div className="lux-container">
+        <SectionReveal className="mb-14 text-center">
+          <p className="lux-kicker lp-kicker-gold mb-4">قدرت هوش مصنوعی</p>
+          <h2 className="lux-h2">
+            هر آنچه یک مدرسهٔ <span className="lp-gradient-text-animated">آینده‌نگر</span> نیاز دارد
+          </h2>
+        </SectionReveal>
+
+        <StaggerReveal className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((f) => (
+            <TiltCard key={f.title} className="lux-card h-full p-6" maxTilt={6}>
+              <div
+                className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl"
+                style={{
+                  background: `color-mix(in srgb, ${f.accent} 14%, transparent)`,
+                  color: f.accent,
+                }}
+              >
+                {f.icon}
+              </div>
+              <h3 className="mb-2 text-lg font-black text-[var(--lux-text)]">{f.title}</h3>
+              <p className="text-sm leading-7 text-[var(--lux-text-muted)]">{f.desc}</p>
+            </TiltCard>
+          ))}
+        </StaggerReveal>
+      </div>
+    </section>
+  )
+}
+
+/* ── نقش‌ها ── */
+interface Role {
+  icon: ReactNode
+  title: string
+  desc: string
+  accent: string
+}
+
+function RolesSection(): JSX.Element {
+  const roles: Role[] = [
+    {
+      icon: <GraduationCap className="h-7 w-7" aria-hidden="true" />,
+      title: 'دانش‌آموز',
+      desc: 'داشبورد شخصی، همراه مطالعه، باغ استعداد و آزمون‌های تعاملی.',
+      accent: 'var(--arc-student)',
+    },
+    {
+      icon: <Users className="h-7 w-7" aria-hidden="true" />,
+      title: 'معلم',
+      desc: 'حضور و غیاب، گزارش هفتگی هوشمند و ارتباط مستقیم با والدین.',
+      accent: 'var(--arc-teacher)',
+    },
+    {
+      icon: <HeartHandshake className="h-7 w-7" aria-hidden="true" />,
+      title: 'والدین',
+      desc: 'گزارش‌های عمیق از پیشرفت فرزند با بینش هوش مصنوعی، بدون پیچیدگی.',
+      accent: 'var(--arc-parent)',
+    },
+    {
+      icon: <School className="h-7 w-7" aria-hidden="true" />,
+      title: 'مدیر مدرسه',
+      desc: 'دید کامل به مدرسه؛ آمار، سلامت، مشاوره و مدیریت یکپارچه.',
+      accent: 'var(--arc-admin)',
+    },
+  ]
+
+  return (
+    <section id="roles" className="lux-section lp-aurora relative" aria-label="نقش‌ها">
+      <div className="lux-container relative z-10">
+        <SectionReveal className="mb-14 text-center">
+          <p className="lux-kicker lp-kicker-gold mb-4">برای همه</p>
+          <h2 className="lux-h2">یک پلتفرم، چهار تجربهٔ اختصاصی</h2>
+        </SectionReveal>
+
+        <StaggerReveal className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {roles.map((r) => (
+            <TiltCard key={r.title} className="lp-gold-border h-full rounded-3xl p-6 text-center" maxTilt={8}>
+              <div
+                className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full"
+                style={{
+                  background: `color-mix(in srgb, ${r.accent} 16%, transparent)`,
+                  color: r.accent,
+                  boxShadow: `0 0 32px color-mix(in srgb, ${r.accent} 25%, transparent)`,
+                }}
+              >
+                {r.icon}
+              </div>
+              <h3 className="mb-2 text-lg font-black text-[var(--lux-text)]">{r.title}</h3>
+              <p className="text-sm leading-7 text-[var(--lux-text-muted)]">{r.desc}</p>
+            </TiltCard>
+          ))}
+        </StaggerReveal>
+      </div>
+    </section>
+  )
+}
+
+/* ── آمار ── */
+function StatsSection(): JSX.Element {
+  const stats = [
+    { value: 12, suffix: '', label: 'قابلیت هوش مصنوعی', icon: <BrainCircuit className="h-5 w-5" aria-hidden="true" /> },
+    { value: 72, suffix: '', label: 'مدل زبانی پشتیبان', icon: <Bot className="h-5 w-5" aria-hidden="true" /> },
+    { value: 4, suffix: '', label: 'نقش کاربری اختصاصی', icon: <Users className="h-5 w-5" aria-hidden="true" /> },
+    { value: 100, suffix: '٪', label: 'فارسی و بومی', icon: <Trophy className="h-5 w-5" aria-hidden="true" /> },
+  ]
+
+  return (
+    <section
+      className="lux-section relative"
+      aria-label="آمار"
+    >
+      <div className="lux-container">
+        <StaggerReveal className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((s) => (
+            <div key={s.label} className="lp-glass p-6 text-center">
+              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(201,169,98,0.12)] text-[var(--lux-gold)]">
+                {s.icon}
+              </div>
+              <GlowCounter
+                value={s.value}
+                suffix={s.suffix}
+                className="block text-4xl font-black text-[var(--lux-text)]"
+              />
+              <p className="mt-2 text-sm font-bold text-[var(--lux-text-muted)]">{s.label}</p>
+            </div>
+          ))}
+        </StaggerReveal>
+      </div>
+    </section>
+  )
+}
+
+/* ── دعوت نهایی و فوتر ── */
+function CTASection(): JSX.Element {
+  return (
+    <section
+      className="lux-section relative overflow-hidden"
+      style={{
+        background:
+          'radial-gradient(ellipse 80% 90% at 50% 110%, rgba(139,124,255,0.2), transparent 60%), var(--lux-void)',
+      }}
+      aria-label="شروع"
+    >
+      <div className="lux-container relative z-10 text-center">
+        <SectionReveal>
+          <p className="lux-kicker lp-kicker-gold mb-5">همین امروز</p>
+          <h2 className="lux-display mx-auto max-w-3xl text-[clamp(2rem,6vw,4rem)]">
+            آیندهٔ مدرسه‌تان را{' '}
+            <span className="lp-gradient-text-animated">امروز</span> بسازید
+          </h2>
+          <p className="lux-body mx-auto mt-6 max-w-xl">
+            به جمع مدارسی بپیوندید که آموزش را با هوش مصنوعی متحول کرده‌اند.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <MagneticButton href="/login" className="lux-btn-accent px-9 text-base">
+              شروع کنید
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            </MagneticButton>
+            <MagneticButton href="#hooshiar" className="lux-btn-ghost px-9 text-base">
+              بیشتر بدانید
+            </MagneticButton>
+          </div>
+        </SectionReveal>
+      </div>
+    </section>
+  )
+}
+
+function Footer(): JSX.Element {
+  return (
+    <footer className="border-t border-[rgba(232,236,244,0.08)] py-10">
+      <div className="lux-container flex flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-right">
+        <div>
+          <HooshagarLogo size="sm" href="/" inverted showWordmark={false} />
+          <p className="mt-1 text-xs text-[var(--lux-text-muted)]">
+            سیستم‌عامل هوشمند مدیریت مدارس
+          </p>
+        </div>
+        <div className="flex items-center gap-6 text-xs font-bold text-[var(--lux-text-muted)]">
+          <a
+            href="mailto:info@hooshagar.ir"
+            className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--lux-text)]"
+          >
+            <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+            info@hooshagar.ir
+          </a>
+          <span className="inline-flex items-center gap-1.5">
+            <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
+            نسخهٔ ۲.۱
+          </span>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+/* ── صفحهٔ لندینگ ── */
+export default function LandingPage(): JSX.Element {
+  return (
+    <main className="lp-noise lp-aurora relative overflow-hidden" dir="rtl" style={{ background: 'var(--lux-void)' }}>
+      <StarfieldCanvas
+        density={1.35}
+        brightness={1.35}
+        className="pointer-events-none fixed inset-0 z-[1] h-full w-full"
+      />
       <ScrollProgressBar />
       <FloatingNav />
-      <LandingHero />
-
-      {/* ۲ — AI Companion */}
-      <section
-        id="ai-companion"
-        className="lux-section lux-section-depth relative overflow-hidden bg-[var(--lux-depth-1)]"
-      >
-        <ParticleField className="pointer-events-none absolute inset-0 h-full w-full opacity-50" />
-        <div className="lux-container relative z-10">
-          <SectionReveal>
-            <div className="grid items-center gap-12 lg:grid-cols-2">
-              <div>
-                <p className="lux-kicker mb-3 text-[var(--lux-secondary)]">همراه یادگیری</p>
-                <TextReveal as="h2" className="lux-h2">
-                  هوشیار — دستیار AI اختصاصی هوشاگر
-                </TextReveal>
-                <p className="lux-body mt-4 max-w-lg">
-                  زمینه درس و سطح تو را می‌فهمد. توضیح مرحله‌ای، تمرین هوشمند و پیشنهاد سؤال —
-                  با شخصیت بصری منحصربه‌فرد.
-                </p>
-                <StaggerReveal className="mt-6 space-y-3">
-                  {['توضیح با مثال واقعی', 'کمک به تکلیف بدون تقلب', 'سؤال‌های پیشنهادی', 'آماده گفت‌وگوی صوتی'].map(
-                    (t) => (
-                      <StaggerItem key={t}>
-                        <li className="flex list-none items-center gap-2 text-sm font-bold text-[var(--lux-text)]/90">
-                          <Sparkles className="h-4 w-4 shrink-0 text-[var(--lux-accent)]" />
-                          {t}
-                        </li>
-                      </StaggerItem>
-                    ),
-                  )}
-                </StaggerReveal>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="lux-glass-deep rounded-[2.5rem] px-10 py-12">
-                  <HooshiarMark className="h-36 w-36 sm:h-44 sm:w-44" />
-                </div>
-                <p className="mt-5 text-center text-sm font-black text-[var(--lux-text)]">
-                  «امروز از کجا شروع کنیم؟»
-                </p>
-              </div>
-            </div>
-          </SectionReveal>
-        </div>
-      </section>
-
-      {/* ۳ — Talent */}
-      <section id="talent" className="lux-section bg-[var(--lux-base)]">
-        <div className="lux-container">
-          <SectionReveal>
-            <p className="lux-kicker mb-3">کشف استعداد</p>
-            <TextReveal as="h2" className="lux-h2">
-              استعداد واقعی را ببین، نه فقط نمره
-            </TextReveal>
-            <p className="lux-body mt-3 max-w-2xl">رادار چندبعدی و تفسیر AI برای دانش‌آموز و خانواده.</p>
-          </SectionReveal>
-          <div className="mt-10 grid items-center gap-10 lg:grid-cols-[260px_1fr]">
-            <SectionReveal delay={0.08}>
-              <TalentRadar className="mx-auto h-56 w-56 drop-shadow-[0_0_40px_var(--lux-glow-primary)]" />
-            </SectionReveal>
-            <StaggerReveal className="grid gap-4 sm:grid-cols-3">
-              {TALENT_CARDS.map(({ icon: Icon, title, text }) => (
-                <StaggerItem key={title}>
-                  <TiltCard className="lux-gradient-border-gold h-full rounded-3xl p-5">
-                    <Icon className="mb-3 h-6 w-6 text-[var(--lux-primary)]" />
-                    <h3 className="mb-2 text-base font-black text-[var(--lux-text)]">{title}</h3>
-                    <p className="text-sm leading-7 text-[var(--lux-text-muted)]">{text}</p>
-                  </TiltCard>
-                </StaggerItem>
-              ))}
-            </StaggerReveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ۴ — Personalized Learning */}
-      <section ref={progressSectionRef} className="lux-section bg-[var(--lux-depth-2)]">
-        <div className="lux-container">
-          <SectionReveal>
-            <p className="lux-kicker mb-3 text-[var(--lux-secondary)]">یادگیری شخصی</p>
-            <TextReveal as="h2" className="lux-h2">
-              مسیر امروز، مخصوص تو
-            </TextReveal>
-          </SectionReveal>
-          <StaggerReveal className="mt-8 grid gap-4 sm:grid-cols-3">
-            {[
-              { icon: Zap, label: 'امتیاز XP', val: '۱٬۲۴۰', c: 'var(--lux-gold)' },
-              { icon: Flame, label: 'استریک', val: '۷ روز', c: 'var(--lux-accent)' },
-              { icon: Award, label: 'نشان', val: 'کاوشگر', c: 'var(--lux-success)' },
-            ].map(({ icon: Icon, label, val, c }) => (
-              <StaggerItem key={label}>
-                <TiltCard className="lux-glass-deep p-6 text-center">
-                  <Icon className="mx-auto mb-3 h-8 w-8" style={{ color: c }} />
-                  <p className="text-2xl font-black text-[var(--lux-text)]">{val}</p>
-                  <p className="mt-1 text-xs font-bold text-[var(--lux-text-muted)]">{label}</p>
-                </TiltCard>
-              </StaggerItem>
-            ))}
-          </StaggerReveal>
-          <SectionReveal delay={0.12} className="mt-8">
-            <div className="lux-glass-deep p-6">
-              <LearningPathNodes />
-              <ScrubProgress triggerRef={progressSectionRef} className="mt-4" />
-            </div>
-          </SectionReveal>
-        </div>
-      </section>
-
-      {/* ۵ — Learning Journey (pinned 3D) */}
-      <JourneySection />
-
-      {/* ۶ — Dashboard */}
-      <section className="lux-section bg-[var(--lux-base)]">
-        <div className="lux-container">
-          <SectionReveal>
-            <p className="lux-kicker mb-3">داشبورد</p>
-            <TextReveal as="h2" className="lux-h2">
-              سیستم‌عامل یادگیری، نه پنل مدرسه
-            </TextReveal>
-            <p className="lux-body mt-3 max-w-xl">مسیر، AI، استعداد و پیشرفت — در یک تجربه زنده.</p>
-          </SectionReveal>
-          <SectionReveal delay={0.1} className="mt-10">
-            <DashboardMock className="mx-auto max-w-4xl" />
-          </SectionReveal>
-        </div>
-      </section>
-
-      {/* ۷ — Parent */}
-      <section className="lux-section lux-section-depth bg-[var(--lux-depth-1)]">
-        <div className="lux-container grid items-center gap-10 lg:grid-cols-2">
-          <SectionReveal>
-            <p className="lux-kicker lux-kicker-gold mb-3">تجربه والدین</p>
-            <TextReveal as="h2" className="lux-h2">
-              رشد فرزندت را ببین
-            </TextReveal>
-            <p className="lux-body mt-4">
-              گزارش هفتگی، هشدار هوشمند و بینش AI — بدون پیچیدگی سامانه‌های قدیمی.
-            </p>
-            <StaggerReveal className="mt-5 space-y-2">
-              {['گزارش استعداد و پیشرفت', 'حضور و ارتباط با مدرسه', 'پیشنهاد گفت‌وگو با فرزند'].map((t) => (
-                <StaggerItem key={t}>
-                  <li className="flex list-none items-center gap-2 text-sm font-bold text-[var(--lux-text)]">
-                    <HeartHandshake className="h-4 w-4 text-[var(--lux-gold)]" />
-                    {t}
-                  </li>
-                </StaggerItem>
-              ))}
-            </StaggerReveal>
-          </SectionReveal>
-          <SectionReveal delay={0.1}>
-            <ParentPhone />
-          </SectionReveal>
-        </div>
-      </section>
-
-      {/* ۸ — School */}
-      <section className="lux-section bg-[var(--lux-depth-2)] text-center">
-        <div className="lux-container">
-          <SectionReveal>
-            <p className="lux-kicker mb-3 text-[var(--lux-secondary)]">مدارس</p>
-            <TextReveal as="h2" className="lux-h2">
-              مقیاس مدرسه، بینش واقعی
-            </TextReveal>
-          </SectionReveal>
-          <StaggerReveal className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { label: 'مدرسه فعال', v: 120, s: '+' },
-              { label: 'معلم', v: 2400, s: '+' },
-              { label: 'دانش‌آموز', v: 48000, s: '+' },
-              { label: 'رضایت', v: 98, s: '٪' },
-            ].map(({ label, v, s }) => (
-              <StaggerItem key={label}>
-                <TiltCard className="lux-glass-deep p-8">
-                  <Building2 className="mx-auto mb-4 h-8 w-8 text-[var(--lux-secondary)]" />
-                  <p className="text-3xl font-black sm:text-4xl">
-                    <ScrollCounter value={v} suffix={s} />
-                  </p>
-                  <p className="mt-2 text-sm font-bold text-[var(--lux-text-muted)]">{label}</p>
-                </TiltCard>
-              </StaggerItem>
-            ))}
-          </StaggerReveal>
-        </div>
-      </section>
-
-      {/* ۹ — Testimonials */}
-      <section className="lux-section bg-[var(--lux-base)]">
-        <div className="lux-container">
-          <SectionReveal>
-            <p className="lux-kicker mb-3">نظر کاربران</p>
-            <TextReveal as="h2" className="lux-h2 mb-8">
-              صدای خانواده‌ها و مدارس
-            </TextReveal>
-          </SectionReveal>
-          <StaggerReveal className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:overflow-visible">
-            {TESTIMONIALS.map((t) => (
-              <StaggerItem key={t.n}>
-                <TiltCard className="lux-glass-deep min-w-[280px] shrink-0 snap-start p-6 lg:min-w-0">
-                  <Quote className="mb-3 h-5 w-5 text-[var(--lux-gold)]/70" />
-                  <p className="text-sm leading-8 text-[var(--lux-text)]">{t.q}</p>
-                  <p className="mt-4 text-sm font-black text-[var(--lux-text)]">{t.n}</p>
-                  <p className="text-xs text-[var(--lux-text-muted)]">{t.r}</p>
-                </TiltCard>
-              </StaggerItem>
-            ))}
-          </StaggerReveal>
-        </div>
-      </section>
-
-      {/* ۱۰ — FAQ */}
-      <section id="faq" className="lux-section bg-[var(--lux-depth-1)]">
-        <div className="lux-container max-w-3xl">
-          <SectionReveal>
-            <p className="lux-kicker mb-3">سوالات</p>
-            <TextReveal as="h2" className="lux-h2 mb-8">
-              پرسش‌های پرتکرار
-            </TextReveal>
-          </SectionReveal>
-          <SectionReveal delay={0.08}>
-            {FAQ.map((item) => (
-              <FaqRow key={item.q} q={item.q} a={item.a} />
-            ))}
-          </SectionReveal>
-        </div>
-      </section>
-
-      {/* ۱۱ — CTA */}
-      <section className="lux-section lux-aurora-bg" style={{ background: 'linear-gradient(180deg, var(--lux-void) 0%, var(--lux-depth-2) 100%)' }}>
-        <div className="lux-container relative z-10 text-center">
-          <SectionReveal>
-            <TextReveal as="h2" className="lux-h2 mx-auto max-w-3xl">
-              نسل جدید یادگیری را با هوشاگر شروع کنید
-            </TextReveal>
-            <p className="lux-body mx-auto mt-4 max-w-lg">
-              برای دانش‌آموز الهام‌بخش، برای خانواده شفاف، برای مدرسه عملی.
-            </p>
-            <MagneticButton href="/register" className="lux-btn-accent mt-8 shadow-[0_0_48px_var(--lux-glow-accent)]">
-              شروع رایگان
-              <ChevronLeft className="h-4 w-4" />
-            </MagneticButton>
-          </SectionReveal>
-          <footer className="mt-16 flex flex-col items-center justify-between gap-6 border-t border-[rgba(201,169,98,0.15)] pt-10 sm:flex-row">
-            <HooshagarLogo size="sm" href="/" surface="void" showWordmark inverted />
-            <div className="flex flex-wrap justify-center gap-4 text-xs font-bold text-[var(--lux-text-muted)]">
-              <Link href="/privacy" className="transition-colors hover:text-[var(--lux-text)]">حریم خصوصی</Link>
-              <Link href="/terms" className="transition-colors hover:text-[var(--lux-text)]">قوانین</Link>
-              <Link href="/help" className="transition-colors hover:text-[var(--lux-text)]">راهنما</Link>
-              <Link href="/login" className="transition-colors hover:text-[var(--lux-text)]">ورود</Link>
-            </div>
-            <p className="text-xs text-[var(--lux-text-muted)]">© {new Date().getFullYear()} هوشاگر</p>
-          </footer>
-        </div>
-      </section>
+      <div className="relative z-10">
+        <LandingHero />
+        <CinematicVideoSection />
+        <HooshiarSection />
+        <FeaturesSection />
+        <RolesSection />
+        <StatsSection />
+        <CTASection />
+        <Footer />
+      </div>
     </main>
   )
 }

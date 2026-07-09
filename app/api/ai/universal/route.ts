@@ -12,6 +12,8 @@ import { checkUserRateLimit, RATE_LIMITS } from '@/lib/rate-limit-user';
 import { log } from '@/lib/logger';
 import * as Sentry from '@sentry/nextjs';
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   let body: { feature?: string; prompt?: string; image?: string } | undefined
   try {

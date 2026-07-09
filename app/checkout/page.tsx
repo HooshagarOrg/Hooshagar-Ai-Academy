@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Check, Shield, CreditCard, ArrowRight, Loader2, AlertCircle, Gift, Zap, Star, Building2 } from 'lucide-react'
 import Link from 'next/link'
+import { MarketingShell } from '@/components/layout/marketing-shell'
 
 // ─────────────────────────────────────────────────────────────
 // تایپ‌ها
@@ -123,19 +124,23 @@ function CheckoutContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin w-10 h-10 text-purple-500" />
-      </div>
+      <MarketingShell backHref="/pricing" backLabel="قیمت‌ها">
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-[var(--lux-primary)]" />
+        </div>
+      </MarketingShell>
     )
   }
 
   if (!plan) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4" dir="rtl">
-        <AlertCircle className="w-12 h-12 text-red-400" />
-        <p className="text-gray-600">پلن یافت نشد.</p>
-        <Link href="/pricing" className="text-purple-600 hover:underline text-sm">بازگشت به صفحه قیمت‌ها</Link>
-      </div>
+      <MarketingShell backHref="/pricing" backLabel="قیمت‌ها">
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
+          <AlertCircle className="h-12 w-12 text-red-400" />
+          <p className="text-[var(--lux-text-muted)]">پلن یافت نشد.</p>
+          <Link href="/pricing" className="text-sm text-[var(--lux-primary)] hover:underline">بازگشت به صفحه قیمت‌ها</Link>
+        </div>
+      </MarketingShell>
     )
   }
 
@@ -143,19 +148,17 @@ function CheckoutContent() {
   const isFree = plan.price_monthly === 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50" dir="rtl">
-      <div className="max-w-4xl mx-auto px-4 py-12">
-
-        {/* breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
-          <Link href="/" className="hover:text-gray-700">خانه</Link>
+    <MarketingShell backHref="/pricing" backLabel="قیمت‌ها">
+      <div className="mx-auto max-w-4xl">
+        <nav className="mb-8 flex items-center gap-2 text-sm text-[var(--lux-text-muted)]">
+          <Link href="/" className="hover:text-[var(--lux-text)]">خانه</Link>
           <span>/</span>
-          <Link href="/pricing" className="hover:text-gray-700">قیمت‌ها</Link>
+          <Link href="/pricing" className="hover:text-[var(--lux-text)]">قیمت‌ها</Link>
           <span>/</span>
-          <span className="text-gray-900 font-medium">پرداخت</span>
+          <span className="font-bold text-[var(--lux-text)]">پرداخت</span>
         </nav>
 
-        <div className="grid md:grid-cols-5 gap-8">
+        <div className="grid gap-8 md:grid-cols-5">
 
           {/* ──── ستون اصلی ──── */}
           <div className="md:col-span-3 space-y-6">
@@ -314,7 +317,7 @@ function CheckoutContent() {
 
         </div>
       </div>
-    </div>
+    </MarketingShell>
   )
 }
 
@@ -324,9 +327,11 @@ function CheckoutContent() {
 export default function CheckoutPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin w-10 h-10 text-purple-500" />
-      </div>
+      <MarketingShell backHref="/pricing" backLabel="قیمت‌ها">
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-[var(--lux-primary)]" />
+        </div>
+      </MarketingShell>
     }>
       <CheckoutContent />
     </Suspense>

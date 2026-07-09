@@ -1,14 +1,10 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
-import { SmoothScrollProvider } from '@/components/providers/smooth-scroll-provider'
 import { Toaster } from 'sonner'
 import { CookieConsent } from '@/components/cookie-consent'
 import { ServiceWorkerRegister } from '@/components/service-worker-register'
-// TEMPORARY: Disabled reCAPTCHA due to React 18 compatibility issue
-// import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3'
 
-// فونت فارسی Vazirmatn
 const vazirmatn = localFont({
   src: './fonts/Vazirmatn-Regular.woff2',
   variable: '--font-vazirmatn',
@@ -19,23 +15,20 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#0F1117',
+  themeColor: '#0B0D12',
   interactiveWidget: 'resizes-content',
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://hooshagar.ir'),
   title: 'هوشاگر - سیستم مدیریت هوشمند مدارس',
   description: 'سیستم عامل هوشمند مدیریت مدارس با قدرت هوش مصنوعی',
   keywords: ['مدرسه', 'مدیریت', 'هوش مصنوعی', 'آموزش'],
   authors: [{ name: 'تیم هوشاگر' }],
   manifest: '/manifest.json',
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: '32x32' },
-      { url: '/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-    ],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    icon: '/brand/logo.png',
+    apple: '/brand/logo.png',
   },
   appleWebApp: {
     capable: true,
@@ -48,7 +41,6 @@ export const metadata: Metadata = {
     description: 'سیستم عامل هوشمند مدیریت مدارس با قدرت هوش مصنوعی',
     locale: 'fa_IR',
     type: 'website',
-    images: [{ url: '/brand/hooshagaar-logo-2026.png', width: 1024, height: 1024, alt: 'آرم هوشاگر' }],
   },
 }
 
@@ -65,25 +57,13 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="هوشاگر" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body className="font-sans antialiased min-h-app bg-[#0F1117]" suppressHydrationWarning>
-        <SmoothScrollProvider>
-          <div className="relative z-10 min-h-app">{children}</div>
-        </SmoothScrollProvider>
+      <body className="font-sans antialiased min-h-app bg-background text-foreground" suppressHydrationWarning>
+        <div className="relative z-10 min-h-app">{children}</div>
         <CookieConsent />
         <ServiceWorkerRegister />
-        <Toaster
-          position="top-center"
-          richColors
-          toastOptions={{
-            classNames: {
-              toast: 'glass-panel border-white/10 text-foreground',
-            },
-          }}
-        />
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   )
 }
-

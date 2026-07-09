@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { Loader2, Sparkles, CheckCircle2, Zap } from 'lucide-react'
 import { toast } from 'sonner'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 interface Capability {
   capability_key: string
@@ -109,18 +110,17 @@ export default function AITestPage() {
   }
 
   return (
-    <div className="container mx-auto py-10 max-w-6xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+    <DashboardPage
+      className="max-w-6xl mx-auto"
+      title={
+        <span className="flex items-center gap-2">
           <Sparkles className="w-8 h-8 text-primary" />
           تست سیستم AI
-        </h1>
-        <p className="text-muted-foreground">
-          آزمایش قابلیت‌های هوش مصنوعی با استراتژی 3-Tier Fallback
-        </p>
-      </div>
-
+        </span>
+      }
+      description="آزمایش قابلیت‌های هوش مصنوعی با استراتژی 3-Tier Fallback"
+    >
+      <DashboardSectionBlock>
       <div className="grid md:grid-cols-2 gap-6">
         {/* Input Section */}
         <Card>
@@ -278,9 +278,11 @@ export default function AITestPage() {
           </CardContent>
         </Card>
       </div>
+      </DashboardSectionBlock>
 
+      <DashboardSectionBlock>
       {/* Info Cards */}
-      <div className="grid md:grid-cols-3 gap-4 mt-6">
+      <div className="grid md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -320,7 +322,8 @@ export default function AITestPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }
 

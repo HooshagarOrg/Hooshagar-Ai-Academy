@@ -110,7 +110,7 @@ export default function TestUploadPage() {
             <p className="font-medium text-blue-900 mb-2">📋 راهنما:</p>
             <ul className="list-disc list-inside text-blue-700 space-y-1">
               <li>فایل انتخاب کنید</li>
-              <li>روی دکمه "آپلود به ArvanCloud" کلیک کنید</li>
+              <li>روی دکمه «آپلود به ArvanCloud» کلیک کنید</li>
               <li>اگر موفق بود، URL نمایش داده می‌شود</li>
               <li>عکس‌ها به صورت خودکار نمایش داده می‌شوند</li>
             </ul>

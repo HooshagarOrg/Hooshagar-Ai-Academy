@@ -3,7 +3,7 @@
  * 
  * نحوه استفاده:
  * 1. نصب Sharp: npm install sharp --save-dev
- * 2. قرار دادن لوگوی اصلی در public/logo.png (حداقل 512×512)
+ * 2. قرار دادن لوگوی اصلی در public/brand/logo.png (حداقل 512×512)
  * 3. اجرا: npm run generate-icons
  * 
  * یا دستی:
@@ -19,7 +19,7 @@ const path = require('path')
 // ============================================
 
 const CONFIG = {
-  inputFile: 'public/logo.png',
+  inputFile: 'public/brand/logo.png',
   outputDir: 'public/icons',
   /** Smart Soft Dark — Deep Space */
   backgroundColor: { r: 16, g: 19, b: 26, alpha: 1 },
@@ -261,7 +261,7 @@ async function main() {
   console.log('\n' + '='.repeat(50))
   console.log('🎉 All icons generated successfully!')
   console.log('\n📝 Next steps:')
-  console.log('1. Add your logo to public/logo.png')
+  console.log('1. Add your logo to public/brand/logo.png')
   console.log('2. Run this script again to generate custom icons')
   console.log('3. Update manifest.json if needed')
 }

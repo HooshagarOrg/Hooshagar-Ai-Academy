@@ -28,7 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageSkeletonCards } from '@/components/ui/page-states'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import {
   Table,
   TableBody,
@@ -323,35 +323,31 @@ export default function MyItemsPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-6 p-4 sm:p-6" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/student/shop">
-                <ArrowRight className="h-4 w-4 ml-1" />
-                بازگشت به فروشگاه
-              </Link>
-            </Button>
-          </div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Gift className="h-8 w-8 text-primary" />
-            آیتم‌های من
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            آیتم‌هایی که خریداری کرده‌اید را مدیریت کنید
-          </p>
+    <DashboardPage
+      className="container mx-auto p-4 sm:p-6"
+      title={
+        <span className="flex items-center gap-2">
+          <Gift className="h-8 w-8 text-primary" />
+          آیتم‌های من
+        </span>
+      }
+      description="آیتم‌هایی که خریداری کرده‌اید را مدیریت کنید"
+      actions={
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/student/shop">
+              <ArrowRight className="h-4 w-4 ml-1" />
+              بازگشت به فروشگاه
+            </Link>
+          </Button>
+          <Button onClick={() => router.push('/student/shop')}>
+            <ShoppingCart className="h-4 w-4 ml-2" />
+            خرید آیتم جدید
+          </Button>
         </div>
-
-        <Button onClick={() => router.push('/student/shop')}>
-          <ShoppingCart className="h-4 w-4 ml-2" />
-          خرید آیتم جدید
-        </Button>
-      </div>
-
-      {/* آمار */}
+      }
+    >
+      <DashboardSectionBlock>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
@@ -409,9 +405,10 @@ export default function MyItemsPage() {
           </CardContent>
         </Card>
       </div>
+      </DashboardSectionBlock>
 
-      {/* آیتم‌های فعال فعلی */}
       {groupedItems.equipped.length > 0 && (
+        <DashboardSectionBlock>
         <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400">
@@ -441,9 +438,10 @@ export default function MyItemsPage() {
             </div>
           </CardContent>
         </Card>
+        </DashboardSectionBlock>
       )}
 
-      {/* تب‌ها */}
+      <DashboardSectionBlock>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="all" className="gap-1">
@@ -586,8 +584,9 @@ export default function MyItemsPage() {
           )}
         </TabsContent>
       </Tabs>
+      </DashboardSectionBlock>
 
-      {/* تاریخچه تراکنش‌ها */}
+      <DashboardSectionBlock>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -634,8 +633,8 @@ export default function MyItemsPage() {
           </Table>
         </CardContent>
       </Card>
-      </LuxFadeUp>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }
 

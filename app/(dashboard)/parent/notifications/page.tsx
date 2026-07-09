@@ -7,15 +7,17 @@
  */
 
 import { NotificationSettings } from '@/components/NotificationSettings'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 export default function ParentNotificationsPage() {
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-8 sm:px-6" dir="rtl">
-      <LuxFadeUp>
+    <DashboardPage
+      title="تنظیمات اطلاع‌رسانی"
+      description="مدیریت نحوه دریافت اعلان‌ها"
+    >
+      <DashboardSectionBlock>
         <NotificationSettings />
-      </LuxFadeUp>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }
-

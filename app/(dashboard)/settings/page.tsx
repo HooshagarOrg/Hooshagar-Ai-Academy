@@ -7,9 +7,8 @@ import {
   Bell, KeyRound, Lock, LogOut, Mail, Shield,
   Smartphone, User, Volume2,
 } from 'lucide-react'
-import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
-import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -156,31 +155,30 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div dir="rtl" className="mx-auto max-w-2xl space-y-6 pb-10">
-      <LuxFadeUp>
-        <LuxPageHeader title="تنظیمات" subtitle="مدیریت حساب، اعلانات و حریم خصوصی" />
-      </LuxFadeUp>
-
-      <LuxStagger className="space-y-6" stagger={0.08}>
-        <LuxStaggerItem>
+    <DashboardPage
+      className="mx-auto max-w-2xl pb-10"
+      title="تنظیمات"
+      description="مدیریت حساب، اعلانات و حریم خصوصی"
+    >
+        <DashboardSectionBlock>
           <SettingsSection title="حساب کاربری" rows={accountRows} />
-        </LuxStaggerItem>
-        <LuxStaggerItem>
+        </DashboardSectionBlock>
+        <DashboardSectionBlock>
           <SettingsSection title="اعلانات" rows={notifRows} />
-        </LuxStaggerItem>
-        <LuxStaggerItem>
+        </DashboardSectionBlock>
+        <DashboardSectionBlock>
           <div className="flex justify-end">
             <Link href="/notifications/settings" className="lux-btn-ghost min-h-10 px-4 text-sm">
               تنظیمات پیشرفته اعلان‌ها
             </Link>
           </div>
-        </LuxStaggerItem>
-        <LuxStaggerItem>
+        </DashboardSectionBlock>
+        <DashboardSectionBlock>
           <SettingsSection title="امنیت و حریم خصوصی" rows={privacyRows} />
-        </LuxStaggerItem>
+        </DashboardSectionBlock>
 
         {(role === 'admin' || role === 'platform_admin') && (
-          <LuxStaggerItem>
+          <DashboardSectionBlock>
             <div>
               <h2 className="mb-3 px-1 text-xs font-bold uppercase tracking-wider text-[var(--lux-text-muted)]">
                 مدیریت سیستم
@@ -201,10 +199,10 @@ export default function SettingsPage() {
                 </Link>
               </LuxCard>
             </div>
-          </LuxStaggerItem>
+          </DashboardSectionBlock>
         )}
 
-        <LuxStaggerItem>
+        <DashboardSectionBlock>
           <LuxCard className="overflow-hidden p-0">
             <button
               type="button"
@@ -220,8 +218,7 @@ export default function SettingsPage() {
               </div>
             </button>
           </LuxCard>
-        </LuxStaggerItem>
-      </LuxStagger>
+        </DashboardSectionBlock>
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <AlertDialogContent dir="rtl" className="max-w-sm">
@@ -242,6 +239,6 @@ export default function SettingsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </DashboardPage>
   )
 }

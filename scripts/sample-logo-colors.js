@@ -5,7 +5,7 @@ const hex = ([r, g, b]) =>
   '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')
 
 async function main() {
-  const p = path.join(__dirname, '../public/logo.png')
+  const p = path.join(__dirname, '../public/brand/logo.png')
   const { data, info } = await sharp(p).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const w = info.width
   const h = info.height
@@ -39,7 +39,7 @@ async function main() {
   console.log(
     JSON.stringify(
       {
-        file: 'public/logo.png',
+        file: 'public/brand/logo.png',
         size: `${w}x${h}`,
         transparentPixels: transparent,
         opaqueAlphaRange: [minA, maxA],

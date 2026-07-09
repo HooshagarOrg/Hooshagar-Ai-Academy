@@ -52,6 +52,7 @@ import {
   DIFFICULTY_ICONS,
   QUESTION_TYPE_LABELS,
 } from '@/lib/types/exam.types';
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page';
 
 // کامپوننت Stepper
 function Stepper({
@@ -761,18 +762,19 @@ export default function CreateExamPage() {
   const selectedQuestions = questions.filter((q) => selectedIds.includes(q.id));
 
   return (
-    <div className="p-6 max-w-4xl mx-auto" dir="rtl">
+    <DashboardPage
+      className="max-w-4xl mx-auto"
+      title={
+        <span className="flex items-center gap-2">
+          <ClipboardList className="h-8 w-8 text-[var(--lux-primary)]" />
+          ایجاد امتحان جدید
+        </span>
+      }
+      description="با استفاده از این ویزارد، امتحان خود را ایجاد کنید"
+    >
+      <DashboardSectionBlock>
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ClipboardList className="w-6 h-6" />
-            ایجاد امتحان جدید
-          </CardTitle>
-          <CardDescription>
-            با استفاده از این ویزارد، امتحان خود را ایجاد کنید
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <Stepper steps={steps} currentStep={currentStep} />
 
           <AnimatePresence mode="wait">
@@ -851,6 +853,7 @@ export default function CreateExamPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   );
 }

@@ -1,68 +1,62 @@
-import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { withAuth } from '@/lib/security/api-guard'
+import {
+  STUDENT_DATA_ROLES,
+  STUDENT_DELETE_ROLES,
+} from '@/lib/security/sensitive-api-roles'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-// ساخت client با timeout بیشتر
-const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    persistSession: false,
-  },
-  global: {
-    fetch: (url, options = {}) => {
-      return fetch(url, {
-        ...options,
-        // افزایش timeout
-        signal: AbortSignal.timeout(30000), // 30 ثانیه
-      });
-    },
-  },
-})
+const STUDENT_COLUMNS =
+  'id, full_name, grade, class_id, school_id, student_number, user_id, parent_id, education_stage, can_login, created_at'
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    console.log('🔍 GET /api/students/[id] -', params.id);
+  return withAuth(
+    request,
+    async () => {
+      try {
+        const supabase = await createClient()
+        const { data, error } = await supabase
+          .from('students')
+          .select(STUDENT_COLUMNS)
+          .eq('id', params.id)
+          .single()
 
-    const { data, error } = await supabase
-      .from('students')
-      .select('*')
-      .eq('id', params.id)
-      .single()
+        if (error) {
+          return NextResponse.json({ error: 'دانش‌آموز یافت نشد' }, { status: 404 })
+        }
 
-    console.log('📊 Result:', { found: !!data, error });
-
-    if (error) throw error
-
-    return NextResponse.json({ student: data })
-  } catch (error: any) {
-    console.error('❌ GET [id] error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
+        return NextResponse.json({ student: data })
+      } catch {
+        return NextResponse.json({ error: 'خطای سرور' }, { status: 500 })
+      }
+    },
+    { roles: STUDENT_DATA_ROLES }
+  )
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    console.log('🗑️ DELETE /api/students/[id] -', params.id);
+  return withAuth(
+    request,
+    async () => {
+      try {
+        const supabase = await createClient()
+        const { error } = await supabase.from('students').delete().eq('id', params.id)
 
-    const { error } = await supabase
-      .from('students')
-      .delete()
-      .eq('id', params.id)
+        if (error) {
+          return NextResponse.json({ error: 'حذف ناموفق بود' }, { status: 500 })
+        }
 
-    console.log('📊 Delete result:', { error });
-
-    if (error) throw error
-
-    return NextResponse.json({ success: true })
-  } catch (error: any) {
-    console.error('❌ DELETE error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
+        return NextResponse.json({ success: true })
+      } catch {
+        return NextResponse.json({ error: 'خطای سرور' }, { status: 500 })
+      }
+    },
+    { roles: STUDENT_DELETE_ROLES }
+  )
 }

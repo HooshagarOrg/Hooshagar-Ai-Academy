@@ -3,7 +3,7 @@ import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { applyRateLimit } from '@/lib/security/rate-limiter'
+import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
 import { sanitizeString, normalizeIranPhone } from '@/lib/security/sanitize'
 import { getSupabaseServerUrl } from '@/lib/supabase/resolve-url'
 import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
@@ -388,7 +388,7 @@ async function handleStudentPinLogin(
 export async function POST(request: NextRequest) {
   try {
     // Rate Limiting — حداکثر 5 تلاش در دقیقه per IP
-    const rateLimitRes = applyRateLimit(request, 'login')
+    const rateLimitRes = await applyRateLimitAsync(request, 'login')
     if (rateLimitRes) return rateLimitRes
 
     const body = await request.json()
@@ -445,6 +445,38 @@ export async function POST(request: NextRequest) {
             { status: 401 }
           )
         }
+        const creds = otpResult.credentials
+        if (!creds?.email || !creds?.password) {
+          return NextResponse.json(
+            { success: false, error: 'خطا در احراز هویت' },
+            { status: 500 }
+          )
+        }
+
+        const serverSigninClient = createLoginClient(request, sessionCookies)
+        const { error: serverSignInError } = await new Promise<{ error: unknown }>((resolve) => {
+          const p = serverSigninClient.auth.signInWithPassword({
+            email: creds.email,
+            password: creds.password,
+          })
+          const timer = setTimeout(() => resolve({ error: new Error('server_signin_timeout') }), 30000)
+          p.then(({ error }) => {
+            clearTimeout(timer)
+            resolve({ error })
+          }).catch((err) => {
+            clearTimeout(timer)
+            resolve({ error: err })
+          })
+        })
+
+        if (serverSignInError) {
+          console.error('OTP server signIn failed:', serverSignInError)
+          return NextResponse.json(
+            { success: false, error: 'ورود ناموفق. لطفاً دوباره تلاش کنید.' },
+            { status: 500 }
+          )
+        }
+
         const role = otpResult.role as string
         const roleRoutes: Record<string, string> = {
           parent: '/parent',
@@ -457,14 +489,18 @@ export async function POST(request: NextRequest) {
         const redirect = otpResult.must_change_password
           ? '/change-password'
           : roleRoutes[role] || '/dashboard'
-        return NextResponse.json({
-          success: true,
-          must_change_password: otpResult.must_change_password,
-          role: otpResult.role,
-          redirect,
-          credentials: otpResult.credentials,
-          full_name: otpResult.full_name,
-        })
+
+        return jsonWithSessionCookies(
+          {
+            success: true,
+            must_change_password: otpResult.must_change_password,
+            role: otpResult.role,
+            redirect,
+            full_name: otpResult.full_name,
+          },
+          200,
+          sessionCookies
+        )
       }
 
       case 'student_pin': {
@@ -513,15 +549,11 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        // server-side هم ناموفق — credentials برای browser-side fallback
         console.error('Student server signIn failed:', serverSignInError)
-        return NextResponse.json({
-          success: true,
-          role: pinResult.role,
-          redirect: '/student',
-          credentials: creds,
-          student_info: pinResult.student_info,
-        })
+        return NextResponse.json(
+          { success: false, error: 'ورود ناموفق. لطفاً دوباره تلاش کنید.' },
+          { status: 500 }
+        )
       }
     }
   } catch (err: unknown) {

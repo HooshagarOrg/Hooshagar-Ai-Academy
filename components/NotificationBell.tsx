@@ -9,7 +9,7 @@
 
 import { useState } from 'react';
 import { Bell, X, CheckCheck } from 'lucide-react';
-import { useNotificationsPolling } from '@/hooks/use-notifications-polling';
+import { useNotifications } from '@/hooks/use-notifications';
 import { formatDistanceToNow } from 'date-fns';
 import { faIR } from 'date-fns/locale';
 import { notificationIcons } from '@/types/notifications.types';
@@ -23,11 +23,13 @@ export function NotificationBell() {
     notifications,
     unreadCount,
     isLoading,
+    isRefreshing,
     markAsRead,
     markAllAsRead,
-  } = useNotificationsPolling({
+  } = useNotifications({
     limit: 20,
-    pollingInterval: 10000, // 10 ثانیه
+    realtime: true,
+    fallbackPollMs: 60_000,
   });
 
   const handleNotificationClick = async (notification: Notification) => {
@@ -50,14 +52,14 @@ export function NotificationBell() {
         aria-label="اعلان‌ها"
         title="اعلان‌های real-time"
       >
-        <Bell className={`w-6 h-6 text-gray-700 transition-transform ${isLoading ? 'scale-110' : ''}`} />
+        <Bell className={`w-6 h-6 text-gray-700 transition-transform ${isLoading || isRefreshing ? 'scale-110' : ''}`} />
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
         {/* Loading indicator */}
-        {isLoading && (
+        {(isLoading || isRefreshing) && (
           <span className="absolute inset-0 rounded-full bg-blue-500 opacity-20 animate-ping" />
         )}
       </button>

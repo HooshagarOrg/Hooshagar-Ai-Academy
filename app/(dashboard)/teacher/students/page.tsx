@@ -119,15 +119,15 @@ export default async function TeacherStudentsPage() {
       <Card>
         <CardContent className="pt-6">
           {error ? (
-            <div className="text-center py-12">
-              <p className="text-destructive text-lg mb-4">{error}</p>
-              <p className="text-muted-foreground">
+            <div className="py-12 text-center">
+              <p className="mb-4 text-lg text-red-400">{error}</p>
+              <p className="text-[var(--lux-text-muted)]">
                 لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید
               </p>
             </div>
           ) : message ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">{message}</p>
+            <div className="py-12 text-center">
+              <p className="text-lg text-[var(--lux-text-muted)]">{message}</p>
             </div>
           ) : (
             <StudentsTable initialStudents={students as Parameters<typeof StudentsTable>[0]['initialStudents']} />

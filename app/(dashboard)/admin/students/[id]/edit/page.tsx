@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, GraduationCap } from 'lucide-react'
 import { toast } from 'sonner'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { PageLoading } from '@/components/ui/page-states'
 
 interface School {
   id: string
@@ -159,28 +161,39 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">در حال بارگذاری...</div>
-      </div>
+      <DashboardPage
+        title="ویرایش دانش‌آموز"
+        description="در حال بارگذاری اطلاعات..."
+      >
+        <PageLoading label="در حال بارگذاری..." compact />
+      </DashboardPage>
     )
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <Button
-        variant="ghost"
-        className="mb-4"
-        onClick={() => router.back()}
-      >
-        <ArrowLeft className="ml-2 h-4 w-4" />
-        بازگشت
-      </Button>
-
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 rounded-xl bg-brand-cyan/15 border border-brand-cyan/20 flex items-center justify-center">
+            <GraduationCap className="w-6 h-6 text-brand-cyan" />
+          </span>
+          ویرایش دانش‌آموز
+        </span>
+      }
+      description={student ? `ویرایش اطلاعات ${student.first_name} ${student.last_name}` : undefined}
+      actions={
+        <Button variant="ghost" onClick={() => router.back()}>
+          <ArrowLeft className="ml-2 h-4 w-4" />
+          بازگشت
+        </Button>
+      }
+    >
+      <DashboardSectionBlock>
       <Card>
         <CardHeader>
-          <CardTitle>✏️ ویرایش اطلاعات دانش‌آموز</CardTitle>
+          <CardTitle>اطلاعات دانش‌آموز</CardTitle>
           <CardDescription>
-            ویرایش اطلاعات {student?.first_name} {student?.last_name}
+            فیلدهای الزامی را تکمیل کنید
           </CardDescription>
         </CardHeader>
 
@@ -317,7 +330,8 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
           </CardFooter>
         </form>
       </Card>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }
 

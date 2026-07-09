@@ -6,26 +6,33 @@ import type { Notification } from '@/types/notifications.types';
 interface UseNotificationsOptions {
   limit?: number;
   unreadOnly?: boolean;
-  pollingInterval?: number; // milliseconds
+  pollingInterval?: number;
 }
+
+const DEFAULT_POLL_MS = 30_000;
 
 export function useNotificationsPolling(options: UseNotificationsOptions = {}) {
   const {
     limit = 20,
     unreadOnly = false,
-    pollingInterval = 5000, // 5 ثانیه
+    pollingInterval = DEFAULT_POLL_MS,
   } = options;
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string>('');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const initialLoadDone = useRef(false);
 
-  // دریافت اعلان‌ها
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (silent = false) => {
     try {
-      setIsLoading(true);
+      if (!silent && !initialLoadDone.current) {
+        setIsLoading(true);
+      } else if (silent) {
+        setIsRefreshing(true);
+      }
       setError('');
 
       let url = `/api/notifications?limit=${limit}`;
@@ -43,15 +50,15 @@ export function useNotificationsPolling(options: UseNotificationsOptions = {}) {
 
       setNotifications(data.notifications);
       setUnreadCount(data.unread_count);
-    } catch (err) {
-      console.error('خطا در دریافت اعلان‌ها:', err);
+      initialLoadDone.current = true;
+    } catch {
       setError('خطای شبکه');
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   }, [limit, unreadOnly]);
 
-  // خواندن یک اعلان
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
       const res = await fetch('/api/notifications/read', {
@@ -72,13 +79,11 @@ export function useNotificationsPolling(options: UseNotificationsOptions = {}) {
       }
 
       return data.success;
-    } catch (err) {
-      console.error('خطا در خواندن اعلان:', err);
+    } catch {
       return false;
     }
   }, []);
 
-  // خواندن همه اعلان‌ها
   const markAllAsRead = useCallback(async () => {
     try {
       const res = await fetch('/api/notifications/read', {
@@ -97,33 +102,35 @@ export function useNotificationsPolling(options: UseNotificationsOptions = {}) {
       }
 
       return data.success;
-    } catch (err) {
-      console.error('خطا در خواندن همه اعلان‌ها:', err);
+    } catch {
       return false;
     }
   }, []);
 
-  // بارگذاری اولیه
   useEffect(() => {
-    fetchNotifications();
+    void fetchNotifications(false);
   }, [fetchNotifications]);
 
-  // Polling
   useEffect(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
+    const tick = () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        return;
+      }
+      void fetchNotifications(true);
+    };
 
-    console.log(`🔄 Polling notifications every ${pollingInterval / 1000}s`);
+    intervalRef.current = setInterval(tick, pollingInterval);
 
-    intervalRef.current = setInterval(() => {
-      fetchNotifications();
-    }, pollingInterval);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchNotifications(true);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [fetchNotifications, pollingInterval]);
 
@@ -131,10 +138,10 @@ export function useNotificationsPolling(options: UseNotificationsOptions = {}) {
     notifications,
     unreadCount,
     isLoading,
+    isRefreshing,
     error,
     markAsRead,
     markAllAsRead,
-    refresh: fetchNotifications,
+    refresh: () => fetchNotifications(true),
   };
 }
-

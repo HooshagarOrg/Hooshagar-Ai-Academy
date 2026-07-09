@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
+import { MarketingContentCard, MarketingShell } from '@/components/layout/marketing-shell'
 
 export const metadata: Metadata = {
   title: 'حریم خصوصی | هوشاگر',
@@ -43,7 +41,7 @@ const sections = [
   {
     id: 'retention',
     title: '۷. نگهداری داده',
-    body: 'داده‌ها تا پایان همکاری مدرسه با هوشاگر و طبق الزامات قانونی نگهداری می‌شوند. پس از حذف حساب، داده‌های شخصی طباس فرآیند GDPR حذف یا ناشناس‌سازی می‌شوند.',
+    body: 'داده‌ها تا پایان همکاری مدرسه با هوشاگر و طبق الزامات قانونی نگهداری می‌شوند. پس از حذف حساب، داده‌های شخصی طبق فرآیند GDPR حذف یا ناشناس‌سازی می‌شوند.',
   },
   {
     id: 'contact',
@@ -54,29 +52,16 @@ const sections = [
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
-      <header className="border-b bg-white">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <HooshagarLogo size="sm" />
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/">
-              <ArrowRight className="ml-1 h-4 w-4" />
-              بازگشت
-            </Link>
-          </Button>
-        </div>
-      </header>
+    <MarketingShell backHref="/" backLabel="صفحه اصلی">
+      <MarketingContentCard>
+        <p className="lux-kicker lp-kicker-gold mb-3">قانونی</p>
+        <h1 className="lux-h2 mb-2">سیاست حریم خصوصی</h1>
+        <p className="mb-8 text-sm text-[var(--lux-text-muted)]">آخرین به‌روزرسانی: خرداد ۱۴۰۵ — نسخه ۱.۰</p>
 
-      <main className="container mx-auto max-w-3xl px-4 py-10">
-        <h1 className="mb-2 text-3xl font-bold">سیاست حریم خصوصی</h1>
-        <p className="mb-8 text-muted-foreground text-sm">
-          آخرین به‌روزرسانی: خرداد ۱۴۰۵ — نسخه ۱.۰
-        </p>
-
-        <nav className="mb-10 rounded-lg border bg-white p-4 text-sm">
-          <p className="mb-2 font-medium">فهرست</p>
+        <nav className="mb-10 rounded-xl border border-[rgba(232,236,244,0.08)] bg-[rgba(15,17,23,0.5)] p-4 text-sm">
+          <p className="mb-2 font-bold text-[var(--lux-text)]">فهرست</p>
           {sections.map((s) => (
-            <a key={s.id} href={`#${s.id}`} className="block py-0.5 text-brand-magenta hover:underline">
+            <a key={s.id} href={`#${s.id}`} className="block py-0.5 text-[var(--lux-primary)] hover:underline">
               {s.title}
             </a>
           ))}
@@ -84,19 +69,19 @@ export default function PrivacyPage() {
 
         <div className="space-y-8">
           {sections.map((s) => (
-            <section key={s.id} id={s.id} className="scroll-mt-24 border-t border-gray-200 pt-6">
-              <h2 className="mb-3 text-xl font-semibold">{s.title}</h2>
-              <p className="leading-relaxed text-gray-700">{s.body}</p>
+            <section key={s.id} id={s.id} className="scroll-mt-24 border-t border-[rgba(232,236,244,0.08)] pt-6">
+              <h2 className="mb-3 text-xl font-black text-[var(--lux-text)]">{s.title}</h2>
+              <p className="leading-8 text-[var(--lux-text-muted)]">{s.body}</p>
             </section>
           ))}
         </div>
 
-        <p className="mt-10 text-center text-sm text-muted-foreground">
-          <Link href="/terms" className="text-primary underline">
+        <p className="mt-10 text-center text-sm text-[var(--lux-text-muted)]">
+          <Link href="/terms" className="text-[var(--lux-primary)] underline">
             قوانین و شرایط استفاده
           </Link>
         </p>
-      </main>
-    </div>
+      </MarketingContentCard>
+    </MarketingShell>
   )
 }

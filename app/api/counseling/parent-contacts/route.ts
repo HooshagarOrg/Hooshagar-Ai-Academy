@@ -3,13 +3,10 @@
 // =====================================
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server'
+import { withAuth } from '@/lib/security/api-guard'
+import { COUNSELING_API_ROLES } from '@/lib/security/sensitive-api-roles'
 import { z } from 'zod'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 // ==========================================
 // Validation Schema
@@ -44,16 +41,18 @@ const createContactSchema = z.object({
 // GET - List Parent Contacts
 // ==========================================
 export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const student_id = searchParams.get('student_id')
-    const record_id = searchParams.get('record_id')
-    const follow_up = searchParams.get('follow_up')
-    const limit = parseInt(searchParams.get('limit') || '50')
-    
-    let query = supabase
-      .from('parent_contacts')
-      .select(`
+  return withAuth(req, async () => {
+    try {
+      const supabase = await createClient()
+      const { searchParams } = new URL(req.url)
+      const student_id = searchParams.get('student_id')
+      const record_id = searchParams.get('record_id')
+      const follow_up = searchParams.get('follow_up')
+      const limit = parseInt(searchParams.get('limit') || '50')
+
+      let query = supabase
+        .from('parent_contacts')
+        .select(`
         *,
         student:students!parent_contacts_student_id_fkey(
           id,
@@ -65,99 +64,93 @@ export async function GET(req: NextRequest) {
           full_name
         )
       `)
-      .order('contact_date', { ascending: false })
-      .limit(limit)
-    
-    if (student_id) {
-      query = query.eq('student_id', student_id)
-    }
-    if (record_id) {
-      query = query.eq('counseling_record_id', record_id)
-    }
-    if (follow_up === 'true') {
-      query = query.eq('follow_up_needed', true)
-    }
-    
-    const { data, error } = await query
-    
-    if (error) {
-      console.error('خطا در دریافت تماس‌ها:', error)
+        .order('contact_date', { ascending: false })
+        .limit(limit)
+
+      if (student_id) {
+        query = query.eq('student_id', student_id)
+      }
+      if (record_id) {
+        query = query.eq('counseling_record_id', record_id)
+      }
+      if (follow_up === 'true') {
+        query = query.eq('follow_up_needed', true)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('خطا در دریافت تماس‌ها:', error)
+        return NextResponse.json(
+          { error: 'خطا در دریافت تماس‌ها' },
+          { status: 500 }
+        )
+      }
+
+      const contacts = data?.map(contact => ({
+        ...contact,
+        student: contact.student ? {
+          id: contact.student.id,
+          full_name: contact.student.profiles?.full_name || 'نامشخص',
+          grade: contact.student.grade,
+          avatar_url: contact.student.profiles?.avatar_url,
+        } : null,
+      })) || []
+
+      return NextResponse.json({ contacts })
+    } catch (error) {
+      console.error('خطای سرور:', error)
       return NextResponse.json(
-        { error: 'خطا در دریافت تماس‌ها' },
+        { error: 'خطای داخلی سرور' },
         { status: 500 }
       )
     }
-    
-    // Transform data
-    const contacts = data?.map(contact => ({
-      ...contact,
-      student: contact.student ? {
-        id: contact.student.id,
-        full_name: contact.student.profiles?.full_name || 'نامشخص',
-        grade: contact.student.grade,
-        avatar_url: contact.student.profiles?.avatar_url,
-      } : null,
-    })) || []
-    
-    return NextResponse.json({ contacts })
-  } catch (error) {
-    console.error('خطای سرور:', error)
-    return NextResponse.json(
-      { error: 'خطای داخلی سرور' },
-      { status: 500 }
-    )
-  }
+  }, { roles: COUNSELING_API_ROLES })
 }
 
 // ==========================================
 // POST - Create New Contact
 // ==========================================
 export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json()
-    
-    // Validate input
-    const result = createContactSchema.safeParse(body)
-    if (!result.success) {
+  return withAuth(req, async () => {
+    try {
+      const supabase = await createClient()
+      const body = await req.json()
+
+      const result = createContactSchema.safeParse(body)
+      if (!result.success) {
+        return NextResponse.json(
+          { error: 'داده‌های نامعتبر', details: result.error.issues },
+          { status: 400 }
+        )
+      }
+
+      const contactData = result.data
+
+      const { data: newContact, error: insertError } = await supabase
+        .from('parent_contacts')
+        .insert(contactData)
+        .select()
+        .single()
+
+      if (insertError) {
+        console.error('خطا در ثبت تماس:', insertError)
+        return NextResponse.json(
+          { error: 'خطا در ثبت تماس' },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({
+        message: 'تماس با موفقیت ثبت شد',
+        contact: newContact,
+      }, { status: 201 })
+    } catch (error) {
+      console.error('خطای سرور:', error)
       return NextResponse.json(
-        { error: 'داده‌های نامعتبر', details: result.error.issues },
-        { status: 400 }
-      )
-    }
-    
-    const contactData = result.data
-    
-    // Create contact
-    const { data: newContact, error: insertError } = await supabase
-      .from('parent_contacts')
-      .insert(contactData)
-      .select()
-      .single()
-    
-    if (insertError) {
-      console.error('خطا در ثبت تماس:', insertError)
-      return NextResponse.json(
-        { error: 'خطا در ثبت تماس' },
+        { error: 'خطای داخلی سرور' },
         { status: 500 }
       )
     }
-    
-    return NextResponse.json({
-      message: 'تماس با موفقیت ثبت شد',
-      contact: newContact,
-    }, { status: 201 })
-  } catch (error) {
-    console.error('خطای سرور:', error)
-    return NextResponse.json(
-      { error: 'خطای داخلی سرور' },
-      { status: 500 }
-    )
-  }
+  }, { roles: COUNSELING_API_ROLES })
 }
-
-
-
-
-
-
-

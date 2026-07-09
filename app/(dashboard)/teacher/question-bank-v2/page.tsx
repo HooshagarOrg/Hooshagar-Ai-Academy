@@ -18,7 +18,8 @@ import {
   Copy
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -337,264 +338,264 @@ export default function QuestionBankPage() {
     setIsPreviewDialogOpen(true)
   }
 
-  return (
-    <div className="container mx-auto py-6 px-4">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-            <BookOpen className="w-8 h-8 text-blue-500" />
-            بانک سوالات
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            مدیریت و سازماندهی سوالات امتحانی
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <Upload className="w-4 h-4" />
-            Import
+  const pageTitle = (
+    <span className="flex items-center gap-3">
+      <BookOpen className="w-8 h-8 text-blue-500" />
+      بانک سوالات
+    </span>
+  )
+
+  const pageActions = (
+    <div className="flex gap-2">
+      <Button variant="outline" className="gap-2">
+        <Upload className="w-4 h-4" />
+        Import
+      </Button>
+      <Button variant="outline" className="gap-2">
+        <Download className="w-4 h-4" />
+        Export
+      </Button>
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogTrigger asChild>
+          <Button className="gap-2">
+            <Plus className="w-4 h-4" />
+            سوال جدید
           </Button>
-          <Button variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            Export
-          </Button>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
-                سوال جدید
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>افزودن سوال جدید</DialogTitle>
-                <DialogDescription>
-                  سوال جدید را با جزئیات کامل وارد کنید
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>نوع سوال *</Label>
-                    <Select
-                      value={newQuestion.type}
-                      onValueChange={(v) => setNewQuestion(prev => ({ ...prev, type: v as Question['type'] }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {questionTypes.map(t => (
-                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>درس *</Label>
-                    <Select
-                      value={newQuestion.subject}
-                      onValueChange={(v) => setNewQuestion(prev => ({ ...prev, subject: v }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="انتخاب کنید" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subjects.map(s => (
-                          <SelectItem key={s} value={s}>{s}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>پایه *</Label>
-                    <Select
-                      value={newQuestion.grade.toString()}
-                      onValueChange={(v) => setNewQuestion(prev => ({ ...prev, grade: parseInt(v) }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {grades.map(g => (
-                          <SelectItem key={g} value={g.toString()}>پایه {g}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>سطح دشواری *</Label>
-                    <Select
-                      value={newQuestion.difficulty}
-                      onValueChange={(v) => setNewQuestion(prev => ({ ...prev, difficulty: v as Question['difficulty'] }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="easy">🟢 آسان</SelectItem>
-                        <SelectItem value="medium">🟡 متوسط</SelectItem>
-                        <SelectItem value="hard">🔴 سخت</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>فصل</Label>
-                    <Input
-                      value={newQuestion.chapter}
-                      onChange={(e) => setNewQuestion(prev => ({ ...prev, chapter: e.target.value }))}
-                      placeholder="فصل 1: عدد و الگو"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>موضوع</Label>
-                    <Input
-                      value={newQuestion.topic}
-                      onChange={(e) => setNewQuestion(prev => ({ ...prev, topic: e.target.value }))}
-                      placeholder="جمع و تفریق"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>متن سوال *</Label>
-                  <Textarea
-                    value={newQuestion.text}
-                    onChange={(e) => setNewQuestion(prev => ({ ...prev, text: e.target.value }))}
-                    placeholder="حاصل 125 + 378 کدام است؟"
-                    rows={3}
-                  />
-                </div>
-
-                {newQuestion.type === 'multiple_choice' && (
-                  <div className="space-y-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <Label>گزینه‌ها (گزینه صحیح را انتخاب کنید)</Label>
-                    {newQuestion.options.map((opt, index) => (
-                      <div key={opt.id} className="flex items-center gap-2">
-                        <RadioGroup
-                          value={newQuestion.options.find(o => o.isCorrect)?.id || ''}
-                          onValueChange={handleSetCorrectOption}
-                        >
-                          <RadioGroupItem value={opt.id} id={`opt-${opt.id}`} />
-                        </RadioGroup>
-                        <span className="w-6">{index + 1})</span>
-                        <Input
-                          value={opt.text}
-                          onChange={(e) => handleUpdateOption(opt.id, e.target.value)}
-                          placeholder={`گزینه ${index + 1}`}
-                          className={cn(
-                            opt.isCorrect && 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                          )}
-                        />
-                        {opt.isCorrect && (
-                          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                        )}
-                      </div>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>افزودن سوال جدید</DialogTitle>
+            <DialogDescription>
+              سوال جدید را با جزئیات کامل وارد کنید
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>نوع سوال *</Label>
+                <Select
+                  value={newQuestion.type}
+                  onValueChange={(v) => setNewQuestion(prev => ({ ...prev, type: v as Question['type'] }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {questionTypes.map(t => (
+                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                     ))}
-                  </div>
-                )}
-
-                {(newQuestion.type === 'short_answer' || newQuestion.type === 'true_false') && (
-                  <div className="space-y-2">
-                    <Label>پاسخ صحیح *</Label>
-                    {newQuestion.type === 'true_false' ? (
-                      <RadioGroup
-                        value={newQuestion.correctAnswer}
-                        onValueChange={(v) => setNewQuestion(prev => ({ ...prev, correctAnswer: v }))}
-                        className="flex gap-4"
-                      >
-                        <div className="flex items-center space-x-2 space-x-reverse">
-                          <RadioGroupItem value="صحیح" id="true" />
-                          <Label htmlFor="true">صحیح</Label>
-                        </div>
-                        <div className="flex items-center space-x-2 space-x-reverse">
-                          <RadioGroupItem value="غلط" id="false" />
-                          <Label htmlFor="false">غلط</Label>
-                        </div>
-                      </RadioGroup>
-                    ) : (
-                      <Input
-                        value={newQuestion.correctAnswer}
-                        onChange={(e) => setNewQuestion(prev => ({ ...prev, correctAnswer: e.target.value }))}
-                        placeholder="پاسخ صحیح"
-                      />
-                    )}
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label>توضیح پاسخ</Label>
-                  <Textarea
-                    value={newQuestion.explanation}
-                    onChange={(e) => setNewQuestion(prev => ({ ...prev, explanation: e.target.value }))}
-                    placeholder="توضیح نحوه حل سوال..."
-                    rows={2}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>امتیاز</Label>
-                    <Input
-                      type="number"
-                      min="0.5"
-                      step="0.5"
-                      value={newQuestion.points}
-                      onChange={(e) => setNewQuestion(prev => ({ ...prev, points: parseFloat(e.target.value) }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>تگ‌ها</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        placeholder="تگ جدید"
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                      />
-                      <Button type="button" variant="outline" onClick={handleAddTag}>+</Button>
-                    </div>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {newQuestion.tags.map(tag => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="gap-1 cursor-pointer"
-                          onClick={() => handleRemoveTag(tag)}
-                        >
-                          {tag}
-                          <span className="text-red-500">×</span>
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  انصراف
-                </Button>
-                <Button onClick={handleSaveQuestion}>
-                  ذخیره سوال
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+              <div className="space-y-2">
+                <Label>درس *</Label>
+                <Select
+                  value={newQuestion.subject}
+                  onValueChange={(v) => setNewQuestion(prev => ({ ...prev, subject: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="انتخاب کنید" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects.map(s => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+              <div className="space-y-2">
+                <Label>پایه *</Label>
+                <Select
+                  value={newQuestion.grade.toString()}
+                  onValueChange={(v) => setNewQuestion(prev => ({ ...prev, grade: parseInt(v) }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades.map(g => (
+                      <SelectItem key={g} value={g.toString()}>پایه {g}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>سطح دشواری *</Label>
+                <Select
+                  value={newQuestion.difficulty}
+                  onValueChange={(v) => setNewQuestion(prev => ({ ...prev, difficulty: v as Question['difficulty'] }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="easy">🟢 آسان</SelectItem>
+                    <SelectItem value="medium">🟡 متوسط</SelectItem>
+                    <SelectItem value="hard">🔴 سخت</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>فصل</Label>
+                <Input
+                  value={newQuestion.chapter}
+                  onChange={(e) => setNewQuestion(prev => ({ ...prev, chapter: e.target.value }))}
+                  placeholder="فصل 1: عدد و الگو"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>موضوع</Label>
+                <Input
+                  value={newQuestion.topic}
+                  onChange={(e) => setNewQuestion(prev => ({ ...prev, topic: e.target.value }))}
+                  placeholder="جمع و تفریق"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>متن سوال *</Label>
+              <Textarea
+                value={newQuestion.text}
+                onChange={(e) => setNewQuestion(prev => ({ ...prev, text: e.target.value }))}
+                placeholder="حاصل 125 + 378 کدام است؟"
+                rows={3}
+              />
+            </div>
+
+            {newQuestion.type === 'multiple_choice' && (
+              <div className="space-y-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <Label>گزینه‌ها (گزینه صحیح را انتخاب کنید)</Label>
+                {newQuestion.options.map((opt, index) => (
+                  <div key={opt.id} className="flex items-center gap-2">
+                    <RadioGroup
+                      value={newQuestion.options.find(o => o.isCorrect)?.id || ''}
+                      onValueChange={handleSetCorrectOption}
+                    >
+                      <RadioGroupItem value={opt.id} id={`opt-${opt.id}`} />
+                    </RadioGroup>
+                    <span className="w-6">{index + 1})</span>
+                    <Input
+                      value={opt.text}
+                      onChange={(e) => handleUpdateOption(opt.id, e.target.value)}
+                      placeholder={`گزینه ${index + 1}`}
+                      className={cn(
+                        opt.isCorrect && 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                      )}
+                    />
+                    {opt.isCorrect && (
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {(newQuestion.type === 'short_answer' || newQuestion.type === 'true_false') && (
+              <div className="space-y-2">
+                <Label>پاسخ صحیح *</Label>
+                {newQuestion.type === 'true_false' ? (
+                  <RadioGroup
+                    value={newQuestion.correctAnswer}
+                    onValueChange={(v) => setNewQuestion(prev => ({ ...prev, correctAnswer: v }))}
+                    className="flex gap-4"
+                  >
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <RadioGroupItem value="صحیح" id="true" />
+                      <Label htmlFor="true">صحیح</Label>
+                    </div>
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <RadioGroupItem value="غلط" id="false" />
+                      <Label htmlFor="false">غلط</Label>
+                    </div>
+                  </RadioGroup>
+                ) : (
+                  <Input
+                    value={newQuestion.correctAnswer}
+                    onChange={(e) => setNewQuestion(prev => ({ ...prev, correctAnswer: e.target.value }))}
+                    placeholder="پاسخ صحیح"
+                  />
+                )}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>توضیح پاسخ</Label>
+              <Textarea
+                value={newQuestion.explanation}
+                onChange={(e) => setNewQuestion(prev => ({ ...prev, explanation: e.target.value }))}
+                placeholder="توضیح نحوه حل سوال..."
+                rows={2}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>امتیاز</Label>
+                <Input
+                  type="number"
+                  min="0.5"
+                  step="0.5"
+                  value={newQuestion.points}
+                  onChange={(e) => setNewQuestion(prev => ({ ...prev, points: parseFloat(e.target.value) }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>تگ‌ها</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    placeholder="تگ جدید"
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                  />
+                  <Button type="button" variant="outline" onClick={handleAddTag}>+</Button>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {newQuestion.tags.map(tag => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="gap-1 cursor-pointer"
+                      onClick={() => handleRemoveTag(tag)}
+                    >
+                      {tag}
+                      <span className="text-red-500">×</span>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              انصراف
+            </Button>
+            <Button onClick={handleSaveQuestion}>
+              ذخیره سوال
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+
+  return (
+    <DashboardPage
+      title={pageTitle}
+      description="مدیریت و سازماندهی سوالات امتحانی"
+      actions={pageActions}
+    >
+      <DashboardSectionBlock>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
@@ -635,10 +636,11 @@ export default function QuestionBankPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </DashboardSectionBlock>
 
-      {/* Filters */}
-      <Card className="mb-6">
+      <DashboardSectionBlock>
+        <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -698,10 +700,11 @@ export default function QuestionBankPage() {
             </Select>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </DashboardSectionBlock>
 
-      {/* Questions Table */}
-      <Card>
+      <DashboardSectionBlock>
+        <Card>
         <CardContent className="pt-6">
           <div className="rounded-md border">
             <Table>
@@ -800,9 +803,9 @@ export default function QuestionBankPage() {
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </DashboardSectionBlock>
 
-      {/* Preview Dialog */}
       <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -866,7 +869,7 @@ export default function QuestionBankPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardPage>
   )
 }
 

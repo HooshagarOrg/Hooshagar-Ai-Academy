@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Shuffle, GripVertical, CheckCircle, Clock, Loader2, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
 import { PageLoading } from '@/components/ui/page-states'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 type LotteryClass = {
   id: string; class_name: string; teacher_name: string
@@ -28,11 +28,10 @@ export default function StudentClassRegistrationPage() {
   const [periods, setPeriods] = useState<Period[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<Period | null>(null)
   const [classes, setClasses] = useState<LotteryClass[]>([])
-  const [priorities, setPriorities] = useState<LotteryClass[]>([]) // ترتیب اولویت کاربر
+  const [priorities, setPriorities] = useState<LotteryClass[]>([])
   const [myResults, setMyResults] = useState<LotteryResult[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [dragIdx, setDragIdx] = useState<number | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -62,7 +61,6 @@ export default function StudentClassRegistrationPage() {
     const savedPrefs = prefData.preferences || []
 
     if (savedPrefs.length > 0) {
-      // ترتیب ذخیره‌شده
       const ordered = savedPrefs
         .sort((a: { priority: number }, b: { priority: number }) => a.priority - b.priority)
         .map((p: { class_id: string }) => allClasses.find(c => c.id === p.class_id))
@@ -75,7 +73,6 @@ export default function StudentClassRegistrationPage() {
     setClasses(allClasses)
   }
 
-  // drag & drop ساده با دکمه‌های بالا/پایین
   const moveUp = (idx: number) => {
     if (idx === 0) return
     const arr = [...priorities]
@@ -122,118 +119,121 @@ export default function StudentClassRegistrationPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
-      <LuxFadeUp className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
           <Shuffle className="text-purple-600" /> ثبت‌نام کلاس
-        </h1>
-        <p className="text-sm text-gray-500">اولویت‌های خود را برای کلاس سال آینده مشخص کنید</p>
-      </div>
-
-      {/* نتایج قرعه‌کشی قبلی */}
+        </span>
+      }
+      description="اولویت‌های خود را برای کلاس سال آینده مشخص کنید"
+      className="p-4 sm:p-6"
+    >
       {myResults.length > 0 && (
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader><CardTitle className="text-green-800 flex items-center gap-2">
-            <CheckCircle /> نتیجه قرعه‌کشی
-          </CardTitle></CardHeader>
-          <CardContent>
-            {myResults.map(r => (
-              <div key={r.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                <div>
-                  <p className="font-bold">{r.lottery_classes?.class_name}</p>
-                  <p className="text-sm text-gray-500">معلم: {r.lottery_classes?.teacher_name}</p>
-                  <p className="text-xs text-gray-400">{r.registration_periods?.title}</p>
+        <DashboardSectionBlock>
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader><CardTitle className="text-green-800 flex items-center gap-2">
+              <CheckCircle /> نتیجه قرعه‌کشی
+            </CardTitle></CardHeader>
+            <CardContent>
+              {myResults.map(r => (
+                <div key={r.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                  <div>
+                    <p className="font-bold">{r.lottery_classes?.class_name}</p>
+                    <p className="text-sm text-gray-500">معلم: {r.lottery_classes?.teacher_name}</p>
+                    <p className="text-xs text-gray-400">{r.registration_periods?.title}</p>
+                  </div>
+                  <div className="text-center">
+                    {r.status === 'assigned' && (
+                      <Badge className="bg-green-600">اختصاص یافتید ✅</Badge>
+                    )}
+                    {r.status === 'waitlisted' && (
+                      <Badge className="bg-orange-500">لیست انتظار ⏳</Badge>
+                    )}
+                    {r.status === 'not_assigned' && (
+                      <Badge variant="destructive">اختصاص نیافت ❌</Badge>
+                    )}
+                    {r.assigned_priority && (
+                      <p className="text-xs text-gray-400 mt-1">اولویت {r.assigned_priority}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="text-center">
-                  {r.status === 'assigned' && (
-                    <Badge className="bg-green-600">اختصاص یافتید ✅</Badge>
-                  )}
-                  {r.status === 'waitlisted' && (
-                    <Badge className="bg-orange-500">لیست انتظار ⏳</Badge>
-                  )}
-                  {r.status === 'not_assigned' && (
-                    <Badge variant="destructive">اختصاص نیافت ❌</Badge>
-                  )}
-                  {r.assigned_priority && (
-                    <p className="text-xs text-gray-400 mt-1">اولویت {r.assigned_priority}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        </DashboardSectionBlock>
       )}
 
-      {/* دوره‌های باز */}
       {periods.length === 0 && myResults.length === 0 && (
-        <Card><CardContent className="p-12 text-center text-gray-400">
-          <Clock size={48} className="mx-auto mb-3 opacity-30" />
-          در حال حاضر دوره ثبت‌نام فعالی وجود ندارد
-        </CardContent></Card>
+        <DashboardSectionBlock>
+          <Card><CardContent className="p-12 text-center text-gray-400">
+            <Clock size={48} className="mx-auto mb-3 opacity-30" />
+            در حال حاضر دوره ثبت‌نام فعالی وجود ندارد
+          </CardContent></Card>
+        </DashboardSectionBlock>
       )}
 
       {periods.map(period => (
-        <Card key={period.id} className={selectedPeriod?.id === period.id ? 'border-purple-400 border-2' : ''}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>{period.title}</CardTitle>
-                <p className="text-sm text-gray-500">
-                  پایه {period.from_grade} → پایه {period.for_grade} |
-                  تا {new Date(period.end_at).toLocaleDateString('fa-IR')}
-                </p>
+        <DashboardSectionBlock key={period.id}>
+          <Card className={selectedPeriod?.id === period.id ? 'border-purple-400 border-2' : ''}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>{period.title}</CardTitle>
+                  <p className="text-sm text-gray-500">
+                    پایه {period.from_grade} → پایه {period.for_grade} |
+                    تا {new Date(period.end_at).toLocaleDateString('fa-IR')}
+                  </p>
+                </div>
+                <Button onClick={() => openPeriod(period)} variant={selectedPeriod?.id === period.id ? 'default' : 'outline'}>
+                  {selectedPeriod?.id === period.id ? 'در حال ویرایش' : 'ثبت اولویت'}
+                </Button>
               </div>
-              <Button onClick={() => openPeriod(period)} variant={selectedPeriod?.id === period.id ? 'default' : 'outline'}>
-                {selectedPeriod?.id === period.id ? 'در حال ویرایش' : 'ثبت اولویت'}
-              </Button>
-            </div>
-          </CardHeader>
+            </CardHeader>
 
-          {selectedPeriod?.id === period.id && (
-            <CardContent className="border-t pt-4 space-y-4">
-              <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg">
-                <AlertCircle className="text-blue-600 mt-0.5 shrink-0" size={18} />
-                <p className="text-sm text-blue-800">
-                  کلاس‌ها را به ترتیب اولویت مرتب کنید. اولویت ۱ = بیشترین ترجیح.
-                  در صورت پر شدن ظرفیت کلاس انتخابی، اولویت بعدی بررسی می‌شود.
-                </p>
-              </div>
+            {selectedPeriod?.id === period.id && (
+              <CardContent className="border-t pt-4 space-y-4">
+                <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg">
+                  <AlertCircle className="text-blue-600 mt-0.5 shrink-0" size={18} />
+                  <p className="text-sm text-blue-800">
+                    کلاس‌ها را به ترتیب اولویت مرتب کنید. اولویت ۱ = بیشترین ترجیح.
+                    در صورت پر شدن ظرفیت کلاس انتخابی، اولویت بعدی بررسی می‌شود.
+                  </p>
+                </div>
 
-              <div className="space-y-2">
-                {priorities.map((cls, idx) => (
-                  <div key={cls.id} className="flex items-center gap-3 p-3 border rounded-lg bg-white hover:bg-gray-50">
-                    <span className="w-8 h-8 flex items-center justify-center bg-purple-100 text-purple-700 rounded-full font-bold text-sm shrink-0">
-                      {idx + 1}
-                    </span>
-                    <GripVertical className="text-gray-300 shrink-0" size={18} />
-                    <div className="flex-1">
-                      <p className="font-medium">{cls.class_name}</p>
-                      <p className="text-xs text-gray-500">معلم: {cls.teacher_name}</p>
+                <div className="space-y-2">
+                  {priorities.map((cls, idx) => (
+                    <div key={cls.id} className="flex items-center gap-3 p-3 border rounded-lg bg-white hover:bg-gray-50">
+                      <span className="w-8 h-8 flex items-center justify-center bg-purple-100 text-purple-700 rounded-full font-bold text-sm shrink-0">
+                        {idx + 1}
+                      </span>
+                      <GripVertical className="text-gray-300 shrink-0" size={18} />
+                      <div className="flex-1">
+                        <p className="font-medium">{cls.class_name}</p>
+                        <p className="text-xs text-gray-500">معلم: {cls.teacher_name}</p>
+                      </div>
+                      <div className="text-center ml-2">
+                        <p className="text-sm font-bold text-blue-600">{cls.enrolled_count}/{cls.capacity}</p>
+                        <p className="text-xs text-gray-400">ظرفیت</p>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <button onClick={() => moveUp(idx)} disabled={idx === 0}
+                          className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-30">▲</button>
+                        <button onClick={() => moveDown(idx)} disabled={idx === priorities.length - 1}
+                          className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-30">▼</button>
+                      </div>
                     </div>
-                    <div className="text-center ml-2">
-                      <p className="text-sm font-bold text-blue-600">{cls.enrolled_count}/{cls.capacity}</p>
-                      <p className="text-xs text-gray-400">ظرفیت</p>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <button onClick={() => moveUp(idx)} disabled={idx === 0}
-                        className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-30">▲</button>
-                      <button onClick={() => moveDown(idx)} disabled={idx === priorities.length - 1}
-                        className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-30">▼</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              <Button onClick={savePreferences} disabled={saving} className="w-full bg-purple-600">
-                {saving ? <Loader2 className="animate-spin ml-2" size={18} /> : null}
-                ثبت اولویت‌ها
-              </Button>
-            </CardContent>
-          )}
-        </Card>
+                <Button onClick={savePreferences} disabled={saving} className="w-full bg-purple-600">
+                  {saving ? <Loader2 className="animate-spin ml-2" size={18} /> : null}
+                  ثبت اولویت‌ها
+                </Button>
+              </CardContent>
+            )}
+          </Card>
+        </DashboardSectionBlock>
       ))}
-      </LuxFadeUp>
-    </div>
+    </DashboardPage>
   )
 }

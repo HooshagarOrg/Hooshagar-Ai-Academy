@@ -8,7 +8,6 @@ import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GraduationCap, QrCode, Users, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
-import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -67,13 +66,7 @@ export function LuxRegisterFlow() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-lg" dir="rtl">
-      <div className="mb-8 flex flex-col items-center text-center">
-        <HooshagarLogo size="md" href="/" surface="hero" showWordmark inverted />
-        <h1 className="mt-4 text-2xl font-black text-[var(--lux-text)]">شروع با هوشاگر</h1>
-        <p className="mt-1 text-sm text-[var(--lux-text-muted)]">سه مرحله تا ورود به دنیای یادگیری هوشمند</p>
-      </div>
-
+    <div className="w-full" dir="rtl">
       <div className="mb-6 flex gap-2">
         {STEPS.map((label, i) => (
           <div
@@ -84,7 +77,7 @@ export function LuxRegisterFlow() {
         ))}
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="lux-dash-card p-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1">
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div key="s0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -116,21 +109,21 @@ export function LuxRegisterFlow() {
               <h2 className="mb-2 font-black text-[var(--lux-text)]">اطلاعات حساب</h2>
               <div className="space-y-2">
                 <Label htmlFor="full_name">نام کامل</Label>
-                <Input id="full_name" className="border-[var(--lux-surface)] bg-[var(--lux-card)] text-[var(--lux-text)]" {...form.register('full_name')} />
+                <Input id="full_name" className="lp-input-dark" {...form.register('full_name')} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">ایمیل</Label>
-                <Input id="email" type="email" dir="ltr" className="border-[var(--lux-surface)] bg-[var(--lux-card)] text-[var(--lux-text)]" {...form.register('email')} />
+                <Input id="email" type="email" dir="ltr" className="lp-input-dark" {...form.register('email')} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">رمز عبور</Label>
-                <Input id="password" type="password" dir="ltr" className="border-[var(--lux-surface)] bg-[var(--lux-card)] text-[var(--lux-text)]" {...form.register('password')} />
+                <Input id="password" type="password" dir="ltr" className="lp-input-dark" {...form.register('password')} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="invite" className="flex items-center gap-2">
                   <QrCode className="h-4 w-4" /> کد دعوت مدرسه (اختیاری)
                 </Label>
-                <Input id="invite" className="border-[var(--lux-surface)] bg-[var(--lux-card)] text-[var(--lux-text)]" {...form.register('invite_code')} />
+                <Input id="invite" className="lp-input-dark" {...form.register('invite_code')} />
               </div>
             </motion.div>
           )}

@@ -33,9 +33,9 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageErrorState, PageSkeletonCards } from '@/components/ui/page-states';
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page';
 
 export default function AdminReportsPage() {
   const [reports, setReports] = useState<ParentReport[]>([]);
@@ -229,100 +229,94 @@ export default function AdminReportsPage() {
     return report.student?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  return (
-    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
-      <LuxFadeUp>
-      {/* هدر */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">مدیریت گزارش‌ها</h1>
-          <p className="text-muted-foreground mt-1">
-            ایجاد، ویرایش و انتشار گزارش‌های عملکرد دانش‌آموزان
-          </p>
+  const createReportDialog = (
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger asChild>
+        <Button className="gap-2">
+          <Plus className="h-4 w-4" />
+          ایجاد گزارش جدید
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>ایجاد گزارش جدید</DialogTitle>
+          <DialogDescription>
+            گزارش عملکرد برای یک دانش‌آموز ایجاد کنید
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="student_id">شناسه دانش‌آموز</Label>
+            <Input
+              id="student_id"
+              placeholder="UUID دانش‌آموز"
+              value={newReport.student_id}
+              onChange={(e) =>
+                setNewReport({ ...newReport, student_id: e.target.value })
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="report_type">نوع گزارش</Label>
+            <Select
+              value={newReport.report_type}
+              onValueChange={(value) =>
+                setNewReport({ ...newReport, report_type: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="weekly">هفتگی</SelectItem>
+                <SelectItem value="monthly">ماهانه</SelectItem>
+                <SelectItem value="term">ترم</SelectItem>
+                <SelectItem value="custom">سفارشی</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="period_start">تاریخ شروع</Label>
+            <Input
+              id="period_start"
+              type="date"
+              value={newReport.period_start}
+              onChange={(e) =>
+                setNewReport({ ...newReport, period_start: e.target.value })
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="period_end">تاریخ پایان</Label>
+            <Input
+              id="period_end"
+              type="date"
+              value={newReport.period_end}
+              onChange={(e) =>
+                setNewReport({ ...newReport, period_end: e.target.value })
+              }
+            />
+          </div>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              ایجاد گزارش جدید
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>ایجاد گزارش جدید</DialogTitle>
-              <DialogDescription>
-                گزارش عملکرد برای یک دانش‌آموز ایجاد کنید
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="student_id">شناسه دانش‌آموز</Label>
-                <Input
-                  id="student_id"
-                  placeholder="UUID دانش‌آموز"
-                  value={newReport.student_id}
-                  onChange={(e) =>
-                    setNewReport({ ...newReport, student_id: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="report_type">نوع گزارش</Label>
-                <Select
-                  value={newReport.report_type}
-                  onValueChange={(value) =>
-                    setNewReport({ ...newReport, report_type: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="weekly">هفتگی</SelectItem>
-                    <SelectItem value="monthly">ماهانه</SelectItem>
-                    <SelectItem value="term">ترم</SelectItem>
-                    <SelectItem value="custom">سفارشی</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="period_start">تاریخ شروع</Label>
-                <Input
-                  id="period_start"
-                  type="date"
-                  value={newReport.period_start}
-                  onChange={(e) =>
-                    setNewReport({ ...newReport, period_start: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="period_end">تاریخ پایان</Label>
-                <Input
-                  id="period_end"
-                  type="date"
-                  value={newReport.period_end}
-                  onChange={(e) =>
-                    setNewReport({ ...newReport, period_end: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                onClick={handleGenerateReport}
-                disabled={isGenerating}
-              >
-                {isGenerating ? 'در حال ایجاد...' : 'ایجاد گزارش'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-      </LuxFadeUp>
+        <DialogFooter>
+          <Button
+            onClick={handleGenerateReport}
+            disabled={isGenerating}
+          >
+            {isGenerating ? 'در حال ایجاد...' : 'ایجاد گزارش'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
-      <LuxStagger className="space-y-6" stagger={0.08}>
-      <LuxStaggerItem>
+  return (
+    <DashboardPage
+      title="مدیریت گزارش‌ها"
+      description="ایجاد، ویرایش و انتشار گزارش‌های عملکرد دانش‌آموزان"
+      actions={createReportDialog}
+    >
+      <DashboardSectionBlock>
       {/* فیلترها و جستجو */}
       <Card>
         <CardHeader>
@@ -378,9 +372,9 @@ export default function AdminReportsPage() {
           </div>
         </CardContent>
       </Card>
-      </LuxStaggerItem>
+      </DashboardSectionBlock>
 
-      <LuxStaggerItem>
+      <DashboardSectionBlock>
       {/* لیست گزارش‌ها */}
       {isLoading ? (
         <PageSkeletonCards count={3} />
@@ -434,8 +428,7 @@ export default function AdminReportsPage() {
           ))}
         </div>
       )}
-      </LuxStaggerItem>
-      </LuxStagger>
-    </div>
+      </DashboardSectionBlock>
+    </DashboardPage>
   );
 }

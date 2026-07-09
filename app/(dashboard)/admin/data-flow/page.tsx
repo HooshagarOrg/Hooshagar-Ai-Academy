@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Activity, AlertTriangle, CheckCircle, Database, Loader2, RefreshCw, Users, GraduationCap, MessageSquare, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { LuxFadeUp } from '@/components/lux/lux-motion'
 import { PageLoading } from '@/components/ui/page-states'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 type Stats = {
   students_total?: number
@@ -44,46 +44,48 @@ export default function AdminDataFlowPage() {
   useEffect(() => { load() }, [])
 
   const sevColor: Record<Issue['severity'], string> = {
-    high: 'bg-red-50 border-red-200 text-red-800',
-    medium: 'bg-orange-50 border-orange-200 text-orange-800',
-    low: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+    high: 'bg-red-500/10 border-red-500/30 text-red-300',
+    medium: 'bg-amber-500/10 border-amber-500/30 text-amber-200',
+    low: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-200',
   }
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Activity className="text-purple-600" />
-            سلامت جریان داده
-          </h1>
-          <p className="text-sm text-gray-500">بررسی صحت گردش اطلاعات بین معلم/دانش‌آموز/والد</p>
-        </div>
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <Activity className="text-[var(--lux-primary)]" />
+          سلامت جریان داده
+        </span>
+      }
+      description="بررسی صحت گردش اطلاعات بین معلم/دانش‌آموز/والد"
+      actions={
         <Button onClick={load} variant="outline" className="gap-2">
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> بازخوانی
         </Button>
-      </div>
-
+      }
+    >
       {loading ? (
         <PageLoading label="در حال بارگذاری سلامت داده..." compact />
       ) : (
         <>
-          {/* آمار کلی */}
-          <div className="grid md:grid-cols-4 gap-4">
+          <DashboardSectionBlock>
+            <div className="grid md:grid-cols-4 gap-4">
             <StatCard icon={<Users />} label="دانش‌آموزان" value={stats.students_total || 0} sub={`${stats.students_with_login || 0} با لاگین`} color="blue" />
             <StatCard icon={<Users />} label="والدین" value={stats.parents_total || 0} sub={`${stats.students_with_parent || 0} اتصال`} color="green" />
             <StatCard icon={<Users />} label="معلمان" value={stats.teachers_total || 0} sub="فعال" color="purple" />
             <StatCard icon={<GraduationCap />} label="نمرات ثبت‌شده" value={stats.grades_total || 0} sub="کل سیستم" color="orange" />
-          </div>
+            </div>
+          </DashboardSectionBlock>
 
-          {/* آمار پیام‌رسانی */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <StatCard icon={<MessageSquare />} label="پیام‌های رد و بدل شده" value={stats.messages_total || 0} sub={`${stats.unread_messages || 0} خوانده‌نشده`} color="cyan" />
-            <StatCard icon={<FileText />} label="جداول سالم" value={tables.filter(t => t.ok).length} sub={`از ${tables.length} جدول`} color="emerald" />
-          </div>
+          <DashboardSectionBlock>
+            <div className="grid md:grid-cols-2 gap-4">
+              <StatCard icon={<MessageSquare />} label="پیام‌های رد و بدل شده" value={stats.messages_total || 0} sub={`${stats.unread_messages || 0} خوانده‌نشده`} color="cyan" />
+              <StatCard icon={<FileText />} label="جداول سالم" value={tables.filter(t => t.ok).length} sub={`از ${tables.length} جدول`} color="emerald" />
+            </div>
+          </DashboardSectionBlock>
 
-          {/* مشکلات شناسایی‌شده */}
-          <Card>
+          <DashboardSectionBlock>
+            <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="text-orange-500" />
@@ -92,7 +94,7 @@ export default function AdminDataFlowPage() {
             </CardHeader>
             <CardContent>
               {issues.length === 0 ? (
-                <div className="text-center py-8 text-green-600">
+                <div className="text-center py-8 text-emerald-400">
                   <CheckCircle size={48} className="mx-auto mb-2" />
                   هیچ مشکلی در جریان داده شناسایی نشد
                 </div>
@@ -112,30 +114,32 @@ export default function AdminDataFlowPage() {
                 </div>
               )}
             </CardContent>
-          </Card>
+            </Card>
+          </DashboardSectionBlock>
 
-          {/* وضعیت جداول */}
-          <Card>
+          <DashboardSectionBlock>
+            <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><Database /> وضعیت جداول</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-3 gap-3">
                 {tables.map(t => (
-                  <div key={t.table} className={`p-3 border rounded-lg flex items-center justify-between ${t.ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                  <div key={t.table} className={`p-3 border rounded-lg flex items-center justify-between ${t.ok ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
                     <div className="flex items-center gap-2">
-                      {t.ok ? <CheckCircle className="text-green-600" size={18} /> : <AlertTriangle className="text-red-600" size={18} />}
+                      {t.ok ? <CheckCircle className="text-emerald-400" size={18} /> : <AlertTriangle className="text-red-400" size={18} />}
                       <code className="text-sm font-mono">{t.table}</code>
                     </div>
-                    <span className="text-xs font-bold text-gray-500">{t.count} رکورد</span>
+                    <span className="text-xs font-bold text-[var(--lux-text-muted)]">{t.count} رکورد</span>
                   </div>
                 ))}
               </div>
             </CardContent>
-          </Card>
+            </Card>
+          </DashboardSectionBlock>
 
-          {/* راهنمای جریان */}
-          <Card>
+          <DashboardSectionBlock>
+            <Card>
             <CardHeader><CardTitle>نقشه جریان داده</CardTitle></CardHeader>
             <CardContent>
               <div className="space-y-3 text-sm">
@@ -147,10 +151,11 @@ export default function AdminDataFlowPage() {
                 <FlowItem from="هر کاربر" to="هر کاربر" via="پیام مستقیم → /messages" />
               </div>
             </CardContent>
-          </Card>
+            </Card>
+          </DashboardSectionBlock>
         </>
       )}
-    </div>
+    </DashboardPage>
   )
 }
 
@@ -158,12 +163,12 @@ function StatCard({ icon, label, value, sub, color }: {
   icon: React.ReactNode; label: string; value: number; sub: string; color: string
 }) {
   const colorMap: Record<string, string> = {
-    blue: 'text-blue-600 bg-blue-50',
-    green: 'text-green-600 bg-green-50',
-    purple: 'text-purple-600 bg-purple-50',
-    orange: 'text-orange-600 bg-orange-50',
-    cyan: 'text-cyan-600 bg-cyan-50',
-    emerald: 'text-emerald-600 bg-emerald-50',
+    blue: 'text-[var(--lux-secondary)] bg-[var(--lux-secondary)]/10',
+    green: 'text-emerald-400 bg-emerald-500/10',
+    purple: 'text-[var(--lux-primary)] bg-[var(--lux-primary)]/10',
+    orange: 'text-amber-400 bg-amber-500/10',
+    cyan: 'text-cyan-400 bg-cyan-500/10',
+    emerald: 'text-emerald-400 bg-emerald-500/10',
   }
   return (
     <Card>
@@ -171,9 +176,9 @@ function StatCard({ icon, label, value, sub, color }: {
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-lg ${colorMap[color]}`}>{icon}</div>
           <div className="flex-1">
-            <p className="text-xs text-gray-500">{label}</p>
-            <p className="text-2xl font-bold">{value.toLocaleString('fa-IR')}</p>
-            <p className="text-xs text-gray-400">{sub}</p>
+            <p className="text-xs text-[var(--lux-text-muted)]">{label}</p>
+            <p className="text-2xl font-bold text-[var(--lux-text)]">{value.toLocaleString('fa-IR')}</p>
+            <p className="text-xs text-[var(--lux-text-muted)]">{sub}</p>
           </div>
         </div>
       </CardContent>
@@ -183,12 +188,12 @@ function StatCard({ icon, label, value, sub, color }: {
 
 function FlowItem({ from, to, via }: { from: string; to: string; via: string }) {
   return (
-    <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold">{from}</span>
-      <span className="text-gray-400">←</span>
-      <span className="flex-1 text-gray-700">{via}</span>
-      <span className="text-gray-400">→</span>
-      <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">{to}</span>
+    <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
+      <span className="px-2 py-1 bg-[var(--lux-secondary)]/15 text-[var(--lux-secondary)] rounded text-xs font-bold">{from}</span>
+      <span className="text-[var(--lux-text-muted)]">←</span>
+      <span className="flex-1 text-[var(--lux-text)]">{via}</span>
+      <span className="text-[var(--lux-text-muted)]">→</span>
+      <span className="px-2 py-1 bg-emerald-500/15 text-emerald-400 rounded text-xs font-bold">{to}</span>
     </div>
   )
 }

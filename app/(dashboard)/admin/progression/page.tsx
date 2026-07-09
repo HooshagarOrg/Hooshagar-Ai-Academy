@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { PageHeader } from '@/components/ui/page-header'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageLoading } from '@/components/ui/page-states'
 import {
@@ -157,16 +157,19 @@ export default function ProgressionPage() {
   }
 
   return (
-    <div dir="rtl">
-      <PageHeader
-        title="ارتقاء خودکار دانش‌آموزان"
-        description="انتقال دانش‌آموزان به پایه بالاتر با حفظ سوابق"
-        icon={GraduationCap}
-        iconColor="text-emerald-600"
-        iconBg="bg-emerald-50"
-      />
-
-      {/* تب‌ها */}
+    <>
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-3">
+          <span className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
+            <GraduationCap className="w-6 h-6 text-emerald-600" />
+          </span>
+          ارتقاء خودکار دانش‌آموزان
+        </span>
+      }
+      description="انتقال دانش‌آموزان به پایه بالاتر با حفظ سوابق"
+    >
+      <DashboardSectionBlock>
       <div className="flex gap-2 mb-6 border-b border-gray-200 pb-0">
         {[
           { key: 'manage', label: 'مدیریت ارتقاء', icon: GraduationCap },
@@ -413,9 +416,11 @@ export default function ProgressionPage() {
               </div>
             )}
 
-            {activeTab === 'history' && (
+      {activeTab === 'history' && (
         <ProgressionHistory />
       )}
+      </DashboardSectionBlock>
+    </DashboardPage>
 
       {/* دیالوگ تایید */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
@@ -449,7 +454,7 @@ export default function ProgressionPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   )
 }
 

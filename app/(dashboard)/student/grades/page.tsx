@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { GraduationCap, TrendingDown, TrendingUp } from 'lucide-react'
-import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
-import { LuxDashboardSection, LuxSectionBlock } from '@/components/lux/lux-dashboard-section'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { LuxErrorState, LuxSkeletonTable } from '@/components/lux/lux-page-states'
 
 type Grade = {
@@ -50,21 +49,22 @@ export default function StudentGradesPage() {
     : 0
 
   return (
-    <LuxDashboardSection
-      header={<LuxPageHeader title="نمرات من" subtitle={`میانگین کل: ${avg.toFixed(1)} از ۲۰`} />}
+    <DashboardPage
+      title="نمرات من"
+      description={`میانگین کل: ${avg.toFixed(1)} از ۲۰`}
     >
       {loading ? (
-        <LuxSectionBlock><LuxSkeletonTable variant="lux" /></LuxSectionBlock>
+        <DashboardSectionBlock><LuxSkeletonTable variant="lux" /></DashboardSectionBlock>
       ) : error ? (
-        <LuxSectionBlock>
+        <DashboardSectionBlock>
           <LuxErrorState message={error} onRetry={loadGrades} variant="lux" />
-        </LuxSectionBlock>
+        </DashboardSectionBlock>
       ) : grades.length === 0 ? (
-        <LuxSectionBlock>
+        <DashboardSectionBlock>
           <LuxEmptyState icon={<GraduationCap className="h-6 w-6" />} title="هنوز نمره‌ای ثبت نشده" description="نمرات از مدرسه همگام می‌شوند." />
-        </LuxSectionBlock>
+        </DashboardSectionBlock>
       ) : (
-        <LuxSectionBlock>
+        <DashboardSectionBlock>
           <LuxCard className="overflow-x-auto p-0">
           <table className="w-full min-w-[640px] text-xs sm:text-sm">
             <thead>
@@ -96,11 +96,11 @@ export default function StudentGradesPage() {
             </tbody>
           </table>
           </LuxCard>
-        </LuxSectionBlock>
+        </DashboardSectionBlock>
       )}
-      <LuxSectionBlock>
+      <DashboardSectionBlock>
         <Link href="/student" className="lux-btn-ghost inline-flex text-sm">بازگشت به داشبورد</Link>
-      </LuxSectionBlock>
-    </LuxDashboardSection>
+      </DashboardSectionBlock>
+    </DashboardPage>
   )
 }

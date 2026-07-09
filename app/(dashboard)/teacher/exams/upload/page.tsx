@@ -19,10 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { PageHeader } from '@/components/ui/page-header'
 import { GlassCard } from '@/components/ui/glass-card'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 // ============================================
 // تایپ‌ها
@@ -218,25 +218,27 @@ export default function ExamUploadPage() {
   // رندر
   // ============================================
   return (
-    <div dir="rtl">
-      <PageHeader
-        title="آپلود آزمون از PDF/عکس"
-        description="سوالات را از برگه آزمون استخراج کنید"
-        icon={Upload}
-        iconColor="text-brand-purple"
-        iconBg="bg-brand-purple/15 border border-brand-purple/20"
-        actions={
-          step !== 'upload' && (
-            <Button variant="outline" onClick={() => setStep('upload')}>
-              <ChevronRight className="w-4 h-4 ml-1" />
-              بازگشت
-            </Button>
-          )
-        }
-      />
+    <DashboardPage
+      title={
+        <span className="flex items-center gap-2">
+          <Upload className="h-8 w-8 text-[var(--lux-primary)]" />
+          آپلود آزمون از PDF/عکس
+        </span>
+      }
+      description="سوالات را از برگه آزمون استخراج کنید"
+      actions={
+        step !== 'upload' ? (
+          <Button variant="outline" onClick={() => setStep('upload')}>
+            <ChevronRight className="w-4 h-4 ml-1" />
+            بازگشت
+          </Button>
+        ) : undefined
+      }
+    >
 
       {/* نوار پیشرفت */}
-      <div className="flex items-center gap-3 mb-8">
+      <DashboardSectionBlock>
+      <div className="flex items-center gap-3">
         {[
           { key: 'upload', label: 'آپلود فایل', num: 1 },
           { key: 'review', label: 'بررسی سوالات', num: 2 },
@@ -259,9 +261,11 @@ export default function ExamUploadPage() {
           </div>
         ))}
       </div>
+      </DashboardSectionBlock>
 
       {/* ===== مرحله ۱: آپلود ===== */}
       {step === 'upload' && (
+        <DashboardSectionBlock>
         <div className="max-w-2xl mx-auto space-y-6">
           {/* تنظیمات */}
           <GlassCard className="p-5">
@@ -375,10 +379,12 @@ export default function ExamUploadPage() {
             </GlassCard>
           )}
         </div>
+        </DashboardSectionBlock>
       )}
 
       {/* ===== مرحله ۲: بررسی سوالات ===== */}
       {step === 'review' && (
+        <DashboardSectionBlock>
         <div className="space-y-4">
           {/* خلاصه */}
           <GlassCard className="p-4 flex flex-wrap items-center gap-4 border-brand-purple/25">
@@ -510,10 +516,12 @@ export default function ExamUploadPage() {
             </GlassCard>
           ))}
         </div>
+        </DashboardSectionBlock>
       )}
 
       {/* ===== مرحله ۳: ذخیره ===== */}
       {step === 'save' && (
+        <DashboardSectionBlock>
         <div className="max-w-lg mx-auto space-y-5">
           <GlassCard className="p-6 space-y-4">
             <h3 className="font-bold flex items-center gap-2">
@@ -596,7 +604,8 @@ export default function ExamUploadPage() {
             </Button>
           </div>
         </div>
+        </DashboardSectionBlock>
       )}
-    </div>
+    </DashboardPage>
   )
 }

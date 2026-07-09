@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
+// standalone needs symlink support (Linux/Vercel). Windows local builds fail with EPERM.
 const nextConfig = {
-  output: 'standalone',
+  ...(process.platform !== 'win32' || process.env.VERCEL ? { output: 'standalone' } : {}),
 
   // ESLint and TypeScript
   eslint: {
-    ignoreDuringBuilds: true, // موقتاً غیرفعال برای رفع مشکل circular structure
+    ignoreDuringBuilds: false,
   },
   typescript: {
     ignoreBuildErrors: false,
@@ -76,7 +77,7 @@ const nextConfig = {
 
   // Experimental features
   experimental: {
-    optimizePackageImports: ['lucide-react', 'date-fns', 'recharts'],
+    optimizePackageImports: ['lucide-react', 'date-fns', 'recharts', '@react-three/drei', '@react-three/fiber'],
     serverActions: {
       bodySizeLimit: '5mb',
     },

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { SpectrumPortal } from '@/components/auth/spectrum-portal'
+import { CinematicPortal } from '@/components/auth/cinematic-portal'
 
 export const metadata: Metadata = {
   title: 'ورود و ثبت‌نام | هوشاگر',
@@ -11,5 +11,5 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <SpectrumPortal>{children}</SpectrumPortal>
+  return <CinematicPortal>{children}</CinematicPortal>
 }

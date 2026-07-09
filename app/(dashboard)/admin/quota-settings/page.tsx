@@ -118,7 +118,7 @@ export default function QuotaSettingsPage() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <GraduationCap className="w-4 h-4 text-blue-500" /> ظرفیت پیش‌فرض کلاس‌ها
+            <GraduationCap className="w-4 h-4 text-[var(--lux-secondary)]" /> ظرفیت پیش‌فرض کلاس‌ها
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -148,7 +148,7 @@ export default function QuotaSettingsPage() {
           </div>
 
           <div>
-            <p className="text-xs font-medium text-gray-600 mb-2">ظرفیت پیش‌فرض به تفکیک پایه</p>
+            <p className="text-xs font-medium text-[var(--lux-text-muted)] mb-2">ظرفیت پیش‌فرض به تفکیک پایه</p>
             <div className="grid grid-cols-6 gap-2">
               {Array.from({ length: 12 }, (_, i) => String(i + 1)).map(g => (
                 <div key={g} className="space-y-1">
@@ -196,7 +196,7 @@ export default function QuotaSettingsPage() {
                 value={lotteryQuota.max_choices_per_student}
                 onChange={e => setLotteryQuota(p => ({ ...p, max_choices_per_student: +e.target.value }))}
               />
-              <p className="text-xs text-gray-400">سقف انتخاب معلم (= تعداد معلمان آن پایه)</p>
+              <p className="text-xs text-[var(--lux-text-muted)]">سقف انتخاب معلم (= تعداد معلمان آن پایه)</p>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">حداقل تعداد اولویت الزامی</Label>
@@ -211,7 +211,7 @@ export default function QuotaSettingsPage() {
                 value={lotteryQuota.default_platform_quota}
                 onChange={e => setLotteryQuota(p => ({ ...p, default_platform_quota: +e.target.value }))}
               />
-              <p className="text-xs text-gray-400">از ظرفیت کل کسر می‌شود — تخصیص دستی</p>
+              <p className="text-xs text-[var(--lux-text-muted)]">از ظرفیت کل کسر می‌شود — تخصیص دستی</p>
             </div>
           </div>
 

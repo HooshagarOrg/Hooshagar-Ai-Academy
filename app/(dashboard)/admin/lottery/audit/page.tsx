@@ -96,7 +96,7 @@ export default function LotteryAuditPage() {
       case 'assigned': return <CheckCircle className="w-4 h-4 text-green-400" />
       case 'failed': return <XCircle className="w-4 h-4 text-red-400" />
       case 'completed': return <CheckCircle className="w-4 h-4 text-emerald-400" />
-      default: return <AlertCircle className="w-4 h-4 text-gray-400" />
+      default: return <AlertCircle className="w-4 h-4 text-[var(--lux-text-muted)]" />
     }
   }
 
@@ -106,7 +106,7 @@ export default function LotteryAuditPage() {
       case 'assigned': return 'bg-green-500/20 text-green-400'
       case 'failed': return 'bg-red-500/20 text-red-400'
       case 'completed': return 'bg-emerald-500/20 text-emerald-400'
-      default: return 'bg-gray-500/20 text-gray-400'
+      default: return 'bg-[var(--lux-surface)]0/20 text-[var(--lux-text-muted)]'
     }
   }
 

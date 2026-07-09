@@ -90,23 +90,19 @@ pnpm verify-env   # بعد از تنظیم env
 
 ---
 
-## 📋 قدم‌های بعدی (اولویت‌بندی)
+## 📋 وضعیت pre-deploy (به‌روز)
 
-### فاز ۱ — فوری (۱-۲ روز)
-1. تست دستی `/login`, `/forgot-password`, `/reset-password`, `/pricing`
-2. تست لوگوی ۳بعدی روی دسکتاپ و موبایل
-3. تنظیم env در Vercel و deploy preview
+| مورد | وضعیت |
+|------|--------|
+| امنیت API + `withAuth` یکپارچه | ✅ health/counseling + admin AI + exams + study-buddy |
+| `/api/health` عمومی برای probe | ✅ |
+| UI lux صفحات فعال | ✅ ~۳۵ صفحه (stubهای VP مستثنی) |
+| `pnpm verify-env` | ✅ |
+| `pnpm type-check` | ✅ |
+| Env در Vercel | ⏳ `vercel login` سپس `scripts/vercel-env-setup.ps1` |
+| Deploy preview | ⏳ `vercel` بعد از env |
 
-### فاز ۲ — کوتاه‌مدت (۱ هفته)
-1. یکپارچه‌سازی UI صفحات card-legacy با lux (~۳۰ صفحه)
-2. فعال‌سازی stubهای VP با حداقل CRUD
-3. بازسازی `docs/ui-ux/PAGES_INVENTORY.csv`
-
-### فاز ۳ — قبل از scale
-1. Security audit API routes
-2. Redis rate limiting
-3. Notification polling → SSE/WebSocket
-4. Bundle optimization
+راهنما: `docs/VERCEL_ENV.md`
 
 ---
 
@@ -120,4 +116,4 @@ pnpm verify-env   # بعد از تنظیم env
 
 ---
 
-*آخرین بروزرسانی: پس از بازطراحی سینمایی و لوگوی ۳بعدی*
+*آخرین بروزرسانی: pre-deploy security + UI lux + env tooling*

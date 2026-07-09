@@ -345,7 +345,7 @@ export default function AdminUsersPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => setEditUser(user)}>
-                        <Edit className="w-4 h-4 ml-2 text-blue-500" />
+                        <Edit className="w-4 h-4 ml-2 text-[var(--lux-secondary)]" />
                         ویرایش
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -458,7 +458,7 @@ export default function AdminUsersPage() {
                     </Select>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[var(--lux-text-muted)]">
                   دانش‌آموز با کد دانش‌آموزی و PIN وارد می‌شود. اگر خالی بگذارید، خودکار ساخته می‌شود.
                 </p>
               </div>
@@ -468,12 +468,12 @@ export default function AdminUsersPage() {
             {newUser.role === 'parent' && (
               <div className="border-t pt-3 space-y-3">
                 <p className="text-xs font-bold text-green-700">اتصال به فرزندان</p>
-                <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-1">
+                <div className="max-h-40 overflow-y-auto border border-white/[0.06] rounded-lg p-2 space-y-1">
                   {studentsList.length === 0 ? (
-                    <p className="text-xs text-gray-400 text-center py-2">دانش‌آموزی یافت نشد</p>
+                    <p className="text-xs text-[var(--lux-text-muted)] text-center py-2">دانش‌آموزی یافت نشد</p>
                   ) : (
                     studentsList.map(s => (
-                      <label key={s.id} className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer">
+                      <label key={s.id} className="flex items-center gap-2 px-2 py-1.5 hover:bg-[var(--lux-surface)] rounded cursor-pointer">
                         <input
                           type="checkbox"
                           checked={newUser.children_ids.includes(s.id)}
@@ -486,13 +486,13 @@ export default function AdminUsersPage() {
                         />
                         <span className="text-sm">{s.full_name}</span>
                         {s.student_number && (
-                          <span className="text-xs text-gray-400">({s.student_number})</span>
+                          <span className="text-xs text-[var(--lux-text-muted)]">({s.student_number})</span>
                         )}
                       </label>
                     ))
                   )}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[var(--lux-text-muted)]">
                   والد با شماره موبایل و OTP وارد می‌شود و فقط فرزندان متصل را می‌بیند.
                 </p>
               </div>

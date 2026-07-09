@@ -394,7 +394,7 @@ export default function AIModelsPage() {
                 {/* فیلترها */}
                 <div className="flex items-center gap-4 mt-4">
                   <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--lux-text-muted)]" />
                     <Input
                       placeholder="جستجوی قابلیت..."
                       value={searchQuery}
@@ -444,7 +444,7 @@ export default function AIModelsPage() {
                               <span className="text-2xl">{config.featureIcon}</span>
                               <div className="text-right">
                                 <p className="font-semibold">{config.featureLabel}</p>
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-[var(--lux-text-muted)]">
                                   {primaryModel?.modelName || config.primaryModel}
                                   {fallbackModel && ` → ${fallbackModel.modelName}`}
                                 </p>
@@ -467,7 +467,7 @@ export default function AIModelsPage() {
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                             {/* مدل اصلی */}
                             <div className="space-y-4">
-                              <h4 className="font-medium text-gray-700">مدل اصلی:</h4>
+                              <h4 className="font-medium text-[var(--lux-text)]">مدل اصلی:</h4>
                               <ModelCard
                                 model={primaryModel}
                                 provider={config.primaryProvider}
@@ -482,7 +482,7 @@ export default function AIModelsPage() {
 
                               {/* مدل پشتیبان */}
                               <div className="flex items-center justify-between">
-                                <h4 className="font-medium text-gray-700">مدل پشتیبان (Fallback):</h4>
+                                <h4 className="font-medium text-[var(--lux-text)]">مدل پشتیبان (Fallback):</h4>
                                 <div className="flex items-center gap-2">
                                   <Label htmlFor={`fallback-${config.featureName}`} className="text-sm">
                                     فعال
@@ -518,14 +518,14 @@ export default function AIModelsPage() {
                             {/* تنظیمات و آمار */}
                             <div className="space-y-4">
                               {/* تنظیمات مدل */}
-                              <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                                <h4 className="font-medium text-gray-700">تنظیمات مدل:</h4>
+                              <div className="bg-[var(--lux-surface)] rounded-lg p-4 space-y-4">
+                                <h4 className="font-medium text-[var(--lux-text)]">تنظیمات مدل:</h4>
                                 
                                 <div className="space-y-4">
                                   <div>
                                     <div className="flex justify-between mb-2">
                                       <Label>Temperature (خلاقیت)</Label>
-                                      <span className="text-sm text-gray-500">{config.temperature}</span>
+                                      <span className="text-sm text-[var(--lux-text-muted)]">{config.temperature}</span>
                                     </div>
                                     <Slider
                                       value={[config.temperature]}
@@ -540,7 +540,7 @@ export default function AIModelsPage() {
                                         ))
                                       }}
                                     />
-                                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                    <div className="flex justify-between text-xs text-[var(--lux-text-muted)] mt-1">
                                       <span>دقیق</span>
                                       <span>خلاق</span>
                                     </div>
@@ -586,43 +586,43 @@ export default function AIModelsPage() {
 
                               {/* آمار */}
                               <div className="bg-blue-50 rounded-lg p-4">
-                                <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                                <h4 className="font-medium text-[var(--lux-text)] mb-3 flex items-center gap-2">
                                   📊 آمار استفاده (این ماه)
                                 </h4>
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                   <div>
-                                    <span className="text-gray-500">کل درخواست‌ها:</span>
+                                    <span className="text-[var(--lux-text-muted)]">کل درخواست‌ها:</span>
                                     <span className="font-bold mr-2">
                                       {config.stats.totalRequests.toLocaleString('fa-IR')}
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-gray-500">موفق:</span>
+                                    <span className="text-[var(--lux-text-muted)]">موفق:</span>
                                     <span className="font-bold text-green-600 mr-2">
                                       {config.stats.successfulRequests.toLocaleString('fa-IR')}
                                       ({((config.stats.successfulRequests / config.stats.totalRequests) * 100 || 0).toFixed(1)}%)
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-gray-500">ناموفق:</span>
+                                    <span className="text-[var(--lux-text-muted)]">ناموفق:</span>
                                     <span className="font-bold text-red-600 mr-2">
                                       {config.stats.failedRequests.toLocaleString('fa-IR')}
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-gray-500">استفاده پشتیبان:</span>
+                                    <span className="text-[var(--lux-text-muted)]">استفاده پشتیبان:</span>
                                     <span className="font-bold text-yellow-600 mr-2">
                                       {config.stats.fallbackUsedCount.toLocaleString('fa-IR')}
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-gray-500">میانگین زمان:</span>
+                                    <span className="text-[var(--lux-text-muted)]">میانگین زمان:</span>
                                     <span className="font-bold mr-2">
                                       {config.stats.avgResponseTimeMs.toLocaleString('fa-IR')}ms
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-gray-500">هزینه تخمینی:</span>
+                                    <span className="text-[var(--lux-text-muted)]">هزینه تخمینی:</span>
                                     <span className="font-bold mr-2">
                                       {formatCost(config.stats.totalCostThisMonth)}
                                     </span>
@@ -709,7 +709,7 @@ export default function AIModelsPage() {
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50">
+                      <TableRow className="bg-[var(--lux-surface)]">
                         <TableHead>مدل</TableHead>
                         <TableHead>Provider</TableHead>
                         <TableHead className="text-center">قابلیت‌ها</TableHead>
@@ -730,7 +730,7 @@ export default function AIModelsPage() {
                             <TableCell>
                               <div>
                                 <p className="font-medium">{model.modelName}</p>
-                                <p className="text-xs text-gray-500">{model.modelDescription}</p>
+                                <p className="text-xs text-[var(--lux-text-muted)]">{model.modelDescription}</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -743,7 +743,7 @@ export default function AIModelsPage() {
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger>
-                                      <span className={cn(model.supportsText ? 'text-green-600' : 'text-gray-300')}>
+                                      <span className={cn(model.supportsText ? 'text-green-600' : 'text-[var(--lux-text-muted)]')}>
                                         📝
                                       </span>
                                     </TooltipTrigger>
@@ -753,7 +753,7 @@ export default function AIModelsPage() {
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger>
-                                      <span className={cn(model.supportsVision ? 'text-green-600' : 'text-gray-300')}>
+                                      <span className={cn(model.supportsVision ? 'text-green-600' : 'text-[var(--lux-text-muted)]')}>
                                         🖼️
                                       </span>
                                     </TooltipTrigger>
@@ -763,7 +763,7 @@ export default function AIModelsPage() {
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger>
-                                      <span className={cn(model.supportsJson ? 'text-green-600' : 'text-gray-300')}>
+                                      <span className={cn(model.supportsJson ? 'text-green-600' : 'text-[var(--lux-text-muted)]')}>
                                         {'{ }'}
                                       </span>
                                     </TooltipTrigger>
@@ -776,7 +776,7 @@ export default function AIModelsPage() {
                               {model.isFree ? (
                                 <Badge className="bg-green-100 text-green-700">🆓</Badge>
                               ) : (
-                                <span className="text-sm text-gray-600">
+                                <span className="text-sm text-[var(--lux-text-muted)]">
                                   ${model.costPerMInputTokens}/$M
                                 </span>
                               )}
@@ -870,7 +870,7 @@ export default function AIModelsPage() {
                     <div className="border rounded-lg overflow-hidden">
                       <Table>
                         <TableHeader>
-                          <TableRow className="bg-gray-50">
+                          <TableRow className="bg-[var(--lux-surface)]">
                             <TableHead>معیار</TableHead>
                             {compareResults.map((result, i) => {
                               const model = getModelInfo(result.provider, result.model)
@@ -939,7 +939,7 @@ export default function AIModelsPage() {
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50">
+                      <TableRow className="bg-[var(--lux-surface)]">
                         <TableHead>تاریخ</TableHead>
                         <TableHead>قابلیت</TableHead>
                         <TableHead>از → به</TableHead>
@@ -951,7 +951,7 @@ export default function AIModelsPage() {
                     <TableBody>
                       {history.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="text-gray-500">
+                          <TableCell className="text-[var(--lux-text-muted)]">
                             {item.createdAt}
                           </TableCell>
                           <TableCell>
@@ -959,7 +959,7 @@ export default function AIModelsPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <span className="text-gray-500">{item.oldModel?.split('/').pop()}</span>
+                              <span className="text-[var(--lux-text-muted)]">{item.oldModel?.split('/').pop()}</span>
                               <span>→</span>
                               <span className="font-medium">{item.newModel.split('/').pop()}</span>
                             </div>
@@ -1139,7 +1139,7 @@ export default function AIModelsPage() {
                                 <Badge className="bg-yellow-100 text-yellow-700">⭐ توصیه شده</Badge>
                               )}
                             </div>
-                            <p className="text-sm text-gray-500 mt-1">{model.modelDescription}</p>
+                            <p className="text-sm text-[var(--lux-text-muted)] mt-1">{model.modelDescription}</p>
                             
                             <div className="flex items-center gap-4 mt-2 text-sm">
                               <span>Provider: {model.provider === 'gemini' ? 'Google' : 'OpenRouter'}</span>
@@ -1148,21 +1148,21 @@ export default function AIModelsPage() {
                             
                             <div className="flex items-center gap-4 mt-2">
                               <div className="flex items-center gap-1">
-                                <span className="text-sm text-gray-500">سرعت:</span>
+                                <span className="text-sm text-[var(--lux-text-muted)]">سرعت:</span>
                                 <span>{renderSpeed(model.speedRating)}</span>
                               </div>
                               <div className="flex items-center gap-1">
-                                <span className="text-sm text-gray-500">کیفیت:</span>
+                                <span className="text-sm text-[var(--lux-text-muted)]">کیفیت:</span>
                                 <span>{renderRating(model.qualityRating)}</span>
                               </div>
                             </div>
 
                             <div className="flex items-center gap-2 mt-2 text-sm">
-                              <span className={model.supportsText ? 'text-green-600' : 'text-gray-300'}>✅ متن</span>
-                              <span className={model.supportsVision ? 'text-green-600' : 'text-gray-300'}>
+                              <span className={model.supportsText ? 'text-green-600' : 'text-[var(--lux-text-muted)]'}>✅ متن</span>
+                              <span className={model.supportsVision ? 'text-green-600' : 'text-[var(--lux-text-muted)]'}>
                                 {model.supportsVision ? '✅' : '❌'} تصویر
                               </span>
-                              <span className={model.supportsJson ? 'text-green-600' : 'text-gray-300'}>✅ JSON</span>
+                              <span className={model.supportsJson ? 'text-green-600' : 'text-[var(--lux-text-muted)]'}>✅ JSON</span>
                             </div>
                           </div>
                           
@@ -1171,7 +1171,7 @@ export default function AIModelsPage() {
                               <p className="font-bold text-green-600">رایگان!</p>
                             ) : (
                               <div className="text-sm">
-                                <p className="text-gray-500">~${((model.costPerMInputTokens * 0.5 + model.costPerMOutputTokens * 0.5) / 1000).toFixed(4)}/req</p>
+                                <p className="text-[var(--lux-text-muted)]">~${((model.costPerMInputTokens * 0.5 + model.costPerMOutputTokens * 0.5) / 1000).toFixed(4)}/req</p>
                               </div>
                             )}
                           </div>
@@ -1246,19 +1246,19 @@ export default function AIModelsPage() {
                     <>
                       <div className="grid grid-cols-4 gap-4 mb-3 text-sm">
                         <div>
-                          <span className="text-gray-500">زمان:</span>
+                          <span className="text-[var(--lux-text-muted)]">زمان:</span>
                           <span className="font-bold mr-1">{testResult.responseTimeMs}ms</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Tokens:</span>
+                          <span className="text-[var(--lux-text-muted)]">Tokens:</span>
                           <span className="font-bold mr-1">{testResult.outputTokens}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">هزینه:</span>
+                          <span className="text-[var(--lux-text-muted)]">هزینه:</span>
                           <span className="font-bold mr-1">{formatCost(testResult.estimatedCost)}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">کیفیت:</span>
+                          <span className="text-[var(--lux-text-muted)]">کیفیت:</span>
                           <span className="font-bold mr-1">{testResult.qualityScore}/5</span>
                         </div>
                       </div>
@@ -1300,8 +1300,8 @@ function ModelCard({
 }) {
   if (!model) {
     return (
-      <div className="border rounded-lg p-4 bg-gray-50">
-        <p className="text-gray-500">مدل یافت نشد: {modelId}</p>
+      <div className="border rounded-lg p-4 bg-[var(--lux-surface)]">
+        <p className="text-[var(--lux-text-muted)]">مدل یافت نشد: {modelId}</p>
         <Button variant="outline" size="sm" onClick={onChangeClick} className="mt-2">
           تغییر مدل
         </Button>
@@ -1312,7 +1312,7 @@ function ModelCard({
   return (
     <div className={cn(
       'border rounded-lg p-4',
-      isPrimary ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'
+      isPrimary ? 'bg-blue-50 border-blue-200' : 'bg-[var(--lux-surface)]'
     )}>
       <div className="flex items-start justify-between">
         <div>
@@ -1322,7 +1322,7 @@ function ModelCard({
               <Badge className="bg-green-100 text-green-700">🆓</Badge>
             )}
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-[var(--lux-text-muted)] mt-1">
             Provider: {model.provider === 'gemini' ? 'Google Gemini' : 'OpenRouter'}
           </p>
         </div>
@@ -1335,11 +1335,11 @@ function ModelCard({
       
       <div className="flex items-center gap-4 mt-3 text-sm">
         <div>
-          <span className="text-gray-500">سرعت:</span>
+          <span className="text-[var(--lux-text-muted)]">سرعت:</span>
           <span className="mr-1">{renderSpeed(model.speedRating)}</span>
         </div>
         <div>
-          <span className="text-gray-500">کیفیت:</span>
+          <span className="text-[var(--lux-text-muted)]">کیفیت:</span>
           <span className="mr-1">{renderRating(model.qualityRating)}</span>
         </div>
       </div>

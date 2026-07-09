@@ -205,7 +205,7 @@ export default function CounselorDashboardPage() {
       case 'خانوادگی':
         return { color: 'bg-purple-500/20 text-purple-400', icon: <Home className="w-3 h-3" /> }
       default:
-        return { color: 'bg-gray-500/20 text-gray-400', icon: <AlertTriangle className="w-3 h-3" /> }
+        return { color: 'bg-[var(--lux-surface)]0/20 text-[var(--lux-text-muted)]', icon: <AlertTriangle className="w-3 h-3" /> }
     }
   }
 
@@ -225,7 +225,7 @@ export default function CounselorDashboardPage() {
       case 'high': return 'bg-red-500'
       case 'medium': return 'bg-yellow-500'
       case 'low': return 'bg-green-500'
-      default: return 'bg-gray-500'
+      default: return 'bg-[var(--lux-surface)]0'
     }
   }
 

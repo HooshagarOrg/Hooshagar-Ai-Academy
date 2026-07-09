@@ -373,7 +373,7 @@ export default function AILimitsPage() {
                     {/* فیلترها */}
                     <div className="flex items-center gap-4 mt-4">
                       <div className="relative flex-1 max-w-sm">
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--lux-text-muted)]" />
                         <Input
                           placeholder="جستجوی قابلیت..."
                           value={searchQuery}
@@ -420,7 +420,7 @@ export default function AILimitsPage() {
                     <div className="border rounded-lg overflow-hidden">
                       <Table>
                         <TableHeader>
-                          <TableRow className="bg-gray-50">
+                          <TableRow className="bg-[var(--lux-surface)]">
                             <TableHead className="w-10">
                               <Checkbox
                                 checked={selectedLimits.size === filteredLimits.length}
@@ -485,7 +485,7 @@ export default function AILimitsPage() {
                                 <Badge variant="outline">{limit.creditCost}</Badge>
                               </TableCell>
                               <TableCell className="text-center">
-                                <span className="text-gray-600">
+                                <span className="text-[var(--lux-text-muted)]">
                                   {limit.usageThisMonth.toLocaleString('fa-IR')}
                                 </span>
                               </TableCell>
@@ -554,7 +554,7 @@ export default function AILimitsPage() {
                   <CardContent>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                       <div className="flex items-start gap-3">
-                        <Info className="w-5 h-5 text-blue-500 mt-0.5" />
+                        <Info className="w-5 h-5 text-[var(--lux-secondary)] mt-0.5" />
                         <div className="text-sm text-blue-700">
                           <p className="font-medium mb-1">توضیحات:</p>
                           <p>
@@ -571,15 +571,15 @@ export default function AILimitsPage() {
                       <div className="grid grid-cols-3 gap-4">
                         {selectedRole === 'student' && (
                           <>
-                            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                            <div className="bg-[var(--lux-surface)] rounded-lg p-3 text-sm">
                               <span className="font-medium">📖 تولید داستان:</span>
                               <span className="mr-2">3/روز، 15/هفته، 50/ماه</span>
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                            <div className="bg-[var(--lux-surface)] rounded-lg p-3 text-sm">
                               <span className="font-medium">📸 OCR:</span>
                               <span className="mr-2">10/روز</span>
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                            <div className="bg-[var(--lux-surface)] rounded-lg p-3 text-sm">
                               <span className="font-medium">💬 دستیار مطالعه:</span>
                               <span className="mr-2">20 پیام/روز</span>
                             </div>
@@ -587,15 +587,15 @@ export default function AILimitsPage() {
                         )}
                         {selectedRole === 'teacher' && (
                           <>
-                            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                            <div className="bg-[var(--lux-surface)] rounded-lg p-3 text-sm">
                               <span className="font-medium">👤 تحلیل دانش‌آموز:</span>
                               <span className="mr-2">10/روز</span>
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                            <div className="bg-[var(--lux-surface)] rounded-lg p-3 text-sm">
                               <span className="font-medium">✍️ تولید محتوا:</span>
                               <span className="mr-2">5/روز</span>
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                            <div className="bg-[var(--lux-surface)] rounded-lg p-3 text-sm">
                               <span className="font-medium">📝 تولید آزمون:</span>
                               <span className="mr-2">3/روز</span>
                             </div>
@@ -603,11 +603,11 @@ export default function AILimitsPage() {
                         )}
                         {selectedRole === 'parent' && (
                           <>
-                            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                            <div className="bg-[var(--lux-surface)] rounded-lg p-3 text-sm">
                               <span className="font-medium">📸 OCR:</span>
                               <span className="mr-2">5/روز</span>
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                            <div className="bg-[var(--lux-surface)] rounded-lg p-3 text-sm">
                               <span className="font-medium">👤 تحلیل دانش‌آموز:</span>
                               <span className="mr-2">2/روز</span>
                             </div>
@@ -620,7 +620,7 @@ export default function AILimitsPage() {
                     <div className="border rounded-lg overflow-hidden">
                       <Table>
                         <TableHeader>
-                          <TableRow className="bg-gray-50">
+                          <TableRow className="bg-[var(--lux-surface)]">
                             <TableHead className="w-10">فعال</TableHead>
                             <TableHead>قابلیت AI</TableHead>
                             <TableHead className="text-center">روزانه</TableHead>
@@ -699,7 +699,7 @@ export default function AILimitsPage() {
                   
                   <CardContent>
                     {/* فرم افزودن */}
-                    <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                    <div className="bg-[var(--lux-surface)] rounded-xl p-6 mb-6">
                       <h4 className="font-medium mb-4">افزودن کاربر ویژه</h4>
                       
                       <div className="grid grid-cols-2 gap-4">
@@ -741,7 +741,7 @@ export default function AILimitsPage() {
                           <Label>محدودیت ویژه روزانه</Label>
                           <div className="flex items-center gap-2 mt-1">
                             <Input type="number" placeholder="10" className="w-20" />
-                            <span className="text-sm text-gray-500">بار (عادی: 3 بار)</span>
+                            <span className="text-sm text-[var(--lux-text-muted)]">بار (عادی: 3 بار)</span>
                           </div>
                         </div>
 
@@ -775,7 +775,7 @@ export default function AILimitsPage() {
                     <div className="border rounded-lg overflow-hidden">
                       <Table>
                         <TableHeader>
-                          <TableRow className="bg-gray-50">
+                          <TableRow className="bg-[var(--lux-surface)]">
                             <TableHead>کاربر</TableHead>
                             <TableHead>قابلیت</TableHead>
                             <TableHead className="text-center">عادی</TableHead>
@@ -791,7 +791,7 @@ export default function AILimitsPage() {
                               <TableCell>
                                 <div>
                                   <p className="font-medium">{user.userName}</p>
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-[var(--lux-text-muted)]">
                                     {user.userRole} {user.userClass && `- ${user.userClass}`}
                                   </p>
                                 </div>
@@ -810,7 +810,7 @@ export default function AILimitsPage() {
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger>
-                                      <span className="text-sm text-gray-600">{user.reason}</span>
+                                      <span className="text-sm text-[var(--lux-text-muted)]">{user.reason}</span>
                                     </TooltipTrigger>
                                     <TooltipContent>
                                       {user.reason}
@@ -862,8 +862,8 @@ export default function AILimitsPage() {
                   <CardContent>
                     {!selectedSchool ? (
                       <div className="text-center py-12">
-                        <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500">یک مدرسه را انتخاب کنید</p>
+                        <Building2 className="w-12 h-12 text-[var(--lux-text-muted)] mx-auto mb-4" />
+                        <p className="text-[var(--lux-text-muted)]">یک مدرسه را انتخاب کنید</p>
                       </div>
                     ) : (
                       <>
@@ -883,7 +883,7 @@ export default function AILimitsPage() {
                         <div className="border rounded-lg overflow-hidden">
                           <Table>
                             <TableHeader>
-                              <TableRow className="bg-gray-50">
+                              <TableRow className="bg-[var(--lux-surface)]">
                                 <TableHead className="w-10">فعال</TableHead>
                                 <TableHead>قابلیت AI</TableHead>
                                 <TableHead className="text-center">روزانه</TableHead>
@@ -966,12 +966,12 @@ export default function AILimitsPage() {
               <CardContent className="space-y-4">
                 <div>
                   <p className="text-2xl font-bold">{stats.totalUsage.toLocaleString('fa-IR')}</p>
-                  <p className="text-sm text-gray-500">کل استفاده</p>
+                  <p className="text-sm text-[var(--lux-text-muted)]">کل استفاده</p>
                 </div>
                 
                 <div>
                   <p className="text-2xl font-bold">{stats.totalCredits.toLocaleString('fa-IR')}</p>
-                  <p className="text-sm text-gray-500">کل credit مصرفی</p>
+                  <p className="text-sm text-[var(--lux-text-muted)]">کل credit مصرفی</p>
                 </div>
 
                 <Separator />
@@ -981,7 +981,7 @@ export default function AILimitsPage() {
                   <div className="space-y-2">
                     {stats.topFeatures.map((f, i) => (
                       <div key={f.name} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">
+                        <span className="text-[var(--lux-text-muted)]">
                           {i + 1}. {f.label}
                         </span>
                         <span className="font-medium">
@@ -999,10 +999,10 @@ export default function AILimitsPage() {
                   <div className="space-y-2">
                     {stats.bottomFeatures.map((f, i) => (
                       <div key={f.name} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">
+                        <span className="text-[var(--lux-text-muted)]">
                           {i + 1}. {f.label}
                         </span>
-                        <span className="font-medium text-gray-400">
+                        <span className="font-medium text-[var(--lux-text-muted)]">
                           {f.count.toLocaleString('fa-IR')}
                         </span>
                       </div>
@@ -1035,7 +1035,7 @@ export default function AILimitsPage() {
                         setEditingLimit({ ...editingLimit, isEnabled: checked })
                       }
                     />
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-[var(--lux-text-muted)]">
                       {editingLimit.isEnabled ? 'فعال' : 'غیرفعال'}
                     </span>
                   </div>
@@ -1057,7 +1057,7 @@ export default function AILimitsPage() {
                         className="flex-1"
                         placeholder="بدون محدودیت"
                       />
-                      <span className="text-sm text-gray-500">بار در روز</span>
+                      <span className="text-sm text-[var(--lux-text-muted)]">بار در روز</span>
                     </div>
                   </div>
 
@@ -1074,7 +1074,7 @@ export default function AILimitsPage() {
                         className="flex-1"
                         placeholder="بدون محدودیت"
                       />
-                      <span className="text-sm text-gray-500">بار در هفته</span>
+                      <span className="text-sm text-[var(--lux-text-muted)]">بار در هفته</span>
                     </div>
                   </div>
 
@@ -1091,7 +1091,7 @@ export default function AILimitsPage() {
                         className="flex-1"
                         placeholder="بدون محدودیت"
                       />
-                      <span className="text-sm text-gray-500">بار در ماه</span>
+                      <span className="text-sm text-[var(--lux-text-muted)]">بار در ماه</span>
                     </div>
                   </div>
 
@@ -1107,14 +1107,14 @@ export default function AILimitsPage() {
                         })}
                         className="flex-1"
                       />
-                      <span className="text-sm text-gray-500">credit</span>
+                      <span className="text-sm text-[var(--lux-text-muted)]">credit</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                <div className="bg-[var(--lux-surface)] rounded-lg p-3 text-sm">
                   <p className="font-medium mb-2">پیش‌نمایش:</p>
-                  <ul className="space-y-1 text-gray-600">
+                  <ul className="space-y-1 text-[var(--lux-text-muted)]">
                     <li>• حداکثر {editingLimit.dailyLimit || '∞'} بار در روز</li>
                     <li>• حداکثر {editingLimit.weeklyLimit || '∞'} بار در هفته</li>
                     <li>• حداکثر {editingLimit.monthlyLimit || '∞'} بار در ماه</li>

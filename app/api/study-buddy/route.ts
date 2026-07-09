@@ -1,8 +1,6 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { AUTH_ERRORS } from '@/lib/security/error-handler'
-import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
+import { withAuth, STAFF_ROLES } from '@/lib/security/api-guard'
 import { z } from 'zod'
 
 const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -163,18 +161,28 @@ ${context}
 }
 
 export async function POST(request: NextRequest) {
+  return withAuth(request, async (ctx) => {
   try {
-    // Rate Limit
-    const rlRes = await applyRateLimitAsync(request, 'ai_heavy')
-    if (rlRes) return rlRes
-
-    // احراز هویت اجباری
-    const authClient = await createClient()
-    const { data: { user } } = await authClient.auth.getUser()
-    if (!user) return AUTH_ERRORS.unauthorized()
-
     const body = await request.json()
     const { question, studentId, grade, subject } = studyBuddySchema.parse(body)
+
+    const historyUserId = studentId ?? ctx.userId
+    if (ctx.role === 'student' && historyUserId !== ctx.userId) {
+      return NextResponse.json(
+        { error: 'دسترسی غیرمجاز', error_code: 'FORBIDDEN' },
+        { status: 403 },
+      )
+    }
+    if (
+      studentId &&
+      studentId !== ctx.userId &&
+      !STAFF_ROLES.includes(ctx.role)
+    ) {
+      return NextResponse.json(
+        { error: 'دسترسی غیرمجاز', error_code: 'FORBIDDEN' },
+        { status: 403 },
+      )
+    }
 
     const supabase = createSupabaseClient(supabaseUrl, supabaseKey)
 
@@ -208,10 +216,9 @@ export async function POST(request: NextRequest) {
     const answer = await generateAnswer(question, context)
 
     // 4. ذخیره در chat_history
-    if (studentId) {
-      try {
-        await supabase.from('chat_history').insert({
-          user_id: studentId,
+    try {
+      await supabase.from('chat_history').insert({
+        user_id: historyUserId,
           question,
           answer,
           sources: sources.slice(0, 3).map((s: any) => ({
@@ -224,7 +231,6 @@ export async function POST(request: NextRequest) {
       } catch (saveError) {
         console.warn('Could not save to chat_history:', saveError)
       }
-    }
 
     // 5. برگرداندن پاسخ
     return NextResponse.json({
@@ -244,6 +250,7 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+  }, { rateLimit: 'ai_heavy' })
 }
 
 

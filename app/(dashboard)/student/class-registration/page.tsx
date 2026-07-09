@@ -139,8 +139,8 @@ export default function StudentClassRegistrationPage() {
                 <div key={r.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
                   <div>
                     <p className="font-bold">{r.lottery_classes?.class_name}</p>
-                    <p className="text-sm text-gray-500">معلم: {r.lottery_classes?.teacher_name}</p>
-                    <p className="text-xs text-gray-400">{r.registration_periods?.title}</p>
+                    <p className="text-sm text-[var(--lux-text-muted)]">معلم: {r.lottery_classes?.teacher_name}</p>
+                    <p className="text-xs text-[var(--lux-text-muted)]">{r.registration_periods?.title}</p>
                   </div>
                   <div className="text-center">
                     {r.status === 'assigned' && (
@@ -153,7 +153,7 @@ export default function StudentClassRegistrationPage() {
                       <Badge variant="destructive">اختصاص نیافت ❌</Badge>
                     )}
                     {r.assigned_priority && (
-                      <p className="text-xs text-gray-400 mt-1">اولویت {r.assigned_priority}</p>
+                      <p className="text-xs text-[var(--lux-text-muted)] mt-1">اولویت {r.assigned_priority}</p>
                     )}
                   </div>
                 </div>
@@ -165,7 +165,7 @@ export default function StudentClassRegistrationPage() {
 
       {periods.length === 0 && myResults.length === 0 && (
         <DashboardSectionBlock>
-          <Card><CardContent className="p-12 text-center text-gray-400">
+          <Card><CardContent className="p-12 text-center text-[var(--lux-text-muted)]">
             <Clock size={48} className="mx-auto mb-3 opacity-30" />
             در حال حاضر دوره ثبت‌نام فعالی وجود ندارد
           </CardContent></Card>
@@ -179,7 +179,7 @@ export default function StudentClassRegistrationPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>{period.title}</CardTitle>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-[var(--lux-text-muted)]">
                     پایه {period.from_grade} → پایه {period.for_grade} |
                     تا {new Date(period.end_at).toLocaleDateString('fa-IR')}
                   </p>
@@ -193,7 +193,7 @@ export default function StudentClassRegistrationPage() {
             {selectedPeriod?.id === period.id && (
               <CardContent className="border-t pt-4 space-y-4">
                 <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg">
-                  <AlertCircle className="text-blue-600 mt-0.5 shrink-0" size={18} />
+                  <AlertCircle className="text-[var(--lux-primary)] mt-0.5 shrink-0" size={18} />
                   <p className="text-sm text-blue-800">
                     کلاس‌ها را به ترتیب اولویت مرتب کنید. اولویت ۱ = بیشترین ترجیح.
                     در صورت پر شدن ظرفیت کلاس انتخابی، اولویت بعدی بررسی می‌شود.
@@ -202,24 +202,24 @@ export default function StudentClassRegistrationPage() {
 
                 <div className="space-y-2">
                   {priorities.map((cls, idx) => (
-                    <div key={cls.id} className="flex items-center gap-3 p-3 border rounded-lg bg-white hover:bg-gray-50">
+                    <div key={cls.id} className="flex items-center gap-3 p-3 border rounded-lg bg-white hover:bg-[var(--lux-surface)]">
                       <span className="w-8 h-8 flex items-center justify-center bg-purple-100 text-purple-700 rounded-full font-bold text-sm shrink-0">
                         {idx + 1}
                       </span>
-                      <GripVertical className="text-gray-300 shrink-0" size={18} />
+                      <GripVertical className="text-[var(--lux-text-muted)] shrink-0" size={18} />
                       <div className="flex-1">
                         <p className="font-medium">{cls.class_name}</p>
-                        <p className="text-xs text-gray-500">معلم: {cls.teacher_name}</p>
+                        <p className="text-xs text-[var(--lux-text-muted)]">معلم: {cls.teacher_name}</p>
                       </div>
                       <div className="text-center ml-2">
-                        <p className="text-sm font-bold text-blue-600">{cls.enrolled_count}/{cls.capacity}</p>
-                        <p className="text-xs text-gray-400">ظرفیت</p>
+                        <p className="text-sm font-bold text-[var(--lux-primary)]">{cls.enrolled_count}/{cls.capacity}</p>
+                        <p className="text-xs text-[var(--lux-text-muted)]">ظرفیت</p>
                       </div>
                       <div className="flex flex-col gap-1">
                         <button onClick={() => moveUp(idx)} disabled={idx === 0}
-                          className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-30">▲</button>
+                          className="w-6 h-6 flex items-center justify-center border rounded hover:bg-white/10 disabled:opacity-30">▲</button>
                         <button onClick={() => moveDown(idx)} disabled={idx === priorities.length - 1}
-                          className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-30">▼</button>
+                          className="w-6 h-6 flex items-center justify-center border rounded hover:bg-white/10 disabled:opacity-30">▼</button>
                       </div>
                     </div>
                   ))}

@@ -170,7 +170,7 @@ export default function ProgressionPage() {
       description="انتقال دانش‌آموزان به پایه بالاتر با حفظ سوابق"
     >
       <DashboardSectionBlock>
-      <div className="flex gap-2 mb-6 border-b border-gray-200 pb-0">
+      <div className="flex gap-2 mb-6 border-b border-white/[0.06] pb-0">
         {[
           { key: 'manage', label: 'مدیریت ارتقاء', icon: GraduationCap },
           { key: 'history', label: 'تاریخچه', icon: History },
@@ -184,7 +184,7 @@ export default function ProgressionPage() {
                 'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
                     activeTab === tab.key
                   ? 'border-emerald-500 text-emerald-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-[var(--lux-text-muted)] hover:text-[var(--lux-text)]'
               )}
                 >
                   <Icon className="w-4 h-4" />
@@ -205,13 +205,13 @@ export default function ProgressionPage() {
               </h3>
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { label: 'کل', value: result.total, color: 'text-gray-700' },
+                  { label: 'کل', value: result.total, color: 'text-[var(--lux-text)]' },
                   { label: 'ارتقاء یافته', value: result.promoted, color: 'text-emerald-700' },
                   { label: 'ناموفق', value: result.failed, color: 'text-red-600' },
                 ].map(s => (
                   <div key={s.label} className="bg-white rounded-xl p-3 text-center">
                     <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                    <p className="text-xs text-gray-500">{s.label}</p>
+                    <p className="text-xs text-[var(--lux-text-muted)]">{s.label}</p>
                   </div>
                 ))}
                   </div>
@@ -222,13 +222,13 @@ export default function ProgressionPage() {
           {summary && (
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: 'کل دانش‌آموزان', value: summary.total, color: 'text-gray-700', bg: 'bg-gray-50' },
+                { label: 'کل دانش‌آموزان', value: summary.total, color: 'text-[var(--lux-text)]', bg: 'bg-[var(--lux-surface)]' },
                 { label: 'واجد شرایط', value: summary.eligible, color: 'text-emerald-700', bg: 'bg-emerald-50' },
                 { label: 'غیرواجد', value: summary.not_eligible, color: 'text-red-600', bg: 'bg-red-50' },
               ].map(s => (
                 <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
                   <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                  <p className="text-xs text-[var(--lux-text-muted)] mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -236,13 +236,13 @@ export default function ProgressionPage() {
 
           {/* تنظیمات ارتقاء */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <h3 className="font-bold text-[var(--lux-text)] mb-4 flex items-center gap-2">
               <Shield className="w-4 h-4 text-emerald-600" />
               تنظیمات ارتقاء
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">سال تحصیلی</label>
+                <label className="text-sm font-medium text-[var(--lux-text)]">سال تحصیلی</label>
                 <Input
                   value={academicYear}
                   onChange={e => setAcademicYear(e.target.value)}
@@ -251,7 +251,7 @@ export default function ProgressionPage() {
                 />
                         </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">حالت ارتقاء</label>
+                <label className="text-sm font-medium text-[var(--lux-text)]">حالت ارتقاء</label>
                 <Select value={progressionMode} onValueChange={v => setProgressionMode(v as typeof progressionMode)}>
                   <SelectTrigger className="mt-1">
                     <SelectValue />
@@ -285,7 +285,7 @@ export default function ProgressionPage() {
           {/* فیلترها */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--lux-text-muted)]" />
               <Input
                 placeholder="جستجو..."
                 value={search}
@@ -338,14 +338,14 @@ export default function ProgressionPage() {
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
               {/* هدر جدول */}
-              <div className="flex items-center gap-3 px-5 py-3 bg-gray-50 border-b border-gray-100">
+              <div className="flex items-center gap-3 px-5 py-3 bg-[var(--lux-surface)] border-b border-gray-100">
                       <input
                   type="checkbox"
                   checked={selectedIds.size === filtered.length && filtered.length > 0}
                   onChange={toggleSelectAll}
                   className="rounded"
                 />
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-[var(--lux-text-muted)]">
                   {selectedIds.size > 0 ? `${selectedIds.size} نفر انتخاب شده` : `${filtered.length} دانش‌آموز`}
                 </span>
                     </div>
@@ -355,7 +355,7 @@ export default function ProgressionPage() {
                   <div
                     key={student.id}
                     className={cn(
-                      'flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors',
+                      'flex items-center gap-3 px-5 py-3 hover:bg-[var(--lux-surface)] transition-colors',
                       selectedIds.has(student.id) && 'bg-emerald-50'
                     )}
                   >
@@ -371,8 +371,8 @@ export default function ProgressionPage() {
                   </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 text-sm">{student.full_name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="font-medium text-[var(--lux-text)] text-sm">{student.full_name}</p>
+                      <p className="text-xs text-[var(--lux-text-muted)]">
                         {student.student_number} • پایه {student.grade}
                         {student.class_name && ` • ${student.class_name}`}
                       </p>
@@ -383,17 +383,17 @@ export default function ProgressionPage() {
                         <p className={cn(
                           'text-sm font-bold',
                           student.avg_grade >= 17 ? 'text-emerald-600' :
-                          student.avg_grade >= 12 ? 'text-blue-600' :
+                          student.avg_grade >= 12 ? 'text-[var(--lux-primary)]' :
                           student.avg_grade >= 10 ? 'text-yellow-600' : 'text-red-500'
                         )}>
                           {student.avg_grade > 0 ? student.avg_grade.toFixed(1) : '-'}
                         </p>
-                        <p className="text-xs text-gray-400">میانگین</p>
+                        <p className="text-xs text-[var(--lux-text-muted)]">میانگین</p>
                     </div>
 
                       <div className="flex items-center gap-1">
-                        <ArrowUp className="w-3 h-3 text-gray-400" />
-                        <span className="text-xs text-gray-500">پایه {student.grade + 1}</span>
+                        <ArrowUp className="w-3 h-3 text-[var(--lux-text-muted)]" />
+                        <span className="text-xs text-[var(--lux-text-muted)]">پایه {student.grade + 1}</span>
                     </div>
 
                       {student.eligible ? (
@@ -432,7 +432,7 @@ export default function ProgressionPage() {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-right space-y-1">
               <p>این عملیات دانش‌آموزان را به پایه بالاتر منتقل می‌کند.</p>
-              <p className="font-medium text-gray-700">
+              <p className="font-medium text-[var(--lux-text)]">
                 {progressionMode === 'all_eligible' && `${summary?.eligible || 0} دانش‌آموز واجد شرایط ارتقاء می‌یابند`}
                 {progressionMode === 'selected' && `${selectedIds.size} دانش‌آموز انتخاب‌شده ارتقاء می‌یابند`}
                 {progressionMode === 'all' && `${summary?.total || 0} دانش‌آموز (همه) ارتقاء می‌یابند`}
@@ -508,27 +508,27 @@ function ProgressionHistory() {
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
       <div className="divide-y divide-gray-50">
         {history.map(h => (
-          <div key={h.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50">
+          <div key={h.id} className="flex items-center gap-3 px-5 py-3 hover:bg-[var(--lux-surface)]">
             <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
               <ArrowUp className="w-4 h-4 text-emerald-600" />
                   </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">
+              <p className="text-sm font-medium text-[var(--lux-text)]">
                 {(h.students as { profiles?: { full_name: string } } | null)?.profiles?.full_name || 'نامشخص'}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[var(--lux-text-muted)]">
                 پایه {h.from_grade} → پایه {h.to_grade} • {h.academic_year}
               </p>
                 </div>
             <div className="flex items-center gap-2">
-              <Badge className="text-xs bg-gray-100 text-gray-600">{h.progression_type === 'normal' ? 'عادی' : h.progression_type}</Badge>
+              <Badge className="text-xs bg-white/10 text-[var(--lux-text-muted)]">{h.progression_type === 'normal' ? 'عادی' : h.progression_type}</Badge>
               <Badge className={cn(
                 'text-xs',
                 h.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
               )}>
                 {h.status === 'completed' ? 'موفق' : 'ناموفق'}
               </Badge>
-              <span className="text-xs text-gray-400">{formatDate(h.progression_date)}</span>
+              <span className="text-xs text-[var(--lux-text-muted)]">{formatDate(h.progression_date)}</span>
               </div>
           </div>
         ))}

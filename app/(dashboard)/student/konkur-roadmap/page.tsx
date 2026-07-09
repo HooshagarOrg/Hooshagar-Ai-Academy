@@ -150,7 +150,7 @@ const samplePlan: StudyPlan = {
       day: 'پنج‌شنبه',
       slots: [
         { time: '۸-۱۲', subject: 'آزمون', topic: 'آزمون جامع', duration: '۴ ساعت', color: 'bg-red-500/20 border-red-500/50 text-red-400' },
-        { time: '۱۴-۱۶', subject: 'مرور', topic: 'رفع اشکال', duration: '۲ ساعت', color: 'bg-gray-500/20 border-gray-500/50 text-gray-400' },
+        { time: '۱۴-۱۶', subject: 'مرور', topic: 'رفع اشکال', duration: '۲ ساعت', color: 'bg-[var(--lux-surface)]0/20 border-gray-500/50 text-[var(--lux-text-muted)]' },
       ],
     },
     {

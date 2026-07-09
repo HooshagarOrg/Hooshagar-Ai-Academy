@@ -139,7 +139,7 @@ const ProgressBar = ({ value }: { value: number }) => (
 const getStatusColor = (status: CounselingStatus): string => {
   const colors = {
     active: 'bg-green-500/20 text-green-400 border-green-500/30',
-    closed: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+    closed: 'bg-[var(--lux-surface)]0/20 text-[var(--lux-text-muted)] border-gray-500/30',
     referred: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   }
   return colors[status]

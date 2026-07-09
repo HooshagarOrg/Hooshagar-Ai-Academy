@@ -20,7 +20,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: React.Rea
   active:    { label: 'فعال',      color: 'text-green-700 bg-green-50',  icon: <CheckCircle size={14}/> },
   trial:     { label: 'آزمایشی',   color: 'text-blue-700 bg-blue-50',    icon: <Clock size={14}/> },
   expired:   { label: 'منقضی',     color: 'text-red-700 bg-red-50',      icon: <AlertCircle size={14}/> },
-  cancelled: { label: 'لغوشده',    color: 'text-gray-700 bg-gray-100',   icon: <AlertCircle size={14}/> },
+  cancelled: { label: 'لغوشده',    color: 'text-[var(--lux-text)] bg-white/10',   icon: <AlertCircle size={14}/> },
   suspended: { label: 'معلق',      color: 'text-orange-700 bg-orange-50',icon: <AlertCircle size={14}/> },
 }
 
@@ -88,7 +88,7 @@ export default function AdminSubscriptionsPage() {
           {loading ? (
             <div className="text-center py-12"><Loader2 className="animate-spin mx-auto" /></div>
           ) : subs.length === 0 ? (
-            <p className="text-center py-12 text-gray-400">هیچ اشتراکی یافت نشد</p>
+            <p className="text-center py-12 text-[var(--lux-text-muted)]">هیچ اشتراکی یافت نشد</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -105,7 +105,7 @@ export default function AdminSubscriptionsPage() {
                   {subs.map(sub => {
                     const st = STATUS_MAP[sub.status] || STATUS_MAP.active
                     return (
-                      <tr key={sub.id} className="border-b hover:bg-gray-50">
+                      <tr key={sub.id} className="border-b hover:bg-[var(--lux-surface)]">
                         <td className="p-3 font-medium">{sub.schools?.name || '—'}</td>
                         <td className="p-3">{sub.plan_display_name || sub.plan_name}</td>
                         <td className="p-3">
@@ -113,7 +113,7 @@ export default function AdminSubscriptionsPage() {
                             {st.icon}{st.label}
                           </span>
                         </td>
-                        <td className="p-3 text-gray-500 text-xs">
+                        <td className="p-3 text-[var(--lux-text-muted)] text-xs">
                           {sub.expires_at
                             ? new Date(sub.expires_at).toLocaleDateString('fa-IR')
                             : '—'}
@@ -137,7 +137,7 @@ export default function AdminSubscriptionsPage() {
                               </SelectContent>
                             </Select>
                             {changing === sub.school_id && (
-                              <Loader2 size={14} className="animate-spin text-gray-400" />
+                              <Loader2 size={14} className="animate-spin text-[var(--lux-text-muted)]" />
                             )}
                           </div>
                         </td>

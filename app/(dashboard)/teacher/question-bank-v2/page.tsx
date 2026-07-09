@@ -340,7 +340,7 @@ export default function QuestionBankPage() {
 
   const pageTitle = (
     <span className="flex items-center gap-3">
-      <BookOpen className="w-8 h-8 text-blue-500" />
+      <BookOpen className="w-8 h-8 text-[var(--lux-secondary)]" />
       بانک سوالات
     </span>
   )
@@ -599,8 +599,8 @@ export default function QuestionBankPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">{stats.total}</p>
-              <p className="text-sm text-gray-500">کل سوالات</p>
+              <p className="text-3xl font-bold text-[var(--lux-primary)]">{stats.total}</p>
+              <p className="text-sm text-[var(--lux-text-muted)]">کل سوالات</p>
             </div>
           </CardContent>
         </Card>
@@ -608,7 +608,7 @@ export default function QuestionBankPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-green-600">{stats.easy}</p>
-              <p className="text-sm text-gray-500">🟢 آسان</p>
+              <p className="text-sm text-[var(--lux-text-muted)]">🟢 آسان</p>
             </div>
           </CardContent>
         </Card>
@@ -616,7 +616,7 @@ export default function QuestionBankPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-yellow-600">{stats.medium}</p>
-              <p className="text-sm text-gray-500">🟡 متوسط</p>
+              <p className="text-sm text-[var(--lux-text-muted)]">🟡 متوسط</p>
             </div>
           </CardContent>
         </Card>
@@ -624,7 +624,7 @@ export default function QuestionBankPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-red-600">{stats.hard}</p>
-              <p className="text-sm text-gray-500">🔴 سخت</p>
+              <p className="text-sm text-[var(--lux-text-muted)]">🔴 سخت</p>
             </div>
           </CardContent>
         </Card>
@@ -632,7 +632,7 @@ export default function QuestionBankPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-purple-600">{stats.verified}</p>
-              <p className="text-sm text-gray-500">✓ تأیید شده</p>
+              <p className="text-sm text-[var(--lux-text-muted)]">✓ تأیید شده</p>
             </div>
           </CardContent>
         </Card>
@@ -645,7 +645,7 @@ export default function QuestionBankPage() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--lux-text-muted)]" />
                 <Input
                   placeholder="جستجو در سوالات..."
                   value={searchQuery}
@@ -787,7 +787,7 @@ export default function QuestionBankPage() {
           </div>
 
           {filteredQuestions.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-[var(--lux-text-muted)]">
               سوالی با این فیلترها پیدا نشد
             </div>
           )}
@@ -822,7 +822,7 @@ export default function QuestionBankPage() {
                 <Badge variant="secondary">{previewQuestion.points} نمره</Badge>
               </div>
 
-              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="p-4 bg-[var(--lux-surface)] dark:bg-gray-800 rounded-lg">
                 <p className="font-medium text-lg">{previewQuestion.text}</p>
               </div>
 

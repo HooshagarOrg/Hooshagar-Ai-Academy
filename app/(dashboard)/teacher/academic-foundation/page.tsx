@@ -632,7 +632,7 @@ export default function AcademicFoundationPage() {
         <GlassCard className="p-4 flex items-center gap-4 flex-wrap">
           <div className="flex-1 max-w-xs">
             <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--lux-text-muted)]" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -658,7 +658,7 @@ export default function AcademicFoundationPage() {
         <div className="glass-panel rounded-xl overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50">
+              <TableRow className="bg-[var(--lux-surface)]">
                 <TableHead className="w-12">#</TableHead>
                 <TableHead>نام دانش‌آموز</TableHead>
                 <TableHead className="w-32">کلاس</TableHead>
@@ -674,8 +674,8 @@ export default function AcademicFoundationPage() {
                 const levelInfo = assessment ? getLevelInfo(assessment.level) : null
 
                 return (
-                  <TableRow key={student.id} className="hover:bg-gray-50">
-                    <TableCell className="font-medium text-gray-500">
+                  <TableRow key={student.id} className="hover:bg-[var(--lux-surface)]">
+                    <TableCell className="font-medium text-[var(--lux-text-muted)]">
                       {index + 1}
                     </TableCell>
                     <TableCell>
@@ -691,16 +691,16 @@ export default function AcademicFoundationPage() {
                     </TableCell>
                     <TableCell>
                       {assessment ? (
-                        <span className="text-sm text-gray-600">{assessment.date}</span>
+                        <span className="text-sm text-[var(--lux-text-muted)]">{assessment.date}</span>
                       ) : (
-                        <span className="text-sm text-gray-400">—</span>
+                        <span className="text-sm text-[var(--lux-text-muted)]">—</span>
                       )}
                     </TableCell>
                     <TableCell>
                       {assessment ? (
                         <span className="font-bold text-lg">{assessment.totalScore}</span>
                       ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-[var(--lux-text-muted)]">—</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -710,7 +710,7 @@ export default function AcademicFoundationPage() {
                           {levelInfo.label}
                         </Badge>
                       ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-[var(--lux-text-muted)]">—</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -946,8 +946,8 @@ export default function AcademicFoundationPage() {
               </div>
 
               {/* Radar Chart */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <h4 className="font-medium text-gray-700 mb-3 text-center">نمودار مهارت‌ها</h4>
+              <div className="bg-[var(--lux-surface)] rounded-xl p-4">
+                <h4 className="font-medium text-[var(--lux-text)] mb-3 text-center">نمودار مهارت‌ها</h4>
                 <ResponsiveContainer width="100%" height={250}>
                   <RadarChart data={radarData}>
                     <PolarGrid />
@@ -1063,15 +1063,15 @@ export default function AcademicFoundationPage() {
         <DialogContent className="max-w-3xl" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <History className="w-5 h-5 text-blue-600" />
+              <History className="w-5 h-5 text-[var(--lux-primary)]" />
               تاریخچه ارزیابی - {selectedStudent?.name}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6">
             {/* Progress Chart */}
-            <div className="bg-gray-50 rounded-xl p-4">
-              <h4 className="font-medium text-gray-700 mb-4">نمودار پیشرفت</h4>
+            <div className="bg-[var(--lux-surface)] rounded-xl p-4">
+              <h4 className="font-medium text-[var(--lux-text)] mb-4">نمودار پیشرفت</h4>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={HISTORY_DATA}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -1102,15 +1102,15 @@ export default function AcademicFoundationPage() {
             {/* Comparison Cards */}
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white rounded-xl border p-4 text-center">
-                <p className="text-sm text-gray-500 mb-1">نمره فعلی</p>
+                <p className="text-sm text-[var(--lux-text-muted)] mb-1">نمره فعلی</p>
                 <p className="text-3xl font-bold text-purple-600">78</p>
               </div>
               <div className="bg-white rounded-xl border p-4 text-center">
-                <p className="text-sm text-gray-500 mb-1">میانگین کلاس</p>
-                <p className="text-3xl font-bold text-gray-600">75</p>
+                <p className="text-sm text-[var(--lux-text-muted)] mb-1">میانگین کلاس</p>
+                <p className="text-3xl font-bold text-[var(--lux-text-muted)]">75</p>
               </div>
               <div className="bg-white rounded-xl border p-4 text-center">
-                <p className="text-sm text-gray-500 mb-1">تغییرات</p>
+                <p className="text-sm text-[var(--lux-text-muted)] mb-1">تغییرات</p>
                 <p className="text-3xl font-bold text-green-600 flex items-center justify-center gap-1">
                   <ArrowUp className="w-5 h-5" />
                   +13
@@ -1120,11 +1120,11 @@ export default function AcademicFoundationPage() {
 
             {/* Previous Assessments */}
             <div className="space-y-3">
-              <h4 className="font-medium text-gray-700">ارزیابی‌های قبلی</h4>
+              <h4 className="font-medium text-[var(--lux-text)]">ارزیابی‌های قبلی</h4>
               {HISTORY_DATA.slice(-3).reverse().map((item, index) => (
                 <div key={index} className="bg-white rounded-lg border p-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 text-gray-400" />
+                    <Calendar className="w-5 h-5 text-[var(--lux-text-muted)]" />
                     <span>{item.month} 1403</span>
                   </div>
                   <div className="flex items-center gap-4">

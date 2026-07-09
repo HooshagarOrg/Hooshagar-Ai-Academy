@@ -11,6 +11,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/auth/validate-code',
   '/api/auth/activate',
   '/api/analytics/vitals',
+  '/api/health',
 ] as const
 
 export function isPublicApiRoute(pathname: string): boolean {

@@ -445,7 +445,7 @@ export default function BehaviorGuidancePage() {
               disabled={isSubmitting}
               className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-white font-bold transition-all shadow-lg
                 ${isSubmitting
-                  ? 'bg-gray-500 cursor-not-allowed'
+                  ? 'bg-[var(--lux-surface)]0 cursor-not-allowed'
                   : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-green-500/30 hover:shadow-green-500/50'
                 }`}
             >

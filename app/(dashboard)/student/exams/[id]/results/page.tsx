@@ -260,22 +260,22 @@ export default function ExamResultsPage() {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-4xl font-bold">{result.percentage}%</span>
-                  <span className="text-sm text-gray-500">{result.totalScore}/{result.maxScore}</span>
+                  <span className="text-sm text-[var(--lux-text-muted)]">{result.totalScore}/{result.maxScore}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-green-600">{correctCount}</p>
-                  <p className="text-xs text-gray-500">صحیح</p>
+                  <p className="text-xs text-[var(--lux-text-muted)]">صحیح</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-red-600">{wrongCount}</p>
-                  <p className="text-xs text-gray-500">غلط</p>
+                  <p className="text-xs text-[var(--lux-text-muted)]">غلط</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-400">{unansweredCount}</p>
-                  <p className="text-xs text-gray-500">بدون پاسخ</p>
+                  <p className="text-2xl font-bold text-[var(--lux-text-muted)]">{unansweredCount}</p>
+                  <p className="text-xs text-[var(--lux-text-muted)]">بدون پاسخ</p>
                 </div>
               </div>
 
@@ -308,7 +308,7 @@ export default function ExamResultsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-blue-500" />
+                    <BarChart3 className="w-5 h-5 text-[var(--lux-secondary)]" />
                     عملکرد در موضوعات
                   </CardTitle>
                 </CardHeader>
@@ -367,20 +367,20 @@ export default function ExamResultsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
-                    <p className="text-sm text-gray-500">میانگین کلاس</p>
-                    <p className="text-2xl font-bold text-blue-600">{result.classAverage}</p>
+                  <div className="p-4 bg-[var(--lux-primary)]/10 rounded-lg text-center">
+                    <p className="text-sm text-[var(--lux-text-muted)]">میانگین کلاس</p>
+                    <p className="text-2xl font-bold text-[var(--lux-primary)]">{result.classAverage}</p>
                   </div>
                   <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
-                    <p className="text-sm text-gray-500">بالاترین نمره</p>
+                    <p className="text-sm text-[var(--lux-text-muted)]">بالاترین نمره</p>
                     <p className="text-2xl font-bold text-green-600">38</p>
                   </div>
                   <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg text-center">
-                    <p className="text-sm text-gray-500">پایین‌ترین نمره</p>
+                    <p className="text-sm text-[var(--lux-text-muted)]">پایین‌ترین نمره</p>
                     <p className="text-2xl font-bold text-red-600">15</p>
                   </div>
                   <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
-                    <p className="text-sm text-gray-500">صدک شما</p>
+                    <p className="text-sm text-[var(--lux-text-muted)]">صدک شما</p>
                     <p className="text-2xl font-bold text-purple-600">83%</p>
                   </div>
                 </div>
@@ -462,7 +462,7 @@ export default function ExamResultsPage() {
                   value={q.id}
                   className={cn(
                     "border rounded-lg",
-                    q.isCorrect ? "border-green-200" : q.yourAnswer ? "border-red-200" : "border-gray-200"
+                    q.isCorrect ? "border-green-200" : q.yourAnswer ? "border-red-200" : "border-white/10"
                   )}
                 >
                   <AccordionTrigger className="px-4 hover:no-underline">
@@ -470,7 +470,7 @@ export default function ExamResultsPage() {
                       <div className={cn(
                         "w-8 h-8 rounded-full flex items-center justify-center",
                         q.isCorrect ? "bg-green-100 text-green-700" :
-                        q.yourAnswer ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-500"
+                        q.yourAnswer ? "bg-red-100 text-red-700" : "bg-white/10 text-[var(--lux-text-muted)]"
                       )}>
                         {q.isCorrect ? <CheckCircle className="w-5 h-5" /> :
                          q.yourAnswer ? <XCircle className="w-5 h-5" /> :
@@ -491,18 +491,18 @@ export default function ExamResultsPage() {
                           "p-3 rounded-lg",
                           q.isCorrect ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"
                         )}>
-                          <span className="text-sm text-gray-500">پاسخ شما:</span>
+                          <span className="text-sm text-[var(--lux-text-muted)]">پاسخ شما:</span>
                           <p className="font-medium">{q.yourAnswer || 'پاسخ نداده‌اید'}</p>
                         </div>
                         <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                          <span className="text-sm text-gray-500">پاسخ صحیح:</span>
+                          <span className="text-sm text-[var(--lux-text-muted)]">پاسخ صحیح:</span>
                           <p className="font-medium">{q.correctAnswer}</p>
                         </div>
                       </div>
 
                       {q.explanation && (
-                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                          <span className="text-sm text-gray-500">توضیح:</span>
+                        <div className="p-3 bg-[var(--lux-primary)]/10 rounded-lg">
+                          <span className="text-sm text-[var(--lux-text-muted)]">توضیح:</span>
                           <p>{q.explanation}</p>
                         </div>
                       )}
@@ -513,7 +513,7 @@ export default function ExamResultsPage() {
             </Accordion>
 
             {result.questions.length > 10 && (
-              <p className="text-center text-gray-500 py-4">
+              <p className="text-center text-[var(--lux-text-muted)] py-4">
                 و {result.questions.length - 10} سوال دیگر...
               </p>
             )}

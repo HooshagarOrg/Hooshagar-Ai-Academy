@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { sendSmsBatch, createSmsProvider } from '@/lib/sms/provider'
+import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
+import type { AllowedRole } from '@/lib/security/api-guard'
 
 const lotterySettingSchema = z.object({
   school_id: z.string().uuid(),
@@ -23,7 +25,7 @@ async function checkAdminRole(supabase: ReturnType<typeof createClient> extends 
     .eq('id', userId)
     .single()
 
-  return profile && ['super_admin', 'school_admin', 'principal', 'admin'].includes(profile.role)
+  return profile && LOTTERY_ADMIN_ROLES.includes(profile.role as AllowedRole)
 }
 
 // دریافت لیست قرعه‌کشی‌ها

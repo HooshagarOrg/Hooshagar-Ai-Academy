@@ -415,7 +415,7 @@ export default function AIUsageDashboardPage() {
                       style={{ backgroundColor: role.color }}
                     />
                     <span>{role.name}</span>
-                    <span className="text-gray-500">
+                    <span className="text-[var(--lux-text-muted)]">
                       ({role.count.toLocaleString('fa-IR')})
                     </span>
                   </div>
@@ -462,7 +462,7 @@ export default function AIUsageDashboardPage() {
             <CardContent>
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50">
+                  <TableRow className="bg-[var(--lux-surface)]">
                     <TableHead className="w-12 text-center">رتبه</TableHead>
                     <TableHead>نام کاربر</TableHead>
                     <TableHead>نقش</TableHead>
@@ -481,7 +481,7 @@ export default function AIUsageDashboardPage() {
                             {user.rank === 1 ? '🥇' : user.rank === 2 ? '🥈' : '🥉'}
                           </span>
                         ) : (
-                          <span className="text-gray-500">{user.rank}</span>
+                          <span className="text-[var(--lux-text-muted)]">{user.rank}</span>
                         )}
                       </TableCell>
                       <TableCell className="font-medium">{user.name}</TableCell>
@@ -534,7 +534,7 @@ export default function AIUsageDashboardPage() {
                 <TableBody>
                   {BLOCKED_REQUESTS.map((item, index) => (
                     <TableRow key={index}>
-                      <TableCell className="text-gray-500">{item.time}</TableCell>
+                      <TableCell className="text-[var(--lux-text-muted)]">{item.time}</TableCell>
                       <TableCell>{item.user}</TableCell>
                       <TableCell>{item.feature}</TableCell>
                       <TableCell>
@@ -550,7 +550,7 @@ export default function AIUsageDashboardPage() {
                           {item.reason}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-gray-500">{item.remaining}</TableCell>
+                      <TableCell className="text-[var(--lux-text-muted)]">{item.remaining}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -586,15 +586,15 @@ export default function AIUsageDashboardPage() {
                 variant="outline"
                 className="w-full justify-start gap-2"
               >
-                <Mail className="w-4 h-4 text-blue-600" />
+                <Mail className="w-4 h-4 text-[var(--lux-primary)]" />
                 ارسال گزارش ایمیل
               </Button>
 
               <Separator className="my-4" />
 
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-[var(--lux-surface)] rounded-lg p-4">
                 <h4 className="font-medium mb-2">آخرین بروزرسانی</h4>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[var(--lux-text-muted)]">
                   {new Date().toLocaleDateString('fa-IR', {
                     hour: '2-digit',
                     minute: '2-digit',

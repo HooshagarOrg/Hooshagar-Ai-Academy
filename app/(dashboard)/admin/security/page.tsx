@@ -42,16 +42,16 @@ const EVENT_CONFIG: Record<string, { label: string; color: string }> = {
   login_success:      { label: 'ورود موفق', color: 'bg-green-100 text-green-700' },
   login_failed:       { label: 'ورود ناموفق', color: 'bg-red-100 text-red-600' },
   login_blocked:      { label: 'ورود مسدود', color: 'bg-orange-100 text-orange-700' },
-  logout:             { label: 'خروج', color: 'bg-gray-100 text-gray-600' },
-  password_changed:   { label: 'تغییر رمز', color: 'bg-blue-100 text-blue-700' },
+  logout:             { label: 'خروج', color: 'bg-white/10 text-[var(--lux-text-muted)]' },
+  password_changed:   { label: 'تغییر رمز', color: 'bg-[var(--lux-primary)]/15 text-blue-700' },
   otp_sent:           { label: 'OTP ارسال شد', color: 'bg-purple-100 text-purple-700' },
   otp_verified:       { label: 'OTP تأیید شد', color: 'bg-green-100 text-green-700' },
   otp_failed:         { label: 'OTP ناموفق', color: 'bg-red-100 text-red-600' },
   access_denied:      { label: 'دسترسی رد شد', color: 'bg-red-100 text-red-600' },
   api_rate_limited:   { label: 'Rate Limit', color: 'bg-orange-100 text-orange-700' },
   suspicious_activity:{ label: 'مشکوک', color: 'bg-red-200 text-red-800' },
-  admin_action:       { label: 'عملیات ادمین', color: 'bg-blue-100 text-blue-700' },
-  file_upload:        { label: 'آپلود فایل', color: 'bg-gray-100 text-gray-600' },
+  admin_action:       { label: 'عملیات ادمین', color: 'bg-[var(--lux-primary)]/15 text-blue-700' },
+  file_upload:        { label: 'آپلود فایل', color: 'bg-white/10 text-[var(--lux-text-muted)]' },
 }
 
 const RISK_CONFIG = {
@@ -132,7 +132,7 @@ export default function SecurityDashboard() {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           {[
-            { label: 'رویداد امروز', value: stats.total_today, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
+            { label: 'رویداد امروز', value: stats.total_today, icon: Activity, color: 'text-[var(--lux-primary)]', bg: 'bg-blue-50' },
             { label: 'خطای ورود', value: stats.failed_today, icon: XCircle, color: 'text-red-600', bg: 'bg-red-50' },
             { label: 'IP مسدود', value: stats.blocked_ips, icon: Ban, color: 'text-orange-600', bg: 'bg-orange-50' },
             { label: 'ریسک بالا', value: stats.high_risk_events, icon: AlertTriangle, color: 'text-red-700', bg: 'bg-red-100' },
@@ -144,7 +144,7 @@ export default function SecurityDashboard() {
                 <Icon className={`w-6 h-6 ${s.color} flex-shrink-0`} />
                 <div>
                   <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-gray-500">{s.label}</p>
+                  <p className="text-xs text-[var(--lux-text-muted)]">{s.label}</p>
                 </div>
               </div>
             )
@@ -170,12 +170,12 @@ export default function SecurityDashboard() {
             }
             <div>
               <div className="flex items-center gap-2">
-                <p className="font-medium text-gray-800 text-sm">{item.title}</p>
+                <p className="font-medium text-[var(--lux-text)] text-sm">{item.title}</p>
                 <Badge className={cn('text-xs', item.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600')}>
                   {item.status}
                 </Badge>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+              <p className="text-xs text-[var(--lux-text-muted)] mt-0.5">{item.desc}</p>
             </div>
           </div>
         ))}
@@ -216,12 +216,12 @@ export default function SecurityDashboard() {
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <div className="divide-y divide-gray-50">
             {filtered.map(log => {
-              const eventCfg = EVENT_CONFIG[log.event_type] || { label: log.event_type, color: 'bg-gray-100 text-gray-600' }
+              const eventCfg = EVENT_CONFIG[log.event_type] || { label: log.event_type, color: 'bg-white/10 text-[var(--lux-text-muted)]' }
               const riskCfg = RISK_CONFIG[log.risk_level]
 
               return (
                 <div key={log.id} className={cn(
-                  'flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors',
+                  'flex items-center gap-3 px-5 py-3 hover:bg-[var(--lux-surface)] transition-colors',
                   log.risk_level === 'critical' && 'bg-red-50',
                   log.risk_level === 'high' && 'bg-orange-50/50',
                 )}>
@@ -237,12 +237,12 @@ export default function SecurityDashboard() {
                       <Badge className={cn('text-xs', eventCfg.color)}>{eventCfg.label}</Badge>
                       <Badge className={cn('text-xs', riskCfg.color)}>{riskCfg.label}</Badge>
                       {log.details?.method != null && (
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-[var(--lux-text-muted)]">
                           روش: {String(log.details.method)}
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-500">
+                    <div className="flex flex-wrap gap-3 mt-1 text-xs text-[var(--lux-text-muted)]">
                       {log.ip_address && (
                         <span className="flex items-center gap-1">
                           <Globe className="w-3 h-3" />

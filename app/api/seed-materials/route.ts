@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
-import { AUTH_ERRORS } from '@/lib/security/error-handler'
+import { withAuth } from '@/lib/security/api-guard'
+import { PLATFORM_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
 
 const supabaseUrl   = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey   = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -196,19 +196,7 @@ async function getEmbedding(text: string): Promise<number[] | null> {
 }
 
 export async function GET(request: NextRequest) {
-  // فقط platform_admin — در همه محیط‌ها
-  const authClient = await createServerClient()
-  const { data: { user } } = await authClient.auth.getUser()
-  if (!user) return AUTH_ERRORS.unauthorized()
-  const { data: profile } = await authClient
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-  if (!profile || profile.role !== 'platform_admin') {
-    return AUTH_ERRORS.forbidden()
-  }
-
+  return withAuth(request, async () => {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json(
       { error: 'این endpoint در production غیرفعال است' },
@@ -304,6 +292,7 @@ export async function GET(request: NextRequest) {
       error: error.message 
     }, { status: 500 })
   }
+  }, { roles: PLATFORM_ADMIN_ROLES })
 }
 
 

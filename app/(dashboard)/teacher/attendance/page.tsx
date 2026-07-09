@@ -125,7 +125,7 @@ const statusColors = {
   present: { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' },
   absent: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' },
   late: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
-  excused: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' },
+  excused: { bg: 'bg-[var(--lux-primary)]/15', text: 'text-blue-700', border: 'border-blue-300' },
   sick: { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
 }
 
@@ -468,7 +468,7 @@ export default function TeacherAttendancePage() {
                             <TableCell>
                               <div>
                                 <p className="font-medium">{student.full_name}</p>
-                                <p className="text-xs text-gray-500">کد: {student.student_code}</p>
+                                <p className="text-xs text-[var(--lux-text-muted)]">کد: {student.student_code}</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -490,7 +490,7 @@ export default function TeacherAttendancePage() {
                                       <Label
                                         htmlFor={`${student.id}-${s}`}
                                         className={`flex items-center gap-1 px-2 py-1 rounded-md cursor-pointer text-xs border transition-all
-                                          ${status === s ? `${colors.bg} ${colors.text} ${colors.border}` : 'border-gray-200 hover:bg-gray-50'}
+                                          ${status === s ? `${colors.bg} ${colors.text} ${colors.border}` : 'border-white/[0.06] hover:bg-[var(--lux-surface)]'}
                                         `}
                                       >
                                         <Icon className="w-3 h-3" />
@@ -519,7 +519,7 @@ export default function TeacherAttendancePage() {
                                   </SelectContent>
                                 </Select>
                               ) : (
-                                <span className="text-gray-400 text-xs">-</span>
+                                <span className="text-[var(--lux-text-muted)] text-xs">-</span>
                               )}
                             </TableCell>
                             <TableCell>
@@ -528,7 +528,7 @@ export default function TeacherAttendancePage() {
                                   دارد
                                 </Badge>
                               ) : (
-                                <span className="text-gray-400 text-xs">-</span>
+                                <span className="text-[var(--lux-text-muted)] text-xs">-</span>
                               )}
                             </TableCell>
                             <TableCell>
@@ -582,13 +582,13 @@ export default function TeacherAttendancePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-blue-500" />
+                  <BarChart3 className="w-5 h-5 text-[var(--lux-secondary)]" />
                   خلاصه امروز
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-2">کل دانش‌آموزان</p>
+                  <p className="text-sm text-[var(--lux-text-muted)] mb-2">کل دانش‌آموزان</p>
                   <p className="text-3xl font-bold">{stats.total} نفر</p>
                 </div>
 
@@ -602,7 +602,7 @@ export default function TeacherAttendancePage() {
                     </div>
                     <div className="text-left">
                       <span className="font-semibold">{stats.present} نفر</span>
-                      <span className="text-gray-500 text-sm mr-1">({stats.presentPercentage}%)</span>
+                      <span className="text-[var(--lux-text-muted)] text-sm mr-1">({stats.presentPercentage}%)</span>
                     </div>
                   </div>
 
@@ -613,7 +613,7 @@ export default function TeacherAttendancePage() {
                     </div>
                     <div className="text-left">
                       <span className="font-semibold">{stats.absent} نفر</span>
-                      <span className="text-gray-500 text-sm mr-1">({stats.absentPercentage}%)</span>
+                      <span className="text-[var(--lux-text-muted)] text-sm mr-1">({stats.absentPercentage}%)</span>
                     </div>
                   </div>
 
@@ -624,7 +624,7 @@ export default function TeacherAttendancePage() {
                     </div>
                     <div className="text-left">
                       <span className="font-semibold">{stats.late} نفر</span>
-                      <span className="text-gray-500 text-sm mr-1">({stats.latePercentage}%)</span>
+                      <span className="text-[var(--lux-text-muted)] text-sm mr-1">({stats.latePercentage}%)</span>
                     </div>
                   </div>
 
@@ -655,8 +655,8 @@ export default function TeacherAttendancePage() {
                 )}
 
                 {/* Attendance Rate */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 mb-2">نرخ حضور</p>
+                <div className="bg-[var(--lux-surface)] dark:bg-gray-800 rounded-lg p-4">
+                  <p className="text-sm text-[var(--lux-text-muted)] mb-2">نرخ حضور</p>
                   <div className="flex items-center gap-3">
                     <Progress value={stats.presentPercentage} className="flex-1" />
                     <span className="font-bold text-lg">{stats.presentPercentage}%</span>
@@ -671,7 +671,7 @@ export default function TeacherAttendancePage() {
             <CardHeader>
               <CardTitle className="text-sm">راهنمای سریع</CardTitle>
             </CardHeader>
-            <CardContent className="text-xs text-gray-600 space-y-2">
+            <CardContent className="text-xs text-[var(--lux-text-muted)] space-y-2">
               <p>• ابتدا کلاس و تاریخ را انتخاب کنید</p>
               <p>• وضعیت هر دانش‌آموز را مشخص کنید</p>
               <p>• برای غیبت، علت را انتخاب کنید</p>
@@ -711,8 +711,8 @@ export default function TeacherAttendancePage() {
             <div className="space-y-2">
               <Label>گواهی پزشک (اختیاری)</Label>
               <div className="border-2 border-dashed rounded-lg p-4 text-center">
-                <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                <p className="text-sm text-gray-500">برای آپلود فایل کلیک کنید</p>
+                <Upload className="w-8 h-8 mx-auto text-[var(--lux-text-muted)] mb-2" />
+                <p className="text-sm text-[var(--lux-text-muted)]">برای آپلود فایل کلیک کنید</p>
                 <input
                   type="file"
                   accept="image/*,.pdf"

@@ -185,7 +185,7 @@ export default function BulkImportPage() {
             <Card className="border-blue-200 bg-blue-50">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <Users className="text-blue-600 mt-1" />
+                  <Users className="text-[var(--lux-primary)] mt-1" />
                   <div>
                     <p className="font-semibold text-blue-800">شیت دانش‌آموزان</p>
                     <p className="text-sm text-blue-700 mt-1">
@@ -211,14 +211,14 @@ export default function BulkImportPage() {
           </div>
 
           <div
-            className="border-2 border-dashed border-gray-300 rounded-xl p-16 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+            className="border-2 border-dashed border-white/10 rounded-xl p-16 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
             onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]) }}
             onDragOver={(e) => e.preventDefault()}
             onClick={() => fileRef.current?.click()}
           >
-            <Upload className="mx-auto mb-3 text-gray-400" size={48} />
-            <p className="text-gray-700 font-medium text-lg">فایل Excel یا CSV را اینجا بکشید</p>
-            <p className="text-sm text-gray-400 mt-2">چند شیت در یک فایل Excel پشتیبانی می‌شود</p>
+            <Upload className="mx-auto mb-3 text-[var(--lux-text-muted)]" size={48} />
+            <p className="text-[var(--lux-text)] font-medium text-lg">فایل Excel یا CSV را اینجا بکشید</p>
+            <p className="text-sm text-[var(--lux-text-muted)] mt-2">چند شیت در یک فایل Excel پشتیبانی می‌شود</p>
             <input
               ref={fileRef} type="file" accept=".csv,.txt,.xlsx,.xls" className="hidden"
               onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]) }}
@@ -251,7 +251,7 @@ export default function BulkImportPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-wrap gap-4 p-3 bg-gray-50 rounded-lg">
+            <div className="flex flex-wrap gap-4 p-3 bg-[var(--lux-surface)] rounded-lg">
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <Checkbox checked={createParents} onCheckedChange={(v) => setCreateParents(Boolean(v))} />
                 ایجاد حساب والد در کنار دانش‌آموز
@@ -289,7 +289,7 @@ export default function BulkImportPage() {
           <CardContent>
             <div className="overflow-x-auto max-h-[500px] overflow-y-auto rounded-lg border">
               <table className="w-full text-sm">
-                <thead className="bg-gray-100 sticky top-0">
+                <thead className="bg-white/10 sticky top-0">
                   <tr>
                     <th className="p-3 text-right">نام</th>
                     <th className="p-3 text-right">کد ورود</th>
@@ -311,7 +311,7 @@ export default function BulkImportPage() {
                           ? <AlertCircle className="text-orange-500 mx-auto" size={18} />
                           : <XCircle className="text-red-500 mx-auto" size={18} />}
                       </td>
-                      <td className="p-3 text-xs text-gray-600">{r.message}</td>
+                      <td className="p-3 text-xs text-[var(--lux-text-muted)]">{r.message}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -341,17 +341,17 @@ export default function BulkImportPage() {
 
 function PreviewTable({ sheets, type }: { sheets: SheetPreview[]; type: 'students' | 'staff' }) {
   if (sheets.length === 0) {
-    return <p className="text-sm text-gray-500 p-4">ردیفی یافت نشد</p>
+    return <p className="text-sm text-[var(--lux-text-muted)] p-4">ردیفی یافت نشد</p>
   }
 
   return (
     <div className="space-y-4">
       {sheets.map((sheet) => (
         <div key={sheet.sheetName}>
-          <p className="text-sm font-medium text-gray-600 mb-2">شیت: {sheet.sheetName}</p>
+          <p className="text-sm font-medium text-[var(--lux-text-muted)] mb-2">شیت: {sheet.sheetName}</p>
           <div className="overflow-x-auto rounded-lg border max-h-96 overflow-y-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-100 sticky top-0">
+              <thead className="bg-white/10 sticky top-0">
                 <tr>
                   <th className="p-2 text-right">#</th>
                   <th className="p-2 text-right">نام</th>
@@ -390,7 +390,7 @@ function PreviewTable({ sheets, type }: { sheets: SheetPreview[]; type: 'student
                       <td className="p-2 text-center">
                         {row.status === 'error' && <XCircle className="text-red-500 mx-auto" size={16} />}
                         {row.status === 'warning' && <AlertCircle className="text-orange-500 mx-auto" size={16} />}
-                        {(row.status === 'valid' || row.status === 'pending') && <FileText className="text-gray-400 mx-auto" size={16} />}
+                        {(row.status === 'valid' || row.status === 'pending') && <FileText className="text-[var(--lux-text-muted)] mx-auto" size={16} />}
                         {isErr && <p className="text-xs text-red-600 mt-1">{row.errors.join(' | ')}</p>}
                       </td>
                     </tr>

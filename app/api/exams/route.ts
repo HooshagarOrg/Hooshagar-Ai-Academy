@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import { withAuth } from '@/lib/security/api-guard';
+import { EXAM_MANAGE_ROLES } from '@/lib/security/sensitive-api-roles';
 
 // اسکیما سوال مستقیم (از OCR)
 const directQuestionSchema = z.object({
@@ -33,6 +35,7 @@ const createExamSchema = z.object({
 
 // دریافت لیست امتحانات
 export async function GET(request: NextRequest) {
+  return withAuth(request, async () => {
   try {
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
@@ -74,18 +77,14 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+  });
 }
 
 // ایجاد امتحان جدید
 export async function POST(request: NextRequest) {
+  return withAuth(request, async (ctx) => {
   try {
     const supabase = await createClient();
-
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
-      return NextResponse.json({ error: 'غیرمجاز' }, { status: 401 });
-    }
-
     const body = await request.json();
     const result = createExamSchema.safeParse(body);
 
@@ -107,7 +106,7 @@ export async function POST(request: NextRequest) {
         ...examData,
         total_questions: totalQuestions,
         status: 'draft',
-        created_by: userData.user.id,
+        created_by: ctx.userId,
       })
       .select()
       .single();
@@ -196,4 +195,5 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+  }, { roles: EXAM_MANAGE_ROLES });
 }

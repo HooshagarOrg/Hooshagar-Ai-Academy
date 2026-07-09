@@ -311,11 +311,11 @@ function QuestionCard({
       <div className="p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3 flex-1">
-            <span className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
+            <span className="w-8 h-8 bg-[var(--lux-primary)]/15 text-blue-700 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
               {index + 1}
             </span>
             <div className="flex-1">
-              <p className="text-gray-800 font-medium leading-relaxed">{question.text}</p>
+              <p className="text-[var(--lux-text)] font-medium leading-relaxed">{question.text}</p>
               <div className="flex items-center gap-2 mt-2">
                 <Badge className={difficultyInfo[question.difficulty].color}>
                   {difficultyInfo[question.difficulty].label}
@@ -343,7 +343,7 @@ function QuestionCard({
 
       <Accordion type="single" collapsible>
         <AccordionItem value="answer" className="border-t">
-          <AccordionTrigger className="px-4 py-2 text-sm text-gray-600 hover:no-underline">
+          <AccordionTrigger className="px-4 py-2 text-sm text-[var(--lux-text-muted)] hover:no-underline">
             <span className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-green-600" />
               پاسخ کلیدی
@@ -378,7 +378,7 @@ function GradeButton({
       onClick={onClick}
       className={cn(
         'flex-1 py-3 rounded-lg border-2 transition-all font-medium',
-        selected ? `${color} border-transparent` : 'bg-white border-gray-200 hover:border-gray-300'
+        selected ? `${color} border-transparent` : 'bg-white border-white/[0.06] hover:border-white/10'
       )}
     >
       {label}
@@ -612,7 +612,7 @@ export default function OralQuestionsPage() {
                       ? 'bg-purple-100 text-purple-700'
                       : currentStep > item.step
                       ? 'text-green-600'
-                      : 'text-gray-400'
+                      : 'text-[var(--lux-text-muted)]'
                   )}
                 >
                   <div
@@ -622,7 +622,7 @@ export default function OralQuestionsPage() {
                         ? 'bg-purple-600 text-white'
                         : currentStep > item.step
                         ? 'bg-green-500 text-white'
-                        : 'bg-gray-200 text-gray-500'
+                        : 'bg-white/10 text-[var(--lux-text-muted)]'
                     )}
                   >
                     {currentStep > item.step ? (
@@ -634,11 +634,11 @@ export default function OralQuestionsPage() {
                   <span className="font-medium hidden sm:inline">{item.label}</span>
                 </button>
                 {index < 2 && (
-                  <div className="flex-1 h-1 bg-gray-200 mx-2 rounded">
+                  <div className="flex-1 h-1 bg-white/10 mx-2 rounded">
                     <div
                       className={cn(
                         'h-full rounded transition-all',
-                        currentStep > item.step ? 'bg-green-500 w-full' : 'bg-gray-200 w-0'
+                        currentStep > item.step ? 'bg-green-500 w-full' : 'bg-white/10 w-0'
                       )}
                     />
                   </div>
@@ -651,7 +651,7 @@ export default function OralQuestionsPage() {
         {/* Step 1: Text Input */}
         {currentStep === 1 && (
           <div className="glass-panel rounded-xl p-6 space-y-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-[var(--lux-text)] flex items-center gap-2">
               <FileText className="w-6 h-6 text-purple-600" />
               مرحله ۱: انتخاب متن درس
             </h2>
@@ -713,7 +713,7 @@ export default function OralQuestionsPage() {
                 maxLength={5000}
               />
               <div className="flex items-center justify-between text-sm">
-                <span className={cn('text-gray-500', charCount > 4500 && 'text-orange-500')}>
+                <span className={cn('text-[var(--lux-text-muted)]', charCount > 4500 && 'text-orange-500')}>
                   {charCount.toLocaleString('fa-IR')} / ۵٬۰۰۰ کاراکتر
                 </span>
                 <Progress value={(charCount / 5000) * 100} className="w-32 h-2" />
@@ -722,11 +722,11 @@ export default function OralQuestionsPage() {
 
             <div className="flex items-center gap-4">
               <Separator className="flex-1" />
-              <span className="text-gray-400 text-sm">یا</span>
+              <span className="text-[var(--lux-text-muted)] text-sm">یا</span>
               <Separator className="flex-1" />
             </div>
 
-            <div className="border-2 border-dashed rounded-xl p-8 text-center hover:bg-gray-50 transition-colors">
+            <div className="border-2 border-dashed rounded-xl p-8 text-center hover:bg-[var(--lux-surface)] transition-colors">
               <input
                 type="file"
                 id="file-upload"
@@ -735,11 +735,11 @@ export default function OralQuestionsPage() {
                 onChange={handleFileUpload}
               />
               <label htmlFor="file-upload" className="cursor-pointer">
-                <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600 font-medium">
+                <Upload className="w-10 h-10 text-[var(--lux-text-muted)] mx-auto mb-3" />
+                <p className="text-[var(--lux-text-muted)] font-medium">
                   {uploadedFile ? uploadedFile.name : 'آپلود فایل (PDF, DOCX)'}
                 </p>
-                <p className="text-sm text-gray-400 mt-1">حداکثر 5MB</p>
+                <p className="text-sm text-[var(--lux-text-muted)] mt-1">حداکثر 5MB</p>
               </label>
             </div>
 
@@ -759,7 +759,7 @@ export default function OralQuestionsPage() {
         {/* Step 2: Settings */}
         {currentStep === 2 && (
           <div className="glass-panel rounded-xl p-6 space-y-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-[var(--lux-text)] flex items-center gap-2">
               <Target className="w-6 h-6 text-purple-600" />
               مرحله ۲: تنظیمات تولید
             </h2>
@@ -777,7 +777,7 @@ export default function OralQuestionsPage() {
                       onChange={(e) => setQuestionCount(parseInt(e.target.value) || 1)}
                       className="w-24"
                     />
-                    <span className="text-sm text-gray-500">سوال (۱ تا ۲۰)</span>
+                    <span className="text-sm text-[var(--lux-text-muted)]">سوال (۱ تا ۲۰)</span>
                   </div>
                 </div>
 
@@ -835,7 +835,7 @@ export default function OralQuestionsPage() {
                         'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
                         selectedTypes.includes(type.id)
                           ? 'bg-purple-50 border-purple-300'
-                          : 'hover:bg-gray-50'
+                          : 'hover:bg-[var(--lux-surface)]'
                       )}
                       onClick={() => handleTypeToggle(type.id)}
                     >
@@ -845,7 +845,7 @@ export default function OralQuestionsPage() {
                       />
                       <div>
                         <p className="font-medium text-sm">{type.name}</p>
-                        <p className="text-xs text-gray-500">{type.description}</p>
+                        <p className="text-xs text-[var(--lux-text-muted)]">{type.description}</p>
                       </div>
                     </div>
                   ))}
@@ -884,7 +884,7 @@ export default function OralQuestionsPage() {
           <div className="space-y-6">
             <div className="glass-panel rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-[var(--lux-text)] flex items-center gap-2">
                   <HelpCircle className="w-6 h-6 text-purple-600" />
                   سوالات تولید شده ({questions.length} سوال)
                 </h2>
@@ -917,8 +917,8 @@ export default function OralQuestionsPage() {
 
             {/* History Section */}
             <div className="glass-panel rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
-                <Clock className="w-5 h-5 text-gray-600" />
+              <h3 className="text-lg font-bold text-[var(--lux-text)] flex items-center gap-2 mb-4">
+                <Clock className="w-5 h-5 text-[var(--lux-text-muted)]" />
                 تاریخچه جلسات ارزیابی
               </h3>
 
@@ -943,7 +943,7 @@ export default function OralQuestionsPage() {
                       <TableCell>{session.questionsCount}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4 text-gray-400" />
+                          <Users className="w-4 h-4 text-[var(--lux-text-muted)]" />
                           {session.students.length} نفر
                         </div>
                       </TableCell>
@@ -997,14 +997,14 @@ export default function OralQuestionsPage() {
                       <button
                         key={student.id}
                         onClick={() => setSelectedStudent(student.id)}
-                        className="flex items-center gap-3 p-3 rounded-lg border hover:bg-gray-50 transition-colors text-right"
+                        className="flex items-center gap-3 p-3 rounded-lg border hover:bg-[var(--lux-surface)] transition-colors text-right"
                       >
                         <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
                           {student.name.charAt(0)}
                         </div>
                         <div>
                           <p className="font-medium">{student.name}</p>
-                          <p className="text-sm text-gray-500">{student.className}</p>
+                          <p className="text-sm text-[var(--lux-text-muted)]">{student.className}</p>
                         </div>
                       </button>
                     ))}
@@ -1015,7 +1015,7 @@ export default function OralQuestionsPage() {
                   {/* Progress */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-[var(--lux-text-muted)]">
                         سوال {currentQuestionIndex + 1} از {questions.length}
                       </span>
                       <Progress
@@ -1023,7 +1023,7 @@ export default function OralQuestionsPage() {
                         className="w-32 h-2"
                       />
                     </div>
-                    <div className="flex items-center gap-2 text-gray-500">
+                    <div className="flex items-center gap-2 text-[var(--lux-text-muted)]">
                       <Timer className="w-4 h-4" />
                       <span className="font-mono">{Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}</span>
                     </div>
@@ -1044,7 +1044,7 @@ export default function OralQuestionsPage() {
                          questions[currentQuestionIndex]?.difficulty === 'medium' ? 'متوسط' : 'سخت'}
                       </Badge>
                     </div>
-                    <p className="text-xl font-medium text-gray-800 leading-relaxed">
+                    <p className="text-xl font-medium text-[var(--lux-text)] leading-relaxed">
                       {questions[currentQuestionIndex]?.text}
                     </p>
                   </div>
@@ -1052,7 +1052,7 @@ export default function OralQuestionsPage() {
                   {/* Key Answer (Collapsed) */}
                   <Accordion type="single" collapsible>
                     <AccordionItem value="answer">
-                      <AccordionTrigger className="text-sm text-gray-600">
+                      <AccordionTrigger className="text-sm text-[var(--lux-text-muted)]">
                         <span className="flex items-center gap-2">
                           <CheckCircle2 className="w-4 h-4 text-green-600" />
                           مشاهده پاسخ کلیدی
@@ -1121,14 +1121,14 @@ export default function OralQuestionsPage() {
                 <Award className="w-10 h-10 text-green-600" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">ارزیابی تمام شد!</h3>
-                <p className="text-gray-600 mt-1">
+                <h3 className="text-2xl font-bold text-[var(--lux-text)]">ارزیابی تمام شد!</h3>
+                <p className="text-[var(--lux-text-muted)] mt-1">
                   {STUDENTS.find((s) => s.id === selectedStudent)?.name}
                 </p>
               </div>
               <div className="bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl p-6 inline-block">
                 <p className="text-5xl font-bold text-purple-600">{calculateFinalScore()}</p>
-                <p className="text-gray-600">نمره کل از ۱۰۰</p>
+                <p className="text-[var(--lux-text-muted)]">نمره کل از ۱۰۰</p>
               </div>
               <div className="flex gap-3 justify-center">
                 <Button variant="outline" onClick={() => toast.success('گزارش ارسال شد')} className="gap-2">
@@ -1179,26 +1179,26 @@ export default function OralQuestionsPage() {
           {selectedSession && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-sm text-gray-500">تاریخ</p>
+                <div className="bg-[var(--lux-surface)] rounded-lg p-3">
+                  <p className="text-sm text-[var(--lux-text-muted)]">تاریخ</p>
                   <p className="font-medium">{selectedSession.date}</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-sm text-gray-500">درس</p>
+                <div className="bg-[var(--lux-surface)] rounded-lg p-3">
+                  <p className="text-sm text-[var(--lux-text-muted)]">درس</p>
                   <p className="font-medium">{selectedSession.subject} - {selectedSession.lesson}</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-sm text-gray-500">تعداد سوال</p>
+                <div className="bg-[var(--lux-surface)] rounded-lg p-3">
+                  <p className="text-sm text-[var(--lux-text-muted)]">تعداد سوال</p>
                   <p className="font-medium">{selectedSession.questionsCount}</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-sm text-gray-500">میانگین نمره</p>
+                <div className="bg-[var(--lux-surface)] rounded-lg p-3">
+                  <p className="text-sm text-[var(--lux-text-muted)]">میانگین نمره</p>
                   <p className="font-medium text-lg">{selectedSession.averageScore}%</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm text-gray-500">شرکت‌کنندگان</p>
+                <p className="text-sm text-[var(--lux-text-muted)]">شرکت‌کنندگان</p>
                 <div className="flex flex-wrap gap-2">
                   {selectedSession.students.map((name, i) => (
                     <Badge key={i} variant="secondary">{name}</Badge>

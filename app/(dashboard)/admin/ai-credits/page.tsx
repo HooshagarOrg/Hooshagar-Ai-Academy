@@ -489,7 +489,7 @@ export default function AICreditsPage() {
                     <td className="py-3 text-center">
                       <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold
                         ${index === 0 ? 'bg-yellow-500/20 text-yellow-400' : 
-                          index === 1 ? 'bg-gray-400/20 text-gray-300' : 
+                          index === 1 ? 'bg-gray-400/20 text-[var(--lux-text-muted)]' : 
                           index === 2 ? 'bg-orange-500/20 text-orange-400' : 
                           'bg-white/10 text-white/60'}`}
                       >

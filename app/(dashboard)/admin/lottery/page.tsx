@@ -269,20 +269,20 @@ export default function AdminLotteryPage() {
                   </div>
 
                   {cls.length === 0 ? (
-                    <p className="text-sm text-gray-400 pr-4">هنوز کلاسی اضافه نشده</p>
+                    <p className="text-sm text-[var(--lux-text-muted)] pr-4">هنوز کلاسی اضافه نشده</p>
                   ) : (
                     <div className="grid md:grid-cols-2 gap-3">
                       {cls.map(c => (
                         <div key={c.id} className="p-3 border rounded-lg flex items-center justify-between">
                           <div>
                             <p className="font-medium">{c.class_name}</p>
-                            <p className="text-xs text-gray-500">معلم: {c.teacher_name}</p>
+                            <p className="text-xs text-[var(--lux-text-muted)]">معلم: {c.teacher_name}</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-lg font-bold text-blue-600">
+                            <p className="text-lg font-bold text-[var(--lux-primary)]">
                               {c.enrolled_count}/{c.capacity}
                             </p>
-                            <p className="text-xs text-gray-400">ظرفیت</p>
+                            <p className="text-xs text-[var(--lux-text-muted)]">ظرفیت</p>
                           </div>
                         </div>
                       ))}
@@ -311,7 +311,7 @@ export default function AdminLotteryPage() {
                           </div>
                           <div className="max-h-60 overflow-y-auto border rounded-lg">
                             <table className="w-full text-sm">
-                              <thead className="bg-gray-50 sticky top-0">
+                              <thead className="bg-[var(--lux-surface)] sticky top-0">
                                 <tr>
                                   <th className="p-2 text-right">دانش‌آموز</th>
                                   <th className="p-2 text-right">کلاس</th>

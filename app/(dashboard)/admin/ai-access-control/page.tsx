@@ -564,7 +564,7 @@ export default function AIAccessControlPage() {
                             {selectedUser.name} - {selectedUser.role}
                           </span>
                         ) : (
-                          <span className="text-gray-400">جستجوی نام، کد ملی...</span>
+                          <span className="text-[var(--lux-text-muted)]">جستجوی نام، کد ملی...</span>
                         )}
                         <Search className="w-4 h-4 mr-2 opacity-50" />
                       </Button>
@@ -590,7 +590,7 @@ export default function AIAccessControlPage() {
                               >
                                 <div>
                                   <p className="font-medium">{user.name}</p>
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-[var(--lux-text-muted)]">
                                     {user.role} {user.class && `- ${user.class}`} {user.school && `- ${user.school}`}
                                   </p>
                                 </div>
@@ -606,12 +606,12 @@ export default function AIAccessControlPage() {
                 {selectedUser && (
                   <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-blue-600" />
+                      <div className="w-12 h-12 bg-[var(--lux-primary)]/15 rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-[var(--lux-primary)]" />
                       </div>
                       <div>
                         <p className="font-bold">{selectedUser.name}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-[var(--lux-text-muted)]">
                           {selectedUser.role}
                           {selectedUser.class && ` - ${selectedUser.class}`}
                           {selectedUser.school && ` - ${selectedUser.school}`}
@@ -652,7 +652,7 @@ export default function AIAccessControlPage() {
             <div className="border rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50">
+                  <TableRow className="bg-[var(--lux-surface)]">
                     <TableHead>تاریخ</TableHead>
                     <TableHead>قابلیت</TableHead>
                     <TableHead>سطح</TableHead>
@@ -664,7 +664,7 @@ export default function AIAccessControlPage() {
                 <TableBody>
                   {SAMPLE_HISTORY.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="text-gray-500">
+                      <TableCell className="text-[var(--lux-text-muted)]">
                         {item.createdAt}
                       </TableCell>
                       <TableCell>
@@ -673,7 +673,7 @@ export default function AIAccessControlPage() {
                       <TableCell>
                         <div>
                           <Badge variant="outline">{translateScope(item.scope)}</Badge>
-                          <span className="text-gray-500 mr-2 text-sm">{item.scopeName}</span>
+                          <span className="text-[var(--lux-text-muted)] mr-2 text-sm">{item.scopeName}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -692,7 +692,7 @@ export default function AIAccessControlPage() {
                       <TableCell className="max-w-xs">
                         {item.reason || '—'}
                         {item.disabledUntil && (
-                          <span className="text-xs text-gray-500 block">
+                          <span className="text-xs text-[var(--lux-text-muted)] block">
                             تا: {item.disabledUntil}
                           </span>
                         )}
@@ -818,8 +818,8 @@ function FeatureAccessTable({
     <div className="space-y-4">
       {/* نوار عملیات */}
       <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-500">
-          {scopeType}: <span className="font-medium text-gray-700">{scopeName}</span>
+        <div className="text-sm text-[var(--lux-text-muted)]">
+          {scopeType}: <span className="font-medium text-[var(--lux-text)]">{scopeName}</span>
         </div>
         
         <div className="flex items-center gap-2">
@@ -844,7 +844,7 @@ function FeatureAccessTable({
       <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
+            <TableRow className="bg-[var(--lux-surface)]">
               <TableHead className="w-1/3">قابلیت AI</TableHead>
               <TableHead className="text-center">وضعیت</TableHead>
               <TableHead>دلیل/تاریخ</TableHead>
@@ -874,10 +874,10 @@ function FeatureAccessTable({
                   {!feature.isEnabled && (
                     <div className="text-sm">
                       {feature.disabledReason && (
-                        <p className="text-gray-600">{feature.disabledReason}</p>
+                        <p className="text-[var(--lux-text-muted)]">{feature.disabledReason}</p>
                       )}
                       {feature.disabledUntil && (
-                        <p className="text-gray-400 text-xs">
+                        <p className="text-[var(--lux-text-muted)] text-xs">
                           تا: {feature.disabledUntil}
                         </p>
                       )}
@@ -905,8 +905,8 @@ function FeatureAccessTable({
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="text-center py-12">
-      <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-      <p className="text-gray-500">{message}</p>
+      <Shield className="w-12 h-12 text-[var(--lux-text-muted)] mx-auto mb-4" />
+      <p className="text-[var(--lux-text-muted)]">{message}</p>
     </div>
   )
 }

@@ -614,7 +614,7 @@ export default function FeaturesManagementPage() {
                               <div className="flex items-center gap-2">
                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                                   index === 0 ? 'bg-yellow-500 text-yellow-900' :
-                                  index === 1 ? 'bg-gray-400 text-gray-900' :
+                                  index === 1 ? 'bg-gray-400 text-[var(--lux-text)]' :
                                   index === 2 ? 'bg-orange-500 text-orange-900' :
                                   'bg-white/10 text-white/60'
                                 }`}>

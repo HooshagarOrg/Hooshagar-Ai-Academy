@@ -526,7 +526,7 @@ export default function FamilyInsightPage() {
             </div>
             <Progress value={progress} className="h-3" />
             {lastSaved && (
-              <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+              <p className="text-xs text-[var(--lux-text-muted)] mt-2 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 آخرین ذخیره: {lastSaved.toLocaleTimeString('fa-IR')}
               </p>
@@ -545,8 +545,8 @@ export default function FamilyInsightPage() {
             <AccordionItem value="home" className="glass-panel rounded-2xl overflow-hidden border-0">
               <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-white/5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <Home className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-[var(--lux-primary)]/15 rounded-xl flex items-center justify-center">
+                    <Home className="w-5 h-5 text-[var(--lux-primary)]" />
                   </div>
                   <span className="font-bold text-lg">الف: محیط خانه</span>
                 </div>
@@ -990,7 +990,7 @@ export default function FamilyInsightPage() {
                   >
                     {[
                       { value: 'active', label: 'فعال', color: 'text-green-600' },
-                      { value: 'normal', label: 'معمولی', color: 'text-blue-600' },
+                      { value: 'normal', label: 'معمولی', color: 'text-[var(--lux-primary)]' },
                       { value: 'shy', label: 'کم‌رو', color: 'text-yellow-600' },
                       { value: 'isolated', label: 'گوشه‌گیر', color: 'text-red-600' },
                     ].map((item) => (
@@ -1099,7 +1099,7 @@ export default function FamilyInsightPage() {
             <AccordionItem value="other" className="glass-panel rounded-2xl overflow-hidden border-0">
               <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-white/5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
                     <FileText className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <span className="font-bold text-lg">ز: سایر اطلاعات</span>

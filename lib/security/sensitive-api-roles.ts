@@ -37,3 +37,21 @@ export const STUDENT_DATA_ROLES: AllowedRole[] = [
 ]
 
 export const STUDENT_DELETE_ROLES: AllowedRole[] = ['admin', 'platform_admin', 'principal']
+
+/** مدیریت پلتفرم (کلاس مجازی، quota، ...) */
+export const PLATFORM_ADMIN_ROLES: AllowedRole[] = ['platform_admin']
+
+/** قرعه‌کشی و ثبت‌نام */
+export const LOTTERY_ADMIN_ROLES: AllowedRole[] = [
+  'admin',
+  'platform_admin',
+  'principal',
+]
+
+/** ایجاد/مدیریت امتحان */
+export const EXAM_MANAGE_ROLES: AllowedRole[] = [
+  'teacher',
+  'principal',
+  'admin',
+  'platform_admin',
+]

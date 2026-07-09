@@ -219,7 +219,7 @@ function ColorPicker({
           <div className="space-y-3">
             <HexColorPicker color={color} onChange={onChange} />
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">#</span>
+              <span className="text-sm text-[var(--lux-text-muted)]">#</span>
               <HexColorInput
                 color={color}
                 onChange={onChange}
@@ -314,7 +314,7 @@ function LogoUploader({
       <Card>
         <CardHeader className="pb-4">
           <CardTitle className="text-lg flex items-center gap-2">
-            <ImageIcon className="w-5 h-5 text-blue-600" />
+            <ImageIcon className="w-5 h-5 text-[var(--lux-primary)]" />
             {title}
           </CardTitle>
           <CardDescription>{description}</CardDescription>
@@ -339,7 +339,7 @@ function LogoUploader({
                 </Button>
               </div>
             ) : (
-              <div className="w-32 h-32 rounded-lg border-2 border-dashed flex items-center justify-center text-gray-400">
+              <div className="w-32 h-32 rounded-lg border-2 border-dashed flex items-center justify-center text-[var(--lux-text-muted)]">
                 <ImageIcon className="w-12 h-12" />
               </div>
             )}
@@ -356,7 +356,7 @@ function LogoUploader({
           </Button>
 
           {/* راهنما */}
-          <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600 space-y-1">
+          <div className="bg-[var(--lux-surface)] rounded-lg p-3 text-sm text-[var(--lux-text-muted)] space-y-1">
             <p>• فرمت: {formats}</p>
             <p>• ابعاد پیشنهادی: {recommendedSize}</p>
             <p>• حداکثر حجم: {maxSize}</p>
@@ -369,7 +369,7 @@ function LogoUploader({
         <DialogContent className="max-w-lg" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Upload className="w-5 h-5 text-blue-600" />
+              <Upload className="w-5 h-5 text-[var(--lux-primary)]" />
               آپلود {title}
             </DialogTitle>
             <DialogDescription>
@@ -389,7 +389,7 @@ function LogoUploader({
                   'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
                   isDragging
                     ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+                    : 'border-white/10 hover:border-blue-400 hover:bg-[var(--lux-surface)]'
                 )}
               >
                 <input
@@ -402,10 +402,10 @@ function LogoUploader({
                     if (file) handleFileSelect(file)
                   }}
                 />
-                <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                <p className="text-gray-700 mb-1">تصویر لوگو را اینجا بکشید</p>
-                <p className="text-sm text-gray-500">یا کلیک کنید</p>
-                <p className="text-xs text-gray-400 mt-2">{formats} (حداکثر {maxSize})</p>
+                <ImageIcon className="w-12 h-12 mx-auto text-[var(--lux-text-muted)] mb-3" />
+                <p className="text-[var(--lux-text)] mb-1">تصویر لوگو را اینجا بکشید</p>
+                <p className="text-sm text-[var(--lux-text-muted)]">یا کلیک کنید</p>
+                <p className="text-xs text-[var(--lux-text-muted)] mt-2">{formats} (حداکثر {maxSize})</p>
               </div>
             )}
 
@@ -513,7 +513,7 @@ function LivePreview({
 
   const renderPreview = () => {
     const bgClass = isDark ? 'bg-gray-800' : 'bg-white'
-    const textClass = isDark ? 'text-white' : 'text-gray-900'
+    const textClass = isDark ? 'text-white' : 'text-[var(--lux-text)]'
 
     switch (previewMode) {
       case 'header':
@@ -648,16 +648,16 @@ function LivePreview({
                 <h3 className="font-bold" style={{ color: settings.textColor }}>
                   {settings.name}
                 </h3>
-                <p className="text-xs text-gray-500">گزارش ماهانه</p>
+                <p className="text-xs text-[var(--lux-text-muted)]">گزارش ماهانه</p>
               </div>
             </div>
             <div className="space-y-2">
-              <div className="h-3 bg-gray-100 rounded w-full" />
-              <div className="h-3 bg-gray-100 rounded w-3/4" />
-              <div className="h-3 bg-gray-100 rounded w-1/2" />
+              <div className="h-3 bg-white/10 rounded w-full" />
+              <div className="h-3 bg-white/10 rounded w-3/4" />
+              <div className="h-3 bg-white/10 rounded w-1/2" />
             </div>
             <div className="mt-4 pt-4 border-t text-center">
-              <p className="text-xs text-gray-400">{settings.footerText}</p>
+              <p className="text-xs text-[var(--lux-text-muted)]">{settings.footerText}</p>
             </div>
           </div>
         )
@@ -669,7 +669,7 @@ function LivePreview({
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
-            <Eye className="w-5 h-5 text-blue-600" />
+            <Eye className="w-5 h-5 text-[var(--lux-primary)]" />
             پیش‌نمایش زنده
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -688,7 +688,7 @@ function LivePreview({
       <CardContent>
         <div className={cn(
           'rounded-lg p-6 flex justify-center',
-          isDark ? 'bg-gray-900' : 'bg-gray-100'
+          isDark ? 'bg-gray-900' : 'bg-white/10'
         )}>
           {renderPreview()}
         </div>
@@ -790,7 +790,7 @@ export default function SchoolSettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Building className="w-5 h-5 text-blue-600" />
+                  <Building className="w-5 h-5 text-[var(--lux-primary)]" />
                   اطلاعات پایه مدرسه
                 </CardTitle>
                 <CardDescription>
@@ -1026,7 +1026,7 @@ export default function SchoolSettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-blue-600" />
+                  <Settings className="w-5 h-5 text-[var(--lux-primary)]" />
                   تنظیمات پیشرفته نمایش
                 </CardTitle>
               </CardHeader>

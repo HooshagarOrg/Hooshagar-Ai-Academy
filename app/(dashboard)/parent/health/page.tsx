@@ -124,7 +124,7 @@ export default function ParentHealthPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">وضعیت کلی</p>
+                <p className="text-sm text-[var(--lux-text-muted)]">وضعیت کلی</p>
                 <div className="flex items-center gap-2 mt-1">
                   <CheckCircle className="w-5 h-5 text-green-500" />
                   <span className="font-semibold text-green-600">خوب</span>
@@ -139,7 +139,7 @@ export default function ParentHealthPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">آخرین معاینه</p>
+                <p className="text-sm text-[var(--lux-text-muted)]">آخرین معاینه</p>
                 <p className="font-semibold mt-1">{studentHealth.lastCheckup}</p>
               </div>
               <Calendar className="w-8 h-8 text-blue-400" />
@@ -151,7 +151,7 @@ export default function ParentHealthPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">واکسیناسیون</p>
+                <p className="text-sm text-[var(--lux-text-muted)]">واکسیناسیون</p>
                 <p className="font-semibold mt-1">{studentHealth.vaccinations.completed}/{studentHealth.vaccinations.total}</p>
               </div>
               <Syringe className="w-8 h-8 text-orange-400" />
@@ -164,7 +164,7 @@ export default function ParentHealthPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">گروه خونی</p>
+                <p className="text-sm text-[var(--lux-text-muted)]">گروه خونی</p>
                 <p className="font-bold text-xl mt-1 text-red-600">{studentHealth.bloodType}</p>
               </div>
               <Activity className="w-8 h-8 text-red-400" />
@@ -199,7 +199,7 @@ export default function ParentHealthPage() {
                       <Syringe className="w-5 h-5 text-yellow-600" />
                       <div>
                         <p className="font-medium">واکسن معوقه</p>
-                        <p className="text-sm text-gray-500">{studentHealth.vaccinations.pending.join(', ')}</p>
+                        <p className="text-sm text-[var(--lux-text-muted)]">{studentHealth.vaccinations.pending.join(', ')}</p>
                       </div>
                     </div>
                     <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">در انتظار</Badge>
@@ -209,20 +209,20 @@ export default function ParentHealthPage() {
                 {recentCheckups.filter(c => c.status === 'followup').map(checkup => (
                   <div key={checkup.id} className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Eye className="w-5 h-5 text-blue-600" />
+                      <Eye className="w-5 h-5 text-[var(--lux-primary)]" />
                       <div>
                         <p className="font-medium">{checkup.type}</p>
-                        <p className="text-sm text-gray-500">{checkup.date}</p>
+                        <p className="text-sm text-[var(--lux-text-muted)]">{checkup.date}</p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-blue-600 border-blue-300">
+                    <Badge variant="outline" className="text-[var(--lux-primary)] border-blue-300">
                       نیاز به پیگیری
                     </Badge>
                   </div>
                 ))}
 
                 {studentHealth.vaccinations.pending.length === 0 && recentCheckups.filter(c => c.status === 'followup').length === 0 && (
-                  <div className="text-center py-4 text-gray-500">
+                  <div className="text-center py-4 text-[var(--lux-text-muted)]">
                     <CheckCircle className="w-10 h-10 mx-auto text-green-500 mb-2" />
                     <p>همه چیز مرتب است!</p>
                   </div>
@@ -241,10 +241,10 @@ export default function ParentHealthPage() {
               <CardContent>
                 <div className="space-y-3">
                   {recentCheckups.map(checkup => (
-                    <div key={checkup.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div key={checkup.id} className="flex items-center justify-between p-3 bg-[var(--lux-surface)] dark:bg-gray-800 rounded-lg">
                       <div>
                         <p className="font-medium">{checkup.type}</p>
-                        <p className="text-sm text-gray-500">{checkup.date}</p>
+                        <p className="text-sm text-[var(--lux-text-muted)]">{checkup.date}</p>
                       </div>
                       <Badge variant={
                         checkup.status === 'normal' ? 'outline' :
@@ -265,7 +265,7 @@ export default function ParentHealthPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-blue-500" />
+                <MessageSquare className="w-5 h-5 text-[var(--lux-secondary)]" />
                 پیام‌های بهداشتی
               </CardTitle>
             </CardHeader>
@@ -277,15 +277,15 @@ export default function ParentHealthPage() {
                     className={`p-4 rounded-lg border ${
                       msg.priority === 'high' 
                         ? 'border-orange-200 bg-orange-50 dark:bg-orange-900/20' 
-                        : 'border-gray-200 bg-gray-50 dark:bg-gray-800'
+                        : 'border-white/[0.06] bg-[var(--lux-surface)] dark:bg-gray-800'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-medium">{msg.from}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{msg.message}</p>
+                        <p className="text-sm text-[var(--lux-text-muted)] dark:text-[var(--lux-text-muted)] mt-1">{msg.message}</p>
                       </div>
-                      <span className="text-xs text-gray-500">{msg.date}</span>
+                      <span className="text-xs text-[var(--lux-text-muted)]">{msg.date}</span>
                     </div>
                   </div>
                 ))}
@@ -306,7 +306,7 @@ export default function ParentHealthPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500 mb-2">بیماری‌های خاص:</p>
+                  <p className="text-sm text-[var(--lux-text-muted)] mb-2">بیماری‌های خاص:</p>
                   <div className="flex flex-wrap gap-2">
                     {studentHealth.chronicDiseases.map(disease => (
                       <Badge key={disease} variant="destructive">{disease}</Badge>
@@ -317,7 +317,7 @@ export default function ParentHealthPage() {
                 <Separator />
 
                 <div>
-                  <p className="text-sm text-gray-500 mb-2">آلرژی‌ها:</p>
+                  <p className="text-sm text-[var(--lux-text-muted)] mb-2">آلرژی‌ها:</p>
                   <div className="flex flex-wrap gap-2">
                     {studentHealth.allergies.map(allergy => (
                       <Badge key={allergy} variant="outline" className="text-orange-600 border-orange-300">
@@ -330,7 +330,7 @@ export default function ParentHealthPage() {
                 <Separator />
 
                 <div>
-                  <p className="text-sm text-gray-500 mb-2">محدودیت‌های ورزشی:</p>
+                  <p className="text-sm text-[var(--lux-text-muted)] mb-2">محدودیت‌های ورزشی:</p>
                   <div className="flex flex-wrap gap-2">
                     {studentHealth.sportsRestrictions.map(item => (
                       <Badge key={item} variant="outline" className="text-purple-600 border-purple-300">
@@ -345,7 +345,7 @@ export default function ParentHealthPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Pill className="w-5 h-5 text-blue-500" />
+                  <Pill className="w-5 h-5 text-[var(--lux-secondary)]" />
                   داروهای مصرفی
                 </CardTitle>
               </CardHeader>
@@ -355,12 +355,12 @@ export default function ParentHealthPage() {
                     {studentHealth.medications.map((med, index) => (
                       <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <p className="font-medium">{med.name}</p>
-                        <p className="text-sm text-gray-500">{med.dosage}</p>
+                        <p className="text-sm text-[var(--lux-text-muted)]">{med.dosage}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-4">داروی مصرفی ندارد</p>
+                  <p className="text-[var(--lux-text-muted)] text-center py-4">داروی مصرفی ندارد</p>
                 )}
               </CardContent>
             </Card>
@@ -466,7 +466,7 @@ export default function ParentHealthPage() {
               <Phone className="w-5 h-5 text-green-500" />
               <div>
                 <p className="font-medium">تماس با بهداری مدرسه</p>
-                <p className="text-sm text-gray-500">برای سؤالات و هماهنگی</p>
+                <p className="text-sm text-[var(--lux-text-muted)]">برای سؤالات و هماهنگی</p>
               </div>
             </div>
             <Button variant="outline" className="gap-2">

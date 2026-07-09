@@ -88,33 +88,15 @@ export default function AIUsageIndicator({
     const fetchUsage = async () => {
       setIsLoading(true)
       try {
-        // در محیط واقعی از API استفاده می‌شود
-        // const res = await fetch(`/api/ai/check-limit?feature=${featureName}`)
-        // const data = await res.json()
-
-        // داده نمونه
-        const mockData: UsageData = {
-          allowed: Math.random() > 0.2,
-          dailyUsed: Math.floor(Math.random() * (feature?.dailyLimit || 5)),
-          dailyLimit: feature?.dailyLimit || null,
-          weeklyUsed: Math.floor(Math.random() * (feature?.weeklyLimit || 20)),
-          weeklyLimit: feature?.weeklyLimit || null,
-          monthlyUsed: Math.floor(Math.random() * (feature?.monthlyLimit || 50)),
-          monthlyLimit: feature?.monthlyLimit || null,
-          creditsAvailable: 100 - Math.floor(Math.random() * 50),
-          creditCost: feature?.creditCost || 5,
-          resetTime: formatResetTime('daily'),
+        const res = await fetch(`/api/ai/check-limit?feature=${encodeURIComponent(featureName)}`)
+        if (!res.ok) {
+          throw new Error('خطا در بررسی محدودیت')
         }
+        const data = (await res.json()) as UsageData
 
-        // اگر محدودیت تمام شده باشد
-        if (feature?.dailyLimit && mockData.dailyUsed >= feature.dailyLimit) {
-          mockData.allowed = false
-          mockData.reason = 'محدودیت روزانه تمام شده است'
-        }
+        setUsageData(data)
 
-        setUsageData(mockData)
-
-        if (!mockData.allowed && onLimitReached) {
+        if (!data.allowed && onLimitReached) {
           onLimitReached()
         }
       } catch (error) {

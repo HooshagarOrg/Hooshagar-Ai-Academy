@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { sendSmsBatch, createSmsProvider } from '@/lib/sms/provider'
+import { withAuth } from '@/lib/security/api-guard'
 import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
-import type { AllowedRole } from '@/lib/security/api-guard'
 
 const lotterySettingSchema = z.object({
   school_id: z.string().uuid(),
@@ -17,517 +17,424 @@ const lotterySettingSchema = z.object({
   notify_parents_result: z.boolean().optional().default(true),
 })
 
-// چک کردن نقش ادمین
-async function checkAdminRole(supabase: ReturnType<typeof createClient> extends Promise<infer T> ? T : never, userId: string) {
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', userId)
-    .single()
-
-  return profile && LOTTERY_ADMIN_ROLES.includes(profile.role as AllowedRole)
-}
-
 // دریافت لیست قرعه‌کشی‌ها
 export async function GET(request: NextRequest) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+  return withAuth(
+    request,
+    async () => {
+      try {
+        const supabase = await createClient()
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'لطفاً وارد شوید' },
-        { status: 401 }
-      )
-    }
+        const searchParams = request.nextUrl.searchParams
+        const schoolId = searchParams.get('schoolId')
+        const lotteryId = searchParams.get('id')
 
-    if (!(await checkAdminRole(supabase, user.id))) {
-      return NextResponse.json(
-        { success: false, error: 'دسترسی غیرمجاز' },
-        { status: 403 }
-      )
-    }
+        // دریافت یک قرعه‌کشی خاص
+        if (lotteryId) {
+          const { data: lottery, error } = await supabase
+            .from('lottery_settings')
+            .select('*')
+            .eq('id', lotteryId)
+            .single()
 
-    const searchParams = request.nextUrl.searchParams
-    const schoolId = searchParams.get('schoolId')
-    const lotteryId = searchParams.get('id')
+          if (error) {
+            return NextResponse.json(
+              { success: false, error: 'قرعه‌کشی یافت نشد' },
+              { status: 404 }
+            )
+          }
 
-    // دریافت یک قرعه‌کشی خاص
-    if (lotteryId) {
-      const { data: lottery, error } = await supabase
-        .from('lottery_settings')
-        .select('*')
-        .eq('id', lotteryId)
-        .single()
+          // دریافت آمار
+          const { data: stats } = await supabase
+            .rpc('get_lottery_stats', { p_lottery_setting_id: lotteryId })
 
-      if (error) {
+          // دریافت کلاس‌ها
+          const { data: classes } = await supabase
+            .from('classes')
+            .select('*')
+            .eq('school_id', lottery.school_id)
+            .eq('grade', lottery.target_grade)
+            .eq('academic_year', lottery.academic_year)
+            .eq('is_active', true)
+
+          // دریافت ثبت‌نام‌ها
+          const { data: registrations } = await supabase
+            .from('class_registrations')
+            .select(`
+              *,
+              student:student_id(id, full_name, grade),
+              result_class:result_class_id(id, name, teacher_name),
+              choice_1_class:choice_1_class_id(id, name, teacher_name),
+              choice_2_class:choice_2_class_id(id, name, teacher_name),
+              choice_3_class:choice_3_class_id(id, name, teacher_name),
+              choice_4_class:choice_4_class_id(id, name, teacher_name)
+            `)
+            .eq('lottery_setting_id', lotteryId)
+            .order('registered_at', { ascending: false })
+
+          // دریافت لاگ‌ها
+          const { data: logs } = await supabase
+            .from('lottery_logs')
+            .select('*')
+            .eq('lottery_setting_id', lotteryId)
+            .order('created_at', { ascending: false })
+            .limit(100)
+
+          return NextResponse.json({
+            success: true,
+            lottery,
+            stats: stats?.[0] || null,
+            classes: classes || [],
+            registrations: registrations || [],
+            logs: logs || [],
+          })
+        }
+
+        // لیست قرعه‌کشی‌ها
+        let query = supabase
+          .from('lottery_settings')
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (schoolId) {
+          query = query.eq('school_id', schoolId)
+        }
+
+        const { data: lotteries, error } = await query
+
+        if (error) {
+          return NextResponse.json(
+            { success: false, error: 'خطا در دریافت لیست' },
+            { status: 500 }
+          )
+        }
+
+        return NextResponse.json({
+          success: true,
+          lotteries: lotteries || [],
+        })
+      } catch (error) {
+        console.error('Error in admin lottery GET:', error)
         return NextResponse.json(
-          { success: false, error: 'قرعه‌کشی یافت نشد' },
-          { status: 404 }
+          { success: false, error: 'خطای سرور' },
+          { status: 500 }
         )
       }
-
-      // دریافت آمار
-      const { data: stats } = await supabase
-        .rpc('get_lottery_stats', { p_lottery_setting_id: lotteryId })
-
-      // دریافت کلاس‌ها
-      const { data: classes } = await supabase
-        .from('classes')
-        .select('*')
-        .eq('school_id', lottery.school_id)
-        .eq('grade', lottery.target_grade)
-        .eq('academic_year', lottery.academic_year)
-        .eq('is_active', true)
-
-      // دریافت ثبت‌نام‌ها
-      const { data: registrations } = await supabase
-        .from('class_registrations')
-        .select(`
-          *,
-          student:student_id(id, full_name, grade),
-          result_class:result_class_id(id, name, teacher_name),
-          choice_1_class:choice_1_class_id(id, name, teacher_name),
-          choice_2_class:choice_2_class_id(id, name, teacher_name),
-          choice_3_class:choice_3_class_id(id, name, teacher_name),
-          choice_4_class:choice_4_class_id(id, name, teacher_name)
-        `)
-        .eq('lottery_setting_id', lotteryId)
-        .order('registered_at', { ascending: false })
-
-      // دریافت لاگ‌ها
-      const { data: logs } = await supabase
-        .from('lottery_logs')
-        .select('*')
-        .eq('lottery_setting_id', lotteryId)
-        .order('created_at', { ascending: false })
-        .limit(100)
-
-      return NextResponse.json({
-        success: true,
-        lottery,
-        stats: stats?.[0] || null,
-        classes: classes || [],
-        registrations: registrations || [],
-        logs: logs || [],
-      })
-    }
-
-    // لیست قرعه‌کشی‌ها
-    let query = supabase
-      .from('lottery_settings')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (schoolId) {
-      query = query.eq('school_id', schoolId)
-    }
-
-    const { data: lotteries, error } = await query
-
-    if (error) {
-      return NextResponse.json(
-        { success: false, error: 'خطا در دریافت لیست' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      lotteries: lotteries || [],
-    })
-  } catch (error) {
-    console.error('Error in admin lottery GET:', error)
-    return NextResponse.json(
-      { success: false, error: 'خطای سرور' },
-      { status: 500 }
-    )
-  }
+    },
+    { roles: LOTTERY_ADMIN_ROLES }
+  )
 }
 
 // ایجاد قرعه‌کشی جدید
 export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+  return withAuth(
+    request,
+    async () => {
+      try {
+        const supabase = await createClient()
+        const body = await request.json()
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'لطفاً وارد شوید' },
-        { status: 401 }
-      )
-    }
+        // اعتبارسنجی
+        const validation = lotterySettingSchema.safeParse(body)
+        if (!validation.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'داده‌های ورودی نامعتبر',
+              details: validation.error.issues
+            },
+            { status: 400 }
+          )
+        }
 
-    if (!(await checkAdminRole(supabase, user.id))) {
-      return NextResponse.json(
-        { success: false, error: 'دسترسی غیرمجاز' },
-        { status: 403 }
-      )
-    }
+        const data = validation.data
 
-    const body = await request.json()
+        // بررسی بازه زمانی
+        const start = new Date(data.registration_start)
+        const end = new Date(data.registration_end)
+        const lottery = new Date(data.lottery_time)
 
-    // اعتبارسنجی
-    const validation = lotterySettingSchema.safeParse(body)
-    if (!validation.success) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'داده‌های ورودی نامعتبر',
-          details: validation.error.issues
-        },
-        { status: 400 }
-      )
-    }
+        if (start >= end) {
+          return NextResponse.json(
+            { success: false, error: 'تاریخ شروع باید قبل از پایان باشد' },
+            { status: 400 }
+          )
+        }
 
-    const data = validation.data
+        if (lottery < end) {
+          return NextResponse.json(
+            { success: false, error: 'زمان قرعه‌کشی باید بعد از پایان ثبت‌نام باشد' },
+            { status: 400 }
+          )
+        }
 
-    // بررسی بازه زمانی
-    const start = new Date(data.registration_start)
-    const end = new Date(data.registration_end)
-    const lottery = new Date(data.lottery_time)
+        // ایجاد
+        const { data: newLottery, error } = await supabase
+          .from('lottery_settings')
+          .insert({
+            ...data,
+            is_enabled: false,
+            status: 'pending',
+          })
+          .select()
+          .single()
 
-    if (start >= end) {
-      return NextResponse.json(
-        { success: false, error: 'تاریخ شروع باید قبل از پایان باشد' },
-        { status: 400 }
-      )
-    }
+        if (error) {
+          if (error.code === '23505') { // unique violation
+            return NextResponse.json(
+              { success: false, error: 'قرعه‌کشی برای این پایه و سال تحصیلی قبلاً ثبت شده' },
+              { status: 400 }
+            )
+          }
+          return NextResponse.json(
+            { success: false, error: 'خطا در ایجاد قرعه‌کشی' },
+            { status: 500 }
+          )
+        }
 
-    if (lottery < end) {
-      return NextResponse.json(
-        { success: false, error: 'زمان قرعه‌کشی باید بعد از پایان ثبت‌نام باشد' },
-        { status: 400 }
-      )
-    }
-
-    // ایجاد
-    const { data: newLottery, error } = await supabase
-      .from('lottery_settings')
-      .insert({
-        ...data,
-        is_enabled: false,
-        status: 'pending',
-      })
-      .select()
-      .single()
-
-    if (error) {
-      if (error.code === '23505') { // unique violation
+        return NextResponse.json({
+          success: true,
+          message: 'قرعه‌کشی با موفقیت ایجاد شد',
+          lottery: newLottery,
+        })
+      } catch (error) {
+        console.error('Error in admin lottery POST:', error)
         return NextResponse.json(
-          { success: false, error: 'قرعه‌کشی برای این پایه و سال تحصیلی قبلاً ثبت شده' },
-          { status: 400 }
+          { success: false, error: 'خطای سرور' },
+          { status: 500 }
         )
       }
-      return NextResponse.json(
-        { success: false, error: 'خطا در ایجاد قرعه‌کشی' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'قرعه‌کشی با موفقیت ایجاد شد',
-      lottery: newLottery,
-    })
-  } catch (error) {
-    console.error('Error in admin lottery POST:', error)
-    return NextResponse.json(
-      { success: false, error: 'خطای سرور' },
-      { status: 500 }
-    )
-  }
+    },
+    { roles: LOTTERY_ADMIN_ROLES }
+  )
 }
 
 // بروزرسانی قرعه‌کشی
 export async function PUT(request: NextRequest) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+  return withAuth(
+    request,
+    async () => {
+      try {
+        const supabase = await createClient()
+        const body = await request.json()
+        const { id, ...updateData } = body
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'لطفاً وارد شوید' },
-        { status: 401 }
-      )
-    }
+        if (!id) {
+          return NextResponse.json(
+            { success: false, error: 'شناسه قرعه‌کشی الزامی است' },
+            { status: 400 }
+          )
+        }
 
-    if (!(await checkAdminRole(supabase, user.id))) {
-      return NextResponse.json(
-        { success: false, error: 'دسترسی غیرمجاز' },
-        { status: 403 }
-      )
-    }
+        // بررسی وجود
+        const { data: existing } = await supabase
+          .from('lottery_settings')
+          .select('status')
+          .eq('id', id)
+          .single()
 
-    const body = await request.json()
-    const { id, ...updateData } = body
+        if (!existing) {
+          return NextResponse.json(
+            { success: false, error: 'قرعه‌کشی یافت نشد' },
+            { status: 404 }
+          )
+        }
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'شناسه قرعه‌کشی الزامی است' },
-        { status: 400 }
-      )
-    }
+        // اگر قرعه‌کشی انجام شده، نمی‌توان ویرایش کرد
+        if (existing.status === 'completed' || existing.status === 'running') {
+          return NextResponse.json(
+            { success: false, error: 'قرعه‌کشی انجام شده قابل ویرایش نیست' },
+            { status: 400 }
+          )
+        }
 
-    // بررسی وجود
-    const { data: existing } = await supabase
-      .from('lottery_settings')
-      .select('status')
-      .eq('id', id)
-      .single()
+        const { data: updated, error } = await supabase
+          .from('lottery_settings')
+          .update(updateData)
+          .eq('id', id)
+          .select()
+          .single()
 
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: 'قرعه‌کشی یافت نشد' },
-        { status: 404 }
-      )
-    }
+        if (error) {
+          return NextResponse.json(
+            { success: false, error: 'خطا در بروزرسانی' },
+            { status: 500 }
+          )
+        }
 
-    // اگر قرعه‌کشی انجام شده، نمی‌توان ویرایش کرد
-    if (existing.status === 'completed' || existing.status === 'running') {
-      return NextResponse.json(
-        { success: false, error: 'قرعه‌کشی انجام شده قابل ویرایش نیست' },
-        { status: 400 }
-      )
-    }
-
-    const { data: updated, error } = await supabase
-      .from('lottery_settings')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) {
-      return NextResponse.json(
-        { success: false, error: 'خطا در بروزرسانی' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'قرعه‌کشی با موفقیت بروزرسانی شد',
-      lottery: updated,
-    })
-  } catch (error) {
-    console.error('Error in admin lottery PUT:', error)
-    return NextResponse.json(
-      { success: false, error: 'خطای سرور' },
-      { status: 500 }
-    )
-  }
+        return NextResponse.json({
+          success: true,
+          message: 'قرعه‌کشی با موفقیت بروزرسانی شد',
+          lottery: updated,
+        })
+      } catch (error) {
+        console.error('Error in admin lottery PUT:', error)
+        return NextResponse.json(
+          { success: false, error: 'خطای سرور' },
+          { status: 500 }
+        )
+      }
+    },
+    { roles: LOTTERY_ADMIN_ROLES }
+  )
 }
 
 // اجرای قرعه‌کشی
 export async function PATCH(request: NextRequest) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'لطفاً وارد شوید' },
-        { status: 401 }
-      )
-    }
-
-    if (!(await checkAdminRole(supabase, user.id))) {
-      return NextResponse.json(
-        { success: false, error: 'دسترسی غیرمجاز' },
-        { status: 403 }
-      )
-    }
-
-    const body = await request.json()
-    const { id, action } = body
-
-    if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'شناسه قرعه‌کشی الزامی است' },
-        { status: 400 }
-      )
-    }
-
-    // اجرای قرعه‌کشی
-    if (action === 'run') {
-      const { data: result, error } = await supabase
-        .rpc('run_lottery', {
-          p_lottery_setting_id: id,
-          p_executed_by: user.id,
-        })
-
-      if (error) {
-        return NextResponse.json(
-          { success: false, error: 'خطا در اجرای قرعه‌کشی' },
-          { status: 500 }
-        )
-      }
-
-      if (!result?.success) {
-        return NextResponse.json(
-          { success: false, error: result?.message || 'خطا در اجرا' },
-          { status: 400 }
-        )
-      }
-
-      // ── ارسال SMS به والدین / دانش‌آموزان ─────────────────────
+  return withAuth(
+    request,
+    async (ctx) => {
       try {
-        const { data: results } = await supabase
-          .from('lottery_results')
-          .select(`
-            status, assignment_type,
-            students!inner(
-              full_name,
-              profiles!inner(phone)
-            ),
-            lottery_classes(class_name, teacher_name)
-          `)
-          .eq('period_id', id)
-          .in('status', ['assigned', 'not_assigned'])
-          .not('students.profiles.phone', 'is', null)
+        const supabase = await createClient()
+        const body = await request.json()
+        const { id, action } = body
 
-        if (results?.length) {
-          const provider = createSmsProvider()
-          type LotterySmsRow = {
-            status: string
-            students?: { full_name?: string; profiles?: { phone?: string } } | null
-            lottery_classes?: { class_name?: string; teacher_name?: string } | null
-          }
-          const messages = (results as LotterySmsRow[]).map((r) => {
-            const name  = r.students?.full_name ?? ''
-            const phone = r.students?.profiles?.phone ?? ''
-            const cls   = r.lottery_classes
-            const text  = r.status === 'assigned'
-              ? `هوشاگر: ${name} عزیز، در قرعه‌کشی کلاس ${cls?.class_name ?? ''} (${cls?.teacher_name ?? ''}) پذیرفته شدید.`
-              : `هوشاگر: ${name} عزیز، متأسفانه در قرعه‌کشی انتخاب نشدید. با مدرسه تماس بگیرید.`
-            return { to: phone, text }
-          }).filter(m => m.to)
-          await sendSmsBatch(provider, messages)
+        if (!id) {
+          return NextResponse.json(
+            { success: false, error: 'شناسه قرعه‌کشی الزامی است' },
+            { status: 400 }
+          )
         }
-      } catch (smsErr) {
-        console.error('SMS send error (non-fatal):', smsErr)
-      }
 
-      return NextResponse.json({
-        success: true,
-        message: result.message,
-        stats: {
-          assigned:     result.assigned,
-          not_assigned: result.not_assigned,
-        },
-      })
-    }
+        // اجرای قرعه‌کشی
+        if (action === 'run') {
+          const { data: result, error } = await supabase
+            .rpc('run_lottery', {
+              p_lottery_setting_id: id,
+              p_executed_by: ctx.userId,
+            })
 
-    // فعال/غیرفعال کردن
-    if (action === 'toggle') {
-      const { data: current } = await supabase
-        .from('lottery_settings')
-        .select('is_enabled')
-        .eq('id', id)
-        .single()
+          if (error) {
+            return NextResponse.json(
+              { success: false, error: 'خطا در اجرای قرعه‌کشی' },
+              { status: 500 }
+            )
+          }
 
-      const { error } = await supabase
-        .from('lottery_settings')
-        .update({ is_enabled: !current?.is_enabled })
-        .eq('id', id)
+          if (!result?.success) {
+            return NextResponse.json(
+              { success: false, error: result?.message || 'خطا در اجرا' },
+              { status: 400 }
+            )
+          }
 
-      if (error) {
+          // ── ارسال SMS به والدین / دانش‌آموزان ─────────────────────
+          try {
+            const { data: results } = await supabase
+              .from('lottery_results')
+              .select(`
+                status, assignment_type,
+                students!inner(
+                  full_name,
+                  profiles!inner(phone)
+                ),
+                lottery_classes(class_name, teacher_name)
+              `)
+              .eq('period_id', id)
+              .in('status', ['assigned', 'not_assigned'])
+              .not('students.profiles.phone', 'is', null)
+
+            if (results?.length) {
+              const provider = createSmsProvider()
+              type LotterySmsRow = {
+                status: string
+                students?: { full_name?: string; profiles?: { phone?: string } } | null
+                lottery_classes?: { class_name?: string; teacher_name?: string } | null
+              }
+              const messages = (results as LotterySmsRow[]).map((r) => {
+                const name  = r.students?.full_name ?? ''
+                const phone = r.students?.profiles?.phone ?? ''
+                const cls   = r.lottery_classes
+                const text  = r.status === 'assigned'
+                  ? `هوشاگر: ${name} عزیز، در قرعه‌کشی کلاس ${cls?.class_name ?? ''} (${cls?.teacher_name ?? ''}) پذیرفته شدید.`
+                  : `هوشاگر: ${name} عزیز، متأسفانه در قرعه‌کشی انتخاب نشدید. با مدرسه تماس بگیرید.`
+                return { to: phone, text }
+              }).filter(m => m.to)
+              await sendSmsBatch(provider, messages)
+            }
+          } catch (smsErr) {
+            console.error('SMS send error (non-fatal):', smsErr)
+          }
+
+          return NextResponse.json({
+            success: true,
+            message: result.message,
+            stats: {
+              assigned:     result.assigned,
+              not_assigned: result.not_assigned,
+            },
+          })
+        }
+
+        // فعال/غیرفعال کردن
+        if (action === 'toggle') {
+          const { data: current } = await supabase
+            .from('lottery_settings')
+            .select('is_enabled')
+            .eq('id', id)
+            .single()
+
+          const { error } = await supabase
+            .from('lottery_settings')
+            .update({ is_enabled: !current?.is_enabled })
+            .eq('id', id)
+
+          if (error) {
+            return NextResponse.json(
+              { success: false, error: 'خطا در تغییر وضعیت' },
+              { status: 500 }
+            )
+          }
+
+          return NextResponse.json({
+            success: true,
+            message: current?.is_enabled ? 'غیرفعال شد' : 'فعال شد',
+            is_enabled: !current?.is_enabled,
+          })
+        }
+
+        // تغییر وضعیت
+        if (action === 'set_status') {
+          const { status } = body
+
+          if (!['pending', 'open', 'closed', 'cancelled'].includes(status)) {
+            return NextResponse.json(
+              { success: false, error: 'وضعیت نامعتبر' },
+              { status: 400 }
+            )
+          }
+
+          const { error } = await supabase
+            .from('lottery_settings')
+            .update({ status })
+            .eq('id', id)
+
+          if (error) {
+            return NextResponse.json(
+              { success: false, error: 'خطا در تغییر وضعیت' },
+              { status: 500 }
+            )
+          }
+
+          return NextResponse.json({
+            success: true,
+            message: 'وضعیت تغییر کرد',
+            status,
+          })
+        }
+
         return NextResponse.json(
-          { success: false, error: 'خطا در تغییر وضعیت' },
-          { status: 500 }
-        )
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: current?.is_enabled ? 'غیرفعال شد' : 'فعال شد',
-        is_enabled: !current?.is_enabled,
-      })
-    }
-
-    // تغییر وضعیت
-    if (action === 'set_status') {
-      const { status } = body
-
-      if (!['pending', 'open', 'closed', 'cancelled'].includes(status)) {
-        return NextResponse.json(
-          { success: false, error: 'وضعیت نامعتبر' },
+          { success: false, error: 'عملیات نامعتبر' },
           { status: 400 }
         )
-      }
-
-      const { error } = await supabase
-        .from('lottery_settings')
-        .update({ status })
-        .eq('id', id)
-
-      if (error) {
+      } catch (error) {
+        console.error('Error in admin lottery PATCH:', error)
         return NextResponse.json(
-          { success: false, error: 'خطا در تغییر وضعیت' },
+          { success: false, error: 'خطای سرور' },
           { status: 500 }
         )
       }
-
-      return NextResponse.json({
-        success: true,
-        message: 'وضعیت تغییر کرد',
-        status,
-      })
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'عملیات نامعتبر' },
-      { status: 400 }
-    )
-  } catch (error) {
-    console.error('Error in admin lottery PATCH:', error)
-    return NextResponse.json(
-      { success: false, error: 'خطای سرور' },
-      { status: 500 }
-    )
-  }
+    },
+    { roles: LOTTERY_ADMIN_ROLES }
+  )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

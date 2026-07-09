@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
+import type { AllowedRole } from '@/lib/security/api-guard'
 
 // دریافت کلاس‌های موجود برای ثبت‌نام
 export async function GET(request: NextRequest) {
@@ -47,7 +49,7 @@ export async function GET(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      if (!profile || !['super_admin', 'school_admin', 'principal', 'admin'].includes(profile.role)) {
+      if (!profile || !LOTTERY_ADMIN_ROLES.includes(profile.role as AllowedRole)) {
         return NextResponse.json(
           { success: false, error: 'دسترسی غیرمجاز' },
           { status: 403 }

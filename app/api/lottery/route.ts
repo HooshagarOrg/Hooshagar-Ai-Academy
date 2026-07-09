@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { withAuth, ADMIN_ROLES, type AllowedRole } from '@/lib/security/api-guard'
+import { withAuth, type AllowedRole } from '@/lib/security/api-guard'
+import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
 
-const ADMIN_PLUS_PRINCIPAL: AllowedRole[] = [...ADMIN_ROLES, 'principal']
+const ADMIN_PLUS_PRINCIPAL: AllowedRole[] = [...LOTTERY_ADMIN_ROLES]
+
+const STUDENT_LOTTERY_ROLES: AllowedRole[] = ['student', 'parent']
+
+function isLotteryAdmin(role: AllowedRole): boolean {
+  return ADMIN_PLUS_PRINCIPAL.includes(role)
+}
+
+function forbidden(): NextResponse {
+  return NextResponse.json({ error: 'دسترسی غیرمجاز', error_code: 'FORBIDDEN' }, { status: 403 })
+}
 
 // ============================================
 // GET: لیست دوره‌های ثبت‌نام / کلاس‌ها / نتایج
@@ -11,13 +22,21 @@ export async function GET(request: NextRequest) {
   return withAuth(request, async (ctx) => {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type') || 'periods' // periods | classes | preferences | results
+    const type = searchParams.get('type') || 'periods'
     const periodId = searchParams.get('period_id')
+
+    if (type === 'my_preferences' || type === 'my_result') {
+      if (!STUDENT_LOTTERY_ROLES.includes(ctx.role)) {
+        return forbidden()
+      }
+    } else if (!isLotteryAdmin(ctx.role)) {
+      return forbidden()
+    }
 
     if (type === 'periods') {
       const { data, error } = await supabase
         .from('registration_periods')
-        .select('*')
+        .select('id, title, academic_year, for_grade, from_grade, start_at, end_at, status, school_id, created_at')
         .order('created_at', { ascending: false })
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })
       return NextResponse.json({ periods: data })
@@ -26,7 +45,7 @@ export async function GET(request: NextRequest) {
     if (type === 'classes' && periodId) {
       const { data, error } = await supabase
         .from('lottery_classes')
-        .select('*, profiles!lottery_classes_teacher_id_fkey(full_name)')
+        .select('id, period_id, teacher_id, teacher_name, grade, class_name, capacity, school_id, enrolled_count, profiles!lottery_classes_teacher_id_fkey(full_name)')
         .eq('period_id', periodId)
         .order('class_name')
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })
@@ -37,7 +56,7 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabase
         .from('lottery_results')
         .select(`
-          *,
+          id, period_id, student_id, class_id, status, lottery_run_at,
           students(full_name, student_number),
           lottery_classes(class_name, teacher_name)
         `)
@@ -48,13 +67,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === 'my_preferences' && periodId) {
-      // دانش‌آموز: اولویت‌های خودش
       const { data: student } = await supabase
         .from('students').select('id').eq('user_id', ctx.userId).single()
       if (!student) return NextResponse.json({ preferences: [] })
       const { data } = await supabase
         .from('lottery_preferences')
-        .select('*, lottery_classes(class_name, teacher_name, capacity, enrolled_count)')
+        .select('id, period_id, class_id, priority, lottery_classes(class_name, teacher_name, capacity, enrolled_count)')
         .eq('period_id', periodId)
         .eq('student_id', student.id)
         .order('priority')
@@ -62,7 +80,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === 'my_result') {
-      // دانش‌آموز/والد: نتیجه قرعه‌کشی
       let studentIds: string[] = []
       if (ctx.role === 'student') {
         const { data: s } = await supabase.from('students').select('id').eq('user_id', ctx.userId).single()
@@ -73,7 +90,7 @@ export async function GET(request: NextRequest) {
       }
       const { data } = await supabase
         .from('lottery_results')
-        .select('*, registration_periods(title, academic_year), lottery_classes(class_name, teacher_name)')
+        .select('id, student_id, status, lottery_run_at, registration_periods(title, academic_year), lottery_classes(class_name, teacher_name)')
         .in('student_id', studentIds)
         .order('lottery_run_at', { ascending: false })
       return NextResponse.json({ results: data || [] })
@@ -92,7 +109,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { action } = body
 
-    // --- ادمین: ساخت دوره ---
+    const adminActions = ['create_period', 'add_class', 'set_period_status', 'run_lottery']
+    if (adminActions.includes(action) && !isLotteryAdmin(ctx.role)) {
+      return forbidden()
+    }
+    if (action === 'submit_preferences' && ctx.role !== 'student') {
+      return forbidden()
+    }
+
     if (action === 'create_period') {
       const { title, academic_year, for_grade, from_grade, start_at, end_at, school_id } = body
       if (!title || !academic_year || !for_grade || !from_grade || !start_at || !end_at) {
@@ -100,7 +124,7 @@ export async function POST(request: NextRequest) {
       }
       const { data, error } = await supabase.from('registration_periods').insert({
         title, academic_year, for_grade, from_grade, start_at, end_at,
-        school_id: school_id || null,
+        school_id: school_id || ctx.schoolId || null,
         status: 'pending',
         created_by: ctx.userId,
       }).select().single()
@@ -108,7 +132,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, period: data })
     }
 
-    // --- ادمین: افزودن کلاس به دوره ---
     if (action === 'add_class') {
       const { period_id, teacher_id, teacher_name, grade, class_name, capacity, school_id } = body
       if (!period_id || !teacher_name || !grade || !class_name || !capacity) {
@@ -116,13 +139,12 @@ export async function POST(request: NextRequest) {
       }
       const { data, error } = await supabase.from('lottery_classes').insert({
         period_id, teacher_id: teacher_id || null, teacher_name, grade, class_name,
-        capacity, school_id: school_id || null,
+        capacity, school_id: school_id || ctx.schoolId || null,
       }).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })
       return NextResponse.json({ success: true, class: data })
     }
 
-    // --- ادمین: باز/بستن دوره ---
     if (action === 'set_period_status') {
       const { period_id, status } = body
       const { error } = await supabase
@@ -131,10 +153,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true })
     }
 
-    // --- دانش‌آموز: ثبت اولویت‌ها ---
     if (action === 'submit_preferences') {
       const { period_id, preferences } = body
-      // preferences: [{class_id, priority}]
       if (!period_id || !Array.isArray(preferences) || preferences.length === 0) {
         return NextResponse.json({ error: 'اطلاعات اولویت‌ها ارسال نشده' }, { status: 400 })
       }
@@ -142,7 +162,6 @@ export async function POST(request: NextRequest) {
         .from('students').select('id').eq('user_id', ctx.userId).single()
       if (!student) return NextResponse.json({ error: 'دانش‌آموز یافت نشد' }, { status: 404 })
 
-      // حذف اولویت‌های قبلی
       await supabase.from('lottery_preferences')
         .delete().eq('period_id', period_id).eq('student_id', student.id)
 
@@ -157,7 +176,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: `${rows.length} اولویت ثبت شد` })
     }
 
-    // --- ادمین: اجرای قرعه‌کشی ---
     if (action === 'run_lottery') {
       const { period_id } = body
       if (!period_id) return NextResponse.json({ error: 'شناسه دوره الزامی' }, { status: 400 })

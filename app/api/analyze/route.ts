@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { asOne } from '@/lib/supabase/relation'
-import { callAI } from '@/lib/ai-provider'
 import { z } from 'zod'
-import { AUTH_ERRORS, secureErrorResponse } from '@/lib/security/error-handler'
+import { secureErrorResponse } from '@/lib/security/error-handler'
+import { withAuth } from '@/lib/security/api-guard'
+import { REPORT_API_ROLES } from '@/lib/security/sensitive-api-roles'
+import { gatewayCallAIJson, AIQuotaExceededError } from '@/lib/ai/gateway'
 
 export const maxDuration = 60
 
@@ -12,44 +14,37 @@ const analyzeSchema = z.object({
   analysisType: z.enum(['academic', 'behavioral', 'comprehensive']).optional().default('comprehensive'),
 })
 
+interface AnalysisResult {
+  analysis: string
+  strengths: string[]
+  weaknesses: string[]
+  recommendations: string[]
+  risk_level: 'low' | 'medium' | 'high'
+}
+
 export async function POST(request: NextRequest) {
-  try {
-    // احراز هویت اجباری
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return AUTH_ERRORS.unauthorized()
+  return withAuth(
+    request,
+    async (ctx) => {
+      try {
+        const supabase = await createClient()
+        const body = await request.json()
+        const { studentId, analysisType } = analyzeSchema.parse(body)
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+        const { data: student, error: studentError } = await supabase
+          .from('students')
+          .select('id, grade, profiles!inner(full_name)')
+          .eq('id', studentId)
+          .single()
 
-    const allowedRoles = ['teacher', 'principal', 'admin', 'platform_admin', 'counselor']
-    if (!profile || !allowedRoles.includes(profile.role)) {
-      return AUTH_ERRORS.forbidden()
-    }
+        if (studentError || !student) {
+          return NextResponse.json({ error: 'دانش‌آموز یافت نشد' }, { status: 404 })
+        }
 
-    const body = await request.json()
-    const { studentId, analysisType } = analyzeSchema.parse(body)
-    
-    const { data: student, error: studentError } = await supabase
-      .from('students')
-      .select('id, grade, profiles!inner(full_name)')
-      .eq('id', studentId)
-      .single()
+        const studentProfile = asOne(student.profiles)
+        const studentName = studentProfile?.full_name ?? 'دانش‌آموز'
 
-    if (studentError || !student) {
-      return NextResponse.json({ error: 'دانش‌آموز یافت نشد' }, { status: 404 })
-    }
-
-    const studentProfile = asOne(student.profiles)
-    const studentName = studentProfile?.full_name ?? 'دانش‌آموز'
-
-    console.log('👤 Student:', studentName)
-
-    // ساخت Prompt برای AI
-    const prompt = `
+        const prompt = `
 شما یک مشاور تحصیلی و روانشناس تربیتی حرفه‌ای هستید.
 
 **اطلاعات دانش‌آموز:**
@@ -57,69 +52,64 @@ export async function POST(request: NextRequest) {
 - پایه تحصیلی: ${student.grade}
 
 **وظیفه شما:**
-لطفاً یک تحلیل جامع و حرفه‌ای از این دانش‌آموز ارائه دهید.
+لطفاً یک تحلیل جامع از این دانش‌آموز ارائه دهید.
 
-**خروجی باید دقیقاً به این فرمت JSON باشد (بدون توضیح اضافی):**
+**خروجی باید دقیقاً به این فرمت JSON باشد:**
 {
-  "analysis": "تحلیل کلی دانش‌آموز در 3-4 جمله کوتاه",
-  "strengths": ["نقطه قوت 1", "نقطه قوت 2", "نقطه قوت 3"],
-  "weaknesses": ["نقطه ضعف 1", "نقطه ضعف 2"],
-  "recommendations": ["توصیه عملی 1", "توصیه عملی 2", "توصیه عملی 3"],
+  "analysis": "تحلیل کلی",
+  "strengths": ["نقطه قوت 1"],
+  "weaknesses": ["نقطه ضعف 1"],
+  "recommendations": ["توصیه 1"],
   "risk_level": "low"
 }
 
-نکات مهم:
-- از زبان فارسی محاوره‌ای و صمیمی استفاده کنید
-- نقاط قوت را برجسته کنید
-- توصیه‌ها باید عملی و قابل اجرا باشند
-- risk_level فقط می‌تواند: "low", "medium" یا "high" باشد
-- فقط JSON برگردانید، بدون markdown یا توضیح اضافی
+فقط JSON برگردانید.
 `
 
-    const aiResp = await callAI(prompt, {
-      capability: 'student_analyzer',
-      userId: user.id,
-      temperature: 0.4,
-      maxTokens: 800,
-    })
-    const clean = aiResp.content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
-    const analysis = JSON.parse(clean)
+        const { data: analysis, response } = await gatewayCallAIJson<AnalysisResult>(
+          ctx.userId,
+          'student_analyzer',
+          prompt,
+          { temperature: 0.4, maxTokens: 800 }
+        )
 
-    console.log('📊 Parsed analysis:', analysis)
+        const { error: saveError } = await supabase.from('ai_analyses').insert([
+          {
+            student_id: studentId,
+            analysis_type: analysisType,
+            prompt_used: prompt,
+            ai_response: analysis,
+            model_used: response.model,
+          },
+        ])
 
-    // ذخیره در دیتابیس
-    const { data: savedAnalysis, error: saveError } = await supabase
-      .from('ai_analyses')
-      .insert([{
-        student_id: studentId,
-        analysis_type: analysisType,
-        prompt_used: prompt,
-        ai_response: analysis,
-        model_used: 'google/gemini-2.0-flash-exp:free'
-      }])
-      .select()
-      .single()
+        if (saveError) {
+          console.error('Save analysis error:', saveError)
+        }
 
-    if (saveError) {
-      console.error('⚠️ Save error:', saveError)
-    }
-
-    return NextResponse.json({
-      success: true,
-      student: {
-        id: student.id,
-        full_name: studentName,
-        grade: student.grade
-      },
-      analysis,
-      model: 'Google Gemini 2.0 Flash (Free)'
-    })
-
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors[0].message }, { status: 400 })
-    }
-    return secureErrorResponse(error, { context: 'POST /api/analyze' })
-  }
+        return NextResponse.json({
+          success: true,
+          student: {
+            id: student.id,
+            full_name: studentName,
+            grade: student.grade,
+          },
+          analysis,
+          model: response.model,
+        })
+      } catch (error) {
+        if (error instanceof AIQuotaExceededError) {
+          return NextResponse.json(
+            { error: error.limit.reason ?? 'محدودیت استفاده', limit: error.limit },
+            { status: 429 }
+          )
+        }
+        if (error instanceof z.ZodError) {
+          return NextResponse.json({ error: error.errors[0].message }, { status: 400 })
+        }
+        return secureErrorResponse(error, { context: 'POST /api/analyze' })
+      }
+    },
+    { roles: REPORT_API_ROLES, rateLimit: 'ai_heavy' }
+  )
 }
-

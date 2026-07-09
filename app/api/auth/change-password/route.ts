@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { z } from 'zod'
+import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
 
 const schema = z.object({
   newPassword: z
@@ -14,6 +15,9 @@ const schema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitResponse = await applyRateLimitAsync(request, 'change_password')
+    if (rateLimitResponse) return rateLimitResponse
+
     const body = await request.json()
     const result = schema.safeParse(body)
 

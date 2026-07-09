@@ -48,10 +48,50 @@ export const LOTTERY_ADMIN_ROLES: AllowedRole[] = [
   'principal',
 ]
 
+/** گزارش‌گیری و تحلیل AI */
+export const REPORT_API_ROLES: AllowedRole[] = [
+  'teacher',
+  'principal',
+  'admin',
+  'platform_admin',
+  'counselor',
+]
+
+/** آپلود فایل */
+export const UPLOAD_ROLES: AllowedRole[] = [
+  'student',
+  'parent',
+  'teacher',
+  'principal',
+  'admin',
+  'platform_admin',
+  'counselor',
+  'secretary',
+]
+
 /** ایجاد/مدیریت امتحان */
 export const EXAM_MANAGE_ROLES: AllowedRole[] = [
   'teacher',
   'principal',
   'admin',
   'platform_admin',
+]
+
+/** دسترسی عمومی به قابلیت‌های AI */
+export const AI_USER_ROLES: AllowedRole[] = [
+  'student',
+  'parent',
+  'teacher',
+  'principal',
+  'admin',
+  'platform_admin',
+  'counselor',
+  'health_vp',
+  'educational_vp',
+  'financial_vp',
+  'disciplinary_vp',
+  'evaluation_vp',
+  'art_teacher',
+  'sports_teacher',
+  'secretary',
 ]

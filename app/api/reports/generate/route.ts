@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { z } from 'zod';
+import { withAuth } from '@/lib/security/api-guard';
+import { REPORT_API_ROLES } from '@/lib/security/sensitive-api-roles';
 
 const generateReportSchema = z.object({
   student_id: z.string().uuid('شناسه دانش‌آموز نامعتبر است'),
@@ -12,118 +14,96 @@ const generateReportSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    
-    // بررسی احراز هویت
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'لطفاً وارد شوید' },
-        { status: 401 }
-      );
-    }
+  return withAuth(
+    request,
+    async () => {
+      try {
+        const supabase = await createClient();
 
-    // بررسی نقش کاربر
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+        const body = await request.json();
+        const result = generateReportSchema.safeParse(body);
 
-    if (!profile || !['teacher', 'admin'].includes(profile.role)) {
-      return NextResponse.json(
-        { success: false, error: 'شما مجوز ایجاد گزارش ندارید' },
-        { status: 403 }
-      );
-    }
+        if (!result.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'داده‌های نامعتبر',
+              details: result.error.issues,
+            },
+            { status: 400 }
+          );
+        }
 
-    // اعتبارسنجی ورودی
-    const body = await request.json();
-    const result = generateReportSchema.safeParse(body);
+        const { student_id, report_type, period_start, period_end } = result.data;
 
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'داده‌های نامعتبر',
-          details: result.error.issues,
-        },
-        { status: 400 }
-      );
-    }
+        const { data: student, error: studentError } = await supabase
+          .from('students')
+          .select('id, full_name, parent_id')
+          .eq('id', student_id)
+          .single();
 
-    const { student_id, report_type, period_start, period_end } = result.data;
+        if (studentError || !student) {
+          return NextResponse.json(
+            { success: false, error: 'دانش‌آموز یافت نشد' },
+            { status: 404 }
+          );
+        }
 
-    // بررسی وجود دانش‌آموز
-    const { data: student, error: studentError } = await supabase
-      .from('students')
-      .select('id, full_name, parent_id')
-      .eq('id', student_id)
-      .single();
+        if (!student.parent_id) {
+          return NextResponse.json(
+            { success: false, error: 'این دانش‌آموز والدین ثبت شده ندارد' },
+            { status: 400 }
+          );
+        }
 
-    if (studentError || !student) {
-      return NextResponse.json(
-        { success: false, error: 'دانش‌آموز یافت نشد' },
-        { status: 404 }
-      );
-    }
+        const { data: reportId, error: generateError } = await supabase.rpc(
+          'generate_parent_report',
+          {
+            p_student_id: student_id,
+            p_report_type: report_type,
+            p_period_start: period_start,
+            p_period_end: period_end,
+          }
+        );
 
-    if (!student.parent_id) {
-      return NextResponse.json(
-        { success: false, error: 'این دانش‌آموز والدین ثبت شده ندارد' },
-        { status: 400 }
-      );
-    }
+        if (generateError) {
+          console.error('خطای ایجاد گزارش:', generateError);
+          return NextResponse.json(
+            { success: false, error: 'ایجاد گزارش ناموفق بود' },
+            { status: 500 }
+          );
+        }
 
-    // فراخوانی تابع generate_parent_report
-    const { data: reportId, error: generateError } = await supabase.rpc(
-      'generate_parent_report',
-      {
-        p_student_id: student_id,
-        p_report_type: report_type,
-        p_period_start: period_start,
-        p_period_end: period_end,
+        const { data: report, error: fetchError } = await supabase
+          .from('parent_reports')
+          .select(`
+            *,
+            student:students(id, full_name, grade, class_name)
+          `)
+          .eq('id', reportId)
+          .single();
+
+        if (fetchError || !report) {
+          return NextResponse.json(
+            { success: false, error: 'دریافت گزارش ناموفق بود' },
+            { status: 500 }
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          report_id: reportId,
+          report,
+          message: 'گزارش با موفقیت ایجاد شد',
+        });
+      } catch (error) {
+        console.error('خطای غیرمنتظره در ایجاد گزارش:', error);
+        return NextResponse.json(
+          { success: false, error: 'خطای سرور' },
+          { status: 500 }
+        );
       }
-    );
-
-    if (generateError) {
-      console.error('خطای ایجاد گزارش:', generateError);
-      return NextResponse.json(
-        { success: false, error: 'ایجاد گزارش ناموفق بود' },
-        { status: 500 }
-      );
-    }
-
-    // دریافت گزارش ایجاد شده
-    const { data: report, error: fetchError } = await supabase
-      .from('parent_reports')
-      .select(`
-        *,
-        student:students(id, full_name, grade, class_name)
-      `)
-      .eq('id', reportId)
-      .single();
-
-    if (fetchError || !report) {
-      return NextResponse.json(
-        { success: false, error: 'دریافت گزارش ناموفق بود' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      report_id: reportId,
-      report,
-      message: 'گزارش با موفقیت ایجاد شد',
-    });
-  } catch (error) {
-    console.error('خطای غیرمنتظره در ایجاد گزارش:', error);
-    return NextResponse.json(
-      { success: false, error: 'خطای سرور' },
-      { status: 500 }
-    );
-  }
+    },
+    { roles: REPORT_API_ROLES }
+  );
 }

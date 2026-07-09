@@ -50,8 +50,13 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
 
-    // فرمت کردن داده‌ها
-    const formatted = transfers?.map((t: any) => ({
+    const formatted = transfers?.map((t: {
+      student: { first_name: string; last_name: string }
+      from_school?: { name: string }
+      to_school?: { name: string }
+      requester?: { first_name: string; last_name: string }
+      approver?: { first_name: string; last_name: string }
+    } & Record<string, unknown>) => ({
       ...t,
       student_name: `${t.student.first_name} ${t.student.last_name}`,
       from_school_name: t.from_school?.name || 'نامشخص',
@@ -76,62 +81,49 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST: ثبت درخواست انتقال جدید
+ * POST: ثبت درخواست انتقال جدید (فقط staff)
  */
-export async function POST(request: Request) {
-  try {
-    const supabase = await createServerClient()
+export async function POST(request: NextRequest) {
+  return withAuth(request, async (ctx) => {
+    try {
+      const supabase = await createServerClient()
+      const body = await request.json()
+      const validated = createTransferSchema.parse(body) as CreateTransferRequestInput
 
-    // بررسی نقش
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
+      const { data: newTransfer, error } = await supabase
+        .from('transfer_requests')
+        .insert([
+          {
+            ...validated,
+            requested_by: ctx.userId,
+            status: 'pending',
+          },
+        ])
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return NextResponse.json({
+        success: true,
+        data: newTransfer as TransferRequest,
+        message: 'درخواست انتقال با موفقیت ثبت شد',
+      })
+    } catch (error: unknown) {
+      console.error('خطا در ثبت درخواست انتقال:', error)
+
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { success: false, error: 'داده‌های نامعتبر', details: error.errors },
+          { status: 400 }
+        )
+      }
+
+      const message = error instanceof Error ? error.message : 'خطای سرور'
       return NextResponse.json(
-        { success: false, error: 'کاربر احراز هویت نشده است' },
-        { status: 401 }
+        { success: false, error: message },
+        { status: 500 }
       )
     }
-
-    const body = await request.json()
-    const validated = createTransferSchema.parse(body) as CreateTransferRequestInput
-
-    // ایجاد درخواست
-    const { data: newTransfer, error } = await supabase
-      .from('transfer_requests')
-      .insert([
-        {
-          ...validated,
-          requested_by: user.id,
-          status: 'pending',
-        },
-      ])
-      .select()
-      .single()
-
-    if (error) throw error
-
-    return NextResponse.json({
-      success: true,
-      data: newTransfer as TransferRequest,
-      message: 'درخواست انتقال با موفقیت ثبت شد',
-    })
-  } catch (error: any) {
-    console.error('خطا در ثبت درخواست انتقال:', error)
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: 'داده‌های نامعتبر', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { success: false, error: error.message || 'خطای سرور' },
-      { status: 500 }
-    )
-  }
+  }, { roles: STAFF_ROLES })
 }
-
-
-
-
-

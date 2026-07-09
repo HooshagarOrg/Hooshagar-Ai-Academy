@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AI_FEATURES } from '@/lib/check-ai-limit'
+import { checkAILimit, recordAIUsage } from '@/lib/ai/quota'
 import { withAuth } from '@/lib/security/api-guard'
 
 /**
@@ -7,7 +8,7 @@ import { withAuth } from '@/lib/security/api-guard'
  * بررسی محدودیت استفاده از AI برای کاربر
  */
 export async function GET(request: NextRequest) {
-  return withAuth(request, async () => {
+  return withAuth(request, async (ctx) => {
     try {
       const { searchParams } = new URL(request.url)
       const featureName = searchParams.get('feature')
@@ -19,56 +20,29 @@ export async function GET(request: NextRequest) {
         )
       }
 
-      const feature = AI_FEATURES[featureName]
-      if (!feature) {
+      if (!AI_FEATURES[featureName]) {
         return NextResponse.json(
           { error: 'قابلیت نامعتبر است' },
           { status: 400 }
         )
       }
 
-      const mockDailyUsed = Math.floor(Math.random() * (feature.dailyLimit || 5))
-      const mockWeeklyUsed = Math.floor(Math.random() * (feature.weeklyLimit || 20))
-      const mockMonthlyUsed = Math.floor(Math.random() * (feature.monthlyLimit || 50))
-      const mockCredits = 100 - Math.floor(Math.random() * 50)
+      const limit = await checkAILimit(ctx.userId, featureName)
 
-      const response: {
-        allowed: boolean
-        reason: string | null
-        dailyUsed: number
-        dailyLimit: number | null | undefined
-        weeklyUsed: number
-        weeklyLimit: number | null | undefined
-        monthlyUsed: number
-        monthlyLimit: number | null | undefined
-        creditsAvailable: number
-        creditCost: number
-        featureLabel: string
-        resetTime: string
-      } = {
-        allowed: true,
-        reason: null,
-        dailyUsed: mockDailyUsed,
-        dailyLimit: feature.dailyLimit,
-        weeklyUsed: mockWeeklyUsed,
-        weeklyLimit: feature.weeklyLimit,
-        monthlyUsed: mockMonthlyUsed,
-        monthlyLimit: feature.monthlyLimit,
-        creditsAvailable: mockCredits,
-        creditCost: feature.creditCost,
-        featureLabel: feature.label,
-        resetTime: `${24 - new Date().getHours()} ساعت`,
-      }
-
-      if (feature.dailyLimit && mockDailyUsed >= feature.dailyLimit) {
-        response.allowed = false
-        response.reason = 'محدودیت روزانه تمام شده است'
-      } else if (feature.creditCost > mockCredits) {
-        response.allowed = false
-        response.reason = 'اعتبار کافی ندارید'
-      }
-
-      return NextResponse.json(response)
+      return NextResponse.json({
+        allowed: limit.allowed,
+        reason: limit.reason ?? null,
+        dailyUsed: limit.dailyUsed,
+        dailyLimit: limit.dailyLimit,
+        weeklyUsed: limit.weeklyUsed,
+        weeklyLimit: limit.weeklyLimit,
+        monthlyUsed: limit.monthlyUsed,
+        monthlyLimit: limit.monthlyLimit,
+        creditsAvailable: limit.creditsAvailable,
+        creditCost: limit.creditCost,
+        featureLabel: limit.featureLabel,
+        resetTime: limit.resetTime ?? null,
+      })
     } catch (error) {
       console.error('Error checking AI limit:', error)
       return NextResponse.json(
@@ -84,7 +58,7 @@ export async function GET(request: NextRequest) {
  * ثبت استفاده از AI
  */
 export async function POST(request: NextRequest) {
-  return withAuth(request, async () => {
+  return withAuth(request, async (ctx) => {
     try {
       const body = await request.json()
       const { featureName, success, blocked, limitType } = body
@@ -96,15 +70,20 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const feature = AI_FEATURES[featureName]
-      if (!feature) {
+      if (!AI_FEATURES[featureName]) {
         return NextResponse.json(
           { error: 'قابلیت نامعتبر است' },
           { status: 400 }
         )
       }
 
-      console.log('[AI Usage Recorded]', { featureName, success, blocked, limitType })
+      await recordAIUsage(
+        ctx.userId,
+        featureName,
+        Boolean(success),
+        Boolean(blocked),
+        limitType
+      )
 
       return NextResponse.json({
         success: true,

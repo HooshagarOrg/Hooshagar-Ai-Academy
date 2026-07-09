@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { withAuth } from '@/lib/security/api-guard'
+import { UPLOAD_ROLES } from '@/lib/security/sensitive-api-roles'
 import {
   uploadToArvan,
   generateFilePath,
@@ -61,21 +63,11 @@ const VALID_FILE_TYPES: FileType[] = [
 // POST - Upload File
 // ============================================
 
-export async function POST(request: NextRequest): Promise<NextResponse<UploadResponse>> {
+export async function POST(request: NextRequest) {
+  return withAuth(request, async (ctx) => {
   try {
-    // 1. Check authentication
     const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'احراز هویت لازم است' },
-        { status: 401 }
-      )
-    }
+    const user = { id: ctx.userId }
 
     // 2. Parse form data
     let formData: FormData
@@ -188,27 +180,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
       { status: 500 }
     )
   }
+  }, { roles: UPLOAD_ROLES })
 }
 
 // ============================================
 // GET - List User Files
 // ============================================
 
-export async function GET(request: NextRequest): Promise<NextResponse<FilesResponse>> {
+export async function GET(request: NextRequest) {
+  return withAuth(request, async (ctx) => {
   try {
-    // 1. Check authentication
     const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'احراز هویت لازم است' },
-        { status: 401 }
-      )
-    }
+    const user = { id: ctx.userId }
 
     // 2. Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -259,6 +242,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<FilesRespo
       { status: 500 }
     )
   }
+  }, { roles: UPLOAD_ROLES })
 }
 
 // ============================================
@@ -266,20 +250,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<FilesRespo
 // ============================================
 
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
+  return withAuth(request, async (ctx) => {
   try {
-    // 1. Check authentication
     const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'احراز هویت لازم است' },
-        { status: 401 }
-      )
-    }
+    const user = { id: ctx.userId }
 
     // 2. Parse request body
     let body: { path?: string; fileId?: string }
@@ -384,6 +358,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       { status: 500 }
     )
   }
+  }, { roles: UPLOAD_ROLES })
 }
 
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
 
 // ============================================
 // تایپ‌ها و اینترفیس‌ها
@@ -297,6 +298,9 @@ async function handleResetPassword(
 // ============================================
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
+    const rateLimitResponse = await applyRateLimitAsync(request, 'otp_verify')
+    if (rateLimitResponse) return rateLimitResponse as NextResponse<ApiResponse>
+
     // Get IP for logging
     const ipAddress =
       request.headers.get('x-forwarded-for')?.split(',')[0] ||

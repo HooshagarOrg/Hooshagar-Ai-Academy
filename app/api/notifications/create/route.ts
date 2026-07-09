@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { z } from 'zod';
+import { withAuth, STAFF_ROLES } from '@/lib/security/api-guard';
 
 const createNotificationSchema = z.object({
   user_id: z.string().uuid('شناسه کاربر نامعتبر است'),
@@ -26,92 +27,70 @@ const createNotificationSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    
-    // بررسی احراز هویت
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'لطفاً وارد شوید' },
-        { status: 401 }
-      );
-    }
+  return withAuth(
+    request,
+    async () => {
+      try {
+        const supabase = await createClient();
 
-    // بررسی نقش (فقط معلم/ادمین می‌توانند اعلان ایجاد کنند)
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+        const body = await request.json();
+        const result = createNotificationSchema.safeParse(body);
 
-    if (!profile || !['teacher', 'admin'].includes(profile.role)) {
-      return NextResponse.json(
-        { success: false, error: 'شما مجوز ایجاد اعلان ندارید' },
-        { status: 403 }
-      );
-    }
+        if (!result.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'داده‌های نامعتبر',
+              details: result.error.issues,
+            },
+            { status: 400 }
+          );
+        }
 
-    // اعتبارسنجی
-    const body = await request.json();
-    const result = createNotificationSchema.safeParse(body);
+        const { user_id, type, title, message, data, action_url, priority } = result.data;
 
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'داده‌های نامعتبر',
-          details: result.error.issues,
-        },
-        { status: 400 }
-      );
-    }
+        const { data: notification_id, error } = await supabase.rpc(
+          'create_notification',
+          {
+            p_user_id: user_id,
+            p_type: type,
+            p_title: title,
+            p_message: message,
+            p_data: data || {},
+            p_action_url: action_url || null,
+            p_priority: priority || 'normal',
+          }
+        );
 
-    const { user_id, type, title, message, data, action_url, priority } = result.data;
+        if (error) {
+          console.error('خطای ایجاد اعلان:', error);
+          return NextResponse.json(
+            { success: false, error: 'ایجاد اعلان ناموفق بود' },
+            { status: 500 }
+          );
+        }
 
-    // ایجاد اعلان با تابع create_notification
-    const { data: notification_id, error } = await supabase.rpc(
-      'create_notification',
-      {
-        p_user_id: user_id,
-        p_type: type,
-        p_title: title,
-        p_message: message,
-        p_data: data || {},
-        p_action_url: action_url || null,
-        p_priority: priority || 'normal',
+        if (!notification_id) {
+          return NextResponse.json({
+            success: true,
+            notification_id: null,
+            message: 'کاربر این نوع اعلان را غیرفعال کرده است',
+          });
+        }
+
+        return NextResponse.json({
+          success: true,
+          notification_id,
+          message: 'اعلان با موفقیت ایجاد شد',
+        });
+      } catch (error) {
+        console.error('خطای غیرمنتظره در ایجاد اعلان:', error);
+        return NextResponse.json(
+          { success: false, error: 'خطای سرور' },
+          { status: 500 }
+        );
       }
-    );
-
-    if (error) {
-      console.error('خطای ایجاد اعلان:', error);
-      return NextResponse.json(
-        { success: false, error: 'ایجاد اعلان ناموفق بود' },
-        { status: 500 }
-      );
-    }
-
-    // اگر NULL برگشت، یعنی کاربر این نوع اعلان را غیرفعال کرده
-    if (!notification_id) {
-      return NextResponse.json({
-        success: true,
-        notification_id: null,
-        message: 'کاربر این نوع اعلان را غیرفعال کرده است',
-      });
-    }
-
-    return NextResponse.json({
-      success: true,
-      notification_id,
-      message: 'اعلان با موفقیت ایجاد شد',
-    });
-  } catch (error) {
-    console.error('خطای غیرمنتظره در ایجاد اعلان:', error);
-    return NextResponse.json(
-      { success: false, error: 'خطای سرور' },
-      { status: 500 }
-    );
-  }
+    },
+    { roles: STAFF_ROLES }
+  );
 }
-

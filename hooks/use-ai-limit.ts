@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   type AIUsageLimit,
-  checkAILimit,
-  recordAIUsage,
   calculateRemaining,
   getUsagePercentage,
   getUsageColor,
@@ -78,7 +76,12 @@ export function useAILimit({
     setError(null)
 
     try {
-      const result = await checkAILimit(userId, featureName)
+      const res = await fetch(`/api/ai/check-limit?feature=${encodeURIComponent(featureName)}`)
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error ?? 'خطا در بررسی محدودیت')
+      }
+      const result = await res.json() as AIUsageLimit
       setLimit(result)
     } catch (err) {
       console.error('Error checking AI limit:', err)
@@ -96,7 +99,11 @@ export function useAILimit({
     if (!userId || !featureName) return
 
     try {
-      await recordAIUsage(userId, featureName, success)
+      await fetch('/api/ai/check-limit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featureName, success }),
+      })
       // بروزرسانی محدودیت بعد از ثبت
       await checkLimitFn()
     } catch (err) {
@@ -218,55 +225,22 @@ export function useAllAILimits(userId: string): UseAllAILimitsReturn {
     setError(null)
 
     try {
-      // در محیط واقعی از API استفاده می‌شود
-      // const res = await fetch('/api/ai/check-all-limits')
-      // const result = await res.json()
+      const res = await fetch('/api/ai/check-all-limits')
+      if (!res.ok) {
+        throw new Error('خطا در بررسی محدودیت‌ها')
+      }
+      const result = await res.json()
 
-      // داده نمونه
       const limits: Record<string, AIUsageLimit> = {}
-      const warnings: Array<{
-        type: string
-        feature: string
-        percentage: number
-        period: string
-        resetTime?: string
-      }> = []
-
-      for (const [name, feature] of Object.entries(AI_FEATURES)) {
-        const mockDailyUsed = Math.floor(Math.random() * (feature.dailyLimit || 5))
-        
-        limits[name] = {
-          allowed: true,
-          dailyUsed: mockDailyUsed,
-          dailyLimit: feature.dailyLimit,
-          weeklyUsed: Math.floor(Math.random() * (feature.weeklyLimit || 20)),
-          weeklyLimit: feature.weeklyLimit,
-          monthlyUsed: Math.floor(Math.random() * (feature.monthlyLimit || 50)),
-          monthlyLimit: feature.monthlyLimit,
-          creditsAvailable: 100 - Math.floor(Math.random() * 50),
-          creditCost: feature.creditCost,
-          featureLabel: feature.label,
-        }
-
-        // بررسی هشدارها
-        if (feature.dailyLimit) {
-          const percentage = (mockDailyUsed / feature.dailyLimit) * 100
-          if (percentage >= 80) {
-            warnings.push({
-              type: percentage >= 100 ? '100_percent' : '80_percent',
-              feature: feature.label,
-              percentage: Math.round(percentage),
-              period: 'روزانه',
-            })
-          }
-        }
+      for (const [name, row] of Object.entries(result.features as Record<string, AIUsageLimit>)) {
+        limits[name] = row
       }
 
       setData({
         limits,
-        warnings,
-        totalCredits: 100,
-        usedCredits: 35,
+        warnings: result.warnings ?? [],
+        totalCredits: result.totalCredits ?? 0,
+        usedCredits: result.usedCredits ?? 0,
       })
     } catch (err) {
       console.error('Error checking all AI limits:', err)

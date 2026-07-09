@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AI_FEATURES } from '@/lib/check-ai-limit'
+import { checkAllLimits } from '@/lib/ai/quota'
 import { withAuth } from '@/lib/security/api-guard'
 
 /**
@@ -7,8 +7,10 @@ import { withAuth } from '@/lib/security/api-guard'
  * بررسی تمام محدودیت‌ها و دریافت هشدارها
  */
 export async function GET(request: NextRequest) {
-  return withAuth(request, async () => {
+  return withAuth(request, async (ctx) => {
     try {
+      const result = await checkAllLimits(ctx.userId)
+
       const features: Record<string, {
         allowed: boolean
         dailyUsed: number
@@ -21,115 +23,26 @@ export async function GET(request: NextRequest) {
         creditCost: number
       }> = {}
 
-      const warnings: Array<{
-        id: string
-        type: '80_percent' | '100_percent' | 'special_granted' | 'credit_low'
-        feature: string
-        featureLabel: string
-        percentage?: number
-        period?: string
-        resetTime?: string
-        newLimit?: number
-        message?: string
-      }> = []
-
-      for (const [name, feature] of Object.entries(AI_FEATURES)) {
-        const mockDailyUsed = Math.floor(Math.random() * (feature.dailyLimit || 5))
-        const mockWeeklyUsed = Math.floor(Math.random() * (feature.weeklyLimit || 20))
-        const mockMonthlyUsed = Math.floor(Math.random() * (feature.monthlyLimit || 50))
-        const mockCredits = 100 - Math.floor(Math.random() * 50)
-
+      for (const [name, limit] of Object.entries(result.features)) {
         features[name] = {
-          allowed: true,
-          dailyUsed: mockDailyUsed,
-          dailyLimit: feature.dailyLimit,
-          weeklyUsed: mockWeeklyUsed,
-          weeklyLimit: feature.weeklyLimit,
-          monthlyUsed: mockMonthlyUsed,
-          monthlyLimit: feature.monthlyLimit,
-          creditsAvailable: mockCredits,
-          creditCost: feature.creditCost,
+          allowed: limit.allowed,
+          dailyUsed: limit.dailyUsed,
+          dailyLimit: limit.dailyLimit,
+          weeklyUsed: limit.weeklyUsed,
+          weeklyLimit: limit.weeklyLimit,
+          monthlyUsed: limit.monthlyUsed,
+          monthlyLimit: limit.monthlyLimit,
+          creditsAvailable: limit.creditsAvailable,
+          creditCost: limit.creditCost,
         }
-
-        if (feature.dailyLimit) {
-          const percentage = (mockDailyUsed / feature.dailyLimit) * 100
-          if (percentage >= 100) {
-            features[name].allowed = false
-            warnings.push({
-              id: `${name}-daily-100`,
-              type: '100_percent',
-              feature: name,
-              featureLabel: feature.label,
-              percentage: 100,
-              period: 'روزانه',
-              resetTime: `${24 - new Date().getHours()} ساعت`,
-            })
-          } else if (percentage >= 80) {
-            warnings.push({
-              id: `${name}-daily-80`,
-              type: '80_percent',
-              feature: name,
-              featureLabel: feature.label,
-              percentage: Math.round(percentage),
-              period: 'روزانه',
-            })
-          }
-        }
-
-        if (feature.weeklyLimit) {
-          const percentage = (mockWeeklyUsed / feature.weeklyLimit) * 100
-          if (percentage >= 100) {
-            features[name].allowed = false
-            if (!warnings.find(w => w.id === `${name}-daily-100`)) {
-              warnings.push({
-                id: `${name}-weekly-100`,
-                type: '100_percent',
-                feature: name,
-                featureLabel: feature.label,
-                percentage: 100,
-                period: 'هفتگی',
-                resetTime: `${7 - new Date().getDay()} روز`,
-              })
-            }
-          }
-        }
-
-        if (feature.creditCost > mockCredits) {
-          features[name].allowed = false
-          if (!warnings.find(w => w.feature === name)) {
-            warnings.push({
-              id: `${name}-credit`,
-              type: 'credit_low',
-              feature: name,
-              featureLabel: feature.label,
-              percentage: Math.round((mockCredits / 100) * 100),
-              message: `اعتبار کافی برای ${feature.label} ندارید`,
-            })
-          }
-        }
-      }
-
-      const totalCredits = 100
-      const usedCredits = Math.floor(Math.random() * 80)
-      const availableCredits = totalCredits - usedCredits
-
-      if (availableCredits < 20) {
-        warnings.push({
-          id: 'general-credit-low',
-          type: 'credit_low',
-          feature: 'general',
-          featureLabel: 'اعتبار',
-          percentage: availableCredits,
-          message: `اعتبار شما ${availableCredits}% باقی‌مانده است`,
-        })
       }
 
       return NextResponse.json({
         features,
-        totalCredits,
-        usedCredits,
-        availableCredits,
-        warnings,
+        totalCredits: result.totalCredits,
+        usedCredits: result.usedCredits,
+        availableCredits: Math.max(0, result.totalCredits - result.usedCredits),
+        warnings: result.warnings,
       })
     } catch (error) {
       console.error('Error checking all limits:', error)

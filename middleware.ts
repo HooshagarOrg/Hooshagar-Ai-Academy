@@ -300,17 +300,18 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // استخراج role از JWT claims (user_metadata یا app_metadata)
-  const jwtRole = (
-    user?.user_metadata?.role ??
-    user?.app_metadata?.role
-  ) as UserRole | undefined
-
   // 5. مسیرهای عمومی - اگر لاگین است، redirect به داشبورد
   if (isPublicRoute(pathname)) {
-    if (user && jwtRole) {
-      const defaultRoute = getDefaultRouteForRole(jwtRole)
-      return NextResponse.redirect(new URL(defaultRoute, request.url))
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+      if (profile?.role) {
+        const defaultRoute = getDefaultRouteForRole(profile.role as UserRole)
+        return NextResponse.redirect(new URL(defaultRoute, request.url))
+      }
     }
     return response
   }
@@ -322,30 +323,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // 7. تعیین نقش کاربر
-  // اولویت: JWT claims → DB query (fallback)
-  let userRole: UserRole
-  let userId = user.id
-  let schoolId: string | null = null
+  // 7. تعیین نقش کاربر — همیشه از profiles (JWT user_metadata قابل دستکاری است)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, role, school_id')
+    .eq('id', user.id)
+    .single()
 
-  if (jwtRole) {
-    userRole = jwtRole
-  } else {
-    // fallback به DB (برای کاربرانی که role در JWT ندارند)
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id, role, school_id')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile?.role) {
-      // نمی‌توان نقش را تعیین کرد — redirect به login
-      return NextResponse.redirect(new URL('/login?error=profile_not_found', request.url))
-    }
-    userRole = profile.role as UserRole
-    schoolId = profile.school_id ?? null
-    userId = profile.id
+  if (!profile?.role) {
+    return NextResponse.redirect(new URL('/login?error=profile_not_found', request.url))
   }
+
+  const userRole = profile.role as UserRole
+  const userId = profile.id
+  const schoolId = profile.school_id ?? null
 
   // 8. Redirect از /dashboard به role-based dashboard
   if (pathname === '/dashboard') {

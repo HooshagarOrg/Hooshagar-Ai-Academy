@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
+import { withAuth } from '@/lib/security/api-guard'
+import { EXAM_MANAGE_ROLES } from '@/lib/security/sensitive-api-roles'
 
 // ============================================
 // API استخراج سوال از PDF/عکس با AI
@@ -17,83 +17,56 @@ interface ExtractedQuestion {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    // Rate Limit: 10 بار در ساعت per IP
-    const rateLimitRes = await applyRateLimitAsync(request, 'ai_ocr')
-    if (rateLimitRes) return rateLimitRes
+  return withAuth(
+    request,
+    async () => {
+      try {
+        const formData = await request.formData()
+        const file = formData.get('file') as File | null
+        const subject = formData.get('subject') as string || 'عمومی'
+        const grade = parseInt(formData.get('grade') as string || '1')
 
-    const supabase = await createClient()
+        if (!file) {
+          return NextResponse.json({ error: 'فایل ارسال نشده' }, { status: 400 })
+        }
 
-    // احراز هویت
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'غیرمجاز' }, { status: 401 })
-    }
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+        if (!allowedTypes.includes(file.type)) {
+          return NextResponse.json(
+            { error: 'فقط فایل‌های PDF، JPEG، PNG و WebP قابل قبول هستند' },
+            { status: 400 }
+          )
+        }
 
-    // بررسی نقش
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+        const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.webp']
+        const fileName = file.name.toLowerCase()
+        if (!allowedExtensions.some(ext => fileName.endsWith(ext))) {
+          return NextResponse.json(
+            { error: 'پسوند فایل مجاز نیست' },
+            { status: 400 }
+          )
+        }
 
-    const allowedRoles = ['teacher', 'principal', 'vice_principal_academic', 'admin', 'platform_admin']
-    if (!profile || !allowedRoles.includes(profile.role)) {
-      return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 403 })
-    }
+        if (file.size > 10 * 1024 * 1024) {
+          return NextResponse.json(
+            { error: 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد' },
+            { status: 400 }
+          )
+        }
 
-    // دریافت فایل
-    const formData = await request.formData()
-    const file = formData.get('file') as File | null
-    const subject = formData.get('subject') as string || 'عمومی'
-    const grade = parseInt(formData.get('grade') as string || '1')
+        const buffer = await file.arrayBuffer()
+        const bytes = new Uint8Array(buffer)
+        if (!isValidFileSignature(bytes, file.type)) {
+          return NextResponse.json(
+            { error: 'محتوای فایل با نوع اعلام‌شده مطابقت ندارد' },
+            { status: 400 }
+          )
+        }
 
-    if (!file) {
-      return NextResponse.json({ error: 'فایل ارسال نشده' }, { status: 400 })
-    }
+        const base64 = Buffer.from(buffer).toString('base64')
+        const mimeType = file.type === 'application/pdf' ? 'image/jpeg' : file.type
 
-    // بررسی نوع فایل (MIME)
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'فقط فایل‌های PDF، JPEG، PNG و WebP قابل قبول هستند' },
-        { status: 400 }
-      )
-    }
-
-    // بررسی پسوند فایل
-    const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.webp']
-    const fileName = file.name.toLowerCase()
-    if (!allowedExtensions.some(ext => fileName.endsWith(ext))) {
-      return NextResponse.json(
-        { error: 'پسوند فایل مجاز نیست' },
-        { status: 400 }
-      )
-    }
-
-    // بررسی حجم (10 مگابایت)
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد' },
-        { status: 400 }
-      )
-    }
-
-    // بررسی magic bytes (امضای فایل واقعی)
-    const buffer = await file.arrayBuffer()
-    const bytes = new Uint8Array(buffer)
-    if (!isValidFileSignature(bytes, file.type)) {
-      return NextResponse.json(
-        { error: 'محتوای فایل با نوع اعلام‌شده مطابقت ندارد' },
-        { status: 400 }
-      )
-    }
-
-    const base64 = Buffer.from(buffer).toString('base64')
-    const mimeType = file.type === 'application/pdf' ? 'image/jpeg' : file.type
-
-    // ساخت پرامپت استخراج سوال
-    const prompt = `
+        const prompt = `
 تصویر یا فایل زیر یک برگه آزمون یا تمرین درسی است.
 لطفاً تمام سوال‌ها را با دقت استخراج کن.
 
@@ -107,7 +80,7 @@ export async function POST(request: NextRequest) {
     {
       "type": "multiple_choice" | "true_false" | "short_answer" | "descriptive",
       "text": "متن سوال",
-      "options": ["الف", "ب", "ج", "د"],  // فقط برای چندگزینه‌ای
+      "options": ["الف", "ب", "ج", "د"],
       "correct_answer": "پاسخ صحیح یا گزینه صحیح",
       "points": نمره (عدد صحیح),
       "difficulty": "easy" | "medium" | "hard"
@@ -125,34 +98,33 @@ export async function POST(request: NextRequest) {
 - فقط JSON برگردان، هیچ توضیح اضافه‌ای ندهی
 `
 
-    // ارسال به AI
-    const questions = await extractQuestionsWithAI(base64, mimeType, prompt)
+        const questions = await extractQuestionsWithAI(base64, mimeType, prompt)
 
-    if (!questions) {
-      return NextResponse.json(
-        { error: 'خطا در پردازش تصویر با هوش مصنوعی' },
-        { status: 500 }
-      )
-    }
+        if (!questions) {
+          return NextResponse.json(
+            { error: 'خطا در پردازش تصویر با هوش مصنوعی' },
+            { status: 500 }
+          )
+        }
 
-    return NextResponse.json({
-      success: true,
-      questions: questions.questions || [],
-      total_questions: questions.total_questions || 0,
-      estimated_time: questions.estimated_time || 30,
-    })
-  } catch (error) {
-    console.error('خطا در OCR Import:', error)
-    return NextResponse.json(
-      { error: 'خطای داخلی سرور' },
-      { status: 500 }
-    )
-  }
+        return NextResponse.json({
+          success: true,
+          questions: questions.questions || [],
+          total_questions: questions.total_questions || 0,
+          estimated_time: questions.estimated_time || 30,
+        })
+      } catch (error) {
+        console.error('خطا در OCR Import:', error)
+        return NextResponse.json(
+          { error: 'خطای داخلی سرور' },
+          { status: 500 }
+        )
+      }
+    },
+    { roles: EXAM_MANAGE_ROLES, rateLimit: 'ai_ocr' }
+  )
 }
 
-// ============================================
-// بررسی magic bytes فایل
-// ============================================
 function isValidFileSignature(bytes: Uint8Array, mimeType: string): boolean {
   const header = bytes.slice(0, 8)
 
@@ -170,9 +142,6 @@ function isValidFileSignature(bytes: Uint8Array, mimeType: string): boolean {
   }
 }
 
-// ============================================
-// استخراج سوالات با AI (Gemini Vision)
-// ============================================
 async function extractQuestionsWithAI(
   imageBase64: string,
   mimeType: string,
@@ -229,7 +198,6 @@ async function extractQuestionsWithAI(
     }
   }
 
-  // فالبک به OpenRouter
   return await extractWithOpenRouter(imageBase64, mimeType, prompt)
 }
 

@@ -6,29 +6,91 @@ const { execSync } = require('child_process')
 const path = require('path')
 require('dotenv').config({ path: path.join(__dirname, '..', '.env.local') })
 
+/** کلیدهایی که نباید به production بروند */
+const PRODUCTION_SKIP = new Set([
+  'TEST_USER_EMAIL',
+  'TEST_USER_PASSWORD',
+])
+
 const KEYS = [
+  // Supabase
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
+  'SUPABASE_SERVER_URL',
+  'SUPABASE_PROJECT_ID',
+  'SUPABASE_FETCH_TIMEOUT_MS',
+  'NEXT_PUBLIC_SUPABASE_PROXY',
+
+  // App
   'NEXT_PUBLIC_APP_URL',
+  'NEXTAUTH_URL',
+  'NEXTAUTH_SECRET',
   'JWT_SECRET',
+  'APP_ENV',
+
+  // Google AI (round-robin)
   'GOOGLE_API_KEY',
-  'GOOGLE_API_KEY_1',
-  'GOOGLE_API_KEY_2',
+  ...Array.from({ length: 10 }, (_, i) => `GOOGLE_API_KEY_${i + 1}`),
+
+  // Avatar AI
+  'AVATAR_DAILY_MESSAGE_LIMIT',
+  'AVATAR_OPENROUTER_API_KEY',
+  'AVATAR_OR_FALLBACK',
+  'AVATAR_OR_MODEL_1',
+  'AVATAR_OR_MODEL_2',
+  'AVATAR_OR_MODEL_3',
+  ...Array.from({ length: 20 }, (_, i) => `AVATAR_GOOGLE_API_KEY_${i + 1}`),
+
+  // OpenRouter
   'OPENROUTER_API_KEY',
   'OPENROUTER_API_KEY_B',
   'OPENROUTER_API_KEY_C',
+  'NEXT_PUBLIC_OPENROUTER_PROXY',
+  'NEXT_PUBLIC_GEMINI_PROXY',
+
+  // AI model config
+  'AI_MODEL_DEFAULT',
+  'AI_MODEL_FAST',
+  'AI_MODEL_PRO',
+  'AI_MODEL_VISION',
+  'AI_MODEL_FALLBACK',
+
+  // SMS / OTP
   'KAVENEGAR_API_KEY',
   'KAVENEGAR_SENDER',
-  'ZARINPAL_MERCHANT_ID',
+  'KAVENEGAR_TEMPLATE_OTP',
+  'KAVENEGAR_TEMPLATE_ATTENDANCE',
+  'KAVENEGAR_TEMPLATE_LOTTERY',
+  'KAVENEGAR_TEMPLATE_NAME',
+  'OTP_EXPIRY_MINUTES',
+  'OTP_MAX_ATTEMPTS',
+  'OTP_RATE_LIMIT_WINDOW',
+
+  // Storage
   'ARVAN_ACCESS_KEY',
   'ARVAN_SECRET_KEY',
+  'ARVAN_BUCKET',
+  'ARVAN_CDN',
+  'ARVAN_ENDPOINT',
+  'ARVAN_REGION',
+
+  // Payment / captcha / skyroom
+  'ZARINPAL_MERCHANT_ID',
+  'NEXT_PUBLIC_RECAPTCHA_SITE_KEY',
+  'RECAPTCHA_SECRET_KEY',
+  'SKYROOM_API_BASE_URL',
+  'SKYROOM_API_KEY',
+
+  // Rate limit (also add via Upstash dashboard if missing)
   'UPSTASH_REDIS_REST_URL',
   'UPSTASH_REDIS_REST_TOKEN',
-  'NEXTAUTH_SECRET',
+
+  // Dev/test — preview only
+  'TEST_USER_EMAIL',
+  'TEST_USER_PASSWORD',
 ]
 
-const ENVS = ['production', 'preview']
 const root = path.join(__dirname, '..')
 
 function addEnv(key, targetEnv, value) {
@@ -47,16 +109,21 @@ function addEnv(key, targetEnv, value) {
 
 console.log('Syncing env to Vercel...\n')
 
-for (const targetEnv of ENVS) {
+for (const targetEnv of ['production', 'preview']) {
   console.log(`--- ${targetEnv} ---`)
   for (const key of KEYS) {
+    if (targetEnv === 'production' && PRODUCTION_SKIP.has(key)) {
+      console.log(`  skip (dev-only): ${key}`)
+      continue
+    }
+
     const value = process.env[key]
     if (!value || !String(value).trim()) {
-      console.log(`  skip: ${key}`)
+      console.log(`  skip (empty): ${key}`)
       continue
     }
     addEnv(key, targetEnv, String(value).trim())
   }
 }
 
-console.log('\nDone. Run: vercel env ls production')
+console.log('\nDone. Run: node scripts/audit-env-sync.js')

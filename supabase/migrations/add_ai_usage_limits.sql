@@ -40,8 +40,10 @@ CREATE TABLE IF NOT EXISTS ai_usage_limits (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_by UUID REFERENCES profiles(id),
-  
-  UNIQUE(feature_name, scope, COALESCE(scope_id, 'null'))
+
+  -- کلید یکتا برای scope_id خالی (PostgreSQL اجازه COALESCE در UNIQUE inline نمی‌دهد)
+  scope_id_key TEXT GENERATED ALWAYS AS (COALESCE(scope_id, 'null')) STORED,
+  CONSTRAINT ai_usage_limits_unique_scope UNIQUE (feature_name, scope, scope_id_key)
 );
 
 -- ایندکس‌ها
@@ -495,7 +497,7 @@ INSERT INTO ai_usage_limits (feature_name, feature_label, feature_icon, scope, d
   ('early_warning', 'هشدار زودهنگام', '⚠️', 'global', 5, 20, 80, 8, 'شناسایی مشکلات پیش از وقوع'),
   ('oral_questions', 'سوالات شفاهی', '🎤', 'global', 5, 20, 60, 8, 'تولید سوالات شفاهی از متن درس'),
   ('family_insight', 'بینش خانواده', '👨‍👩‍👧', 'global', 3, 12, 40, 12, 'تحلیل اطلاعات خانوادگی')
-ON CONFLICT (feature_name, scope, COALESCE(scope_id, 'null')) DO UPDATE SET
+ON CONFLICT (feature_name, scope, scope_id_key) DO UPDATE SET
   feature_label = EXCLUDED.feature_label,
   feature_icon = EXCLUDED.feature_icon,
   feature_description = EXCLUDED.feature_description;

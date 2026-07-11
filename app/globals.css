@@ -634,6 +634,22 @@
 
   .premium-content .border-emerald-200 { border-color: rgba(16, 185, 129, 0.25) !important; }
   .premium-content .border-green-200 { border-color: rgba(34, 197, 94, 0.25) !important; }
+
+  /* ── App viewport height (dashboard shell) ── */
+  .h-app {
+    height: 100dvh;
+    height: 100svh;
+  }
+
+  .min-h-app {
+    min-height: 100dvh;
+    min-height: 100svh;
+  }
+
+  .max-h-app {
+    max-height: 100dvh;
+    max-height: 100svh;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

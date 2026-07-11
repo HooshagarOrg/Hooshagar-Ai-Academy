@@ -21,6 +21,15 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
   const isStudent = role === 'student'
 
   useEffect(() => {
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.documentElement.style.overflow = ''
+      document.body.style.overflow = ''
+    }
+  }, [])
+
+  useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       if (mobileSidebarOpen && !target.closest('[data-sidebar]')) {
@@ -31,14 +40,9 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
     return () => document.removeEventListener('mousedown', handler)
   }, [mobileSidebarOpen])
 
-  useEffect(() => {
-    document.body.style.overflow = mobileSidebarOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
-  }, [mobileSidebarOpen])
-
   return (
     <div
-      className="relative flex h-app overflow-hidden"
+      className="relative flex h-app max-h-app overflow-hidden"
       dir="rtl"
       data-role={role}
     >
@@ -78,7 +82,7 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
         />
       </div>
 
-      <div className="relative flex flex-col flex-1 min-w-0 overflow-hidden z-10">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
         {isStudent ? (
           <LuxStudentHeader
             userName={userName}
@@ -101,7 +105,7 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
 
         <main
           id="main-content"
-          className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain lg:pb-0 pb-[calc(4.75rem+var(--safe-bottom))]"
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y lg:pb-0 pb-[calc(4.75rem+var(--safe-bottom))]"
           tabIndex={-1}
         >
           <div

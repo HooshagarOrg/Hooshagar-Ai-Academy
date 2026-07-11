@@ -1100,7 +1100,7 @@ export default function AIModelsPage() {
                       <div
                         key={`${model.provider}-${model.modelId}`}
                         className={cn(
-                          'border rounded-lg p-4 cursor-pointer transition-all hover:border-blue-300',
+                          'border rounded-lg p-4 cursor-pointer transition-all hover:border-blue-500/40',
                           selectedFeature?.primaryModel === model.modelId && editingType === 'primary' && 'border-blue-500 bg-blue-500/10',
                           selectedFeature?.fallbackModel === model.modelId && editingType === 'fallback' && 'border-blue-500 bg-blue-500/10'
                         )}

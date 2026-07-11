@@ -1,7 +1,8 @@
 'use client'
 
 import { PageHeader } from '@/components/layout/page-header'
-import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
+import { LuxPageHeader } from '@/components/lux/lux-page-header'
+import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { cn } from '@/lib/utils'
 import type { ReactNode } from 'react'
 
@@ -9,6 +10,7 @@ type DashboardPageProps = {
   title: React.ReactNode
   description?: React.ReactNode
   meta?: React.ReactNode
+  kicker?: string
   actions?: React.ReactNode
   children: React.ReactNode
   className?: string
@@ -21,16 +23,24 @@ export function DashboardPage({
   title,
   description,
   meta,
+  kicker,
   actions,
   children,
   className,
   headerClassName,
   animatedSections = true,
 }: DashboardPageProps) {
-  const showHeader = title !== '' || meta !== '' || description !== undefined || actions !== undefined
+  const showHeader =
+    title !== '' ||
+    meta !== '' ||
+    description !== undefined ||
+    actions !== undefined ||
+    kicker !== undefined
+
+  const titleText = typeof title === 'string' ? title : undefined
 
   const body = animatedSections ? (
-    <LuxStagger className={cn('space-y-6', className)} stagger={0.08}>
+    <LuxStagger className={cn('space-y-6', className)} stagger={0.06}>
       {children}
     </LuxStagger>
   ) : (
@@ -39,8 +49,16 @@ export function DashboardPage({
 
   return (
     <div className="space-y-6" dir="rtl">
-      {showHeader && (
-        <LuxFadeUp>
+      {showHeader &&
+        (kicker || titleText ? (
+          <LuxPageHeader
+            kicker={kicker ?? (typeof meta === 'string' ? meta : undefined)}
+            title={titleText ?? String(title)}
+            subtitle={typeof description === 'string' ? description : undefined}
+            action={actions}
+            className={headerClassName}
+          />
+        ) : (
           <PageHeader
             title={title}
             description={description}
@@ -48,8 +66,7 @@ export function DashboardPage({
             actions={actions}
             className={headerClassName}
           />
-        </LuxFadeUp>
-      )}
+        ))}
       {body}
     </div>
   )

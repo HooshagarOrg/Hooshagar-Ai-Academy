@@ -313,14 +313,8 @@ export default function AILimitsPage() {
   return (
     <DashboardPage
       className="max-w-7xl mx-auto"
-      title={
-        <span className="flex items-center gap-3">
-          <span className="w-12 h-12 bg-gradient-to-br from-brand-cyan to-brand-purple rounded-xl flex items-center justify-center">
-            <Settings className="w-6 h-6 text-white" />
-          </span>
-          مدیریت محدودیت‌های هوش مصنوعی
-        </span>
-      }
+      kicker="هوش مصنوعی"
+      title="مدیریت محدودیت‌های هوش مصنوعی"
       description="کنترل و مدیریت استفاده از قابلیت‌های AI"
       actions={
         <Button
@@ -552,10 +546,10 @@ export default function AILimitsPage() {
                   </CardHeader>
                   
                   <CardContent>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div className="mb-4 rounded-lg border border-blue-500/25 bg-blue-500/10 p-4">
                       <div className="flex items-start gap-3">
                         <Info className="w-5 h-5 text-[var(--lux-secondary)] mt-0.5" />
-                        <div className="text-sm text-blue-700">
+                        <div className="text-sm text-blue-300">
                           <p className="font-medium mb-1">توضیحات:</p>
                           <p>
                             تنظیمات این نقش بر تنظیمات سراسری اولویت دارد. 
@@ -799,7 +793,7 @@ export default function AILimitsPage() {
                               <TableCell>{user.featureLabel}</TableCell>
                               <TableCell className="text-center">{user.normalLimit}</TableCell>
                               <TableCell className="text-center">
-                                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                                <Badge variant="secondary" className="bg-green-500/15 text-green-300">
                                   {user.specialLimit}
                                 </Badge>
                               </TableCell>
@@ -867,7 +861,7 @@ export default function AILimitsPage() {
                       </div>
                     ) : (
                       <>
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                        <div className="mb-4 rounded-lg border border-yellow-500/25 bg-yellow-500/10 p-4">
                           <div className="flex items-start gap-3">
                             <Sparkles className="w-5 h-5 text-yellow-500 mt-0.5" />
                             <div className="text-sm text-yellow-700">

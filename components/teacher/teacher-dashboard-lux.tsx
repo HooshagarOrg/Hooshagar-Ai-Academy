@@ -57,7 +57,7 @@ export function TeacherDashboardLux() {
   }
 
   const tools = [
-    { label: 'تحلیل دانش‌آموز', href: '/teacher/analytics', icon: Brain },
+    { label: 'تحلیلگر هوشمند', href: '/teacher/analyzer', icon: Brain },
     { label: 'آزمون‌ساز', href: '/teacher/exam-generator', icon: ClipboardCheck },
     { label: 'محتوای AI', href: '/teacher/content-creator', icon: Sparkles },
     { label: 'دفتر کلاسی', href: '/teacher/grades', icon: BookOpen },

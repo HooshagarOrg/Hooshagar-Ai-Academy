@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { AlertCircle, ChevronLeft, Loader2, Sparkles, Star, TrendingUp, Users } from 'lucide-react'
+import { AlertCircle, BarChart3, ChevronLeft, ClipboardCheck, DollarSign, GraduationCap, Heart, HelpCircle, Loader2, MessageSquare, Sparkles, Star, TrendingUp, Users, Video } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxStatGrid } from '@/components/lux/lux-stat-grid'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
+import { LuxHubGrid, type LuxHubGroup } from '@/components/lux/lux-hub-grid'
 import { TalentRadarPanel } from '@/components/talent/talent-radar'
 
 type DashboardData = {
@@ -16,6 +17,23 @@ type DashboardData = {
   stats: { averageGrade: number; attendanceRate: number; recentReports: number }
   recentGrades: Array<{ subject: string; score: number; type: string }>
 }
+
+const PARENT_HUB: LuxHubGroup[] = [
+  {
+    title: 'دسترسی سریع',
+    cards: [
+      { title: 'نمرات فرزند', description: 'مشاهده نمرات و کارنامه', icon: GraduationCap, href: '/parent/grades', color: 'text-brand-cyan', bg: 'bg-brand-cyan/15 border border-brand-cyan/20' },
+      { title: 'گزارش‌های AI', description: 'گزارش‌های هوشمند هفتگی', icon: Sparkles, href: '/parent/reports', color: 'text-brand-purple', bg: 'bg-brand-purple/15 border border-brand-purple/20', featured: true },
+      { title: 'حضور و غیاب', description: 'وضعیت حضور در کلاس', icon: ClipboardCheck, href: '/parent/attendance', color: 'text-brand-green', bg: 'bg-brand-green/15 border border-brand-green/20' },
+      { title: 'مالی', description: 'شهریه و پرداخت‌ها', icon: DollarSign, href: '/parent/financials', color: 'text-emerald-400', bg: 'bg-emerald-500/15 border border-emerald-500/20' },
+      { title: 'بهداشت', description: 'پرونده و معاینات', icon: Heart, href: '/parent/health', color: 'text-brand-pink', bg: 'bg-brand-pink/15 border border-brand-pink/20' },
+      { title: 'مشاوره', description: 'جلسات و پیگیری', icon: HelpCircle, href: '/parent/counseling', color: 'text-brand-yellow', bg: 'bg-brand-yellow/15 border border-brand-yellow/20' },
+      { title: 'کلاس مجازی', description: 'ورود به جلسات آنلاین', icon: Video, href: '/parent#virtual-class', color: 'text-brand-cyan', bg: 'bg-brand-cyan/15 border border-brand-cyan/20' },
+      { title: 'گزارش تخصصی', description: 'هنر، ورزش و مهارت‌ها', icon: BarChart3, href: '/parent/specialty-reports', color: 'text-brand-orange', bg: 'bg-brand-orange/15 border border-brand-orange/20' },
+      { title: 'پیام‌ها', description: 'ارتباط با مدرسه', icon: MessageSquare, href: '/messages', color: 'text-[var(--lux-primary)]', bg: 'bg-white/5 border border-white/10' },
+    ],
+  },
+]
 
 export function ParentDashboardLux() {
   const [data, setData] = useState<DashboardData | null>(null)
@@ -122,6 +140,10 @@ export function ParentDashboardLux() {
               </div>
             )}
           </LuxCard>
+        </LuxStaggerItem>
+
+        <LuxStaggerItem>
+          <LuxHubGrid groups={PARENT_HUB} />
         </LuxStaggerItem>
       </LuxStagger>
     </div>

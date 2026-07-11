@@ -337,14 +337,8 @@ export default function AIModelsPage() {
   return (
     <DashboardPage
       className="max-w-7xl mx-auto"
-      title={
-        <span className="flex items-center gap-3">
-          <span className="w-12 h-12 bg-gradient-to-br from-brand-purple to-brand-cyan rounded-xl flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-white" />
-          </span>
-          مدیریت مدل‌های هوش مصنوعی
-        </span>
-      }
+      kicker="هوش مصنوعی"
+      title="مدیریت مدل‌های هوش مصنوعی"
       description="انتخاب و پیکربندی مدل AI برای هر قابلیت"
       actions={
         <Badge variant="secondary" className="text-base gap-2 px-4 py-2 glass-panel-quiet">
@@ -416,8 +410,8 @@ export default function AIModelsPage() {
                 </div>
 
                 {/* نکته */}
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-4">
-                  <div className="flex items-center gap-2 text-green-700">
+                <div className="bg-green-500/10 border border-green-500/25 rounded-lg p-3 mt-4">
+                  <div className="flex items-center gap-2 text-green-300">
                     <CheckCircle className="w-5 h-5" />
                     <span className="font-medium">🎉 همه قابلیت‌ها از Gemini رایگان استفاده می‌کنند!</span>
                   </div>
@@ -436,7 +430,7 @@ export default function AIModelsPage() {
                       <AccordionItem
                         key={config.featureName}
                         value={config.featureName}
-                        className="border rounded-xl overflow-hidden bg-white"
+                        className="lux-dash-card overflow-hidden rounded-xl border"
                       >
                         <AccordionTrigger className="px-4 hover:no-underline">
                           <div className="flex items-center justify-between w-full pl-4">
@@ -452,7 +446,7 @@ export default function AIModelsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               {primaryModel?.isFree ? (
-                                <Badge className="bg-green-100 text-green-700">🆓 رایگان</Badge>
+                                <Badge className="bg-green-500/15 text-green-300">🆓 رایگان</Badge>
                               ) : (
                                 <Badge variant="secondary">💵 پولی</Badge>
                               )}
@@ -585,7 +579,7 @@ export default function AIModelsPage() {
                               </div>
 
                               {/* آمار */}
-                              <div className="bg-blue-50 rounded-lg p-4">
+                              <div className="bg-blue-500/10 rounded-lg p-4">
                                 <h4 className="font-medium text-[var(--lux-text)] mb-3 flex items-center gap-2">
                                   📊 آمار استفاده (این ماه)
                                 </h4>
@@ -598,14 +592,14 @@ export default function AIModelsPage() {
                                   </div>
                                   <div>
                                     <span className="text-[var(--lux-text-muted)]">موفق:</span>
-                                    <span className="font-bold text-green-600 mr-2">
+                                    <span className="font-bold text-green-400 mr-2">
                                       {config.stats.successfulRequests.toLocaleString('fa-IR')}
                                       ({((config.stats.successfulRequests / config.stats.totalRequests) * 100 || 0).toFixed(1)}%)
                                     </span>
                                   </div>
                                   <div>
                                     <span className="text-[var(--lux-text-muted)]">ناموفق:</span>
-                                    <span className="font-bold text-red-600 mr-2">
+                                    <span className="font-bold text-red-400 mr-2">
                                       {config.stats.failedRequests.toLocaleString('fa-IR')}
                                     </span>
                                   </div>
@@ -699,7 +693,7 @@ export default function AIModelsPage() {
                   </Select>
                   
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-green-100 text-green-700 cursor-pointer">🆓 رایگان</Badge>
+                    <Badge className="bg-green-500/15 text-green-300 cursor-pointer">🆓 رایگان</Badge>
                     <Badge variant="secondary" className="cursor-pointer">💵 پولی</Badge>
                   </div>
                 </div>
@@ -743,7 +737,7 @@ export default function AIModelsPage() {
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger>
-                                      <span className={cn(model.supportsText ? 'text-green-600' : 'text-[var(--lux-text-muted)]')}>
+                                      <span className={cn(model.supportsText ? 'text-green-400' : 'text-[var(--lux-text-muted)]')}>
                                         📝
                                       </span>
                                     </TooltipTrigger>
@@ -753,7 +747,7 @@ export default function AIModelsPage() {
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger>
-                                      <span className={cn(model.supportsVision ? 'text-green-600' : 'text-[var(--lux-text-muted)]')}>
+                                      <span className={cn(model.supportsVision ? 'text-green-400' : 'text-[var(--lux-text-muted)]')}>
                                         🖼️
                                       </span>
                                     </TooltipTrigger>
@@ -763,7 +757,7 @@ export default function AIModelsPage() {
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger>
-                                      <span className={cn(model.supportsJson ? 'text-green-600' : 'text-[var(--lux-text-muted)]')}>
+                                      <span className={cn(model.supportsJson ? 'text-green-400' : 'text-[var(--lux-text-muted)]')}>
                                         {'{ }'}
                                       </span>
                                     </TooltipTrigger>
@@ -774,7 +768,7 @@ export default function AIModelsPage() {
                             </TableCell>
                             <TableCell className="text-center">
                               {model.isFree ? (
-                                <Badge className="bg-green-100 text-green-700">🆓</Badge>
+                                <Badge className="bg-green-500/15 text-green-300">🆓</Badge>
                               ) : (
                                 <span className="text-sm text-[var(--lux-text-muted)]">
                                   ${model.costPerMInputTokens}/$M
@@ -888,7 +882,7 @@ export default function AIModelsPage() {
                             {compareResults.map((result, i) => {
                               const isBest = result.responseTimeMs === Math.min(...compareResults.map(r => r.responseTimeMs))
                               return (
-                                <TableCell key={i} className={cn('text-center', isBest && 'text-green-600 font-bold')}>
+                                <TableCell key={i} className={cn('text-center', isBest && 'text-green-400 font-bold')}>
                                   {result.responseTimeMs}ms {isBest && '⭐'}
                                 </TableCell>
                               )
@@ -899,7 +893,7 @@ export default function AIModelsPage() {
                             {compareResults.map((result, i) => {
                               const isBest = result.qualityScore === Math.max(...compareResults.map(r => r.qualityScore || 0))
                               return (
-                                <TableCell key={i} className={cn('text-center', isBest && 'text-green-600 font-bold')}>
+                                <TableCell key={i} className={cn('text-center', isBest && 'text-green-400 font-bold')}>
                                   {result.qualityScore}/5 {isBest && '⭐'}
                                 </TableCell>
                               )
@@ -910,7 +904,7 @@ export default function AIModelsPage() {
                             {compareResults.map((result, i) => {
                               const isBest = result.estimatedCost === Math.min(...compareResults.map(r => r.estimatedCost))
                               return (
-                                <TableCell key={i} className={cn('text-center', isBest && 'text-green-600 font-bold')}>
+                                <TableCell key={i} className={cn('text-center', isBest && 'text-green-400 font-bold')}>
                                   {formatCost(result.estimatedCost)} {isBest && '⭐'}
                                 </TableCell>
                               )
@@ -1045,7 +1039,7 @@ export default function AIModelsPage() {
                         <Edit2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                    <p className="text-sm text-green-400 mt-1 flex items-center gap-1">
                       <CheckCircle className="w-4 h-4" />
                       معتبر
                     </p>
@@ -1062,7 +1056,7 @@ export default function AIModelsPage() {
                         <Edit2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                    <p className="text-sm text-green-400 mt-1 flex items-center gap-1">
                       <CheckCircle className="w-4 h-4" />
                       معتبر | اعتبار: $25.00
                     </p>
@@ -1107,8 +1101,8 @@ export default function AIModelsPage() {
                         key={`${model.provider}-${model.modelId}`}
                         className={cn(
                           'border rounded-lg p-4 cursor-pointer transition-all hover:border-blue-300',
-                          selectedFeature?.primaryModel === model.modelId && editingType === 'primary' && 'border-blue-500 bg-blue-50',
-                          selectedFeature?.fallbackModel === model.modelId && editingType === 'fallback' && 'border-blue-500 bg-blue-50'
+                          selectedFeature?.primaryModel === model.modelId && editingType === 'primary' && 'border-blue-500 bg-blue-500/10',
+                          selectedFeature?.fallbackModel === model.modelId && editingType === 'fallback' && 'border-blue-500 bg-blue-500/10'
                         )}
                         onClick={() => {
                           if (selectedFeature) {
@@ -1133,7 +1127,7 @@ export default function AIModelsPage() {
                             <div className="flex items-center gap-2">
                               <h4 className="font-semibold">{model.modelName}</h4>
                               {model.isFree && (
-                                <Badge className="bg-green-100 text-green-700">🆓 رایگان</Badge>
+                                <Badge className="bg-green-500/15 text-green-300">🆓 رایگان</Badge>
                               )}
                               {model.recommendedFor.includes(selectedFeature?.featureName || '') && (
                                 <Badge className="bg-yellow-100 text-yellow-700">⭐ توصیه شده</Badge>
@@ -1158,17 +1152,17 @@ export default function AIModelsPage() {
                             </div>
 
                             <div className="flex items-center gap-2 mt-2 text-sm">
-                              <span className={model.supportsText ? 'text-green-600' : 'text-[var(--lux-text-muted)]'}>✅ متن</span>
-                              <span className={model.supportsVision ? 'text-green-600' : 'text-[var(--lux-text-muted)]'}>
+                              <span className={model.supportsText ? 'text-green-400' : 'text-[var(--lux-text-muted)]'}>✅ متن</span>
+                              <span className={model.supportsVision ? 'text-green-400' : 'text-[var(--lux-text-muted)]'}>
                                 {model.supportsVision ? '✅' : '❌'} تصویر
                               </span>
-                              <span className={model.supportsJson ? 'text-green-600' : 'text-[var(--lux-text-muted)]'}>✅ JSON</span>
+                              <span className={model.supportsJson ? 'text-green-400' : 'text-[var(--lux-text-muted)]'}>✅ JSON</span>
                             </div>
                           </div>
                           
                           <div className="text-left">
                             {model.isFree ? (
-                              <p className="font-bold text-green-600">رایگان!</p>
+                              <p className="font-bold text-green-400">رایگان!</p>
                             ) : (
                               <div className="text-sm">
                                 <p className="text-[var(--lux-text-muted)]">~${((model.costPerMInputTokens * 0.5 + model.costPerMOutputTokens * 0.5) / 1000).toFixed(4)}/req</p>
@@ -1233,7 +1227,7 @@ export default function AIModelsPage() {
               {testResult && (
                 <div className={cn(
                   'border rounded-lg p-4',
-                  testResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                  testResult.success ? 'bg-green-500/10 border-green-500/25' : 'bg-red-500/10 border-red-500/25'
                 )}>
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium">نتیجه</h4>
@@ -1263,14 +1257,14 @@ export default function AIModelsPage() {
                         </div>
                       </div>
 
-                      <div className="bg-white rounded p-3 text-sm whitespace-pre-wrap">
+                      <div className="lux-dash-card rounded p-3 text-sm whitespace-pre-wrap text-[var(--lux-text)]">
                         {testResult.output}
                       </div>
                     </>
                   )}
 
                   {testResult.error && (
-                    <p className="text-red-600">{testResult.error}</p>
+                    <p className="text-red-400">{testResult.error}</p>
                   )}
                 </div>
               )}
@@ -1312,14 +1306,14 @@ function ModelCard({
   return (
     <div className={cn(
       'border rounded-lg p-4',
-      isPrimary ? 'bg-blue-50 border-blue-200' : 'bg-[var(--lux-surface)]'
+      isPrimary ? 'bg-blue-500/10 border-blue-500/25' : 'bg-[var(--lux-surface)]'
     )}>
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
             <h5 className="font-semibold">{model.modelName}</h5>
             {model.isFree && (
-              <Badge className="bg-green-100 text-green-700">🆓</Badge>
+              <Badge className="bg-green-500/15 text-green-300">🆓</Badge>
             )}
           </div>
           <p className="text-sm text-[var(--lux-text-muted)] mt-1">
@@ -1327,7 +1321,7 @@ function ModelCard({
           </p>
         </div>
         <div className="text-left text-sm">
-          <p className={model.isFree ? 'text-green-600 font-bold' : ''}>
+          <p className={model.isFree ? 'text-green-400 font-bold' : ''}>
             {model.isFree ? 'رایگان' : `~$${((model.costPerMInputTokens + model.costPerMOutputTokens) / 2000).toFixed(4)}/req`}
           </p>
         </div>

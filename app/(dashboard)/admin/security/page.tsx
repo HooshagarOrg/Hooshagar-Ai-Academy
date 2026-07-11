@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { LuxStatRow } from '@/components/lux/lux-stat-row'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageLoading } from '@/components/ui/page-states'
 import { cn } from '@/lib/utils'
@@ -130,26 +131,17 @@ export default function SecurityDashboard() {
     >
       <DashboardSectionBlock>
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          {[
-            { label: 'رویداد امروز', value: stats.total_today, icon: Activity, color: 'text-[var(--lux-primary)]', bg: 'bg-blue-50' },
-            { label: 'خطای ورود', value: stats.failed_today, icon: XCircle, color: 'text-red-600', bg: 'bg-red-50' },
-            { label: 'IP مسدود', value: stats.blocked_ips, icon: Ban, color: 'text-orange-600', bg: 'bg-orange-50' },
-            { label: 'ریسک بالا', value: stats.high_risk_events, icon: AlertTriangle, color: 'text-red-700', bg: 'bg-red-100' },
-            { label: 'IP یکتا', value: stats.unique_ips_today, icon: Globe, color: 'text-purple-600', bg: 'bg-purple-50' },
-          ].map((s, i) => {
-            const Icon = s.icon
-            return (
-              <div key={i} className={`${s.bg} rounded-2xl p-4 flex items-center gap-3`}>
-                <Icon className={`w-6 h-6 ${s.color} flex-shrink-0`} />
-                <div>
-                  <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-[var(--lux-text-muted)]">{s.label}</p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        <LuxStatRow
+          columns={5}
+          className="mb-6"
+          items={[
+            { label: 'رویداد امروز', value: stats.total_today, icon: Activity, color: 'text-[var(--lux-primary)]' },
+            { label: 'خطای ورود', value: stats.failed_today, icon: XCircle, color: 'text-red-400' },
+            { label: 'IP مسدود', value: stats.blocked_ips, icon: Ban, color: 'text-orange-400' },
+            { label: 'ریسک بالا', value: stats.high_risk_events, icon: AlertTriangle, color: 'text-red-300' },
+            { label: 'IP یکتا', value: stats.unique_ips_today, icon: Globe, color: 'text-purple-300' },
+          ]}
+        />
       )}
       </DashboardSectionBlock>
 
@@ -163,7 +155,7 @@ export default function SecurityDashboard() {
           { title: 'File Upload Check', status: 'فعال', ok: true, desc: 'بررسی Magic Bytes فایل‌ها' },
           { title: 'Audit Logging', status: 'فعال', ok: true, desc: 'لاگ تمام رویدادهای حساس' },
         ].map((item, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
+          <div key={i} className="lux-dash-card flex items-center gap-3 rounded-2xl p-4">
             {item.ok
               ? <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
               : <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
@@ -171,7 +163,7 @@ export default function SecurityDashboard() {
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-medium text-[var(--lux-text)] text-sm">{item.title}</p>
-                <Badge className={cn('text-xs', item.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600')}>
+                <Badge className={cn('text-xs', item.ok ? 'bg-green-500/15 text-green-300' : 'bg-red-500/15 text-red-300')}>
                   {item.status}
                 </Badge>
               </div>
@@ -213,7 +205,7 @@ export default function SecurityDashboard() {
           description="پس از اجرای Migration لاگ‌های امنیتی اینجا نمایش داده می‌شوند."
         />
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="lux-dash-card overflow-hidden rounded-2xl">
           <div className="divide-y divide-gray-50">
             {filtered.map(log => {
               const eventCfg = EVENT_CONFIG[log.event_type] || { label: log.event_type, color: 'bg-white/10 text-[var(--lux-text-muted)]' }

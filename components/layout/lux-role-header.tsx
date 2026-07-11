@@ -1,9 +1,11 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { Menu } from 'lucide-react'
 import { NotificationBell } from '@/components/NotificationBell'
 import { getRoleExperienceLabel } from '@/lib/ui/role-tone'
 import { getArcColor, getRoleLabel } from '@/lib/nav/config'
+import { getPageTitleFromPath } from '@/lib/nav/page-title'
 
 interface LuxRoleHeaderProps {
   userName: string
@@ -12,12 +14,20 @@ interface LuxRoleHeaderProps {
 }
 
 export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderProps) {
+  const pathname = usePathname()
   const arc = getArcColor(role)
-  const title = getRoleExperienceLabel(role)
+  const experienceLabel = getRoleExperienceLabel(role)
+  const pageTitle = getPageTitleFromPath(pathname)
+  const isHome =
+    pathname === '/admin' ||
+    pathname === '/teacher' ||
+    pathname === '/parent' ||
+    pathname === '/student' ||
+    pathname === '/counselor'
 
   return (
     <header
-      className="sticky top-0 z-40 h-14 min-h-[3.5rem] flex items-center px-4 gap-3 pt-safe"
+      className="sticky top-0 z-40 flex h-14 min-h-[3.5rem] items-center gap-3 px-4 pt-safe"
       style={{
         background: 'rgba(11,13,18,0.85)',
         backdropFilter: 'blur(16px)',
@@ -28,15 +38,15 @@ export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderPro
       <button
         type="button"
         onClick={onMenuToggle}
-        className="lg:hidden touch-target lux-focus-ring rounded-xl hover:bg-white/[0.06] text-[var(--lux-text-muted)] hover:text-[var(--lux-text)] transition-colors"
+        className="lg:hidden touch-target lux-focus-ring rounded-xl text-[var(--lux-text-muted)] transition-colors hover:bg-white/[0.06] hover:text-[var(--lux-text)]"
         aria-label="منو"
       >
-        <Menu className="w-5 h-5" />
+        <Menu className="h-5 w-5" />
       </button>
 
-      <div className="flex-1 flex items-center gap-2 min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
         <span
-          className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+          className="hidden items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold sm:inline-flex"
           style={{
             color: arc,
             background: `color-mix(in srgb, ${arc} 12%, transparent)`,
@@ -45,13 +55,20 @@ export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderPro
         >
           {getRoleLabel(role)}
         </span>
-        <h1 className="text-sm font-bold text-[var(--lux-text)] truncate">{title}</h1>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-[var(--lux-text)]">
+            {pageTitle && !isHome ? pageTitle : experienceLabel}
+          </p>
+          {pageTitle && !isHome && (
+            <p className="truncate text-[11px] text-[var(--lux-text-muted)]">{experienceLabel}</p>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-1">
         <NotificationBell />
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ring-2 ring-white/10"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white ring-2 ring-white/10"
           style={{ background: `color-mix(in srgb, ${arc} 35%, #1a1f2e)` }}
           title={userName}
           aria-label={`پروفایل ${userName}`}

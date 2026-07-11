@@ -188,14 +188,8 @@ const SETTINGS_GROUPS: { title: string; cards: SettingsCard[] }[] = [
 export default function AdminSettingsPage() {
   return (
     <DashboardPage
-      title={
-        <span className="flex items-center gap-3">
-          <span className="w-12 h-12 rounded-xl bg-brand-cyan/15 border border-brand-cyan/20 flex items-center justify-center">
-            <Settings className="w-6 h-6 text-brand-cyan" />
-          </span>
-          تنظیمات سیستم
-        </span>
-      }
+      kicker="تنظیمات پلتفرم"
+      title="تنظیمات سیستم"
       description="پیکربندی کامل پلتفرم هوشاگر"
     >
       {SETTINGS_GROUPS.map((group, gIdx) => (

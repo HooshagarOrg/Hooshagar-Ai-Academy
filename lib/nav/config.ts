@@ -4,6 +4,7 @@ import {
   Activity, ClipboardCheck, DollarSign, Mail, Search, AlertCircle,
   Wrench, Bell, Send, GraduationCap, Building, Sparkles, Trophy, Compass,
   Gamepad2, Lightbulb, Heart, PenTool, HelpCircle, TrendingUp, CreditCard, Video,
+  ArrowLeftRight, Palette,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -28,7 +29,8 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'مدارس', href: '/admin/schools', icon: GraduationCap },
         { title: 'کاربران', href: '/admin/users', icon: Users },
         { title: 'واردسازی گروهی', href: '/admin/bulk-import', icon: FileText },
-        { title: 'انتقال دانش‌آموزان', href: '/admin/progression', icon: ArrowUpCircle },
+        { title: 'ارتقاء پایه', href: '/admin/progression', icon: ArrowUpCircle },
+        { title: 'انتقال بین‌مدرسه‌ای', href: '/admin/transfers', icon: ArrowLeftRight },
         { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video },
       ],
     },
@@ -53,6 +55,13 @@ export const navConfig: Record<string, NavGroup[]> = {
       ],
     },
     {
+      title: 'قرعه‌کشی',
+      items: [
+        { title: 'مدیریت قرعه‌کشی', href: '/admin/lottery', icon: Trophy },
+        { title: 'ممیزی قرعه‌کشی', href: '/admin/lottery/audit', icon: Shield },
+      ],
+    },
+    {
       title: 'نظارت سیستم',
       items: [
         { title: 'گزارش تحلیلی', href: '/admin/analytics', icon: BarChart3 },
@@ -68,6 +77,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign },
         { title: 'پلن‌های اشتراک', href: '/admin/subscriptions', icon: CreditCard },
         { title: 'ظرفیت و سهمیه', href: '/admin/quota-settings', icon: Sliders },
+        { title: 'برندینگ مدرسه', href: '/admin/school-settings', icon: Palette },
         { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
       ],
     },
@@ -247,8 +257,8 @@ export const mobileTabItems: Record<string, NavItem[]> = {
   admin: [
     { title: 'خانه', href: '/admin', icon: Home },
     { title: 'کاربران', href: '/admin/users', icon: Users },
-    { title: 'AI', href: '/admin/ai-models', icon: Brain },
-    { title: 'گزارش', href: '/admin/reports', icon: BarChart3 },
+    { title: 'AI', href: '/admin/ai-limits', icon: Brain },
+    { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
     { title: 'اعلان', href: '/notifications', icon: Bell },
   ],
   teacher: [

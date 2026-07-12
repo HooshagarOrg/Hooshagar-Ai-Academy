@@ -5,6 +5,7 @@ import { Menu, Flame } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { HooshiarOrb } from '@/components/lux/hooshiar-orb'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { PersianDateDisplay } from '@/components/ui/persian-date-display'
 import { LUX_EASE } from '@/components/lux/lux-motion'
 
 interface LuxStudentHeaderProps {
@@ -82,6 +83,7 @@ export function LuxStudentHeader({ userName, onMenuToggle }: LuxStudentHeaderPro
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <PersianDateDisplay variant="compact" className="hidden sm:inline-flex" />
           <ThemeToggle compact />
           <div className="flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/12 px-2.5 py-1.5">
             <Flame className="h-4 w-4 text-[#FF6B35]" />

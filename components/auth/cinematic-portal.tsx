@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation'
 import { BrandLogoImage } from '@/components/brand/brand-logo-image'
 import { CinematicBackdrop } from '@/components/layout/cinematic-backdrop'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
+import { PersianDateDisplay } from '@/components/ui/persian-date-display'
 
 const LoginLogo3D = dynamic(() => import('@/components/auth/login-logo-3d'), {
   ssr: false,
@@ -110,17 +111,23 @@ export function CinematicPortal({
             )}
           </div>
 
-          <p className="relative z-10 text-xs text-[var(--lux-text-muted)]">
-            © ۱۴۰۵ هوشاگر — تمامی حقوق محفوظ است
-          </p>
+          <div className="relative z-10 flex items-center justify-between gap-3">
+            <p className="text-xs text-[var(--lux-text-muted)]">
+              © ۱۴۰۵ هوشاگر — تمامی حقوق محفوظ است
+            </p>
+            {!isLogin && <PersianDateDisplay variant="compact" />}
+          </div>
         </aside>
 
         <div className="relative flex flex-col justify-center px-4 py-10 sm:px-8">
           <div className="mb-6 flex items-center justify-between lg:hidden">
             <HooshagarLogo size="sm" href="/" inverted priority />
-            <Link href="/" className="text-xs font-bold text-[var(--lux-text-muted)] hover:text-[var(--lux-text)]">
-              صفحه اصلی
-            </Link>
+            <div className="flex items-center gap-2">
+              {!isLogin && <PersianDateDisplay variant="compact" />}
+              <Link href="/" className="text-xs font-bold text-[var(--lux-text-muted)] hover:text-[var(--lux-text)]">
+                صفحه اصلی
+              </Link>
+            </div>
           </div>
 
           {isLogin && (

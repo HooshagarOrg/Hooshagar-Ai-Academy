@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { KeyRound, Mail, Palette, School, Shield, User } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { PersianDateDisplay } from '@/components/ui/persian-date-display'
 import { LuxCard } from '@/components/lux/lux-card'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { LuxErrorState, LuxSkeletonCards } from '@/components/lux/lux-page-states'
@@ -73,6 +74,7 @@ export default function ProfilePage() {
           </DashboardSectionBlock>
           <DashboardSectionBlock className="lg:col-span-2">
             <LuxCard className="space-y-4 h-full">
+              <PersianDateDisplay variant="full" />
               {[
                 { icon: User, label: 'نام', value: name },
                 { icon: Mail, label: 'ایمیل', value: profile?.email || '—' },

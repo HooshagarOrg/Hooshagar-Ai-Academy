@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
 import { ScrollProgressBar } from '@/components/landing/motion'
+import { PersianDateDisplay } from '@/components/ui/persian-date-display'
 
 interface MarketingShellProps {
   children: ReactNode
@@ -31,6 +32,7 @@ export function MarketingShell({
         <div className="lux-container flex items-center justify-between py-4">
           <HooshagarLogo size="sm" href="/" inverted priority />
           <div className="flex items-center gap-3">
+            <PersianDateDisplay variant="compact" className="hidden sm:inline-flex" />
             {action}
             <Link
               href={backHref}

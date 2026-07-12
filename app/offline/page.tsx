@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { WifiOff, RefreshCw, Home, ArrowRight, Cloud, CloudOff, Loader2 } from 'lucide-react'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
 import { CinematicBackdrop } from '@/components/layout/cinematic-backdrop'
+import { PersianDateDisplay } from '@/components/ui/persian-date-display'
 
 export default function OfflinePage() {
   const [isRetrying, setIsRetrying] = useState(false)
@@ -59,8 +60,9 @@ export default function OfflinePage() {
 
   return shell(
     <>
-      <div className="mb-8 flex justify-center">
+      <div className="mb-8 flex flex-col items-center gap-3">
         <HooshagarLogo size="md" href="/" inverted priority />
+        <PersianDateDisplay variant="compact" />
       </div>
       <div className="lp-glass p-8 text-center">
         <div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-[rgba(15,17,23,0.8)]">

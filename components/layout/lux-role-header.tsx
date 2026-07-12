@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { Menu } from 'lucide-react'
 import { NotificationBell } from '@/components/NotificationBell'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { PersianDateDisplay } from '@/components/ui/persian-date-display'
 import { getRoleExperienceLabel } from '@/lib/ui/role-tone'
 import { getArcColor, getRoleLabel } from '@/lib/nav/config'
 import { getPageTitleFromPath } from '@/lib/nav/page-title'
@@ -62,6 +63,7 @@ export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderPro
       </div>
 
       <div className="flex items-center gap-1.5">
+        <PersianDateDisplay variant="compact" className="hidden md:inline-flex" />
         <ThemeToggle compact />
         <NotificationBell />
         <div

@@ -1,28 +1,32 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { formatShamsiDate, toGregorianIsoDate, type JalaliDatePreset } from '@/lib/date/jalali'
 
-const DEFAULT_OPTIONS: Intl.DateTimeFormatOptions = {
-  weekday: 'long',
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-}
-
-/** تاریخ شمسی فقط بعد از mount — جلوگیری از hydration mismatch */
-export function usePersianDateString(
-  options: Intl.DateTimeFormatOptions = DEFAULT_OPTIONS,
-): string {
-  const optionsKey = JSON.stringify(options)
+/** تاریخ شمسی زنده — فقط بعد از mount (جلوگیری از hydration mismatch) */
+export function usePersianDateString(preset: JalaliDatePreset = 'full'): string {
   const [value, setValue] = useState('\u00a0')
 
   useEffect(() => {
-    const opts = JSON.parse(optionsKey) as Intl.DateTimeFormatOptions
-    const format = () => new Intl.DateTimeFormat('fa-IR', opts).format(new Date())
-    setValue(format())
-    const timer = setInterval(format, 60_000)
+    const update = () => setValue(formatShamsiDate(new Date(), preset))
+    update()
+    const timer = setInterval(update, 60_000)
     return () => clearInterval(timer)
-  }, [optionsKey])
+  }, [preset])
+
+  return value
+}
+
+/** تاریخ ISO میلادی برای time[dateTime] */
+export function useGregorianIsoDate(): string {
+  const [value, setValue] = useState('')
+
+  useEffect(() => {
+    const update = () => setValue(toGregorianIsoDate(new Date()))
+    update()
+    const timer = setInterval(update, 60_000)
+    return () => clearInterval(timer)
+  }, [])
 
   return value
 }

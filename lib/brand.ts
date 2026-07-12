@@ -1,7 +1,7 @@
 /** مسیرهای برند و رسانه — لندینگ و auth سینمایی */
 
 export const brandAssets = {
-  logo: '/brand/logo.png?v=20260709',
+  logo: '/brand/logo.png?v=20260713',
   heroVideo: '/videos/hero.mp4',
   talentGarden: '/images/talent-garden.png',
 } as const

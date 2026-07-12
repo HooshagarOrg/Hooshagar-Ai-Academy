@@ -6,25 +6,11 @@
 
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
-import { BrandLogoImage } from '@/components/brand/brand-logo-image'
 import { CinematicBackdrop } from '@/components/layout/cinematic-backdrop'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
+import { HeroLogoAnimated } from '@/components/brand/hero-logo-animated'
 import { PersianDateDisplay } from '@/components/ui/persian-date-display'
-
-const LoginLogo3D = dynamic(() => import('@/components/auth/login-logo-3d'), {
-  ssr: false,
-  loading: () => (
-    <BrandLogoImage
-      alt="لوگوی هوشاگر"
-      width={280}
-      height={280}
-      priority
-      className="relative animate-[lp-logo-float_6s_ease-in-out_infinite]"
-    />
-  ),
-})
 
 interface CinematicPortalProps {
   children: ReactNode
@@ -87,17 +73,7 @@ export function CinematicPortal({
           </div>
 
           <div className="relative z-10 flex flex-1 flex-col items-center justify-center py-8">
-            {isLogin ? (
-              <LoginLogo3D />
-            ) : (
-              <BrandLogoImage
-                alt="لوگوی هوشاگر"
-                width={280}
-                height={280}
-                priority
-                className="relative animate-[lp-logo-float_6s_ease-in-out_infinite]"
-              />
-            )}
+            <HeroLogoAnimated priority />
             <h2 className="mt-8 max-w-sm text-center text-2xl font-black leading-snug text-[var(--lux-text)]">
               {pageTitle}
             </h2>
@@ -132,7 +108,7 @@ export function CinematicPortal({
 
           {isLogin && (
             <div className="mb-6 flex flex-col items-center lg:hidden">
-              <LoginLogo3D compact />
+              <HeroLogoAnimated compact priority />
               <p className="mt-4 text-center text-lg font-black text-[var(--lux-text)]">{pageTitle}</p>
               <p className="mt-1 max-w-xs text-center text-xs leading-7 text-[var(--lux-text-muted)]">
                 {pageSubtitle}

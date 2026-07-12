@@ -10,7 +10,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import { ArrowLeft, Sparkles } from 'lucide-react'
-import { BrandLogoImage } from '@/components/brand/brand-logo-image'
+import { HeroLogoAnimated } from '@/components/brand/hero-logo-animated'
 import { MagneticButton, TextReveal } from './motion'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
@@ -174,13 +174,7 @@ export default function LandingHero(): JSX.Element {
 
       <div data-hero-content className="lux-container relative z-10 py-24 text-center">
         <div className="relative mx-auto mb-8 flex justify-center">
-          <BrandLogoImage
-            alt="لوگوی هوشاگر"
-            width={120}
-            height={120}
-            priority
-            className="relative animate-[lp-logo-float_6s_ease-in-out_infinite]"
-          />
+          <HeroLogoAnimated size={120} priority />
         </div>
 
         <div

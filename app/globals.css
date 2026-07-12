@@ -528,6 +528,142 @@
     background: transparent !important;
   }
 
+  /* ── Hero logo — premium CSS animation (no rotation) ── */
+  .hero-logo {
+    --hero-logo-size: 280px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: var(--hero-logo-size);
+    height: calc(var(--hero-logo-size) + 1.5rem);
+    contain: layout style;
+  }
+
+  .hero-logo__motion {
+    position: relative;
+    z-index: 2;
+    animation: hero-logo-float 5s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .hero-logo__image-wrap {
+    position: relative;
+    display: inline-flex;
+    overflow: hidden;
+    line-height: 0;
+    border-radius: 4%;
+  }
+
+  .hero-logo__image {
+    display: block;
+    width: var(--hero-logo-size);
+    height: var(--hero-logo-size);
+    object-fit: contain;
+  }
+
+  .hero-logo__sweep {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(255, 255, 255, 0.22) 46%,
+      rgba(255, 255, 255, 0.48) 50%,
+      rgba(255, 255, 255, 0.22) 54%,
+      transparent 62%,
+      transparent 100%
+    );
+    mix-blend-mode: soft-light;
+    animation: hero-logo-sweep 5.5s ease-in-out infinite;
+    will-change: transform;
+    pointer-events: none;
+  }
+
+  .hero-logo__glow {
+    position: absolute;
+    inset: -14%;
+    z-index: 0;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(139, 124, 255, 0.22) 0%,
+      rgba(84, 210, 255, 0.1) 42%,
+      transparent 68%
+    );
+    animation: hero-logo-glow 5s ease-in-out infinite;
+    will-change: transform, opacity;
+    pointer-events: none;
+  }
+
+  .hero-logo__shadow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    z-index: 1;
+    width: calc(var(--hero-logo-size) * 0.52);
+    height: calc(var(--hero-logo-size) * 0.09);
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.38) 0%, transparent 72%);
+    filter: blur(10px);
+    animation: hero-logo-shadow 5s ease-in-out infinite;
+    will-change: transform, opacity;
+    pointer-events: none;
+  }
+
+  @keyframes hero-logo-float {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(0, -4px, 0) scale(1.015);
+    }
+  }
+
+  @keyframes hero-logo-shadow {
+    0%,
+    100% {
+      transform: translateX(-50%) scale(1);
+      opacity: 0.48;
+    }
+    50% {
+      transform: translateX(-50%) scale(0.9);
+      opacity: 0.32;
+    }
+  }
+
+  @keyframes hero-logo-glow {
+    0%,
+    100% {
+      opacity: 0.38;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.58;
+      transform: scale(1.04);
+    }
+  }
+
+  @keyframes hero-logo-sweep {
+    0% {
+      transform: translate3d(-120%, 0, 0) skewX(-10deg);
+    }
+    100% {
+      transform: translate3d(120%, 0, 0) skewX(-10deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-logo__motion,
+    .hero-logo__shadow,
+    .hero-logo__glow,
+    .hero-logo__sweep {
+      animation: none !important;
+    }
+  }
+
   .lp-logo-float {
     animation: lp-logo-float 6s ease-in-out infinite;
   }

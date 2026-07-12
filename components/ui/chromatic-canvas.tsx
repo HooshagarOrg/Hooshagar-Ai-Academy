@@ -138,7 +138,7 @@ export function ChromaticCanvas({
     >
       <div
         className="absolute inset-0"
-        style={{ backgroundColor: isDark ? '#12151C' : '#F4F7FC' }}
+        style={{ backgroundColor: 'var(--lux-body)' }}
       />
 
       {mode === 'immersive' && !reduce ? (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTheme } from 'next-themes'
 import { LuxNav, LuxMobileNav } from './lux-nav'
 import { LuxRoleHeader } from './lux-role-header'
 import { LuxStudentHeader } from '@/components/lux/lux-student-header'
@@ -19,6 +20,8 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const isStudent = role === 'student'
+  const { resolvedTheme } = useTheme()
+  const canvasVariant = resolvedTheme === 'light' ? 'light' : 'dark'
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
@@ -46,7 +49,7 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
       dir="rtl"
       data-role={role}
     >
-      <ChromaticCanvas mode="static" variant={isStudent ? 'dark' : 'light'} />
+      <ChromaticCanvas mode="static" variant={canvasVariant} />
 
       {mobileSidebarOpen && (
         <div

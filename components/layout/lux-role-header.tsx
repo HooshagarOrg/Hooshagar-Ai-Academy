@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { Menu } from 'lucide-react'
 import { NotificationBell } from '@/components/NotificationBell'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { getRoleExperienceLabel } from '@/lib/ui/role-tone'
 import { getArcColor, getRoleLabel } from '@/lib/nav/config'
 import { getPageTitleFromPath } from '@/lib/nav/page-title'
@@ -27,18 +28,13 @@ export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderPro
 
   return (
     <header
-      className="sticky top-0 z-40 flex h-14 min-h-[3.5rem] items-center gap-3 px-4 pt-safe"
-      style={{
-        background: 'rgba(11,13,18,0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(232,236,244,0.08)',
-      }}
+      className="sticky top-0 z-40 flex h-14 min-h-[3.5rem] items-center gap-3 border-b border-[var(--lux-border)] bg-[var(--lux-header-bg)] px-4 pt-safe backdrop-blur-md"
       dir="rtl"
     >
       <button
         type="button"
         onClick={onMenuToggle}
-        className="lg:hidden touch-target lux-focus-ring rounded-xl text-[var(--lux-text-muted)] transition-colors hover:bg-white/[0.06] hover:text-[var(--lux-text)]"
+        className="lg:hidden touch-target lux-focus-ring rounded-xl text-[var(--lux-text-muted)] transition-colors hover:bg-[var(--lux-surface)] hover:text-[var(--lux-text)]"
         aria-label="منو"
       >
         <Menu className="h-5 w-5" />
@@ -65,7 +61,8 @@ export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderPro
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
+        <ThemeToggle compact />
         <NotificationBell />
         <div
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white ring-2 ring-white/10"

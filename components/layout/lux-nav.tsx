@@ -60,8 +60,8 @@ export function LuxNav({
           collapsed ? 'w-[4.5rem]' : 'w-64',
         )}
         style={{
-          background: 'var(--lux-void)',
-          borderInlineStart: '1px solid rgba(232,236,244,0.06)',
+          background: 'var(--lux-nav-bg)',
+          borderInlineStart: '1px solid var(--lux-border)',
         }}
         dir="rtl"
       >
@@ -70,7 +70,7 @@ export function LuxNav({
             'flex items-center border-b transition-all',
             collapsed ? 'justify-center p-4' : 'justify-between px-4 py-4',
           )}
-          style={{ borderColor: 'rgba(232,236,244,0.06)' }}
+          style={{ borderColor: 'var(--lux-border)' }}
         >
           {!collapsed && (
             <HooshagarLogo size="sm" href="/dashboard" subtitle={schoolName} showWordmark surface="void" inverted />
@@ -292,8 +292,8 @@ export function LuxMobileNav({ role }: { role: string }) {
       <div
         className="flex items-center justify-around h-16 min-h-[4rem] px-1 backdrop-blur-md"
         style={{
-          background: 'rgba(11,13,18,0.92)',
-          borderTop: '1px solid rgba(232,236,244,0.08)',
+          background: 'var(--lux-nav-bg)',
+          borderTop: '1px solid var(--lux-border)',
         }}
       >
         {items.map((item) => {

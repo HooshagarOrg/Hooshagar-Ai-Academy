@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { KeyRound, Mail, School, Shield, User } from 'lucide-react'
+import { KeyRound, Mail, Palette, School, Shield, User } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LuxCard } from '@/components/lux/lux-card'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { LuxErrorState, LuxSkeletonCards } from '@/components/lux/lux-page-states'
@@ -86,6 +87,16 @@ export default function ProfilePage() {
                   </div>
                 </div>
               ))}
+              <div className="rounded-xl border border-[var(--lux-border)] bg-[var(--lux-card)] p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Palette className="h-5 w-5 text-[var(--lux-primary)]" aria-hidden />
+                  <div>
+                    <p className="font-bold text-[var(--lux-text)]">تم رابط کاربری</p>
+                    <p className="text-xs text-[var(--lux-text-muted)]">روشن یا تیره نرم — روی همه دستگاه‌های شما ذخیره می‌شود</p>
+                  </div>
+                </div>
+                <ThemeToggle />
+              </div>
             </LuxCard>
           </DashboardSectionBlock>
         </div>

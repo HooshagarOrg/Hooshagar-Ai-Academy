@@ -3,48 +3,52 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* ── Lux Design System (canonical) ── */
+  /* ── Soft dark (پیش‌فرض — عمومی + داشبورد) ── */
+  :root,
+  .dark {
     --lux-primary: #8b7cff;
     --lux-secondary: #54d2ff;
     --lux-accent: #ff4da6;
     --lux-gold: #c9a962;
     --lux-success: #39d98a;
-    --lux-void: #0b0d12;
-    --lux-hero: #12151c;
-    --lux-elevated: #161b26;
-    --lux-glass: rgba(22, 27, 38, 0.72);
-    --lux-body: #1a1f2e;
+    --lux-void: #161b26;
+    --lux-hero: #1a2030;
+    --lux-elevated: #222836;
+    --lux-glass: rgba(34, 40, 54, 0.72);
+    --lux-body: #1e2433;
     --lux-surface: rgba(240, 244, 250, 0.06);
-    --lux-card: rgba(255, 255, 255, 0.05);
-    --lux-text: #f1f5f9;
-    --lux-text-muted: #8b9ab0;
+    --lux-surface-strong: rgba(255, 255, 255, 0.04);
+    --lux-card: rgba(255, 255, 255, 0.08);
+    --lux-card-solid: rgba(34, 40, 54, 0.92);
+    --lux-text: #e8ecf4;
+    --lux-text-muted: #94a3b8;
+    --lux-border: rgba(232, 236, 244, 0.1);
+    --lux-header-bg: rgba(22, 27, 38, 0.9);
+    --lux-nav-bg: #161b26;
+    --lux-blur: 10px;
 
-    /* glow & depth (landing luxury) */
     --lux-glow-primary: rgba(139, 124, 255, 0.45);
     --lux-glow-secondary: rgba(84, 210, 255, 0.38);
     --lux-glow-accent: rgba(255, 77, 166, 0.42);
     --lux-glow-gold: rgba(201, 169, 98, 0.35);
-    --lux-void-warm: #0d0f14;
-    --lux-depth-1: #12151c;
-    --lux-depth-2: #161b26;
-    --lux-depth-3: #1a1f2e;
+    --lux-void-warm: #1a2030;
+    --lux-depth-1: #1a2030;
+    --lux-depth-2: #222836;
+    --lux-depth-3: #1e2433;
 
-    /* aliases / legacy lux names */
-    --lux-base: #0f1117;
+    --lux-base: #1e2433;
     --lux-muted: var(--lux-text-muted);
     --lux-parent: #f59e0b;
 
-    /* role arc accents */
     --arc-parent: #f59e0b;
     --arc-teacher: #10b981;
     --arc-admin: #ec4899;
     --arc-counselor: #ef4444;
     --arc-student: var(--lux-primary);
 
-    --background: 225 14% 7%;
+    --background: 225 14% 14%;
     --foreground: 220 25% 93%;
-    --border: 225 12% 18%;
+    --border: 225 12% 22%;
     --primary: 246 100% 74%;
     --primary-foreground: 0 0% 100%;
     --muted-foreground: 220 12% 58%;
@@ -52,6 +56,47 @@
 
     --font-vazirmatn: 'Vazirmatn', system-ui, sans-serif;
     --ease-lux: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* ── Light (soft) — فقط داشبورد با toggle ── */
+  .light {
+    --lux-void: #dde4ee;
+    --lux-hero: #e2e8f0;
+    --lux-elevated: #eef2f7;
+    --lux-glass: rgba(255, 255, 255, 0.55);
+    --lux-body: #e2e8f0;
+    --lux-surface: rgba(15, 23, 42, 0.06);
+    --lux-surface-strong: rgba(255, 255, 255, 0.45);
+    --lux-card: rgba(255, 255, 255, 0.65);
+    --lux-card-solid: rgba(255, 255, 255, 0.82);
+    --lux-text: #0f172a;
+    --lux-text-muted: #64748b;
+    --lux-border: rgba(15, 23, 42, 0.1);
+    --lux-header-bg: rgba(226, 232, 240, 0.88);
+    --lux-nav-bg: #dde4ee;
+    --lux-blur: 12px;
+
+    --lux-glow-primary: rgba(139, 124, 255, 0.35);
+    --lux-glow-secondary: rgba(84, 210, 255, 0.28);
+    --lux-glow-accent: rgba(255, 77, 166, 0.32);
+    --lux-glow-gold: rgba(201, 169, 98, 0.28);
+    --lux-void-warm: #e2e8f0;
+    --lux-depth-1: #eef2f7;
+    --lux-depth-2: #e8edf4;
+    --lux-depth-3: #e2e8f0;
+
+    --lux-base: #e2e8f0;
+    --lux-parent: #d97706;
+
+    --arc-parent: #d97706;
+    --arc-teacher: #059669;
+    --arc-admin: #db2777;
+    --arc-counselor: #dc2626;
+
+    --background: 214 32% 91%;
+    --foreground: 222 47% 11%;
+    --border: 214 20% 82%;
+    --muted-foreground: 215 16% 47%;
   }
 
   html {
@@ -217,11 +262,11 @@
   /* ── Deprecated: map legacy tokens to lux ── */
   .glass-panel,
   .glass-panel-quiet {
-    border: 1px solid var(--lux-surface);
+    border: 1px solid var(--lux-border);
     border-radius: 1rem;
-    background: var(--lux-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: var(--lux-card);
+    backdrop-filter: blur(var(--lux-blur));
+    -webkit-backdrop-filter: blur(var(--lux-blur));
   }
 
   .premium-content,
@@ -237,21 +282,30 @@
   }
 
   .lux-dash-hero {
-    border: 1px solid rgba(232, 236, 244, 0.1);
+    border: 1px solid var(--lux-border);
     border-radius: 1.75rem;
     background:
       radial-gradient(ellipse 80% 70% at 100% 0%, rgba(139, 124, 255, 0.18), transparent 55%),
       radial-gradient(ellipse 60% 50% at 0% 100%, rgba(84, 210, 255, 0.12), transparent 52%),
-      rgba(26, 32, 48, 0.92);
+      var(--lux-card-solid);
     padding: clamp(1.25rem, 3vw, 1.75rem);
   }
 
+  .light .lux-dash-hero {
+    background:
+      radial-gradient(ellipse 80% 70% at 100% 0%, rgba(139, 124, 255, 0.12), transparent 55%),
+      radial-gradient(ellipse 60% 50% at 0% 100%, rgba(84, 210, 255, 0.08), transparent 52%),
+      var(--lux-card);
+    backdrop-filter: blur(var(--lux-blur));
+    -webkit-backdrop-filter: blur(var(--lux-blur));
+  }
+
   .lux-dash-card {
-    border: 1px solid rgba(232, 236, 244, 0.1);
+    border: 1px solid var(--lux-border);
     border-radius: 1.5rem;
-    background: rgba(26, 32, 48, 0.88);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: var(--lux-card);
+    backdrop-filter: blur(var(--lux-blur));
+    -webkit-backdrop-filter: blur(var(--lux-blur));
     transition:
       transform 220ms var(--ease-lux),
       border-color 220ms var(--ease-lux),
@@ -265,9 +319,11 @@
   }
 
   .lux-dash-stat {
-    border: 1px solid rgba(232, 236, 244, 0.1);
+    border: 1px solid var(--lux-border);
     border-radius: 1.5rem;
-    background: rgba(30, 36, 51, 0.95);
+    background: var(--lux-card);
+    backdrop-filter: blur(var(--lux-blur));
+    -webkit-backdrop-filter: blur(var(--lux-blur));
     padding: 1.25rem;
   }
 
@@ -276,9 +332,11 @@
     flex-direction: column;
     gap: 0.75rem;
     height: 100%;
-    border: 1px solid rgba(232, 236, 244, 0.1);
+    border: 1px solid var(--lux-border);
     border-radius: 1.25rem;
-    background: rgba(30, 36, 51, 0.9);
+    background: var(--lux-card);
+    backdrop-filter: blur(var(--lux-blur));
+    -webkit-backdrop-filter: blur(var(--lux-blur));
     padding: 1rem;
     transition:
       transform 200ms var(--ease-lux),
@@ -602,9 +660,15 @@
   }
 
   /* ── Dashboard: fix light-theme leaks on dark canvas ── */
-  .premium-content .bg-white {
+  .dark .premium-content .bg-white {
     background: rgba(26, 32, 48, 0.92) !important;
     border-color: rgba(232, 236, 244, 0.1);
+  }
+
+  .light .premium-content .bg-white {
+    background: rgba(255, 255, 255, 0.65) !important;
+    backdrop-filter: blur(12px);
+    border-color: rgba(15, 23, 42, 0.1);
   }
 
   .premium-content .border-gray-100,
@@ -634,6 +698,19 @@
 
   .premium-content .border-emerald-200 { border-color: rgba(16, 185, 129, 0.25) !important; }
   .premium-content .border-green-200 { border-color: rgba(34, 197, 94, 0.25) !important; }
+
+  .light .premium-content .border-gray-100,
+  .light .premium-content .border-gray-200 {
+    border-color: rgba(15, 23, 42, 0.1) !important;
+  }
+
+  .light .premium-content .text-green-700,
+  .light .premium-content .text-emerald-700,
+  .light .premium-content .text-emerald-800 { color: #047857 !important; }
+  .light .premium-content .text-red-600,
+  .light .premium-content .text-red-700 { color: #b91c1c !important; }
+  .light .premium-content .text-orange-600 { color: #c2410c !important; }
+  .light .premium-content .text-purple-600 { color: #7e22ce !important; }
 
   /* ── App viewport height (dashboard shell) ── */
   .h-app {

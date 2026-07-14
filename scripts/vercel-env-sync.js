@@ -49,6 +49,11 @@ const KEYS = [
   'NEXT_PUBLIC_OPENROUTER_PROXY',
   'NEXT_PUBLIC_GEMINI_PROXY',
 
+  // Z.ai (Tier 2)
+  'ZAI_API_KEY',
+  'ZAI_API_BASE_URL',
+  'ZAI_MODEL',
+
   // AI model config
   'AI_MODEL_DEFAULT',
   'AI_MODEL_FAST',

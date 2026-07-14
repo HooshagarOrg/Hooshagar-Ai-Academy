@@ -156,7 +156,7 @@ async function extractQuestionsWithAI(
   for (const apiKey of apiKeys) {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -218,7 +218,7 @@ async function extractWithOpenRouter(
         'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://hooshagar.ir',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp:free',
+        model: 'google/gemini-2.5-flash:free',
         messages: [{
           role: 'user',
           content: [

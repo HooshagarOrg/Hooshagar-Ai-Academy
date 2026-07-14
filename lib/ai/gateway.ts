@@ -34,9 +34,8 @@ const FEATURE_CAPABILITY_MAP: Record<string, AICapability> = {
 
 const OPENROUTER_VISION_MODELS = [
   'google/gemini-2.5-flash',
+  'google/gemini-2.5-flash-lite',
   'google/gemini-2.5-flash-image',
-  'google/gemini-2.0-flash-001',
-  'google/gemini-pro-vision',
 ] as const
 
 export class AIQuotaExceededError extends Error {

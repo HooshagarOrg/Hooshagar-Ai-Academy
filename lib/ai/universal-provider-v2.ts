@@ -412,7 +412,8 @@ function estimateCost(model: string, tokens: number): number {
     // Tier F - Premium
     'anthropic/claude-3-5-sonnet': 0.003,
     'openai/gpt-4o': 0.0025,
-    'google/gemini-1.5-pro': 0.00125,
+    'google/gemini-2.5-pro': 0.00125,
+    'google/gemini-2.5-flash': 0.000075,
     'anthropic/claude-3-opus': 0.015,
     'openai/o1-preview': 0.015,
     'x-ai/grok-2': 0.002

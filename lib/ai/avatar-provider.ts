@@ -24,10 +24,8 @@ export class AvatarAIExhaustedError extends Error {
 
 const AVATAR_GEMINI_MODELS = [
   process.env.AVATAR_GEMINI_MODEL,
-  'gemini-2.0-flash-lite',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-flash-8b',
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',
 ].filter((m): m is string => Boolean(m))
 
 const AVATAR_OR_MODELS = [

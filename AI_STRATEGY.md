@@ -1,98 +1,57 @@
 # 🤖 **استراتژی AI Models - هوشاگر**
 
-## 📊 **جدول استراتژی استفاده از مدل‌های هوش مصنوعی**
+## 📊 **جدول استراتژی (Gemini 2.5 — به‌روز 1404)**
 
-| **قابلیت** | **لایه** | **مدل اصلی** | **مدل Fallback** | **استراتژی** | **دلیل انتخاب** |
-|------------|---------|--------------|------------------|--------------|-----------------|
-| **Student Analyzer** | Backend API | `gemini-1.5-pro` | `kimi-k2-thinking` | Gemini First | تحلیل عمیق + رایگان |
-| **Problem Solver OCR** | Backend API | `gemini-1.5-pro-vision` | `claude-3.5-sonnet` | Vision First | OCR قوی + چند زبانه |
-| **Study Buddy RAG** | Backend API | `gemini-1.5-flash` | `gemini-1.5-pro` | Flash First | سرعت بالا + پاسخ سریع |
-| **Story Wizard** | Backend API | `gemini-1.5-pro` | `gpt-4o-mini` | Creative First | خلاقیت + قصه‌نویسی |
-| **Embedding Generation** | Backend Service | `text-embedding-004` | `OpenAI ada-002` | Google First | رایگان + کیفیت عالی |
-| **Report Generation** | Backend Cron | `gemini-1.5-flash` | `gemini-1.5-pro` | Fast First | گزارش ساده + سریع |
-| **Notification Smart** | Backend Trigger | `gemini-1.5-flash` | `-` | Single Model | متن کوتاه + cache |
-| **Behavioral Analysis** | Backend API | `gemini-1.5-pro` | `claude-3-haiku` | Deep First | تحلیل پیچیده |
+| **قابلیت** | **Tier 1 (Google)** | **Tier 2–4 (OpenRouter free)** | **استراتژی** |
+|------------|---------------------|--------------------------------|--------------|
+| **Student Analyzer** | `gemini-2.5-flash` | `glm-4.7-flash` (Z.ai) → DeepSeek free | Flash + Z.ai thinking |
+| **Problem Solver OCR** | `gemini-2.5-flash` | VL free models | Vision First |
+| **Study Buddy** | `gemini-2.5-flash` | `deepseek-chat-v3.1:free` | Flash First |
+| **Story Wizard** | `gemini-2.5-flash-lite` | `llama-4-maverick:free` | Lite First |
+| **Content / Exam** | `gemini-2.5-flash-lite` | `qwen3-coder:free` | Lite First |
+| **Future Compass / Konkur** | `gemini-2.5-flash` | `grok-4.1-fast:free` (Tier 3) | Flash + Grok fallback |
+| **Talent Analyzer** | `gemini-2.5-flash-lite` | `llama-4-scout:free` | Lite First |
 
----
-
-## 🎯 **استراتژی کلی: Gemini First**
-
-### **مزایا:**
-✅ **رایگان تا 15 RPM** (Google AI Studio)  
-✅ **1M token context window**  
-✅ **پشتیبانی از فارسی**  
-✅ **Vision capabilities**  
-✅ **Fast inference**  
-
-### **Fallback Strategy:**
-1. **سطح 1**: Gemini Flash (سریع‌تر)
-2. **سطح 2**: Gemini Pro (قوی‌تر)
-3. **سطح 3**: OpenRouter (kimi-k2, claude)
-4. **سطح 4**: Cached Response (24h)
+> **Tier 5/6 (paid):** غیرفعال — `tier_e_enabled = false`, `tier_f_enabled = false`
 
 ---
 
-## 📦 **تنظیمات Environment:**
+## 🎯 **استراتژی کلی: Gemini 2.5 First**
+
+### **Fallback Chain (runtime اصلی — `lib/ai-provider.ts`):**
+1. **Tier 1**: Google Gemini 2.5 (10 کلید Round-Robin)
+2. **Tier 2**: Z.ai `glm-4.7-flash` (رایگان — `ZAI_API_KEY`)
+3. **Tier 3**: OpenRouter Key A — مدل‌های `:free` بزرگ
+4. **Tier 4**: OpenRouter Key B — شامل Grok free برای roadmap/compass
+5. **Tier 5**: OpenRouter Key C — مدل‌های سبک
+6. **Tier 6–7**: غیرفعال (paid — برای آینده)
+
+### **مدل‌های منسوخ (استفاده نکنید):**
+- ❌ `gemini-1.5-*` (کاملاً منسوخ)
+- ❌ `gemini-2.0-flash`, `gemini-2.0-flash-lite`
+
+---
+
+## 📦 **Environment (پیشنهادی):**
 
 ```bash
-# Google AI (رایگان)
-GOOGLE_API_KEY=AIzaSy...
+GOOGLE_API_KEY_1=...   # تا _10 برای Round-Robin
+OPENROUTER_API_KEY=... # Tier 3
+OPENROUTER_API_KEY_B=... # Tier 4
+OPENROUTER_API_KEY_C=... # Tier 5
 
-# OpenRouter (Fallback - پولی)
-OPENROUTER_API_KEY=sk-or-...
+ZAI_API_KEY=...        # Tier 2 — GLM-4.7-Flash (رایگان)
+# ZAI_MODEL=glm-4.7-flash
 
-# Fallback Models
-AI_MODEL_DEFAULT=gemini-1.5-pro
-AI_MODEL_FAST=gemini-1.5-flash
-AI_MODEL_VISION=gemini-1.5-pro-vision
+AI_MODEL_DEFAULT=gemini-2.5-pro
+AI_MODEL_FAST=gemini-2.5-flash
+AI_MODEL_VISION=gemini-2.5-flash
 AI_MODEL_FALLBACK=moonshotai/kimi-k2-thinking
 AI_MODEL_EMBEDDING=models/text-embedding-004
 ```
 
 ---
 
-## 🔄 **Error Handling Pattern:**
+## 🔄 **Migration DB**
 
-```typescript
-async function callAIWithStrategy(prompt: string, type: 'analysis' | 'vision' | 'embedding') {
-  try {
-    // Try Gemini (Free)
-    return await callGemini(prompt, getModelForType(type))
-  } catch (error) {
-    // Fallback to OpenRouter (Paid)
-    return await callOpenRouter(prompt, getFallbackModel(type))
-  }
-}
-```
-
----
-
-## 💰 **هزینه تخمینی (ماهانه):**
-
-| **سناریو** | **Gemini (رایگان)** | **OpenRouter (پولی)** | **کل** |
-|------------|---------------------|----------------------|--------|
-| **100 کاربر** | 80% | 20% | ~$5 |
-| **500 کاربر** | 70% | 30% | ~$25 |
-| **1000 کاربر** | 60% | 40% | ~$60 |
-
-**نتیجه:** با استراتژی Gemini First، هزینه تا **80% کاهش** می‌یابد.
-
----
-
-## 📝 **Implementation Checklist:**
-
-- [x] Google AI SDK نصب شده
-- [x] OpenRouter SDK نصب شده
-- [x] Fallback logic پیاده‌سازی شده
-- [x] Error handling با retry
-- [x] Cost tracking در هر request
-- [x] Cache برای پاسخ‌های تکراری
-- [ ] Rate limiting per user
-- [ ] Usage analytics dashboard
-
----
-
-**نویسنده:** تیم هوشاگر  
-**تاریخ:** 18 دسامبر 2024  
-**نسخه:** 1.0
-
+فایل `supabase/migrations/133_gemini_25_model_refresh.sql` را در Supabase SQL Editor اجرا کنید.

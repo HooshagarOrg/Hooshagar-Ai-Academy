@@ -77,6 +77,15 @@ export const EXAM_MANAGE_ROLES: AllowedRole[] = [
   'platform_admin',
 ]
 
+/** ingest / مدیریت مواد RAG */
+export const STUDY_MATERIALS_ROLES: AllowedRole[] = [
+  'teacher',
+  'principal',
+  'educational_vp',
+  'admin',
+  'platform_admin',
+]
+
 /** دسترسی عمومی به قابلیت‌های AI */
 export const AI_USER_ROLES: AllowedRole[] = [
   'student',

@@ -3,11 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { withAuth, STAFF_ROLES } from '@/lib/security/api-guard'
 import { AI_USER_ROLES } from '@/lib/security/sensitive-api-roles'
 import { gatewayCallAI } from '@/lib/ai/gateway'
+import { getTextEmbedding } from '@/lib/ai/embeddings'
 import { z } from 'zod'
 import type { SupabaseClient } from '@supabase/supabase-js'
-
-const openrouterKey = process.env.OPENROUTER_API_KEY!
-const googleApiKey  = process.env.GOOGLE_API_KEY
 
 export const maxDuration = 60
 
@@ -18,78 +16,37 @@ const studyBuddySchema = z.object({
   subject: z.string().optional(),
 })
 
-// گرفتن embedding از Gemini
-async function getEmbedding(text: string): Promise<number[] | null> {
-  try {
-    // اول با Google API مستقیم امتحان می‌کنیم
-    if (googleApiKey) {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${googleApiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'models/text-embedding-004',
-            content: { parts: [{ text }] }
-          })
-        }
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        return data.embedding?.values || null
-      }
-    }
-
-    // اگر نشد، با OpenRouter
-    const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openrouterKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/text-embedding-004',
-        input: text
-      })
-    })
-
-    if (response.ok) {
-      const data = await response.json()
-      return data.data?.[0]?.embedding || null
-    }
-
-    return null
-  } catch (error) {
-    console.error('Embedding error:', error)
-    return null
-  }
-}
-
-// جستجوی similarity در دیتابیس
 async function searchMaterials(
   supabase: SupabaseClient,
   embedding: number[],
-  grade?: number,
-  subject?: string
+  options: {
+    grade?: number
+    subject?: string
+    schoolId?: string | null
+  }
 ) {
   try {
     const { data, error } = await supabase.rpc('search_study_materials', {
       query_embedding: embedding,
-      match_threshold: 0.7,
+      match_threshold: 0.72,
       match_count: 5,
-      filter_grade: grade || null,
-      filter_subject: subject || null,
+      filter_grade: options.grade || null,
+      filter_subject: options.subject || null,
+      filter_school_id: options.schoolId || null,
     })
 
     if (error) {
       console.error('Search error:', error)
       let query = supabase
         .from('study_materials')
-        .select('id, title, content, grade, subject')
+        .select('id, title, content, grade, subject, school_id')
+        .eq('is_active', true)
         .limit(5)
-      if (grade) query = query.eq('grade', grade)
-      if (subject) query = query.eq('subject', subject)
+      if (options.grade) query = query.eq('grade', options.grade)
+      if (options.subject) query = query.eq('subject', options.subject)
+      if (options.schoolId) {
+        query = query.or(`school_id.eq.${options.schoolId},school_id.is.null`)
+      }
       const { data: fallbackData } = await query
       return fallbackData || []
     }
@@ -101,7 +58,6 @@ async function searchMaterials(
   }
 }
 
-// تولید پاسخ با gateway
 async function generateAnswer(
   userId: string,
   question: string,
@@ -114,10 +70,11 @@ async function generateAnswer(
 ${question}
 
 **منابع درسی مرتبط:**
-${context}
+${context || 'منبع خاصی یافت نشد. اگر مطمئن نیستید بگویید و از دانش عمومی کمک بگیرید.'}
 
 **قوانین پاسخ‌دهی:**
 - پاسخ را به فارسی ساده و روان بنویسید
+- اگر منابع کافی نیست، صادقانه بگویید و پاسخ کلی کوتاه بدهید
 - از اعداد انگلیسی (0-9) استفاده کنید
 
 **پاسخ:**
@@ -132,164 +89,122 @@ ${context}
 }
 
 export async function POST(request: NextRequest) {
-  return withAuth(request, async (ctx) => {
-  try {
-    const body = await request.json()
-    const { question, studentId, grade, subject } = studyBuddySchema.parse(body)
+  return withAuth(
+    request,
+    async (ctx) => {
+      try {
+        const body = await request.json()
+        const { question, studentId, grade, subject } = studyBuddySchema.parse(body)
 
-    const supabase = await createClient()
+        const supabase = await createClient()
 
-    if (ctx.role === 'student' && studentId) {
-      const { data: ownStudent } = await supabase
-        .from('students')
-        .select('id')
-        .eq('user_id', ctx.userId)
-        .single()
-      if (!ownStudent || ownStudent.id !== studentId) {
-        return NextResponse.json(
-          { error: 'دسترسی غیرمجاز', error_code: 'FORBIDDEN' },
-          { status: 403 },
-        )
+        if (ctx.role === 'student' && studentId) {
+          const { data: ownStudent } = await supabase
+            .from('students')
+            .select('id')
+            .eq('user_id', ctx.userId)
+            .single()
+          if (!ownStudent || ownStudent.id !== studentId) {
+            return NextResponse.json(
+              { error: 'دسترسی غیرمجاز', error_code: 'FORBIDDEN' },
+              { status: 403 }
+            )
+          }
+        } else if (studentId && STAFF_ROLES.includes(ctx.role)) {
+          const { data: targetStudent } = await supabase
+            .from('students')
+            .select('id')
+            .eq('id', studentId)
+            .single()
+          if (!targetStudent) {
+            return NextResponse.json({ error: 'دانش‌آموز یافت نشد' }, { status: 404 })
+          }
+        } else if (studentId && !STAFF_ROLES.includes(ctx.role)) {
+          return NextResponse.json(
+            { error: 'دسترسی غیرمجاز', error_code: 'FORBIDDEN' },
+            { status: 403 }
+          )
+        }
+
+        const historyUserId = ctx.userId
+        const schoolId = ctx.schoolId
+
+        const embedding = await getTextEmbedding(question)
+
+        let sources: Array<{
+          id: string
+          title: string
+          content?: string
+          similarity?: number
+          school_id?: string | null
+        }> = []
+        let context = ''
+
+        if (embedding) {
+          sources = await searchMaterials(supabase, embedding, {
+            grade,
+            subject,
+            schoolId,
+          })
+
+          if (sources.length > 0) {
+            context = sources
+              .slice(0, 3)
+              .map(
+                (s, i) =>
+                  `[منبع ${i + 1}${s.school_id ? ' — مدرسه' : ' — سراسری'}] ${s.title}:\n${s.content}`
+              )
+              .join('\n\n')
+          }
+        }
+
+        if (!context) {
+          context =
+            'منبع خاصی در پایگاه دانش مدرسه یافت نشد. لطفاً پاسخ کلی و کوتاه بدهید و پیشنهاد کنید از معلم یا جزوه کمک بگیرند.'
+        }
+
+        const answer = await generateAnswer(ctx.userId, question, context)
+
+        try {
+          await supabase.from('chat_history').insert({
+            user_id: historyUserId,
+            question,
+            answer,
+            sources: sources.slice(0, 3).map((s) => ({
+              id: s.id,
+              title: s.title,
+              similarity: s.similarity,
+              school_id: s.school_id ?? null,
+            })),
+          })
+        } catch (saveError) {
+          console.warn('Could not save to chat_history:', saveError)
+        }
+
+        return NextResponse.json({
+          success: true,
+          answer,
+          sources: sources.slice(0, 3).map((s) => ({
+            title: s.title,
+            content: s.content ? s.content.substring(0, 200) + '...' : '',
+            similarity: s.similarity,
+            scope: s.school_id ? 'school' : 'global',
+          })),
+          rag: {
+            school_id: schoolId,
+            sources_found: sources.length,
+            embedding_ok: Boolean(embedding),
+          },
+        })
+      } catch (error: unknown) {
+        console.error('Study Buddy error:', error)
+        if (error instanceof z.ZodError) {
+          return NextResponse.json({ error: error.errors }, { status: 400 })
+        }
+        const message = error instanceof Error ? error.message : 'خطای سرور'
+        return NextResponse.json({ error: message }, { status: 500 })
       }
-    } else if (studentId && STAFF_ROLES.includes(ctx.role)) {
-      const { data: targetStudent } = await supabase
-        .from('students')
-        .select('id')
-        .eq('id', studentId)
-        .single()
-      if (!targetStudent) {
-        return NextResponse.json({ error: 'دانش‌آموز یافت نشد' }, { status: 404 })
-      }
-    } else if (studentId && !STAFF_ROLES.includes(ctx.role)) {
-      return NextResponse.json(
-        { error: 'دسترسی غیرمجاز', error_code: 'FORBIDDEN' },
-        { status: 403 },
-      )
-    }
-
-    const historyUserId = ctx.userId
-
-    // 1. گرفتن embedding از سوال
-    console.log('🔍 Getting embedding...')
-    const embedding = await getEmbedding(question)
-
-    let sources: any[] = []
-    let context = ''
-
-    // 2. جستجوی similarity (اگر embedding موجود باشد)
-    if (embedding) {
-      console.log('🔎 Searching materials...')
-      sources = await searchMaterials(supabase, embedding, grade, subject)
-      
-      if (sources.length > 0) {
-        context = sources
-          .slice(0, 3)
-          .map((s: any, i: number) => `[منبع ${i + 1}] ${s.title}:\n${s.content}`)
-          .join('\n\n')
-      }
-    }
-
-    // اگر منبعی پیدا نشد
-    if (!context) {
-      context = 'منبع خاصی در دیتابیس یافت نشد. لطفاً از دانش عمومی خود استفاده کنید.'
-    }
-
-    // 3. تولید پاسخ با Gemini
-    console.log('🤖 Generating answer...')
-    const answer = await generateAnswer(ctx.userId, question, context)
-
-    // 4. ذخیره در chat_history
-    try {
-      await supabase.from('chat_history').insert({
-        user_id: historyUserId,
-        question,
-        answer,
-        sources: sources.slice(0, 3).map((s: { id: string; title: string; similarity?: number }) => ({
-          id: s.id,
-          title: s.title,
-          similarity: s.similarity,
-        })),
-      })
-        console.log('💾 Saved to chat_history')
-      } catch (saveError) {
-        console.warn('Could not save to chat_history:', saveError)
-      }
-
-    // 5. برگرداندن پاسخ
-    return NextResponse.json({
-      success: true,
-      answer,
-      sources: sources.slice(0, 3).map((s: any) => ({
-        title: s.title,
-        content: s.content?.substring(0, 200) + '...',
-        similarity: s.similarity
-      }))
-    })
-
-  } catch (error: any) {
-    console.error('❌ Study Buddy error:', error)
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
-    }
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-  }, { roles: AI_USER_ROLES, rateLimit: 'ai_heavy' })
+    },
+    { roles: AI_USER_ROLES, rateLimit: 'ai_heavy' }
+  )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

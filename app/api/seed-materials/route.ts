@@ -2,11 +2,10 @@ import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/security/api-guard'
 import { PLATFORM_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
+import { getTextEmbedding } from '@/lib/ai/embeddings'
 
-const supabaseUrl   = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey   = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const openrouterKey = process.env.OPENROUTER_API_KEY!
-const googleApiKey  = process.env.GOOGLE_API_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // محتوای نمونه
 const sampleMaterials = [
@@ -147,59 +146,11 @@ const sampleMaterials = [
   }
 ]
 
-// گرفتن embedding
-async function getEmbedding(text: string): Promise<number[] | null> {
-  try {
-    // اول با Google API
-    if (googleApiKey) {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${googleApiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'models/text-embedding-004',
-            content: { parts: [{ text }] }
-          })
-        }
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        return data.embedding?.values || null
-      }
-    }
-
-    // Fallback به OpenRouter
-    const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openrouterKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/text-embedding-004',
-        input: text
-      })
-    })
-
-    if (response.ok) {
-      const data = await response.json()
-      return data.data?.[0]?.embedding || null
-    }
-
-    return null
-  } catch (error) {
-    console.error('Embedding error:', error)
-    return null
-  }
-}
-
 export async function GET(request: NextRequest) {
   return withAuth(request, async () => {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json(
-      { error: 'این endpoint در production غیرفعال است' },
+      { error: 'این endpoint در production غیرفعال است — از /api/admin/study-materials استفاده کنید' },
       { status: 403 }
     )
   }
@@ -208,8 +159,8 @@ export async function GET(request: NextRequest) {
     console.log('🌱 Starting seed process...')
 
     const supabase = createClient(supabaseUrl, supabaseKey)
+    const schoolId = request.nextUrl.searchParams.get('school_id')
 
-    // چک کنیم که قبلاً seed نشده باشد
     const { data: existing, error: checkError } = await supabase
       .from('study_materials')
       .select('id')
@@ -222,10 +173,11 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
-    if (existing && existing.length > 0) {
+    if (existing && existing.length > 0 && !request.nextUrl.searchParams.get('force')) {
       return NextResponse.json({ 
-        message: '⚠️ دیتابیس قبلاً seed شده است',
-        count: existing.length
+        message: 'دیتابیس قبلاً seed شده است. برای اجبار ?force=1 اضافه کنید',
+        count: existing.length,
+        tip: 'برای ingest مدرسه‌ای از POST /api/admin/study-materials استفاده کنید',
       })
     }
 
@@ -234,10 +186,8 @@ export async function GET(request: NextRequest) {
     for (const material of sampleMaterials) {
       console.log(`📝 Processing: ${material.title}`)
 
-      // گرفتن embedding
-      const embedding = await getEmbedding(material.title + ' ' + material.content)
+      const embedding = await getTextEmbedding(material.title + ' ' + material.content)
 
-      // ذخیره در دیتابیس
       const { data, error } = await supabase
         .from('study_materials')
         .insert({
@@ -245,13 +195,16 @@ export async function GET(request: NextRequest) {
           content: material.content,
           grade: material.grade,
           subject: material.subject,
+          school_id: schoolId || null,
           embedding: embedding,
+          is_active: true,
           metadata: {
             seeded: true,
-            seeded_at: new Date().toISOString()
+            seeded_at: new Date().toISOString(),
+            embedding_model: 'text-embedding-004',
           }
         })
-        .select()
+        .select('id')
         .single()
 
       if (error) {
@@ -271,7 +224,6 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      // کمی صبر کنیم تا rate limit نخوریم
       await new Promise(resolve => setTimeout(resolve, 500))
     }
 
@@ -279,18 +231,18 @@ export async function GET(request: NextRequest) {
     const withEmbedding = results.filter(r => r.hasEmbedding).length
 
     return NextResponse.json({
-      message: '✅ Seed completed!',
+      message: 'Seed completed',
       total: sampleMaterials.length,
       success: successCount,
       withEmbedding,
+      school_id: schoolId || null,
       results
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Seed error:', error)
-    return NextResponse.json({ 
-      error: error.message 
-    }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'خطای سرور'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
   }, { roles: PLATFORM_ADMIN_ROLES })
 }

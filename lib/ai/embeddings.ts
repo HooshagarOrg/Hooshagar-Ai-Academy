@@ -1,12 +1,26 @@
 /**
- * Embedding helper — Gemini text-embedding-004 (768-dim)
+ * Embedding helper — Gemini gemini-embedding-001 (768-dim)
+ * text-embedding-004 دیگر در API رایگان در دسترس نیست.
  */
 
-const EMBEDDING_MODEL = 'text-embedding-004'
+export const EMBEDDING_MODEL = 'gemini-embedding-001'
 const EMBEDDING_DIM = 768
 
 export function getExpectedEmbeddingDim(): number {
   return EMBEDDING_DIM
+}
+
+export function getEmbeddingModelName(): string {
+  return EMBEDDING_MODEL
+}
+
+/** نرمال‌سازی L2 — برای gemini-embedding-001 در ابعاد غیر از 3072 لازم است */
+function l2Normalize(values: number[]): number[] {
+  let sumSq = 0
+  for (const v of values) sumSq += v * v
+  const norm = Math.sqrt(sumSq)
+  if (!norm || !Number.isFinite(norm)) return values
+  return values.map((v) => v / norm)
 }
 
 /**
@@ -34,6 +48,7 @@ export async function getTextEmbedding(text: string): Promise<number[] | null> {
           body: JSON.stringify({
             model: `models/${EMBEDDING_MODEL}`,
             content: { parts: [{ text: trimmed }] },
+            outputDimensionality: EMBEDDING_DIM,
           }),
           signal: AbortSignal.timeout(30_000),
         }
@@ -42,7 +57,12 @@ export async function getTextEmbedding(text: string): Promise<number[] | null> {
       if (response.ok) {
         const data = await response.json()
         const values = data.embedding?.values as number[] | undefined
-        if (values?.length) return values
+        if (values?.length === EMBEDDING_DIM) {
+          return l2Normalize(values)
+        }
+      } else {
+        const errText = await response.text().catch(() => '')
+        console.warn('[embedding] Gemini HTTP', response.status, errText.slice(0, 200))
       }
     } catch (err) {
       console.warn('[embedding] Gemini failed:', err)
@@ -59,8 +79,9 @@ export async function getTextEmbedding(text: string): Promise<number[] | null> {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/text-embedding-004',
+          model: 'google/gemini-embedding-001',
           input: trimmed,
+          dimensions: EMBEDDING_DIM,
         }),
         signal: AbortSignal.timeout(30_000),
       })
@@ -68,7 +89,9 @@ export async function getTextEmbedding(text: string): Promise<number[] | null> {
       if (response.ok) {
         const data = await response.json()
         const values = data.data?.[0]?.embedding as number[] | undefined
-        if (values?.length) return values
+        if (values?.length === EMBEDDING_DIM) {
+          return l2Normalize(values)
+        }
       }
     } catch (err) {
       console.warn('[embedding] OpenRouter failed:', err)

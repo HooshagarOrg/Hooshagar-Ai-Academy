@@ -47,7 +47,7 @@ AI_MODEL_DEFAULT=gemini-2.5-flash
 AI_MODEL_FAST=gemini-2.5-flash
 AI_MODEL_VISION=gemini-2.5-flash
 AI_MODEL_FALLBACK=moonshotai/kimi-k2-thinking
-AI_MODEL_EMBEDDING=models/text-embedding-004
+AI_MODEL_EMBEDDING=models/gemini-embedding-001
 ```
 
 > **نکته:** `gemini-2.5-pro` در free path استفاده نمی‌شود. فقط برای Tierهای paid آینده در معماری نگه داشته می‌شود.

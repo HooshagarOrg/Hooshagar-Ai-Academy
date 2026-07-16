@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
                 ...(item.metadata || {}),
                 ingested_at: new Date().toISOString(),
                 ingested_by: ctx.userId,
-                embedding_model: 'text-embedding-004',
+                embedding_model: 'gemini-embedding-001',
               },
             })
             .select('id, title')

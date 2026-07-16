@@ -201,7 +201,7 @@ export async function GET(request: NextRequest) {
           metadata: {
             seeded: true,
             seeded_at: new Date().toISOString(),
-            embedding_model: 'text-embedding-004',
+            embedding_model: 'gemini-embedding-001',
           }
         })
         .select('id')

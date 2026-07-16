@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
-import { callAI } from '@/lib/ai/client-v2';
 import { z } from 'zod';
 import { withAuth } from '@/lib/security/api-guard';
 import { REPORT_API_ROLES } from '@/lib/security/sensitive-api-roles';
+import { gatewayCallAI, AIQuotaExceededError } from '@/lib/ai/gateway';
+
+export const maxDuration = 60;
 
 const aiInsightsSchema = z.object({
   report_id: z.string().uuid('شناسه گزارش نامعتبر است'),
@@ -88,22 +90,18 @@ export async function POST(request: NextRequest) {
 }
 `;
 
-        const aiResponse = await callAI({
-          capability: 'student_analyzer',
-          prompt,
-          userId: ctx.userId,
+        const aiResponse = await gatewayCallAI(ctx.userId, 'ai_insights', prompt, {
+          temperature: 0.5,
+          maxTokens: 1500,
         });
-
-        if (!aiResponse.success || !aiResponse.content) {
-          return NextResponse.json(
-            { success: false, error: aiResponse.error || 'تولید تحلیل هوشمند ناموفق بود' },
-            { status: 500 }
-          );
-        }
 
         let aiData;
         try {
-          aiData = JSON.parse(aiResponse.content);
+          const clean = aiResponse.content
+            .replace(/```json\s*/gi, '')
+            .replace(/```\s*/g, '')
+            .trim();
+          aiData = JSON.parse(clean);
         } catch {
           aiData = {
             insights: aiResponse.content,
@@ -131,9 +129,17 @@ export async function POST(request: NextRequest) {
           weaknesses: aiData.weaknesses || [],
           recommendations: aiData.recommendations || [],
           risk_level: aiData.risk_level || 'low',
-          model_used: aiResponse.model_used,
+          model_used: aiResponse.model,
+          provider: aiResponse.provider,
+          tier: aiResponse.tier,
         });
       } catch (error) {
+        if (error instanceof AIQuotaExceededError) {
+          return NextResponse.json(
+            { success: false, error: error.message, error_code: 'AI_QUOTA_EXCEEDED' },
+            { status: 429 }
+          );
+        }
         console.error('خطای غیرمنتظره در تولید تحلیل هوشمند:', error);
         return NextResponse.json(
           { success: false, error: 'خطای سرور' },
@@ -141,6 +147,6 @@ export async function POST(request: NextRequest) {
         );
       }
     },
-    { roles: REPORT_API_ROLES }
+    { roles: REPORT_API_ROLES, rateLimit: 'ai_heavy' }
   );
 }

@@ -203,6 +203,17 @@ export const AI_FEATURES: Record<string, FeatureInfo> = {
     creditCost: 12,
     isEnabled: true,
   },
+  homework_evaluator: {
+    name: 'homework_evaluator',
+    label: 'تصحیح تشریحی',
+    icon: '📝',
+    description: 'تصحیح پاسخ‌های تشریحی با هوش مصنوعی',
+    dailyLimit: 30,
+    weeklyLimit: 100,
+    monthlyLimit: 300,
+    creditCost: 5,
+    isEnabled: true,
+  },
 }
 
 // توابع سروری quota در lib/ai/quota.ts — از API /api/ai/check-limit استفاده کنید

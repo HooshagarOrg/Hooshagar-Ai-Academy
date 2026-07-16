@@ -30,6 +30,22 @@ const FEATURE_CAPABILITY_MAP: Record<string, AICapability> = {
   early_warning: 'student_analyzer',
   oral_questions: 'exam_generator',
   family_insight: 'student_analyzer',
+  homework_evaluator: 'homework_evaluator',
+  /** aliasهای سازگار با routeهای قدیمی */
+  analyze: 'student_analyzer',
+  annual_report: 'student_analyzer',
+  ai_insights: 'student_analyzer',
+  grade_descriptive: 'homework_evaluator',
+}
+
+/** فیچرهای مجاز برای /api/ai/universal و gateway */
+export function isKnownAIFeature(featureName: string): boolean {
+  const quotaName = resolveQuotaFeature(featureName)
+  return featureName in FEATURE_CAPABILITY_MAP || quotaName in AI_FEATURES
+}
+
+export function listGatewayFeatures(): string[] {
+  return Object.keys(FEATURE_CAPABILITY_MAP)
 }
 
 const OPENROUTER_VISION_MODELS = [
@@ -46,6 +62,18 @@ export class AIQuotaExceededError extends Error {
     this.name = 'AIQuotaExceededError'
     this.limit = limit
   }
+}
+
+/** نگاشت alias → نام فیچر برای quota (باید در AI_FEATURES باشد) */
+const FEATURE_QUOTA_ALIAS: Record<string, string> = {
+  analyze: 'student_analyzer',
+  annual_report: 'weekly_report',
+  ai_insights: 'weekly_report',
+  grade_descriptive: 'homework_evaluator',
+}
+
+function resolveQuotaFeature(featureName: string): string {
+  return FEATURE_QUOTA_ALIAS[featureName] ?? featureName
 }
 
 function resolveCapability(featureName: string): AICapability {
@@ -127,13 +155,14 @@ async function callOpenRouterVision(
 }
 
 async function enforceQuota(userId: string, featureName: string): Promise<AIUsageLimit> {
-  if (!AI_FEATURES[featureName]) {
+  const quotaFeature = resolveQuotaFeature(featureName)
+  if (!AI_FEATURES[quotaFeature]) {
     throw new Error('قابلیت نامعتبر')
   }
 
-  const limit = await checkAILimit(userId, featureName)
+  const limit = await checkAILimit(userId, quotaFeature)
   if (!limit.allowed) {
-    await recordAIUsage(userId, featureName, false, true, limit.reason)
+    await recordAIUsage(userId, quotaFeature, false, true, limit.reason)
     throw new AIQuotaExceededError(limit)
   }
 
@@ -146,7 +175,8 @@ async function trackSuccess(
   response: AIResponse,
   startedAt: number
 ): Promise<void> {
-  await recordAIUsage(userId, featureName, true, false, undefined, {
+  const quotaFeature = resolveQuotaFeature(featureName)
+  await recordAIUsage(userId, quotaFeature, true, false, undefined, {
     model: response.model,
     responseTimeMs: Date.now() - startedAt,
   })
@@ -170,7 +200,8 @@ export async function gatewayCallAI(
     await trackSuccess(userId, featureName, response, startedAt)
     return response
   } catch (err) {
-    await recordAIUsage(userId, featureName, false, false)
+    const quotaFeature = resolveQuotaFeature(featureName)
+    await recordAIUsage(userId, quotaFeature, false, false)
     throw err
   }
 }
@@ -201,7 +232,8 @@ export async function gatewayCallAIJson<T>(
     await trackSuccess(userId, featureName, response, startedAt)
     return { data, response }
   } catch (err) {
-    await recordAIUsage(userId, featureName, false, false)
+    const quotaFeature = resolveQuotaFeature(featureName)
+    await recordAIUsage(userId, quotaFeature, false, false)
     throw err
   }
 }
@@ -232,7 +264,8 @@ export async function gatewayCallVision(
     await trackSuccess(userId, featureName, response, startedAt)
     return response
   } catch (err) {
-    await recordAIUsage(userId, featureName, false, false)
+    const quotaFeature = resolveQuotaFeature(featureName)
+    await recordAIUsage(userId, quotaFeature, false, false)
     throw err
   }
 }

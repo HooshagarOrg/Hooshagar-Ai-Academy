@@ -43,15 +43,20 @@ OPENROUTER_API_KEY_C=... # Tier 5
 ZAI_API_KEY=...        # Tier 2 — GLM-4.7-Flash (رایگان)
 # ZAI_MODEL=glm-4.7-flash
 
-AI_MODEL_DEFAULT=gemini-2.5-pro
+AI_MODEL_DEFAULT=gemini-2.5-flash
 AI_MODEL_FAST=gemini-2.5-flash
 AI_MODEL_VISION=gemini-2.5-flash
 AI_MODEL_FALLBACK=moonshotai/kimi-k2-thinking
 AI_MODEL_EMBEDDING=models/text-embedding-004
 ```
 
+> **نکته:** `gemini-2.5-pro` در free path استفاده نمی‌شود. فقط برای Tierهای paid آینده در معماری نگه داشته می‌شود.
+
 ---
 
 ## 🔄 **Migration DB**
 
-فایل `supabase/migrations/133_gemini_25_model_refresh.sql` را در Supabase SQL Editor اجرا کنید.
+1. `supabase/migrations/133_gemini_25_model_refresh.sql` — مهاجرت از 1.5/2.0
+2. `supabase/migrations/134_free_first_flash_models.sql` — analyzer/pro → Flash
+
+هر دو را در Supabase SQL Editor اجرا کنید.

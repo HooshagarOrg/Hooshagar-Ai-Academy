@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { callAI } from '@/lib/ai-provider'
 import { withAuth, STAFF_ROLES } from '@/lib/security/api-guard'
 import { createClient } from '@/lib/supabase/server'
+import { gatewayCallAI, AIQuotaExceededError } from '@/lib/ai/gateway'
 import type { AnnualReport, AIAnalysis } from '@/lib/types/academic.types'
 
 export const maxDuration = 60
@@ -78,16 +78,18 @@ export async function POST(request: NextRequest) {
 همه متون باید به فارسی باشند.
 `
 
-          const aiResponse = await callAI(prompt, {
-            capability: 'student_analyzer',
-            userId: ctx.userId,
+          const aiResponse = await gatewayCallAI(ctx.userId, 'annual_report', prompt, {
             temperature: 0.6,
             maxTokens: 1500,
           })
 
           let aiAnalysis: AIAnalysis
           try {
-            aiAnalysis = JSON.parse(aiResponse.content) as AIAnalysis
+            const clean = aiResponse.content
+              .replace(/```json\s*/gi, '')
+              .replace(/```\s*/g, '')
+              .trim()
+            aiAnalysis = JSON.parse(clean) as AIAnalysis
           } catch {
             aiAnalysis = {
               strengths: ['عملکرد تحصیلی خوب'],
@@ -115,8 +117,18 @@ export async function POST(request: NextRequest) {
             success: true,
             data: finalReport as AnnualReport,
             message: 'گزارش جامع با موفقیت تولید شد',
+            model_used: aiResponse.model,
+            provider: aiResponse.provider,
           })
         } catch (aiError) {
+          if (aiError instanceof AIQuotaExceededError) {
+            return NextResponse.json({
+              success: true,
+              data: report as AnnualReport,
+              message: 'گزارش پایه تولید شد (محدودیت AI)',
+              warning: aiError.message,
+            })
+          }
           console.error('خطا در تحلیل AI:', aiError)
           return NextResponse.json({
             success: true,

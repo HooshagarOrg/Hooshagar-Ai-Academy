@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { callAI } from '@/lib/ai-provider'
 import { withAuth } from '@/lib/security/api-guard'
 import { EXAM_MANAGE_ROLES } from '@/lib/security/sensitive-api-roles'
+import { gatewayCallAI, AIQuotaExceededError } from '@/lib/ai/gateway'
 
 export const maxDuration = 60
 
@@ -105,9 +105,7 @@ ${answer.answer_text}
 `
 
           try {
-            const aiResponse = await callAI(prompt, {
-              capability: 'homework_evaluator',
-              userId: ctx.userId,
+            const aiResponse = await gatewayCallAI(ctx.userId, 'homework_evaluator', prompt, {
               temperature: 0.3,
               maxTokens: 300,
             })
@@ -127,9 +125,21 @@ ${answer.answer_text}
               p_ai_feedback: feedback,
             })
 
-            results.push({ id: answer.id, score, feedback })
+            results.push({ id: answer.id, score, feedback, model: aiResponse.model })
             gradedCount++
           } catch (aiErr) {
+            if (aiErr instanceof AIQuotaExceededError) {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error: aiErr.message,
+                  error_code: 'AI_QUOTA_EXCEEDED',
+                  graded: gradedCount,
+                  results,
+                },
+                { status: 429 }
+              )
+            }
             console.error('AI grading error for answer', answer.id, aiErr)
             await supabase
               .from('exam_answers')

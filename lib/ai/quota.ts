@@ -44,37 +44,21 @@ function mapRpcRow(row: QuotaRpcRow, featureName: string): AIUsageLimit {
   }
 }
 
-/** fallback امن وقتی RPC در دسترس نیست */
-function fallbackLimit(featureName: string): AIUsageLimit {
+/** fail-closed وقتی RPC در دسترس نیست یا feature نامعتبر است */
+function blockedLimit(featureName: string, reason: string): AIUsageLimit {
   const feature = AI_FEATURES[featureName]
-  if (!feature) {
-    return {
-      allowed: false,
-      reason: 'قابلیت نامعتبر',
-      dailyUsed: 0,
-      dailyLimit: null,
-      weeklyUsed: 0,
-      weeklyLimit: null,
-      monthlyUsed: 0,
-      monthlyLimit: null,
-      creditsAvailable: 0,
-      creditCost: 0,
-      featureLabel: featureName,
-    }
-  }
-
   return {
-    allowed: feature.isEnabled,
-    reason: feature.isEnabled ? undefined : 'این قابلیت غیرفعال شده است',
+    allowed: false,
+    reason,
     dailyUsed: 0,
-    dailyLimit: feature.dailyLimit,
+    dailyLimit: feature?.dailyLimit ?? null,
     weeklyUsed: 0,
-    weeklyLimit: feature.weeklyLimit,
+    weeklyLimit: feature?.weeklyLimit ?? null,
     monthlyUsed: 0,
-    monthlyLimit: feature.monthlyLimit,
-    creditsAvailable: 1000,
-    creditCost: feature.creditCost,
-    featureLabel: feature.label,
+    monthlyLimit: feature?.monthlyLimit ?? null,
+    creditsAvailable: 0,
+    creditCost: feature?.creditCost ?? 0,
+    featureLabel: feature?.label ?? featureName,
     resetTime: formatResetTime('daily'),
   }
 }
@@ -88,15 +72,11 @@ export async function checkAILimit(
 ): Promise<AIUsageLimit> {
   const feature = AI_FEATURES[featureName]
   if (!feature) {
-    return fallbackLimit(featureName)
+    return blockedLimit(featureName, 'قابلیت نامعتبر')
   }
 
   if (!feature.isEnabled) {
-    return {
-      ...fallbackLimit(featureName),
-      allowed: false,
-      reason: 'این قابلیت غیرفعال شده است',
-    }
+    return blockedLimit(featureName, 'این قابلیت غیرفعال شده است')
   }
 
   try {
@@ -108,18 +88,18 @@ export async function checkAILimit(
 
     if (error) {
       console.error('[quota] check_ai_usage_allowed failed:', error.message)
-      return fallbackLimit(featureName)
+      return blockedLimit(featureName, 'سرویس محدودیت موقتاً در دسترس نیست')
     }
 
     const row = (data as QuotaRpcRow[] | null)?.[0]
     if (!row) {
-      return fallbackLimit(featureName)
+      return blockedLimit(featureName, 'سرویس محدودیت موقتاً در دسترس نیست')
     }
 
     return mapRpcRow(row, featureName)
   } catch (err) {
     console.error('[quota] checkAILimit error:', err)
-    return fallbackLimit(featureName)
+    return blockedLimit(featureName, 'سرویس محدودیت موقتاً در دسترس نیست')
   }
 }
 

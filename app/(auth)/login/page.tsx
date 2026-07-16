@@ -11,7 +11,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TermsAcceptanceNotice } from '@/components/auth/terms-acceptance-notice'
+import { TurnstileWidget } from '@/components/auth/turnstile-widget'
 import { createClient } from '@/lib/supabase/client'
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -20,6 +23,8 @@ export default function LoginPage() {
   const [otpPhone, setOtpPhone] = useState('')
   const [otpTimer, setOtpTimer] = useState(0)
   const [activeTab, setActiveTab] = useState('staff')
+  const [requireCaptcha, setRequireCaptcha] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
 
   const roleRoutes: Record<string, string> = {
     parent: '/parent',
@@ -45,6 +50,18 @@ export default function LoginPage() {
     window.location.replace(redirect || roleRoutes[role || ''] || '/dashboard')
   }
 
+  const handleLoginApiError = (data: {
+    error?: string
+    error_code?: string
+    require_captcha?: boolean
+  }): void => {
+    if (data.require_captcha && TURNSTILE_SITE_KEY) {
+      setRequireCaptcha(true)
+      setCaptchaToken(null)
+    }
+    toast.error(data.error || 'ورود ناموفق بود')
+  }
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('error') === 'session_expired') {
@@ -60,56 +77,50 @@ export default function LoginPage() {
   }, [])
 
   // ==========================================
-  // ورود با کد ۱۰ رقمی (کد ملی / موبایل) + رمز
+  // ورود با کد ۱۰ رقمی (کد ملی / موبایل) + رمز — از API سرور
   // ==========================================
   const handleCodeLogin = async (
     loginCode: string,
     password: string,
   ) => {
-    const supabase = createClient()
-    const { data: rpcData, error: rpcError } = await supabase.rpc('user_login_by_code', {
-      p_login_code: loginCode,
-      p_password: password,
-    })
-
-    if (rpcError) {
-      toast.error('خطای اتصال به سرور. لطفاً دوباره تلاش کنید.')
+    if (requireCaptcha && TURNSTILE_SITE_KEY && !captchaToken) {
+      toast.error('لطفاً تأیید امنیتی را کامل کنید')
       return false
     }
 
-    const rpc = rpcData as {
-      success: boolean
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        method: 'login_code',
+        login_code: loginCode,
+        password,
+        captcha_token: captchaToken || undefined,
+      }),
+    })
+    const data = await response.json() as {
+      success?: boolean
       error?: string
-      email?: string
-      password?: string
-      full_name?: string
+      error_code?: string
+      require_captcha?: boolean
       role?: string
       must_change_password?: boolean
+      full_name?: string
+      redirect?: string
     }
 
-    if (!rpc.success) {
-      const msgs: Record<string, string> = {
-        user_not_found: 'کد ورود یافت نشد',
-        wrong_password: 'رمز ورود اشتباه است',
-        no_password: 'رمز ورود تنظیم نشده — با مدرسه تماس بگیرید',
-        invalid_input: 'کد ورود باید ۱۰ رقم باشد',
-      }
-      toast.error(msgs[rpc.error ?? ''] || 'کد یا رمز اشتباه است')
+    if (!response.ok || !data.success) {
+      handleLoginApiError(data)
       return false
     }
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: rpc.email!,
-      password: rpc.password!,
-    })
-
-    if (signInError) {
-      toast.error('خطا در ورود به سیستم')
-      return false
+    toast.success(`خوش آمدید! ${data.full_name || ''}`)
+    if (data.redirect) {
+      window.location.replace(data.redirect)
+    } else {
+      redirectByRole(data.role, data.must_change_password)
     }
-
-    toast.success(`خوش آمدید! ${rpc.full_name || ''}`)
-    redirectByRole(rpc.role, rpc.must_change_password)
     return true
   }
 
@@ -198,15 +209,24 @@ export default function LoginPage() {
     }
 
     // fallback سرور
+    if (requireCaptcha && TURNSTILE_SITE_KEY && !captchaToken) {
+      toast.error('لطفاً تأیید امنیتی را کامل کنید')
+      return
+    }
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ method: 'otp', phone, otp }),
+      body: JSON.stringify({
+        method: 'otp',
+        phone,
+        otp,
+        captcha_token: captchaToken || undefined,
+      }),
     })
     const data = await response.json()
     if (!response.ok || !data.success) {
-      toast.error(data.error || 'کد تأیید نامعتبر است')
+      handleLoginApiError(data)
       return
     }
     toast.success(`خوش آمدید! ${data.full_name || ''}`)
@@ -240,19 +260,25 @@ export default function LoginPage() {
     const password = formData.get('password') as string
 
     try {
-      // کد ۱۰ رقمی → ورود مستقیم از مرورگر
       if (/^\d{10}$/.test(username)) {
         await handleCodeLogin(username, password)
+        return
+      }
+
+      if (requireCaptcha && TURNSTILE_SITE_KEY && !captchaToken) {
+        toast.error('لطفاً تأیید امنیتی را کامل کنید')
         return
       }
 
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({
           method: 'staff',
           username,
           password,
+          captcha_token: captchaToken || undefined,
         }),
       })
       const data = await response.json()
@@ -261,7 +287,7 @@ export default function LoginPage() {
         toast.success('ورود موفق')
         redirectByRole(data.role, data.must_change_password)
       } else {
-        toast.error(data.error || 'نام کاربری یا رمز عبور اشتباه است')
+        handleLoginApiError(data)
       }
     } catch {
       toast.error('خطای اتصال به سرور')
@@ -308,6 +334,11 @@ export default function LoginPage() {
     }
 
     try {
+      if (requireCaptcha && TURNSTILE_SITE_KEY && !captchaToken) {
+        toast.error('لطفاً تأیید امنیتی را کامل کنید')
+        return
+      }
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -316,18 +347,21 @@ export default function LoginPage() {
           method: 'student_pin',
           student_number: studentNumber,
           pin,
+          captcha_token: captchaToken || undefined,
         }),
       })
 
       const data = await response.json() as {
         success?: boolean
         error?: string
+        error_code?: string
+        require_captcha?: boolean
         redirect?: string
         student_info?: { full_name?: string }
       }
 
       if (!response.ok || !data.success) {
-        toast.error(data.error || 'کد دانش‌آموزی یا رمز اشتباه است')
+        handleLoginApiError(data)
         return
       }
 
@@ -361,6 +395,18 @@ export default function LoginPage() {
                   پیامک
                 </TabsTrigger>
               </TabsList>
+
+              {requireCaptcha && TURNSTILE_SITE_KEY ? (
+                <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+                  <p className="mb-2 text-center text-xs text-[var(--lux-text-muted)]">
+                    به‌خاطر تلاش‌های ناموفق، تأیید امنیتی لازم است
+                  </p>
+                  <TurnstileWidget
+                    siteKey={TURNSTILE_SITE_KEY}
+                    onToken={setCaptchaToken}
+                  />
+                </div>
+              ) : null}
 
               {/* ===== تب کارکنان ===== */}
               <TabsContent value="staff" className="space-y-1">

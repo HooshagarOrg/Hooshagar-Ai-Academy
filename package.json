@@ -5,6 +5,7 @@
   "private": true,
   "license": "UNLICENSED",
   "author": "Hooshagar",
+  "packageManager": "pnpm@10.22.0",
   "scripts": {
     "dev": "node --dns-result-order=ipv4first ./node_modules/next/dist/bin/next dev",
     "build": "next build",

@@ -1,12 +1,24 @@
 /**
  * استخر API جدا برای آواتار «هوشیار»
- * فقط AVATAR_* — بدون fallback به GOOGLE_API_KEY / OPENROUTER_API_KEY اصلی
+ * فقط AVATAR_* — بدون fallback به GOOGLE_API_KEY / OPENROUTER_API_KEY / GROQ_API_KEY اصلی
+ *
+ * زنجیره: Gemini → Groq → OpenRouter
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { Agent, fetch as undiciFetch } from 'undici'
+import {
+  callAvatarGroq,
+  isAvatarGroqConfigured,
+  resolveAvatarGroqModel,
+} from '@/lib/ai/groq-provider'
 
-export type AvatarAISource = 'gemini' | 'gemini_rest' | 'openrouter' | 'openrouter_router'
+export type AvatarAISource =
+  | 'gemini'
+  | 'gemini_rest'
+  | 'groq'
+  | 'openrouter'
+  | 'openrouter_router'
 
 export interface AvatarAIResponse {
   content: string
@@ -258,39 +270,67 @@ async function callAvatarOpenRouter(
   }
 }
 
+async function callAvatarGroqTier(
+  systemPrompt: string,
+  userMessage: string
+): Promise<AvatarAIResponse> {
+  const start = Date.now()
+  const { content, model } = await callAvatarGroq(systemPrompt, userMessage)
+  return {
+    content,
+    source: 'groq',
+    model,
+    responseTimeMs: Date.now() - start,
+  }
+}
+
 /**
- * فراخوانی AI آواتار — Gemini → OpenRouter models → openrouter/free
+ * فراخوانی AI آواتار — Gemini → Groq → OpenRouter → openrouter/free
  * هیچ‌وقت به استخر اصلی برنامه وصل نمی‌شود
  */
 export async function callAvatarAI(
   systemPrompt: string,
   userMessage: string
 ): Promise<AvatarAIResponse> {
-  if (loadAvatarGoogleKeys().length === 0 && !process.env.AVATAR_OPENROUTER_API_KEY) {
+  const hasGoogle = loadAvatarGoogleKeys().length > 0
+  const hasGroq = isAvatarGroqConfigured()
+  const hasOpenRouter = Boolean(process.env.AVATAR_OPENROUTER_API_KEY)
+
+  if (!hasGoogle && !hasGroq && !hasOpenRouter) {
     throw new AvatarAIExhaustedError()
   }
 
-  if (loadAvatarGoogleKeys().length > 0) {
+  if (hasGoogle) {
     try {
       return await callAvatarGemini(systemPrompt, userMessage)
+    } catch {
+      // ادامه به Groq استخر آواتار
+    }
+  }
+
+  if (hasGroq) {
+    try {
+      return await callAvatarGroqTier(systemPrompt, userMessage)
     } catch {
       // ادامه به OpenRouter استخر آواتار
     }
   }
 
-  for (const model of AVATAR_OR_MODELS) {
-    try {
-      return await callAvatarOpenRouter(systemPrompt, userMessage, model)
-    } catch {
-      continue
+  if (hasOpenRouter) {
+    for (const model of AVATAR_OR_MODELS) {
+      try {
+        return await callAvatarOpenRouter(systemPrompt, userMessage, model)
+      } catch {
+        continue
+      }
     }
-  }
 
-  if (AVATAR_OR_FALLBACK) {
-    try {
-      return await callAvatarOpenRouter(systemPrompt, userMessage, AVATAR_OR_FALLBACK)
-    } catch {
-      // همه ناموفق
+    if (AVATAR_OR_FALLBACK) {
+      try {
+        return await callAvatarOpenRouter(systemPrompt, userMessage, AVATAR_OR_FALLBACK)
+      } catch {
+        // همه ناموفق
+      }
     }
   }
 
@@ -298,12 +338,23 @@ export async function callAvatarAI(
 }
 
 export function hasAvatarAIConfigured(): boolean {
-  return loadAvatarGoogleKeys().length > 0 || Boolean(process.env.AVATAR_OPENROUTER_API_KEY)
+  return (
+    loadAvatarGoogleKeys().length > 0 ||
+    isAvatarGroqConfigured() ||
+    Boolean(process.env.AVATAR_OPENROUTER_API_KEY)
+  )
 }
 
-export function getAvatarKeyStats(): { googleKeys: number; hasOpenRouter: boolean } {
+export function getAvatarKeyStats(): {
+  googleKeys: number
+  hasGroq: boolean
+  groqModel: string
+  hasOpenRouter: boolean
+} {
   return {
     googleKeys: loadAvatarGoogleKeys().length,
+    hasGroq: isAvatarGroqConfigured(),
+    groqModel: resolveAvatarGroqModel(),
     hasOpenRouter: Boolean(process.env.AVATAR_OPENROUTER_API_KEY),
   }
 }

@@ -36,6 +36,8 @@ const KEYS = [
   // Avatar AI
   'AVATAR_DAILY_MESSAGE_LIMIT',
   'AVATAR_OPENROUTER_API_KEY',
+  'AVATAR_GROQ_API_KEY',
+  'AVATAR_GROQ_MODEL',
   'AVATAR_OR_FALLBACK',
   'AVATAR_OR_MODEL_1',
   'AVATAR_OR_MODEL_2',
@@ -48,11 +50,17 @@ const KEYS = [
   'OPENROUTER_API_KEY_C',
   'NEXT_PUBLIC_OPENROUTER_PROXY',
   'NEXT_PUBLIC_GEMINI_PROXY',
+  'NEXT_PUBLIC_GROQ_PROXY',
 
   // Z.ai (Tier 2)
   'ZAI_API_KEY',
   'ZAI_API_BASE_URL',
   'ZAI_MODEL',
+
+  // Groq (Tier 3 — استخر اصلی، جدا از آواتار)
+  'GROQ_API_KEY',
+  'GROQ_MODEL',
+  'GROQ_API_BASE_URL',
 
   // AI model config
   'AI_MODEL_DEFAULT',

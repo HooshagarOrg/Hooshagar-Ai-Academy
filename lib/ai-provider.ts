@@ -1,18 +1,20 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { callZai, isZaiConfigured } from '@/lib/ai/zai-provider'
+import { callGroq, isGroqConfigured } from '@/lib/ai/groq-provider'
 import { createHash } from 'crypto'
 
 // ═══════════════════════════════════════════════════════════════
-// هوشاگر - سرویس AI با معماری 4 لایه رایگان
+// هوشاگر - سرویس AI با معماری چندلایه رایگان
 //
 //  Cache      → بررسی کش قبل از هر درخواست
 //  Rate Limit → محدودیت درخواست per user
 //  Tier 1     → Google Direct  (10 کلید Round-Robin)
-//  Tier 2     → Z.ai GLM-4.7-Flash (رایگان — ZAI_API_KEY)
-//  Tier 3     → OpenRouter A   (مدل‌های 200B+)
-//  Tier 4     → OpenRouter B   (مدل‌های 32-70B)
-//  Tier 5     → OpenRouter C   (مدل‌های سریع 7-24B)
-//  Tier 6/7   → Paid (غیرفعال)
+//  Tier 2     → Z.ai GLM (رایگان — ZAI_API_KEY)
+//  Tier 3     → Groq Cloud (رایگان — GROQ_API_KEY)
+//  Tier 4     → OpenRouter A   (مدل‌های 200B+)
+//  Tier 5     → OpenRouter B   (مدل‌های 32-70B)
+//  Tier 6     → OpenRouter C   (مدل‌های سریع 7-24B)
+//  Paid       → غیرفعال
 // ═══════════════════════════════════════════════════════════════
 
 // ── تعریف تایپ‌ها ──────────────────────────────────────────────
@@ -33,9 +35,9 @@ export type AICapability =
 
 export interface AIResponse {
   content: string
-  provider: 'google' | 'zai' | 'openrouter'
+  provider: 'google' | 'zai' | 'groq' | 'openrouter'
   model: string
-  tier: 1 | 2 | 3 | 4 | 5
+  tier: 1 | 2 | 3 | 4 | 5 | 6
   is_fallback: boolean
   cost: number
   cached?: boolean
@@ -263,7 +265,7 @@ async function callGoogleTier1(
 async function callOpenRouterWithKey(
   prompt: string,
   model: string,
-  tier: 3 | 4 | 5,
+  tier: 4 | 5 | 6,
   apiKey: string,
   opts: AICallOptions
 ): Promise<AIResponse> {
@@ -309,8 +311,22 @@ async function callZaiTier2(
   return { content, provider: 'zai', model, tier: 2, is_fallback: true, cost: 0 }
 }
 
+async function callGroqTier3(
+  prompt: string,
+  capability: AICapability,
+  opts: AICallOptions
+): Promise<AIResponse> {
+  const { content, model } = await callGroq({
+    prompt,
+    capability,
+    temperature: opts.temperature,
+    maxTokens: opts.maxTokens,
+  })
+  return { content, provider: 'groq', model, tier: 3, is_fallback: true, cost: 0 }
+}
+
 // ═══════════════════════════════════════════════════════════════
-// ── تابع اصلی: Cache → Rate Limit → Fallback 4 لایه ─────────
+// ── تابع اصلی: Cache → Rate Limit → Fallback چندلایه ────────
 // ═══════════════════════════════════════════════════════════════
 
 /**
@@ -320,10 +336,11 @@ async function callZaiTier2(
  *   1. Cache Check    — اگر جواب کش شده موجود بود، فوری برگردان
  *   2. Rate Limit     — بررسی محدودیت کاربر (پرتاب RateLimitError در صورت تجاوز)
  *   3. Tier 1 Google  — Round-Robin روی 10 کلید
- *   4. Tier 2 Z.ai    — GLM-4.7-Flash (رایگان)
- *   5. Tier 3 OR-A    — مدل‌های 200B+
- *   6. Tier 4 OR-B    — مدل‌های 32-70B
- *   7. Tier 5 OR-C    — مدل‌های سریع 7-24B
+ *   4. Tier 2 Z.ai    — GLM (رایگان)
+ *   5. Tier 3 Groq    — Llama سریع (رایگان — GROQ_API_KEY)
+ *   6. Tier 4 OR-A    — مدل‌های 200B+
+ *   7. Tier 5 OR-B    — مدل‌های 32-70B
+ *   8. Tier 6 OR-C    — مدل‌های سریع 7-24B
  */
 export async function callAI(
   prompt: string,
@@ -345,7 +362,7 @@ export async function callAI(
     checkRateLimit(options.userId)
   }
 
-  // ── مرحله 3-6: Fallback Chain ────────────────────────────────
+  // ── مرحله 3+: Fallback Chain ─────────────────────────────────
   const orModels = OPENROUTER_MODEL_MAP[capability]
   const keyA = process.env.OPENROUTER_API_KEY
   const keyB = process.env.OPENROUTER_API_KEY_B
@@ -359,9 +376,12 @@ export async function callAI(
   if (isZaiConfigured()) {
     tiers.push(() => callZaiTier2(prompt, capability, options))
   }
-  if (keyA) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier2, 3, keyA, options))
-  if (keyB) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier3, 4, keyB, options))
-  if (keyC) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier4, 5, keyC, options))
+  if (isGroqConfigured()) {
+    tiers.push(() => callGroqTier3(prompt, capability, options))
+  }
+  if (keyA) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier2, 4, keyA, options))
+  if (keyB) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier3, 5, keyB, options))
+  if (keyC) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier4, 6, keyC, options))
 
   let lastError: unknown
   for (let i = 0; i < tiers.length; i++) {
@@ -424,7 +444,7 @@ export async function callGeminiVision(
     const keyA = process.env.OPENROUTER_API_KEY
     if (!keyA) throw new Error('هیچ کلید API برای Vision در دسترس نیست')
     const visionModel = OPENROUTER_MODEL_MAP[capability].tier2
-    return callOpenRouterWithKey(prompt, visionModel, 3, keyA, options)
+    return callOpenRouterWithKey(prompt, visionModel, 4, keyA, options)
   }
 }
 
@@ -435,5 +455,6 @@ export function getAIStats() {
     rateLimitUsers:  rateLimitStore.size,
     googleKeysLoaded: loadGoogleKeys().length,
     zaiConfigured: isZaiConfigured(),
+    groqConfigured: isGroqConfigured(),
   }
 }

@@ -35,6 +35,8 @@ import {
 } from './motion'
 import LandingHero, { StarfieldCanvas } from './hero'
 import { CinematicVideoSection } from './cinematic-video-section'
+import { LiveInsightsSection } from './live-insights'
+import { AmbientVectors } from './ambient-vectors'
 
 /* ── ناوبری شناور ── */
 function FloatingNav(): JSX.Element {
@@ -54,7 +56,10 @@ function FloatingNav(): JSX.Element {
       <HooshagarLogo size="sm" href="/" inverted showWordmark priority />
       <div className="hidden items-center gap-5 text-sm font-bold text-[var(--lux-text-muted)] sm:flex">
         <a href="#cinematic" className="transition-colors hover:text-[var(--lux-text)]">
-          سینما
+          جهان
+        </a>
+        <a href="#insights" className="transition-colors hover:text-[var(--lux-text)]">
+          بینش
         </a>
         <a href="#hooshiar" className="transition-colors hover:text-[var(--lux-text)]">
           هوشیار
@@ -412,17 +417,19 @@ function Footer(): JSX.Element {
 /* ── صفحهٔ لندینگ ── */
 export default function LandingPage(): JSX.Element {
   return (
-    <main className="lp-noise lp-aurora relative overflow-hidden" dir="rtl" style={{ background: 'var(--lux-void)' }}>
+    <main className="lp-noise lp-aurora lp-page-breathe relative overflow-hidden" dir="rtl" style={{ background: 'var(--lux-void)' }}>
       <StarfieldCanvas
         density={1.35}
         brightness={1.35}
         className="pointer-events-none fixed inset-0 z-[1] h-full w-full"
       />
+      <AmbientVectors />
       <ScrollProgressBar />
       <FloatingNav />
       <div className="relative z-10">
         <LandingHero />
         <CinematicVideoSection />
+        <LiveInsightsSection />
         <HooshiarSection />
         <FeaturesSection />
         <RolesSection />

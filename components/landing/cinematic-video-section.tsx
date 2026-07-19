@@ -44,7 +44,7 @@ export function CinematicVideoSection(): JSX.Element {
       ref={sectionRef}
       id="cinematic"
       className="relative min-h-[100svh] w-full overflow-hidden"
-      aria-label="نمایش سینمایی هوشاگر"
+      aria-label="ویترین زنده هوشاگر"
     >
       {/* ویدیوی تمام‌صفحه */}
       <div className="absolute inset-0">
@@ -90,7 +90,7 @@ export function CinematicVideoSection(): JSX.Element {
         <SectionReveal>
           <p className="lux-kicker lp-kicker-gold mb-4">تجربهٔ بصری</p>
           <h2 className="lux-h2 mx-auto max-w-3xl">
-            سینمای <span className="lp-gradient-text-animated">هوشاگر</span>
+            جهان <span className="lp-gradient-text-animated">هوشاگر</span>
           </h2>
           <p className="lux-body mx-auto mt-5 max-w-xl text-[var(--lux-text-muted)]">
             نگاهی کوتاه به جهانی که آموزش، هوش مصنوعی و مدیریت مدرسه در آن یکی می‌شوند.

@@ -863,6 +863,254 @@
     max-height: 100dvh;
     max-height: 100svh;
   }
+
+  /* ── Landing: live charts, vectors, breathe ── */
+  .lp-page-breathe::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 50% 40% at 20% 30%, rgba(139, 124, 255, 0.07), transparent 60%),
+      radial-gradient(ellipse 45% 35% at 80% 70%, rgba(84, 210, 255, 0.06), transparent 55%);
+    animation: lp-page-breathe 14s ease-in-out infinite;
+  }
+
+  @keyframes lp-page-breathe {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  .lp-live-dot {
+    position: relative;
+    display: inline-block;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: var(--lux-success);
+    box-shadow: 0 0 0 0 rgba(57, 217, 138, 0.45);
+    animation: lp-live-pulse 2.2s ease-out infinite;
+  }
+
+  @keyframes lp-live-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(57, 217, 138, 0.45);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(57, 217, 138, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(57, 217, 138, 0);
+    }
+  }
+
+  .lp-chart-bar {
+    transition: height 0.9s var(--ease-lux);
+    animation: lp-bar-glow 3.6s ease-in-out infinite;
+  }
+
+  @keyframes lp-bar-glow {
+    0%,
+    100% {
+      filter: brightness(1);
+    }
+    50% {
+      filter: brightness(1.12);
+    }
+  }
+
+  .lp-chart-line {
+    stroke-dasharray: 420;
+    stroke-dashoffset: 0;
+    animation: lp-line-draw 2.8s var(--ease-lux) both;
+  }
+
+  @keyframes lp-line-draw {
+    from {
+      stroke-dashoffset: 420;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .lp-chart-area {
+    animation: lp-area-fade 2.4s ease both;
+  }
+
+  @keyframes lp-area-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .lp-chart-dot {
+    animation: lp-dot-breathe 2.8s ease-in-out infinite;
+  }
+
+  @keyframes lp-dot-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.85;
+    }
+    50% {
+      transform: scale(1.25);
+      opacity: 1;
+    }
+  }
+
+  .lp-chart-ring {
+    transition: stroke-dasharray 0.85s var(--ease-lux), stroke-dashoffset 0.85s var(--ease-lux);
+  }
+
+  .lp-breath {
+    animation: lp-breath-card 5.5s ease-in-out infinite;
+  }
+
+  .lp-breath:nth-child(2) {
+    animation-delay: 0.6s;
+  }
+
+  .lp-breath:nth-child(3) {
+    animation-delay: 1.2s;
+  }
+
+  @keyframes lp-breath-card {
+    0%,
+    100% {
+      transform: translateY(0);
+      border-color: rgba(232, 236, 244, 0.08);
+    }
+    50% {
+      transform: translateY(-3px);
+      border-color: rgba(139, 124, 255, 0.22);
+    }
+  }
+
+  .lp-network-path {
+    stroke-dasharray: 8 10;
+    animation: lp-network-flow 10s linear infinite;
+  }
+
+  @keyframes lp-network-flow {
+    to {
+      stroke-dashoffset: -120;
+    }
+  }
+
+  .lp-network-node {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: lp-node-pulse 3.4s ease-in-out infinite;
+  }
+
+  @keyframes lp-node-pulse {
+    0%,
+    100% {
+      opacity: 0.65;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+  }
+
+  .lp-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(48px);
+    opacity: 0.28;
+    animation: lp-orb-drift 16s ease-in-out infinite alternate;
+    will-change: transform, opacity;
+  }
+
+  .lp-orb--a {
+    top: 18%;
+    right: 8%;
+    width: 18rem;
+    height: 18rem;
+    background: radial-gradient(circle, rgba(139, 124, 255, 0.55), transparent 70%);
+  }
+
+  .lp-orb--b {
+    top: 55%;
+    left: 4%;
+    width: 14rem;
+    height: 14rem;
+    background: radial-gradient(circle, rgba(84, 210, 255, 0.45), transparent 70%);
+    animation-delay: -4s;
+  }
+
+  .lp-orb--c {
+    bottom: 12%;
+    right: 28%;
+    width: 12rem;
+    height: 12rem;
+    background: radial-gradient(circle, rgba(255, 77, 166, 0.35), transparent 70%);
+    animation-delay: -8s;
+  }
+
+  @keyframes lp-orb-drift {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+      opacity: 0.2;
+    }
+    100% {
+      transform: translate3d(-24px, 18px, 0) scale(1.08);
+      opacity: 0.34;
+    }
+  }
+
+  .lp-float-vector {
+    position: absolute;
+    opacity: 0.45;
+    animation: lp-vector-float 9s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .lp-float-vector--1 {
+    top: 22%;
+    left: 6%;
+  }
+
+  .lp-float-vector--2 {
+    top: 38%;
+    right: 5%;
+    animation-delay: -2s;
+  }
+
+  .lp-float-vector--3 {
+    bottom: 28%;
+    left: 12%;
+    animation-delay: -4.5s;
+  }
+
+  .lp-float-vector--4 {
+    top: 68%;
+    right: 14%;
+    animation-delay: -1.5s;
+  }
+
+  @keyframes lp-vector-float {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    50% {
+      transform: translate3d(0, -10px, 0) rotate(6deg);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -875,8 +1123,19 @@
   }
 
   .lp-gradient-text-animated,
-  .lp-aurora::before {
-    animation: none;
+  .lp-aurora::before,
+  .lp-page-breathe::before,
+  .lp-live-dot,
+  .lp-chart-bar,
+  .lp-chart-line,
+  .lp-chart-area,
+  .lp-chart-dot,
+  .lp-breath,
+  .lp-network-path,
+  .lp-network-node,
+  .lp-orb,
+  .lp-float-vector {
+    animation: none !important;
   }
 
   .lux-card:hover,

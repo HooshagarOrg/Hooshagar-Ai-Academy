@@ -78,6 +78,19 @@ Workers Proxy
 
 ---
 
+## گام 3.5: Deploy کردن Groq Proxy
+
+### همان مراحل بالا، اما:
+
+- نام Worker: `groq-proxy`
+- کد: از `cloudflare-workers/groq-proxy.js`
+- بدون environment variable (چون Authorization header از سمت کلاینت/سرور عبور می‌کند)
+- Custom Domain (اختیاری): `groq-proxy.hooshagar.com`
+
+**نکته:** این Worker فقط درخواست را از `api.groq.com` به آدرس Worker منتقل می‌کند و هدر `Authorization: Bearer <GROQ_API_KEY>` را دست‌نخورده عبور می‌دهد. کلید API همچنان سمت سرور (`lib/ai/groq-provider.ts`) خوانده می‌شود، نه در کلاینت.
+
+---
+
 ## گام 4: بروزرسانی Frontend
 
 ### A. افزودن Environment Variables
@@ -92,6 +105,7 @@ NEXT_PUBLIC_GEMINI_PROXY=https://gemini-proxy.hooshagar.com
 # یا اگر از Workers URL استفاده می‌کنید:
 NEXT_PUBLIC_SUPABASE_PROXY=https://supabase-proxy.YOUR_SUBDOMAIN.workers.dev
 NEXT_PUBLIC_GEMINI_PROXY=https://gemini-proxy.YOUR_SUBDOMAIN.workers.dev
+NEXT_PUBLIC_GROQ_PROXY=https://groq-proxy.YOUR_SUBDOMAIN.workers.dev
 
 # URL اصلی Supabase (برای fallback)
 NEXT_PUBLIC_SUPABASE_URL=https://qcplgczxdbjsjrorkprm.supabase.co
@@ -278,6 +292,9 @@ wrangler deploy supabase-proxy.js
 
 # Deploy Gemini Proxy
 wrangler deploy gemini-proxy.js
+
+# Deploy Groq Proxy
+wrangler deploy groq-proxy.js
 ```
 
 ### Dashboard (ساده‌تر)

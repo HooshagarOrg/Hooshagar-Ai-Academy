@@ -9,6 +9,9 @@ export default {
   async fetch(request, env) {
     // فقط درخواست‌های از domain خودمان
     const allowedOrigins = [
+      'https://www.hooshagar.ir',
+      'https://hooshagar.ir',
+      'https://hooshagar-project.vercel.app',
       'https://app.hooshagar.com',
       'https://hooshagar.com',
       'http://localhost:3000',

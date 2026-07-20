@@ -13,8 +13,9 @@ const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3002',
-  // production domain خود را اینجا اضافه کنید:
-  // 'https://hooshagar.ir',
+  'https://www.hooshagar.ir',
+  'https://hooshagar.ir',
+  'https://hooshagar-project.vercel.app',
 ]
 
 function corsHeaders(origin) {

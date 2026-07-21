@@ -41,39 +41,6 @@ export interface ControlledSmsResult extends SmsResult {
 
 const DEFAULT_DAILY_LIMIT = 100
 
-/** کلاینت شل برای جداولی که ممکن است در Database types کامل نباشند */
-interface SmsQueryBuilder {
-  select: (
-    columns: string,
-    options?: { count?: 'exact'; head?: boolean }
-  ) => SmsQueryBuilder
-  eq: (column: string, value: string) => SmsQueryBuilder
-  in: (column: string, values: string[]) => SmsQueryBuilder
-  gte: (column: string, value: string) => SmsQueryBuilder
-  filter: (column: string, operator: string, value: string) => SmsQueryBuilder
-  maybeSingle: () => Promise<{ data: { daily_sms_limit?: number } | null; error: { message: string } | null }>
-  then: Promise<{
-    count: number | null
-    error: { message: string } | null
-  }>['then']
-}
-
-interface SmsDbClient {
-  from: (table: string) => {
-    select: (
-      columns: string,
-      options?: { count?: 'exact'; head?: boolean }
-    ) => SmsQueryBuilder
-    insert: (
-      row: Record<string, unknown>
-    ) => Promise<{ error: { message: string } | null }>
-  }
-}
-
-function smsDb(): SmsDbClient {
-  return createServiceClient() as unknown as SmsDbClient
-}
-
 function tehranDayStartIso(): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Tehran',
@@ -84,11 +51,14 @@ function tehranDayStartIso(): string {
   const y = parts.find((p) => p.type === 'year')?.value
   const m = parts.find((p) => p.type === 'month')?.value
   const d = parts.find((p) => p.type === 'day')?.value
+  // تقریبی: نیمه‌شب تهران ≈ 20:30 UTC روز قبل در تابستان؛ برای شمارش روزانه کافی است
   return `${y}-${m}-${d}T00:00:00+03:30`
 }
 
 export async function getSchoolDailySmsLimit(schoolId: string): Promise<number> {
-  const { data } = await smsDb()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = createServiceClient() as any
+  const { data } = await client
     .from('school_sms_settings')
     .select('daily_sms_limit')
     .eq('school_id', schoolId)
@@ -100,28 +70,30 @@ export async function getSchoolDailySmsLimit(schoolId: string): Promise<number> 
 }
 
 export async function countSchoolSmsToday(schoolId: string): Promise<number> {
+  const supabase = createServiceClient()
   const since = tehranDayStartIso()
-  const client = smsDb()
 
-  const primary = await client
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = supabase as any
+
+  const { count, error } = await client
     .from('sms_delivery_log')
     .select('id', { count: 'exact', head: true })
     .eq('school_id', schoolId)
     .in('status', ['sent', 'delivered'])
     .gte('created_at', since)
 
-  if (!primary.error) {
-    return primary.count ?? 0
+  if (error) {
+    const { count: fallbackCount } = await client
+      .from('sms_delivery_log')
+      .select('id', { count: 'exact', head: true })
+      .filter('provider_response->>school_id', 'eq', schoolId)
+      .in('status', ['sent', 'delivered'])
+      .gte('created_at', since)
+    return fallbackCount ?? 0
   }
 
-  const fallback = await client
-    .from('sms_delivery_log')
-    .select('id', { count: 'exact', head: true })
-    .filter('provider_response->>school_id', 'eq', schoolId)
-    .in('status', ['sent', 'delivered'])
-    .gte('created_at', since)
-
-  return fallback.count ?? 0
+  return count ?? 0
 }
 
 export async function getSchoolSmsRemaining(schoolId: string): Promise<{
@@ -146,6 +118,7 @@ export async function logSmsDelivery(params: {
   deliveryTimeMs?: number
 }): Promise<void> {
   try {
+    const supabase = createServiceClient()
     const status = params.result.success ? 'delivered' : 'failed'
     const row: Record<string, unknown> = {
       related_queue_id: params.relatedQueueId ?? null,
@@ -170,7 +143,8 @@ export async function logSmsDelivery(params: {
       row.school_id = params.schoolId
     }
 
-    const { error } = await smsDb().from('sms_delivery_log').insert(row)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).from('sms_delivery_log').insert(row)
     if (error) {
       logger.warn('sms_delivery_log insert failed', {
         context: 'sms-guard',

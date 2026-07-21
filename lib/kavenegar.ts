@@ -68,7 +68,6 @@ export function getKavenegarOtpTemplate(): string {
   )
 }
 
-const DEFAULT_TEMPLATE = getKavenegarOtpTemplate()
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
 const RATE_LIMIT_MAX_ATTEMPTS = 3
 

@@ -65,11 +65,8 @@ async function sendSMS(phoneNumber: string, code: string): Promise<boolean> {
   }
 
   try {
-    // Kavenegar Lookup — تمپلیت از env (پیش‌فرض verify)
-    const templateName =
-      process.env.KAVENEGAR_TEMPLATE_OTP ||
-      process.env.KAVENEGAR_TEMPLATE_NAME ||
-      'verify'
+    const { getKavenegarOtpTemplate } = await import('@/lib/kavenegar')
+    const templateName = getKavenegarOtpTemplate()
     const url = `https://api.kavenegar.com/v1/${apiKey}/verify/lookup.json`
 
     const params = new URLSearchParams({

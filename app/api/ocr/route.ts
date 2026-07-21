@@ -14,7 +14,9 @@ const ALLOWED_IMAGE_DOMAINS = [
   'cdn.arvanstorage.ir',
   'storage.googleapis.com',
   'hooshagar.ir',
+  'www.hooshagar.ir',
   'hooshagar.com',
+  'www.hooshagar.com',
 ]
 
 function isAllowedImageUrl(url: string): boolean {

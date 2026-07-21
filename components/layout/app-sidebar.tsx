@@ -233,10 +233,9 @@ const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'مالی',
       items: [
-        { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: DollarSign },
-        { title: 'ارسال SMS', href: '/financial-vp/sms', icon: MessageSquare },
-        { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: AlertCircle },
-        { title: 'گزارش درآمد', href: '/financial-vp/reports/income', icon: TrendingUp },
+        { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: DollarSign, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: AlertCircle, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'گزارش درآمد', href: '/financial-vp/reports/income', icon: TrendingUp, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
   ],

@@ -12,6 +12,8 @@ interface UnderConstructionProps {
   backHref?: string
   backLabel?: string
   features?: string[]
+  /** برچسب پایلوت روی صفحات نیمه‌کاره */
+  pilotNote?: string
 }
 
 export function UnderConstruction({
@@ -20,11 +22,18 @@ export function UnderConstruction({
   backHref = '/dashboard',
   backLabel = 'بازگشت به داشبورد',
   features,
+  pilotNote = 'پایلوت — به‌زودی',
 }: UnderConstructionProps) {
   return (
     <div dir="rtl" className="flex min-h-[60vh] items-center justify-center px-4">
       <LuxFadeUp>
       <GlassCard className="max-w-md w-full text-center p-8">
+        {pilotNote ? (
+          <p className="mb-4 inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-200">
+            {pilotNote}
+          </p>
+        ) : null}
+
         <div className="relative inline-block mb-6">
           <div className="w-24 h-24 rounded-3xl bg-brand-purple/15 border border-brand-purple/20 flex items-center justify-center mx-auto">
             <Construction className="w-12 h-12 text-brand-purple" />

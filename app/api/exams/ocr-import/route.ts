@@ -215,7 +215,7 @@ async function extractWithOpenRouter(
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://hooshagar.ir',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.hooshagar.ir',
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash:free',

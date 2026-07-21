@@ -58,10 +58,17 @@ export interface RateLimitResult {
 // ============================================
 
 const KAVENEGAR_BASE_URL = 'https://api.kavenegar.com/v1'
-const DEFAULT_TEMPLATE =
-  process.env.KAVENEGAR_TEMPLATE_OTP ||
-  process.env.KAVENEGAR_TEMPLATE_NAME ||
-  'verify'
+
+/** الگوی OTP کاوه‌نگار — از env یا پیش‌فرض verify */
+export function getKavenegarOtpTemplate(): string {
+  return (
+    process.env.KAVENEGAR_TEMPLATE_OTP ||
+    process.env.KAVENEGAR_TEMPLATE_NAME ||
+    'verify'
+  )
+}
+
+const DEFAULT_TEMPLATE = getKavenegarOtpTemplate()
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
 const RATE_LIMIT_MAX_ATTEMPTS = 3
 
@@ -153,7 +160,7 @@ export function formatPhoneNumber(phone: string): string {
 export async function sendOTP(
   phoneNumber: string,
   code: string,
-  template: string = DEFAULT_TEMPLATE
+  template: string = getKavenegarOtpTemplate()
 ): Promise<SendOTPResult> {
   try {
     const API_KEY = process.env.KAVENEGAR_API_KEY
@@ -315,7 +322,7 @@ export async function sendOTPWithTokens(
     token10?: string
     token20?: string
   },
-  template: string = DEFAULT_TEMPLATE
+  template: string = getKavenegarOtpTemplate()
 ): Promise<SendOTPResult> {
   try {
     const API_KEY = process.env.KAVENEGAR_API_KEY

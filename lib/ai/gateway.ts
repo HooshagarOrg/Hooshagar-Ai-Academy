@@ -105,7 +105,7 @@ async function callOpenRouterVision(
         headers: {
           Authorization: `Bearer ${openrouterKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'https://hooshagar.ir',
+          'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.hooshagar.ir',
           'X-Title': 'Hooshagar OCR',
         },
         body: JSON.stringify({

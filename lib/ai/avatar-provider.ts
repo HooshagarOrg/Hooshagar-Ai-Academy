@@ -238,7 +238,7 @@ async function callAvatarOpenRouter(
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.hooshagar.ir',
       'X-Title': 'Hooshagar Hooshiar Avatar',
     },
     body: JSON.stringify({

@@ -4,6 +4,7 @@ import './globals.css'
 import { Toaster } from 'sonner'
 import { CookieConsent } from '@/components/cookie-consent'
 import { ServiceWorkerRegister } from '@/components/service-worker-register'
+import { CANONICAL_APP_ORIGIN } from '@/lib/app-url'
 
 const vazirmatn = localFont({
   src: './fonts/Vazirmatn-Regular.woff2',
@@ -20,7 +21,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://hooshagar.ir'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || CANONICAL_APP_ORIGIN),
   title: 'هوشاگر - سیستم مدیریت هوشمند مدارس',
   description: 'سیستم عامل هوشمند مدیریت مدارس با قدرت هوش مصنوعی',
   keywords: ['مدرسه', 'مدیریت', 'هوش مصنوعی', 'آموزش'],

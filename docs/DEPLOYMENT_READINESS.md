@@ -1,21 +1,22 @@
 # Deployment Readiness — Hooshagar
 
-**تاریخ:** ۱۴۰۵/۰۴/۱۷  
-**وضعیت:** آماده برای پایلوت مدرسه‌ای | نیاز به رفع blockers امنیتی قبل از deploy عمومی
+**تاریخ:** ۱۴۰۵/۰۴/۳۰  
+**وضعیت:** ✅ پایلوت production روی `https://www.hooshagar.ir` | فاز C (سخت‌سازی استقرار) کامل برای مقیاس مدرسه
 
 ---
 
-## ✅ انجام‌شده در این مرحله
+## ✅ فاز C — انجام‌شده
 
 | مورد | وضعیت |
 |------|--------|
-| مسیرهای عمومی middleware (`pricing`, `privacy`, `help`, `activate`, `checkout`, `offline`) | ✅ |
-| صفحات `/forgot-password` و `/reset-password` | ✅ |
-| ناوبری `financial_vp` | ✅ |
-| لینک شکسته مشاور → `/counselor/records` | ✅ |
-| صفحه `change-password` با تم سینمایی | ✅ |
-| لوگوی ۳بعدی صفحه ورود (بدون fetch خارجی HDR) | ✅ |
-| حذف `@react-three/postprocessing` استفاده‌نشده | ✅ |
+| `NEXT_PUBLIC_APP_URL` / `NEXTAUTH_URL` روی Vercel Production | ✅ `https://www.hooshagar.ir` |
+| Upstash Redis برای rate limit توزیع‌شده | ✅ روی Production |
+| Kavenegar + Gemini keys روی Vercel | ✅ |
+| `/api/health` probe | ✅ smoke OK |
+| `metadataBase` هم‌راستا با دامنه canonical | ✅ |
+| `pnpm verify-env` — اعتبارسنجی https + هشدار Upstash | ✅ |
+| `pnpm smoke:prod` — health / login / home | ✅ |
+| پیامک کنترل‌شده (فاز A) + polish دامنه (فاز B) | ✅ |
 
 ---
 
@@ -23,86 +24,58 @@
 
 | دستور | نتیجه | توضیح |
 |-------|--------|--------|
-| `pnpm type-check` | ✅ PASS | ۰ خطای TypeScript |
-| `pnpm lint` | ⚠️ WARN | فقط هشدار (hooks deps، img) — بدون error |
-| `pnpm build` | ✅ PASS | ۲۸۶ صفحه استاتیک؛ warnings مورد انتظار |
-| `pnpm test` | ⏳ | اجرا در صورت نیاز |
-
----
-
-## 📄 صفحات بر اساس نقش
-
-| نقش | صفحات | وضعیت UI |
-|-----|--------|----------|
-| عمومی | لندینگ، pricing، terms، privacy، help، login، register | ✅ سینمایی |
-| دانش‌آموز | ۲۸ صفحه | ✅ اکثراً lux |
-| معلم | ۲۴ صفحه | ⚠️ برخی card-legacy |
-| والد | ۱۴ صفحه | ⚠️ برخی card-legacy |
-| ادمین | ۳۸ صفحه | ⚠️ برخی card-legacy |
-| مشاور | ۷ صفحه | ✅ lux |
-| معاونین/کارکنان | ۳۵ صفحه | 🔶 stub (UnderConstruction) |
+| `pnpm type-check` | ✅ | قبل از هر deploy |
+| `pnpm lint` | ⚠️ WARN | بدون error؛ `ignoreDuringBuilds: false` |
+| `pnpm build` | ✅ | Vercel Production Ready |
+| `pnpm verify-env` | ✅ | با `.env.local` |
+| `pnpm smoke:prod` | ✅ | علیه www |
 
 ---
 
 ## 🚀 چک‌لیست دیپلوی Vercel
 
-### قبل از deploy
-- [ ] متغیرهای env در Vercel Production تنظیم شوند
-- [ ] `NEXT_PUBLIC_APP_URL` = دامنه production
-- [ ] `SUPABASE_SERVICE_ROLE_KEY` فقط server-side
-- [ ] `KAVENEGAR_API_KEY` برای OTP/SMS
-- [ ] `GOOGLE_API_KEY` / `OPENROUTER_API_KEY` برای AI
-- [ ] Migrationهای Supabase اجرا شوند
-- [ ] RLS policies تست شوند
-
-### envهای ضروری
-```
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-JWT_SECRET
-GOOGLE_API_KEY
-KAVENEGAR_API_KEY
-NEXT_PUBLIC_APP_URL
-```
+### Production (فعلی)
+- [x] متغیرهای env در Vercel Production
+- [x] `NEXT_PUBLIC_APP_URL` = `https://www.hooshagar.ir`
+- [x] `SUPABASE_SERVICE_ROLE_KEY` فقط server-side
+- [x] `KAVENEGAR_API_KEY` برای OTP/SMS
+- [x] `GOOGLE_API_KEY_*` برای AI
+- [x] `UPSTASH_REDIS_REST_URL` + `TOKEN`
+- [x] دامنه `www` فعال؛ apex → www
+- [x] GitHub → Vercel auto-deploy روی `master`
 
 ### دستورات pre-deploy
 ```bash
 pnpm type-check
 pnpm lint
 pnpm build
-pnpm verify-env   # بعد از تنظیم env
+pnpm verify-env
+pnpm smoke:prod
 ```
 
----
-
-## 🔴 Blockers امنیتی (قبل از deploy عمومی)
-
-از `PRODUCTION_AUDIT_REPORT.md`:
-
-1. **API routes بدون auth** — health، counseling، specialty-assessments
-2. **Middleware `/api` را exclude می‌کند** — فقط ~۸٪ routeها `withAuth` دارند
-3. **Rate limit در حافظه** — در serverless بی‌اثر؛ نیاز به Redis/KV
-4. **Login response** — بررسی عدم leak credential
-
-> برای **پایلوت مدرسه‌ای محدود** با env امن و دسترسی محدود قابل deploy است.  
-> برای **۵۰k کاربر** نیاز به فاز امنیت و performance دارد.
-
----
-
-## 📋 وضعیت pre-deploy (به‌روز)
-
-| مورد | وضعیت |
-|------|--------|
-| امنیت API + `withAuth` یکپارچه | ✅ health/counseling + admin AI + exams + study-buddy |
-| `/api/health` عمومی برای probe | ✅ |
-| UI lux صفحات فعال | ✅ ~۳۵ صفحه (stubهای VP مستثنی) |
-| `pnpm verify-env` | ✅ |
-| `pnpm type-check` | ✅ |
-| Env در Vercel | ⏳ `vercel login` سپس `scripts/vercel-env-setup.ps1` |
-| Deploy preview | ⏳ `vercel` بعد از env |
-
 راهنما: `docs/VERCEL_ENV.md`
+
+---
+
+## 🔐 امنیت پایلوت (خلاصه)
+
+| موضوع | وضعیت پایلوت |
+|--------|----------------|
+| health/counseling records با `withAuth` | ✅ |
+| `/api/health` عمومی برای uptime | ✅ (عمدی) |
+| Rate limit Upstash در Production | ✅ |
+| Login credential leak در response | ✅ رفع‌شده |
+| Middleware exclude `/api` | ⚠️ پذیرفته برای پایلوت؛ محافظت per-route |
+| مقیاس ۵۰k کاربر | ❌ خارج از محدودهٔ پایلوت |
+
+---
+
+## 📄 صفحات بر اساس نقش
+
+| نقش | وضعیت UI |
+|-----|----------|
+| عمومی / دانش‌آموز / معلم / والد / ادمین / مشاور | ✅ فعال |
+| معاونین/کارکنان | 🔶 stub «پایلوت — به‌زودی» |
 
 ---
 
@@ -116,4 +89,4 @@ pnpm verify-env   # بعد از تنظیم env
 
 ---
 
-*آخرین بروزرسانی: pre-deploy security + UI lux + env tooling*
+*آخرین بروزرسانی: فاز C — production hardening برای پایلوت مدرسه‌ای*

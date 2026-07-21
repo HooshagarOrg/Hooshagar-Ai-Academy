@@ -15,9 +15,9 @@ vercel link
 | `NEXT_PUBLIC_SUPABASE_URL` | Client + Server | URL پروژه Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client + Server | کلید anon |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Server only** | هرگز در client |
-| `NEXT_PUBLIC_APP_URL` | Client | `https://your-domain.ir` |
+| `NEXT_PUBLIC_APP_URL` | Client | **`https://www.hooshagar.ir`** (بدون اسلش انتهایی) |
 | `JWT_SECRET` | Server | رشته تصادفی ۳۲+ کاراکتر |
-| `GOOGLE_API_KEY` | Server | Gemini |
+| `GOOGLE_API_KEY` | Server | Gemini (یا `GOOGLE_API_KEY_1..10`) |
 | `KAVENEGAR_API_KEY` | Server | SMS/OTP |
 | `KAVENEGAR_SENDER` | Server | شماره فرستنده |
 
@@ -26,7 +26,7 @@ vercel link
 | متغیر | توضیح |
 |-------|--------|
 | `OPENROUTER_API_KEY` | Fallback AI |
-| `UPSTASH_REDIS_REST_URL` | Rate limit در serverless |
+| `UPSTASH_REDIS_REST_URL` | Rate limit در serverless (**روی Production تنظیم شده**) |
 | `UPSTASH_REDIS_REST_TOKEN` | Rate limit |
 | `ZARINPAL_MERCHANT_ID` | پرداخت |
 
@@ -51,4 +51,5 @@ vercel --prod   # production
 
 ```bash
 pnpm verify-env
+pnpm smoke:prod   # health + login + home روی www
 ```

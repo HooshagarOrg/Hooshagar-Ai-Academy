@@ -36,6 +36,17 @@ const memoryStore = new LRUCache<string, WindowEntry>({
 
 let redisClient: Redis | null | undefined
 const distributedLimiters = new Map<string, Ratelimit>()
+let warnedMemoryFallback = false
+
+function warnMemoryFallbackOnce(): void {
+  if (warnedMemoryFallback) return
+  warnedMemoryFallback = true
+  if (process.env.NODE_ENV === 'production') {
+    console.warn(
+      '[rate-limiter] Upstash/KV not configured — using in-memory fallback (weak on serverless)'
+    )
+  }
+}
 
 function getRedisClient(): Redis | null {
   if (redisClient !== undefined) return redisClient
@@ -191,6 +202,7 @@ export async function checkRateLimitForRequest(
   const distributed = await checkDistributedRateLimit(key, scope, config)
   if (distributed) return distributed
 
+  warnMemoryFallbackOnce()
   return checkMemoryRateLimit(key, config)
 }
 

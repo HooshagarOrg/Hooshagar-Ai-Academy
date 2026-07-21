@@ -126,7 +126,7 @@ async function callOpenRouter(
     headers: {
       'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://hooshagar.com',
+      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.hooshagar.ir',
       'X-Title': 'هوشاگر',
     },
     body: JSON.stringify({

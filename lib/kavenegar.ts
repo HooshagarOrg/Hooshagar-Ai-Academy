@@ -58,7 +58,10 @@ export interface RateLimitResult {
 // ============================================
 
 const KAVENEGAR_BASE_URL = 'https://api.kavenegar.com/v1'
-const DEFAULT_TEMPLATE = 'hooshagar-verify'
+const DEFAULT_TEMPLATE =
+  process.env.KAVENEGAR_TEMPLATE_OTP ||
+  process.env.KAVENEGAR_TEMPLATE_NAME ||
+  'verify'
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
 const RATE_LIMIT_MAX_ATTEMPTS = 3
 

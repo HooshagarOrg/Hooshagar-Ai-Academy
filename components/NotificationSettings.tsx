@@ -173,7 +173,7 @@ export function NotificationSettings() {
                 <p className="mt-1">
                   وضعیت آموزشی و رفتاری علی در سامانه هوشگر بررسی شده است.
                 </p>
-                <p className="mt-1">جزئیات: hooshagar.com</p>
+                <p className="mt-1">جزئیات: www.hooshagar.ir</p>
               </div>
             </div>
 

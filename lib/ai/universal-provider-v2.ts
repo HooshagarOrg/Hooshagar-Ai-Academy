@@ -311,7 +311,7 @@ async function callOpenRouter(params: {
     headers: {
       'Authorization': `Bearer ${params.apiKey}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://hooshagar.com',
+      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.hooshagar.ir',
       'X-Title': 'Hooshagar AI Platform'
     },
     body: JSON.stringify({

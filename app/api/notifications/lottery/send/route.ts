@@ -111,13 +111,14 @@ export async function POST(req: NextRequest) {
       const studentName = `${student.first_name} ${student.last_name}`
       let smsText = ''
 
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hooshagar.ir'
       if (result.status === 'accepted') {
         const className = asOne(result.classes)?.name || 'کلاس مشخص نشده'
-        smsText = `🎉 نتیجه قرعه‌کشی\n${studentName} در کلاس ${className} پذیرفته شد.\nمشاهده: hooshagar.com`
+        smsText = `نتیجه قرعه‌کشی\n${studentName} در کلاس ${className} پذیرفته شد.\nمشاهده: ${appUrl}`
       } else if (result.status === 'waitlist') {
-        smsText = `⏳ نتیجه قرعه‌کشی\n${studentName} در لیست انتظار قرار گرفت.\nمشاهده: hooshagar.com`
+        smsText = `نتیجه قرعه‌کشی\n${studentName} در لیست انتظار قرار گرفت.\nمشاهده: ${appUrl}`
       } else {
-        smsText = `📋 نتیجه قرعه‌کشی\nمتأسفانه ${studentName} در این دوره پذیرفته نشد.\nاطلاعات بیشتر: hooshagar.com`
+        smsText = `نتیجه قرعه‌کشی\nمتأسفانه ${studentName} در این دوره پذیرفته نشد.\nاطلاعات بیشتر: ${appUrl}`
       }
 
       // Queue SMS (send immediately)

@@ -116,7 +116,7 @@ export default function HelpPage() {
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {[
-              { icon: Mail, label: 'ایمیل', value: 'support@hooshagar.com', href: 'mailto:support@hooshagar.com' },
+              { icon: Mail, label: 'ایمیل', value: 'support@hooshagar.ir', href: 'mailto:support@hooshagar.ir' },
               { icon: Phone, label: 'تلفن', value: '021-8888-8888', href: 'tel:02188888888' },
               { icon: MessageCircle, label: 'تلگرام', value: '@hooshagar_support', href: 'https://t.me/hooshagar_support' },
             ].map((c) => (

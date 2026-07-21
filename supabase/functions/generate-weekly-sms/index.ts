@@ -238,15 +238,15 @@ function determineTone(data: any): string {
 
 function generateSMSText(studentName: string, tone: string): string {
   if (tone === 'attention') {
-    return `⚠️ اطلاع‌رسانی آموزشی\nبررسی‌های این هفته نشان می‌دهد ${studentName} نیازمند توجه بیشتر است.\nجزئیات: hooshagar.com`
+    return `اطلاع‌رسانی آموزشی\nبررسی‌های این هفته نشان می‌دهد ${studentName} نیازمند توجه بیشتر است.\nجزئیات: https://www.hooshagar.ir`
   }
 
   if (tone === 'positive') {
-    return `✅ گزارش هفتگی\nروند وضعیت آموزشی ${studentName} این هفته رضایت‌بخش گزارش شده است.\nمشاهده: hooshagar.com`
+    return `گزارش هفتگی\nروند وضعیت آموزشی ${studentName} این هفته رضایت‌بخش گزارش شده است.\nمشاهده: https://www.hooshagar.ir`
   }
 
   // Normal
-  return `📊 گزارش هفتگی\nوضعیت آموزشی و رفتاری ${studentName} در سامانه هوشگر بررسی شده است.\nجزئیات: hooshagar.com`
+  return `گزارش هفتگی\nوضعیت آموزشی و رفتاری ${studentName} در سامانه هوشاگر بررسی شده است.\nجزئیات: https://www.hooshagar.ir`
 }
 
 // Date helpers (Iranian week: Saturday to Friday)

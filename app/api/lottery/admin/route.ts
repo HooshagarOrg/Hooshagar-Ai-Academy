@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { sendSmsBatch, createSmsProvider } from '@/lib/sms/provider'
+import { sendControlledSmsBatch } from '@/lib/sms/controlled-send'
 import { withAuth } from '@/lib/security/api-guard'
 import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
 
@@ -318,14 +318,21 @@ export async function PATCH(request: NextRequest) {
             )
           }
 
-          // ── ارسال SMS به والدین / دانش‌آموزان ─────────────────────
+          // ── ارسال SMS به والدین / دانش‌آموزان (با سقف روزانه) ─────
           try {
+            const { data: lotteryMeta } = await supabase
+              .from('lottery_settings')
+              .select('school_id')
+              .eq('id', id)
+              .maybeSingle()
+
             const { data: results } = await supabase
               .from('lottery_results')
               .select(`
                 status, assignment_type,
                 students!inner(
                   full_name,
+                  school_id,
                   profiles!inner(phone)
                 ),
                 lottery_classes(class_name, teacher_name)
@@ -335,22 +342,35 @@ export async function PATCH(request: NextRequest) {
               .not('students.profiles.phone', 'is', null)
 
             if (results?.length) {
-              const provider = createSmsProvider()
               type LotterySmsRow = {
                 status: string
-                students?: { full_name?: string; profiles?: { phone?: string } } | null
+                students?: {
+                  full_name?: string
+                  school_id?: string
+                  profiles?: { phone?: string }
+                } | null
                 lottery_classes?: { class_name?: string; teacher_name?: string } | null
               }
-              const messages = (results as LotterySmsRow[]).map((r) => {
-                const name  = r.students?.full_name ?? ''
-                const phone = r.students?.profiles?.phone ?? ''
-                const cls   = r.lottery_classes
-                const text  = r.status === 'assigned'
-                  ? `هوشاگر: ${name} عزیز، در قرعه‌کشی کلاس ${cls?.class_name ?? ''} (${cls?.teacher_name ?? ''}) پذیرفته شدید.`
-                  : `هوشاگر: ${name} عزیز، متأسفانه در قرعه‌کشی انتخاب نشدید. با مدرسه تماس بگیرید.`
-                return { to: phone, text }
-              }).filter(m => m.to)
-              await sendSmsBatch(provider, messages)
+              const schoolId =
+                lotteryMeta?.school_id ??
+                (results[0] as LotterySmsRow)?.students?.school_id ??
+                null
+              const messages = (results as LotterySmsRow[])
+                .map((r) => {
+                  const name = r.students?.full_name ?? ''
+                  const phone = r.students?.profiles?.phone ?? ''
+                  const cls = r.lottery_classes
+                  const text =
+                    r.status === 'assigned'
+                      ? `هوشاگر: ${name} عزیز، در قرعه‌کشی کلاس ${cls?.class_name ?? ''} (${cls?.teacher_name ?? ''}) پذیرفته شدید.`
+                      : `هوشاگر: ${name} عزیز، متأسفانه در قرعه‌کشی انتخاب نشدید. با مدرسه تماس بگیرید.`
+                  return { to: phone, text }
+                })
+                .filter((m) => m.to)
+              await sendControlledSmsBatch(messages, {
+                schoolId,
+                smsType: 'lottery',
+              })
             }
           } catch (smsErr) {
             console.error('SMS send error (non-fatal):', smsErr)

@@ -57,7 +57,11 @@ serve(async (req) => {
         profiles!parent_id (
           id,
           phone,
-          full_name
+          full_name,
+          school_id
+        ),
+        students!student_id (
+          school_id
         )
       `)
       .eq('status', 'pending')
@@ -70,9 +74,46 @@ serve(async (req) => {
 
     let sent = 0
     let failed = 0
+    let blockedByCap = 0
+
+    // سقف روزانه به‌ازای مدرسه (پیش‌فرض ۱۰۰)
+    const DEFAULT_DAILY_LIMIT = 100
+    const usedBySchool = new Map()
+    const limitBySchool = new Map()
+
+    async function getRemaining(schoolId) {
+      if (!schoolId) return DEFAULT_DAILY_LIMIT
+      if (!limitBySchool.has(schoolId)) {
+        const { data: settings } = await supabase
+          .from('school_sms_settings')
+          .select('daily_sms_limit')
+          .eq('school_id', schoolId)
+          .maybeSingle()
+        limitBySchool.set(
+          schoolId,
+          settings?.daily_sms_limit > 0 ? settings.daily_sms_limit : DEFAULT_DAILY_LIMIT
+        )
+      }
+      if (!usedBySchool.has(schoolId)) {
+        const dayStart = new Date(
+          now.toLocaleString('en-US', { timeZone: 'Asia/Tehran' })
+        )
+        dayStart.setHours(0, 0, 0, 0)
+        const { count } = await supabase
+          .from('sms_delivery_log')
+          .select('id', { count: 'exact', head: true })
+          .eq('school_id', schoolId)
+          .in('status', ['sent', 'delivered'])
+          .gte('created_at', dayStart.toISOString())
+        usedBySchool.set(schoolId, count || 0)
+      }
+      return Math.max(0, limitBySchool.get(schoolId) - usedBySchool.get(schoolId))
+    }
 
     for (const sms of smsQueue || []) {
       const startTime = Date.now()
+      const schoolId =
+        sms.students?.school_id || sms.profiles?.school_id || null
 
       // Update to sending
       await supabase
@@ -85,6 +126,20 @@ serve(async (req) => {
 
         if (!phoneNumber) {
           throw new Error('Phone number not found')
+        }
+
+        const remaining = await getRemaining(schoolId)
+        if (remaining <= 0) {
+          await supabase
+            .from('weekly_sms_queue')
+            .update({
+              status: 'pending',
+              error_message: 'daily_sms_limit_reached',
+            })
+            .eq('id', sms.id)
+          blockedByCap++
+          console.warn(`⏸ Cap reached for school ${schoolId}, skipping ${sms.id}`)
+          continue
         }
 
         // Send via Kavenegar
@@ -130,10 +185,11 @@ serve(async (req) => {
               sms_text: sms.sms_text,
               sms_type: `weekly_${sms.sms_tone}`,
               provider_name: 'kavenegar',
-              provider_response: result,
+              provider_response: { ...result, school_id: schoolId },
               delivery_time_ms: deliveryTime,
               cost: entry.cost || 0,
-              status: 'delivered'
+              status: 'delivered',
+              school_id: schoolId,
             })
 
           // Update preferences stats
@@ -141,12 +197,15 @@ serve(async (req) => {
             p_user_id: sms.parent_id
           })
 
+          if (schoolId) {
+            usedBySchool.set(schoolId, (usedBySchool.get(schoolId) || 0) + 1)
+          }
           sent++
           console.log(`✅ SMS sent to ${phoneNumber} (${deliveryTime}ms)`)
         } else {
           throw new Error(result.return?.message || 'Unknown Kavenegar error')
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error(`❌ Failed to send SMS ${sms.id}:`, error.message)
 
         // Update to failed or retry
@@ -169,12 +228,14 @@ serve(async (req) => {
             related_queue_id: sms.id,
             related_queue_type: 'weekly',
             user_id: sms.parent_id,
-            phone_number: sms.profiles.phone || 'unknown',
+            phone_number: sms.profiles?.phone || 'unknown',
             sms_text: sms.sms_text,
             sms_type: `weekly_${sms.sms_tone}`,
             provider_name: 'kavenegar',
             status: 'failed',
-            error_message: error.message
+            error_message: error.message,
+            school_id: schoolId,
+            provider_response: { school_id: schoolId },
           })
 
         failed++
@@ -184,13 +245,14 @@ serve(async (req) => {
       await new Promise(resolve => setTimeout(resolve, 1000))
     }
 
-    console.log(`✅ Sent: ${sent}, Failed: ${failed}`)
+    console.log(`✅ Sent: ${sent}, Failed: ${failed}, CapBlocked: ${blockedByCap}`)
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         sent, 
         failed,
+        blocked_by_cap: blockedByCap,
         office_hour: currentHour
       }),
       { headers: { 'Content-Type': 'application/json' } }

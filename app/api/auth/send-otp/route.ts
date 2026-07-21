@@ -292,8 +292,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       const sent = await sendSMS(phoneNumber, otpCode)
 
       if (!sent) {
-        // حتی اگر ارسال ناموفق بود، کد ذخیره شده
-        // می‌توانید تصمیم بگیرید که خطا برگردانید یا نه
         console.error(`Failed to send SMS to ${phoneNumber}`)
         return NextResponse.json(
           {
@@ -303,6 +301,26 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
           },
           { status: 500 }
         )
+      }
+
+      // لاگ OTP (بدون سقف روزانه مدرسه)
+      try {
+        const { logSmsDelivery } = await import('@/lib/sms/controlled-send')
+        const { data: profileByPhone } = await supabase
+          .from('profiles')
+          .select('id, school_id')
+          .eq('phone', phoneNumber)
+          .maybeSingle()
+        await logSmsDelivery({
+          schoolId: profileByPhone?.school_id ?? null,
+          userId: profileByPhone?.id ?? null,
+          phone: phoneNumber,
+          text: `[OTP ${purpose}]`,
+          smsType: 'otp',
+          result: { success: true, provider: 'kavenegar', cost: 0 },
+        })
+      } catch (logErr) {
+        console.warn('OTP SMS log skipped:', logErr)
       }
     }
 

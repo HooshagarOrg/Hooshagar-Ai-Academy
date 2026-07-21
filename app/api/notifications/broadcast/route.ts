@@ -16,7 +16,8 @@ const BroadcastSchema = z.object({
   target_role: z.enum(['parent', 'teacher', 'all']),
   target_grade: z.number().int().min(1).max(12).optional(),
   target_class_id: z.string().uuid().optional(),
-  send_sms: z.boolean().default(true),
+  /** فاز A: پیامک برودکست غیرفعال — فقط اعلان داخل‌برنامه */
+  send_sms: z.boolean().default(false),
   scheduled_at: z.string().datetime().optional()
 })
 
@@ -59,11 +60,20 @@ export async function POST(req: NextRequest) {
     }
 
     const data = validated.data
+    // فاز A: هرگز پیامک برودکست صف/ارسال نشود
+    const sendSms = false
+    if (validated.data.send_sms) {
+      logger.info('Broadcast SMS requested but disabled in phase A', {
+        context: 'notification-broadcast',
+        admin_id: user.id,
+      })
+    }
 
     logger.info('Creating broadcast message', {
       context: 'notification-broadcast',
       admin_id: user.id,
-      target_role: data.target_role
+      target_role: data.target_role,
+      send_sms: sendSms,
     })
 
     // Create broadcast record
@@ -140,12 +150,12 @@ export async function POST(req: NextRequest) {
       count: recipients?.length || 0
     })
 
-    // Insert recipients
+    // Insert recipients (فقط برای اعلان داخلی — SMS صف نمی‌شود)
     const recipientRecords = (recipients || []).map(recipient => ({
       broadcast_id: broadcast.id,
       user_id: recipient.id,
       phone_number: recipient.phone,
-      status: 'pending'
+      status: 'cancelled',
     }))
 
     if (recipientRecords.length > 0) {
@@ -184,7 +194,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       broadcast_id: broadcast.id,
-      recipients: recipientRecords.length
+      recipients: recipientRecords.length,
+      sms_enabled: false,
+      message: 'اعلان داخل برنامه ارسال شد. پیامک گروهی فعلاً غیرفعال است.',
     })
 
   } catch (error: any) {

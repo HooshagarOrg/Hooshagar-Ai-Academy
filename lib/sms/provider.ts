@@ -263,36 +263,36 @@ export async function sendSmsBatch(
 // SMS Templates
 // ========================================
 
+const APP_LINK = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hooshagar.ir'
+
 export const SmsTemplates = {
   // گزارش هفتگی
   weeklyNormal: (studentName: string) =>
-    `📊 گزارش هفتگی\nوضعیت آموزشی و رفتاری ${studentName} در سامانه هوشگر بررسی شده است.\nجزئیات: hooshagar.com`,
+    `گزارش هفتگی\nوضعیت آموزشی و رفتاری ${studentName} در سامانه هوشاگر بررسی شده است.\nجزئیات: ${APP_LINK}`,
 
   weeklyPositive: (studentName: string) =>
-    `✅ گزارش هفتگی\nروند وضعیت آموزشی ${studentName} این هفته رضایت‌بخش گزارش شده است.\nمشاهده: hooshagar.com`,
+    `گزارش هفتگی\nروند وضعیت آموزشی ${studentName} این هفته رضایت‌بخش گزارش شده است.\nمشاهده: ${APP_LINK}`,
 
   weeklyAttention: (studentName: string) =>
-    `⚠️ اطلاع‌رسانی آموزشی\nبررسی‌های این هفته نشان می‌دهد ${studentName} نیازمند توجه بیشتر است.\nجزئیات: hooshagar.com`,
+    `اطلاع‌رسانی آموزشی\nبررسی‌های این هفته نشان می‌دهد ${studentName} نیازمند توجه بیشتر است.\nجزئیات: ${APP_LINK}`,
 
   // قرعه‌کشی
   lotteryAccepted: (studentName: string, className: string) =>
-    `🎉 نتیجه قرعه‌کشی\n${studentName} در کلاس ${className} پذیرفته شد.\nمشاهده: hooshagar.com`,
+    `نتیجه قرعه‌کشی\n${studentName} در کلاس ${className} پذیرفته شد.\nمشاهده: ${APP_LINK}`,
 
   lotteryRejected: (studentName: string) =>
-    `📋 نتیجه قرعه‌کشی\nمتأسفانه ${studentName} در این دوره پذیرفته نشد.\nاطلاعات بیشتر: hooshagar.com`,
+    `نتیجه قرعه‌کشی\nمتأسفانه ${studentName} در این دوره پذیرفته نشد.\nاطلاعات بیشتر: ${APP_LINK}`,
 
   lotteryWaitlist: (studentName: string) =>
-    `⏳ نتیجه قرعه‌کشی\n${studentName} در لیست انتظار قرار گرفت.\nمشاهده: hooshagar.com`,
+    `نتیجه قرعه‌کشی\n${studentName} در لیست انتظار قرار گرفت.\nمشاهده: ${APP_LINK}`,
 
-  // مالی
+  // مالی (فعلاً ارسال خاموش — فقط برای آینده)
   debtReminder: (studentName: string, amount: number, dueDate: string) =>
-    `💰 یادآوری پرداخت\nبدهی ${studentName}: ${amount.toLocaleString('fa-IR')} تومان\nمهلت: ${dueDate}\nپرداخت: hooshagar.com`,
+    `یادآوری پرداخت\nبدهی ${studentName}: ${amount.toLocaleString('fa-IR')} تومان\nمهلت: ${dueDate}\nپرداخت: ${APP_LINK}`,
 
   thankYou: (studentName: string) =>
-    `🙏 تشکر از شما\nپرداخت شهریه ${studentName} با موفقیت انجام شد.\nسپاسگزاریم.\nhooshagar.com`,
+    `تشکر از شما\nپرداخت شهریه ${studentName} با موفقیت انجام شد.\nسپاسگزاریم.\n${APP_LINK}`,
 
-  // اطلاع‌رسانی موردی (custom از ادمین می‌آید)
-  customBroadcast: (message: string) =>
-    `${message}\n\nhooshagar.com`
+  customBroadcast: (message: string) => `${message}\n\n${APP_LINK}`,
 }
 

@@ -24,7 +24,7 @@ export default function AdminBroadcastPage() {
     message: '',
     target_role: 'parent',
     target_grade: '',
-    send_sms: true
+    send_sms: false,
   })
 
   async function handleSubmit(e: React.FormEvent) {
@@ -37,6 +37,7 @@ export default function AdminBroadcastPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          send_sms: false,
           target_grade: formData.target_grade ? parseInt(formData.target_grade) : undefined
         })
       })
@@ -44,13 +45,16 @@ export default function AdminBroadcastPage() {
       const data = await res.json()
 
       if (res.ok) {
-        toast.success(`پیام به ${data.recipients} نفر ارسال شد`)
+        toast.success(
+          data.message ||
+            `اعلان داخل برنامه برای ${data.recipients} نفر ثبت شد (پیامک گروهی فعلاً خاموش است)`
+        )
         setFormData({
           title: '',
           message: '',
           target_role: 'parent',
           target_grade: '',
-          send_sms: true
+          send_sms: false,
         })
       } else {
         toast.error(data.error || 'خطا در ارسال پیام')
@@ -70,7 +74,7 @@ export default function AdminBroadcastPage() {
           ارسال پیام گروهی
         </span>
       }
-      description="ارسال اطلاع‌رسانی موردی به کاربران (پیامک + اعلان داخلی)"
+      description="ارسال اطلاع‌رسانی موردی به کاربران (فعلاً فقط اعلان داخلی — پیامک گروهی خاموش است)"
       className="max-w-2xl"
     >
       <DashboardSectionBlock>
@@ -151,27 +155,24 @@ export default function AdminBroadcastPage() {
               </div>
             )}
 
-            {/* Send SMS */}
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <input
-                type="checkbox"
-                id="send_sms"
-                checked={formData.send_sms}
-                onChange={e => setFormData(prev => ({ ...prev, send_sms: e.target.checked }))}
-                className="rounded border-gray-300"
-              />
-              <Label htmlFor="send_sms" className="font-vazir cursor-pointer">
-                ارسال پیامک (علاوه بر اعلان داخلی)
-              </Label>
+            {/* فاز A: پیامک گروهی خاموش */}
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">
+              <p className="font-medium">پیامک گروهی فعلاً غیرفعال است</p>
+              <p className="mt-1 text-amber-200/90">
+                فقط اعلان داخل برنامه ارسال می‌شود. برای کنترل هزینه، SMS برودکست تا تکمیل
+                سقف روزانه و لاگ هزینه خاموش مانده است.
+              </p>
             </div>
 
             {/* Preview */}
             <div className="rounded-xl border border-[var(--lux-secondary)]/30 bg-[var(--lux-secondary)]/10 p-4">
-              <p className="mb-2 text-sm font-medium text-[var(--lux-text)]">👁️ پیش‌نمایش پیامک:</p>
+              <p className="mb-2 text-sm font-medium text-[var(--lux-text)]">پیش‌نمایش اعلان:</p>
               <div className="rounded-lg border-r-4 border-[var(--lux-secondary)] bg-white/[0.04] p-3 text-sm text-[var(--lux-text)]">
                 <p className="font-bold">{formData.title || '[عنوان]'}</p>
                 <p className="mt-1">{formData.message || '[متن پیام]'}</p>
-                <p className="mt-2 text-[var(--lux-text-muted)]">hooshagar.com</p>
+                <p className="mt-2 text-[var(--lux-text-muted)]">
+                  {process.env.NEXT_PUBLIC_APP_URL || 'https://www.hooshagar.ir'}
+                </p>
               </div>
             </div>
 

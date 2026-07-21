@@ -58,7 +58,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         )
       }
 
-      const limit = await checkAvatarDailyLimit(authCtx.userId, supabase)
+      const limit = await checkAvatarDailyLimit(authCtx.userId, supabase, ctx.role)
       const history = await loadAvatarChatHistory(authCtx.userId, supabase)
 
       return NextResponse.json({
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           )
         }
 
-        const beforeLimit = await checkAvatarDailyLimit(authCtx.userId, supabase)
+        const beforeLimit = await checkAvatarDailyLimit(authCtx.userId, supabase, ctx.role)
 
         const body = await request.json()
         const parsed = chatSchema.safeParse(body)
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           )
         }
 
-        const reserved = await reserveAvatarAIMessage(authCtx.userId, supabase)
+        const reserved = await reserveAvatarAIMessage(authCtx.userId, supabase, ctx.role)
         if (!reserved.allowed) {
           return NextResponse.json(
             {

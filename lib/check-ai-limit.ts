@@ -1,14 +1,9 @@
 /**
  * =====================================================
  * سیستم بررسی و مدیریت محدودیت‌های AI
+ * پیش‌فرض‌های UI = سقف دانش‌آموز (نقش‌محور واقعی در DB / migration 137)
  * =====================================================
  */
-
-// import { createServerClient } from '@/lib/supabase-server'
-
-// ============================================
-// تایپ‌ها
-// ============================================
 
 export interface AIUsageLimit {
   allowed: boolean
@@ -44,41 +39,16 @@ export interface FeatureInfo {
   isEnabled: boolean
 }
 
-// ============================================
-// لیست قابلیت‌های AI
-// ============================================
-
+/** پیش‌فرض نمایشی — سقف واقعی از ai_usage_limits (نقش‌محور) خوانده می‌شود */
 export const AI_FEATURES: Record<string, FeatureInfo> = {
-  story_wizard: {
-    name: 'story_wizard',
-    label: 'تولید داستان',
-    icon: '📖',
-    description: 'تولید داستان‌های خلاقانه با هوش مصنوعی',
-    dailyLimit: 3,
-    weeklyLimit: 15,
-    monthlyLimit: 50,
-    creditCost: 5,
-    isEnabled: true,
-  },
-  student_analyzer: {
-    name: 'student_analyzer',
-    label: 'تحلیل دانش‌آموز',
-    icon: '👤',
-    description: 'تحلیل عملکرد و پیشرفت دانش‌آموز',
-    dailyLimit: 5,
-    weeklyLimit: 25,
-    monthlyLimit: 100,
-    creditCost: 10,
-    isEnabled: true,
-  },
   ocr_solver: {
     name: 'ocr_solver',
-    label: 'حل مسئله با OCR',
+    label: 'حل مسئله با عکس',
     icon: '📸',
-    description: 'تشخیص متن و حل مسئله از تصویر',
-    dailyLimit: 10,
-    weeklyLimit: 50,
-    monthlyLimit: 200,
+    description: 'عکس از مسئله می‌گیرد و راه‌حل می‌دهد',
+    dailyLimit: 2,
+    weeklyLimit: 10,
+    monthlyLimit: 30,
     creditCost: 3,
     isEnabled: true,
   },
@@ -86,21 +56,54 @@ export const AI_FEATURES: Record<string, FeatureInfo> = {
     name: 'study_buddy',
     label: 'دستیار مطالعه',
     icon: '💬',
-    description: 'چت‌بات هوشمند برای کمک در مطالعه',
-    dailyLimit: 20,
-    weeklyLimit: 100,
-    monthlyLimit: 400,
+    description: 'چت درسی برای سوال و توضیح مطالب',
+    dailyLimit: 5,
+    weeklyLimit: 25,
+    monthlyLimit: 80,
     creditCost: 2,
+    isEnabled: true,
+  },
+  story_wizard: {
+    name: 'story_wizard',
+    label: 'جادوگر داستان',
+    icon: '📖',
+    description: 'ساخت داستان آموزشی/خلاقانه',
+    dailyLimit: 1,
+    weeklyLimit: 5,
+    monthlyLimit: 15,
+    creditCost: 5,
+    isEnabled: true,
+  },
+  practice_playground: {
+    name: 'practice_playground',
+    label: 'تمرین هوشمند',
+    icon: '🎮',
+    description: 'تمرین تعاملی درسی با کمک AI',
+    dailyLimit: 3,
+    weeklyLimit: 15,
+    monthlyLimit: 40,
+    creditCost: 5,
+    isEnabled: true,
+  },
+  student_analyzer: {
+    name: 'student_analyzer',
+    label: 'تحلیل دانش‌آموز',
+    icon: '👤',
+    description: 'تحلیل عملکرد، نقاط قوت/ضعف و پیشنهاد',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 0,
+    creditCost: 10,
     isEnabled: true,
   },
   content_creator: {
     name: 'content_creator',
     label: 'تولید محتوا',
     icon: '✍️',
-    description: 'تولید محتوای آموزشی',
-    dailyLimit: 5,
-    weeklyLimit: 20,
-    monthlyLimit: 80,
+    description: 'ساخت متن/محتوای آموزشی برای کلاس',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 0,
     creditCost: 15,
     isEnabled: true,
   },
@@ -108,54 +111,43 @@ export const AI_FEATURES: Record<string, FeatureInfo> = {
     name: 'exam_generator',
     label: 'تولید آزمون',
     icon: '📝',
-    description: 'تولید خودکار سوالات آزمون',
-    dailyLimit: 3,
-    weeklyLimit: 10,
-    monthlyLimit: 30,
+    description: 'ساخت سوال و آزمون خودکار',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 0,
     creditCost: 20,
     isEnabled: true,
   },
-  future_compass: {
-    name: 'future_compass',
-    label: 'راهنمای آینده',
-    icon: '🧭',
-    description: 'تحلیل استعدادها و مشاوره شغلی',
-    dailyLimit: 2,
-    weeklyLimit: 8,
-    monthlyLimit: 20,
-    creditCost: 25,
+  oral_questions: {
+    name: 'oral_questions',
+    label: 'سوالات شفاهی',
+    icon: '🎤',
+    description: 'تولید سوال شفاهی از متن درس',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 0,
+    creditCost: 8,
     isEnabled: true,
   },
-  practice_playground: {
-    name: 'practice_playground',
-    label: 'تمرین هوشمند',
-    icon: '🎮',
-    description: 'تمرین‌های تعاملی',
-    dailyLimit: 10,
-    weeklyLimit: 50,
-    monthlyLimit: 150,
+  homework_evaluator: {
+    name: 'homework_evaluator',
+    label: 'تصحیح تشریحی',
+    icon: '📝',
+    description: 'نمره‌دهی و بازخورد پاسخ‌های تشریحی',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 0,
     creditCost: 5,
-    isEnabled: true,
-  },
-  konkur_roadmap: {
-    name: 'konkur_roadmap',
-    label: 'نقشه راه کنکور',
-    icon: '🎯',
-    description: 'برنامه‌ریزی هوشمند کنکور',
-    dailyLimit: 2,
-    weeklyLimit: 6,
-    monthlyLimit: 15,
-    creditCost: 30,
     isEnabled: true,
   },
   parent_message: {
     name: 'parent_message',
     label: 'پیام به والدین',
     icon: '✉️',
-    description: 'تولید پیام حرفه‌ای برای والدین',
-    dailyLimit: 3,
-    weeklyLimit: 15,
-    monthlyLimit: 50,
+    description: 'نوشتن پیام حرفه‌ای برای والدین',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 0,
     creditCost: 10,
     isEnabled: true,
   },
@@ -163,64 +155,103 @@ export const AI_FEATURES: Record<string, FeatureInfo> = {
     name: 'weekly_report',
     label: 'گزارش هفتگی',
     icon: '📊',
-    description: 'تولید گزارش هفتگی خودکار',
-    dailyLimit: 1,
-    weeklyLimit: 4,
-    monthlyLimit: 12,
+    description: 'خلاصه وضعیت هفتگی دانش‌آموز',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 0,
     creditCost: 15,
+    isEnabled: true,
+  },
+  ai_insights: {
+    name: 'ai_insights',
+    label: 'تحلیل هوشمند گزارش',
+    icon: '💡',
+    description: 'بینش AI روی گزارش والدین',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 1,
+    creditCost: 15,
+    isEnabled: true,
+  },
+  annual_report: {
+    name: 'annual_report',
+    label: 'گزارش سالانه',
+    icon: '📅',
+    description: 'روایت/تحلیل روند تحصیلی یک سال',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 0,
+    creditCost: 20,
     isEnabled: true,
   },
   early_warning: {
     name: 'early_warning',
     label: 'هشدار زودهنگام',
     icon: '⚠️',
-    description: 'شناسایی مشکلات پیش از وقوع',
-    dailyLimit: 5,
-    weeklyLimit: 20,
-    monthlyLimit: 80,
+    description: 'هشدار افت تحصیلی قبل از جدی شدن',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 0,
     creditCost: 8,
     isEnabled: true,
   },
-  oral_questions: {
-    name: 'oral_questions',
-    label: 'سوالات شفاهی',
-    icon: '🎤',
-    description: 'تولید سوالات شفاهی از متن درس',
-    dailyLimit: 5,
-    weeklyLimit: 20,
-    monthlyLimit: 60,
-    creditCost: 8,
+  future_compass: {
+    name: 'future_compass',
+    label: 'قطب‌نمای آینده',
+    icon: '🧭',
+    description: 'مشاوره شغلی و مسیر تحصیلی',
+    dailyLimit: 1,
+    weeklyLimit: 2,
+    monthlyLimit: 4,
+    creditCost: 25,
+    isEnabled: true,
+  },
+  konkur_roadmap: {
+    name: 'konkur_roadmap',
+    label: 'نقشه راه کنکور',
+    icon: '🎯',
+    description: 'برنامه‌ریزی آمادگی کنکور',
+    dailyLimit: 1,
+    weeklyLimit: 2,
+    monthlyLimit: 4,
+    creditCost: 30,
     isEnabled: true,
   },
   family_insight: {
     name: 'family_insight',
     label: 'بینش خانواده',
     icon: '👨‍👩‍👧',
-    description: 'تحلیل اطلاعات خانوادگی',
-    dailyLimit: 3,
-    weeklyLimit: 12,
-    monthlyLimit: 40,
+    description: 'تحلیل وضعیت خانوادگی مرتبط با تحصیل',
+    dailyLimit: 0,
+    weeklyLimit: 0,
+    monthlyLimit: 0,
     creditCost: 12,
     isEnabled: true,
   },
-  homework_evaluator: {
-    name: 'homework_evaluator',
-    label: 'تصحیح تشریحی',
-    icon: '📝',
-    description: 'تصحیح پاسخ‌های تشریحی با هوش مصنوعی',
-    dailyLimit: 30,
-    weeklyLimit: 100,
-    monthlyLimit: 300,
-    creditCost: 5,
+  talent_analyzer: {
+    name: 'talent_analyzer',
+    label: 'تحلیل استعداد',
+    icon: '🌟',
+    description: 'تحلیل استعداد دانش‌آموز',
+    dailyLimit: 1,
+    weeklyLimit: 3,
+    monthlyLimit: 8,
+    creditCost: 10,
+    isEnabled: true,
+  },
+  konkur_predictor: {
+    name: 'konkur_predictor',
+    label: 'پیش‌بین کنکور',
+    icon: '📈',
+    description: 'پیش‌بینی رتبه کنکور',
+    dailyLimit: 1,
+    weeklyLimit: 2,
+    monthlyLimit: 4,
+    creditCost: 20,
     isEnabled: true,
   },
 }
 
-// توابع سروری quota در lib/ai/quota.ts — از API /api/ai/check-limit استفاده کنید
-
-/**
- * محاسبه باقی‌مانده استفاده
- */
 export function calculateRemaining(limit: AIUsageLimit): AIUsageRemaining {
   return {
     daily: limit.dailyLimit !== null ? Math.max(0, limit.dailyLimit - limit.dailyUsed - 1) : null,
@@ -230,96 +261,36 @@ export function calculateRemaining(limit: AIUsageLimit): AIUsageRemaining {
   }
 }
 
-/**
- * فرمت کردن زمان باقی‌مانده
- */
 export function formatResetTime(type: 'daily' | 'weekly' | 'monthly'): string {
   const now = new Date()
-  
+
   if (type === 'daily') {
     const hoursLeft = 24 - now.getHours()
     return `${hoursLeft} ساعت`
   }
-  
+
   if (type === 'weekly') {
     const daysLeft = 7 - now.getDay()
     return `${daysLeft} روز`
   }
-  
+
   if (type === 'monthly') {
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
     const daysLeft = Math.ceil((nextMonth.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
     return `${daysLeft} روز`
   }
-  
+
   return ''
 }
 
-/**
- * دریافت درصد استفاده
- */
 export function getUsagePercentage(used: number, limit: number | null): number {
   if (!limit) return 0
   return Math.min(100, Math.round((used / limit) * 100))
 }
 
-/**
- * دریافت رنگ بر اساس درصد
- */
 export function getUsageColor(percentage: number): string {
   if (percentage >= 100) return 'red'
   if (percentage >= 80) return 'yellow'
   if (percentage >= 50) return 'blue'
   return 'green'
 }
-
-// ============================================
-// Hook برای استفاده در کامپوننت‌ها
-// ============================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

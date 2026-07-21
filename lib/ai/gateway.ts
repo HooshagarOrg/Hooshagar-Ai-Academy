@@ -31,10 +31,12 @@ const FEATURE_CAPABILITY_MAP: Record<string, AICapability> = {
   oral_questions: 'exam_generator',
   family_insight: 'student_analyzer',
   homework_evaluator: 'homework_evaluator',
-  /** aliasهای سازگار با routeهای قدیمی */
-  analyze: 'student_analyzer',
   annual_report: 'student_analyzer',
   ai_insights: 'student_analyzer',
+  talent_analyzer: 'talent_analyzer',
+  konkur_predictor: 'konkur_predictor',
+  /** aliasهای سازگار با routeهای قدیمی */
+  analyze: 'student_analyzer',
   grade_descriptive: 'homework_evaluator',
 }
 
@@ -67,9 +69,8 @@ export class AIQuotaExceededError extends Error {
 /** نگاشت alias → نام فیچر برای quota (باید در AI_FEATURES باشد) */
 const FEATURE_QUOTA_ALIAS: Record<string, string> = {
   analyze: 'student_analyzer',
-  annual_report: 'weekly_report',
-  ai_insights: 'weekly_report',
   grade_descriptive: 'homework_evaluator',
+  // annual_report و ai_insights سهمیه مستقل دارند
 }
 
 function resolveQuotaFeature(featureName: string): string {

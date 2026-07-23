@@ -1,6 +1,6 @@
-// هوشاگر Service Worker — فقط دارایی‌های PWA (نه chunkهای Next.js)
-const CACHE_NAME = 'hooshagar-v2'
-const STATIC_CACHE = ['/', '/manifest.json']
+// هوشاگر Service Worker — فقط دارایی‌های ثابت PWA
+// هرگز HTML سندها را کش نکن (باعث صفحهٔ بدون CSS بعد از deploy می‌شود)
+const CACHE_NAME = 'hooshagar-v3'
 
 function shouldNeverCache(url) {
   return (
@@ -12,7 +12,9 @@ function shouldNeverCache(url) {
 }
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_CACHE)))
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(['/manifest.json'])),
+  )
   self.skipWaiting()
 })
 
@@ -28,15 +30,22 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
 
+  // ناوبری / سند HTML → همیشه شبکه (نه کش)
+  if (
+    event.request.mode === 'navigate' ||
+    event.request.destination === 'document'
+  ) {
+    return
+  }
+
   const url = new URL(event.request.url)
   if (url.origin !== self.location.origin) return
   if (shouldNeverCache(url)) return
 
-  // فقط manifest و آیکون‌های ثابت — نه JS/CSS داینامیک
   const cacheable =
-    url.pathname === '/' ||
     url.pathname === '/manifest.json' ||
-    url.pathname.startsWith('/icons/')
+    url.pathname.startsWith('/icons/') ||
+    url.pathname.startsWith('/brand/')
 
   if (!cacheable) return
 
@@ -61,8 +70,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'هوشاگر', {
       body: data.body,
-      icon: '/',
-      badge: '/',
+      icon: '/brand/logo.png',
+      badge: '/brand/logo.png',
       dir: 'rtl',
       lang: 'fa',
       data: data.data,

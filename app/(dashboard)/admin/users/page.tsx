@@ -149,8 +149,12 @@ export default function AdminUsersPage() {
   }
 
   const handleCreate = async () => {
-    if (!newUser.email || !newUser.password || !newUser.full_name) {
-      toast.error('فیلدهای الزامی را پر کنید')
+    if (!newUser.password || !newUser.full_name) {
+      toast.error('نام و رمز عبور الزامی است')
+      return
+    }
+    if (newUser.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email.trim())) {
+      toast.error('فرمت ایمیل نامعتبر است')
       return
     }
     setIsCreating(true)
@@ -158,7 +162,10 @@ export default function AdminUsersPage() {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser),
+        body: JSON.stringify({
+          ...newUser,
+          email: newUser.email.trim() || null,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -373,7 +380,7 @@ export default function AdminUsersPage() {
           <DialogHeader>
             <DialogTitle>کاربر جدید</DialogTitle>
             <DialogDescription>
-              کاربر جدید با ایمیل و رمز موقت ساخته می‌شود
+              اگر ایمیل ندارید خالی بگذارید؛ سیستم خودش ایمیل سیستمی می‌سازد. ورود با موبایل/نام کاربری/کد دانش‌آموزی انجام می‌شود.
             </DialogDescription>
           </DialogHeader>
 
@@ -384,14 +391,23 @@ export default function AdminUsersPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>ایمیل *</Label>
-                <Input type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} dir="ltr" />
+                <Label>ایمیل (اختیاری)</Label>
+                <Input
+                  type="email"
+                  value={newUser.email}
+                  onChange={e => setNewUser({...newUser, email: e.target.value})}
+                  dir="ltr"
+                  placeholder="خالی = ساخت خودکار"
+                />
               </div>
               <div>
                 <Label>رمز عبور موقت *</Label>
                 <Input type="text" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} dir="ltr" />
               </div>
             </div>
+            <p className="text-xs text-muted-foreground -mt-1">
+              برای کسانی که ایمیل ندارند، موبایل یا نام کاربری را پر کنید تا ورود آسان‌تر باشد.
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>نام کاربری</Label>

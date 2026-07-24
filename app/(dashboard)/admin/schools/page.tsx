@@ -136,12 +136,14 @@ export default function AdminSchoolsPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
-      await fetch(`/api/admin/schools?id=${deleteTarget.id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/admin/schools?id=${deleteTarget.id}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'حذف ناموفق بود')
       toast.success('مدرسه حذف شد')
       setDeleteTarget(null)
       fetchSchools()
-    } catch {
-      toast.error('خطا در حذف')
+    } catch (e: unknown) {
+      toast.error('خطا در حذف: ' + (e instanceof Error ? e.message : 'خطای نامشخص'))
     }
   }
 

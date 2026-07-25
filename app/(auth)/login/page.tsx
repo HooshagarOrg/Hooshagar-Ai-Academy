@@ -67,6 +67,10 @@ export default function LoginPage() {
     if (params.get('error') === 'session_expired') {
       toast.message('نشست شما منقضی شده. لطفاً دوباره وارد شوید.')
     }
+    const tab = params.get('tab')
+    if (tab === 'staff' || tab === 'parent' || tab === 'student' || tab === 'sms') {
+      setActiveTab(tab)
+    }
     const legacyCookies = [
       'sb-hooshagar-supabase-proxy-auth-token',
       'sb-qcplgczxdbjsjrorkprm-auth-token',
@@ -375,22 +379,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full" dir="rtl">
+    <div className="w-full" dir="rtl" data-testid="login-page">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="lp-auth-tabs mb-6 h-auto w-full bg-transparent p-1">
-                <TabsTrigger value="staff" className="lp-auth-tab">
+              <TabsList className="lp-auth-tabs mb-6 h-auto w-full bg-transparent p-1" data-testid="login-tabs">
+                <TabsTrigger value="staff" className="lp-auth-tab" data-testid="login-tab-staff">
                   <User className="w-3.5 h-3.5" />
                   کارکنان
                 </TabsTrigger>
-                <TabsTrigger value="parent" className="lp-auth-tab">
+                <TabsTrigger value="parent" className="lp-auth-tab" data-testid="login-tab-parent">
                   <User className="w-3.5 h-3.5" />
                   والدین
                 </TabsTrigger>
-                <TabsTrigger value="student" className="lp-auth-tab">
+                <TabsTrigger value="student" className="lp-auth-tab" data-testid="login-tab-student">
                   <GraduationCap className="w-3.5 h-3.5" />
                   دانش‌آموز
                 </TabsTrigger>
-                <TabsTrigger value="sms" className="lp-auth-tab">
+                <TabsTrigger value="sms" className="lp-auth-tab" data-testid="login-tab-sms">
                   <Smartphone className="w-3.5 h-3.5" />
                   پیامک
                 </TabsTrigger>
@@ -426,6 +430,7 @@ export default function LoginPage() {
                       autoComplete="username"
                       className="lp-input-dark text-left"
                       dir="ltr"
+                      data-testid="login-username"
             />
           </div>
 
@@ -447,6 +452,7 @@ export default function LoginPage() {
                         autoComplete="current-password"
                         className="lp-input-dark text-left pl-10"
                       dir="ltr"
+                      data-testid="login-password"
             />
                       <button
                         type="button"
@@ -459,7 +465,7 @@ export default function LoginPage() {
                     </div>
           </div>
 
-                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
+                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading} data-testid="login-submit">
                     {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
                   </button>
                   <button
@@ -491,6 +497,7 @@ export default function LoginPage() {
                       className="text-left font-mono tracking-widest"
                       dir="ltr"
                       maxLength={11}
+                      data-testid="login-parent-code"
                     />
                   </div>
                   <div className="space-y-2">
@@ -536,6 +543,7 @@ export default function LoginPage() {
                       disabled={isLoading}
                       className="text-left font-mono"
                       dir="ltr"
+                      data-testid="login-student-number"
                     />
                     <p className="text-xs text-muted-foreground">
                       کد دانش‌آموزی را از کارت فعال‌سازی مدرسه پیدا کنید
@@ -559,6 +567,7 @@ export default function LoginPage() {
                       dir="ltr"
                       maxLength={6}
                       pattern="[0-9]{4,6}"
+                      data-testid="login-student-pin"
                     />
                   </div>
 

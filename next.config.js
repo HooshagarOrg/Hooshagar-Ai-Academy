@@ -113,30 +113,29 @@ const nextConfig = {
   },
 };
 
-// Sentry — فقط وقتی توکن و org تنظیم شده (مثلاً Vercel). در GitHub Actions بدون secret build نشکند.
+// Sentry — کلاینت با instrumentation-client.ts لود می‌شود.
+// withSentryConfig وقتی DSN هست فعال است؛ آپلود source map فقط با auth token.
 const { withSentryConfig } = require('@sentry/nextjs');
 
-const sentryEnabled =
+const sentryDsnPresent = Boolean(
+  process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN
+);
+const sentryUploadEnabled =
   Boolean(process.env.SENTRY_AUTH_TOKEN) &&
   Boolean(process.env.SENTRY_ORG) &&
   Boolean(process.env.SENTRY_PROJECT);
 
-module.exports = sentryEnabled
-  ? withSentryConfig(
-      nextConfig,
-      {
-        silent: true,
-        org: process.env.SENTRY_ORG,
-        project: process.env.SENTRY_PROJECT,
-        authToken: process.env.SENTRY_AUTH_TOKEN,
-        release: { create: false, finalize: false },
-      },
-      {
-        widenClientFileUpload: true,
-        transpileClientSDK: true,
-        tunnelRoute: '/monitoring',
-        hideSourceMaps: true,
-        disableLogger: true,
-      }
-    )
+module.exports = sentryDsnPresent
+  ? withSentryConfig(nextConfig, {
+      silent: true,
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      sourcemaps: { disable: !sentryUploadEnabled },
+      release: { create: false, finalize: false },
+      widenClientFileUpload: true,
+      tunnelRoute: '/monitoring',
+      hideSourceMaps: true,
+      disableLogger: true,
+    })
   : nextConfig;

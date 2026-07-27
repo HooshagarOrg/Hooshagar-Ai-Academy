@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import {
   AlertOctagon,
   RefreshCw,
@@ -20,15 +21,8 @@ interface GlobalErrorProps {
 // برای خطاهای layout و root
 // ============================================
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
-  // لاگ خطا
   useEffect(() => {
-    // در development لاگ کن
-    if (process.env.NODE_ENV === 'development') {
-      console.error('🔴 Global Error:', error)
-    }
-    
-    // در production به سرویس مانیتورینگ ارسال کنید
-    // مثال: Sentry.captureException(error)
+    Sentry.captureException(error)
   }, [error])
 
   return (

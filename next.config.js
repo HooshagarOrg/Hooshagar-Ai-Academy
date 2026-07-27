@@ -38,7 +38,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.anthropic.com https://*.workers.dev https://api.kavenegar.com https://*.arvanstorage.ir",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.anthropic.com https://*.workers.dev https://api.kavenegar.com https://*.arvanstorage.ir https://*.ingest.sentry.io https://*.ingest.de.sentry.io",
               "frame-src 'self' https://www.google.com",
               "media-src 'self' blob:",
               "worker-src 'self' blob:",

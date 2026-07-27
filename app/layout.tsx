@@ -4,6 +4,7 @@ import './globals.css'
 import { Toaster } from 'sonner'
 import { CookieConsent } from '@/components/cookie-consent'
 import { ServiceWorkerRegister } from '@/components/service-worker-register'
+import { SentryClientInit } from '@/components/sentry-client-init'
 import { CANONICAL_APP_ORIGIN } from '@/lib/app-url'
 
 const vazirmatn = localFont({
@@ -61,6 +62,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased min-h-app bg-background text-foreground" suppressHydrationWarning>
         <div className="relative z-10 min-h-app">{children}</div>
+        <SentryClientInit />
         <CookieConsent />
         <ServiceWorkerRegister />
         <Toaster position="top-center" richColors />

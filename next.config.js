@@ -113,29 +113,25 @@ const nextConfig = {
   },
 };
 
-// Sentry — کلاینت با instrumentation-client.ts لود می‌شود.
-// withSentryConfig وقتی DSN هست فعال است؛ آپلود source map فقط با auth token.
+// Sentry — همیشه wrap می‌شود تا sentry.client.config.ts به باندل کلاینت inject شود.
+// آپلود source map فقط وقتی auth token/org/project در بیلد موجود باشد.
+// نکته: NEXT_PUBLIC_SENTRY_DSN باید در Vercel برای Production در زمان Build ست باشد.
 const { withSentryConfig } = require('@sentry/nextjs');
 
-const sentryDsnPresent = Boolean(
-  process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN
-);
 const sentryUploadEnabled =
   Boolean(process.env.SENTRY_AUTH_TOKEN) &&
   Boolean(process.env.SENTRY_ORG) &&
   Boolean(process.env.SENTRY_PROJECT);
 
-module.exports = sentryDsnPresent
-  ? withSentryConfig(nextConfig, {
-      silent: true,
-      org: process.env.SENTRY_ORG,
-      project: process.env.SENTRY_PROJECT,
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      sourcemaps: { disable: !sentryUploadEnabled },
-      release: { create: false, finalize: false },
-      widenClientFileUpload: true,
-      tunnelRoute: '/monitoring',
-      hideSourceMaps: true,
-      disableLogger: true,
-    })
-  : nextConfig;
+module.exports = withSentryConfig(nextConfig, {
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  sourcemaps: { disable: !sentryUploadEnabled },
+  release: { create: false, finalize: false },
+  widenClientFileUpload: true,
+  tunnelRoute: '/monitoring',
+  hideSourceMaps: true,
+  disableLogger: true,
+});

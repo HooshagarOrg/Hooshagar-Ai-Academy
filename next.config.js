@@ -113,15 +113,20 @@ const nextConfig = {
   },
 };
 
-// Sentry — همیشه wrap می‌شود تا sentry.client.config.ts به باندل کلاینت inject شود.
+// Sentry — همیشه wrap می‌شود تا tunnel/source maps کار کنند.
 // آپلود source map فقط وقتی auth token/org/project در بیلد موجود باشد.
-// نکته: NEXT_PUBLIC_SENTRY_DSN باید در Vercel برای Production در زمان Build ست باشد.
+// NEXT_PUBLIC_SENTRY_DSN باید در Vercel برای Production در زمان Build ست باشد (Sensitive خاموش).
 const { withSentryConfig } = require('@sentry/nextjs');
 
 const sentryUploadEnabled =
   Boolean(process.env.SENTRY_AUTH_TOKEN) &&
   Boolean(process.env.SENTRY_ORG) &&
   Boolean(process.env.SENTRY_PROJECT);
+
+// در لاگ بیلد Vercel باید true ببینید؛ اگر false بود DSN به کلاینت نمی‌رسد.
+console.log(
+  `[Sentry] NEXT_PUBLIC_SENTRY_DSN at build: ${Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN)}`
+);
 
 module.exports = withSentryConfig(nextConfig, {
   silent: true,

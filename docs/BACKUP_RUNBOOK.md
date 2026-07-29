@@ -24,7 +24,7 @@ Workflow: [`.github/workflows/db-backup.yml`](../.github/workflows/db-backup.yml
 
 | Secret | توضیح |
 |--------|--------|
-| `SUPABASE_DB_URL` | Connection string **مستقیم** Postgres (پورت ۵۴۳۲، نه pooler transaction) |
+| `SUPABASE_DB_URL` | برای GitHub Actions: **Session pooler** (پورت ۵۴۳۲، host با `pooler`). Direct روی Actions به‌خاطر IPv6 معمولاً fail می‌شود. Transaction (۶۵۴۳) برای dump مناسب نیست. اگر پسورد `@` دارد → `%40`. ترجیحاً `?sslmode=require` |
 | `ARVAN_ACCESS_KEY` | کلید آروان |
 | `ARVAN_SECRET_KEY` | رمز آروان |
 | `ARVAN_ENDPOINT` | مثلاً `https://s3.ir-thr-at1.arvanstorage.ir` |

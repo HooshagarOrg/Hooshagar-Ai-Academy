@@ -17,20 +17,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
       - name: Install AWS CLI (for Arvan S3)
         run: |
           pip install --quiet awscli
 
-      - name: Install Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
+      # Supabase hosted DB is Postgres 17; supabase CLI ships pg_dump 15 → version mismatch.
+      # Use official postgres:17 client image for dump. Prefer Session pooler (port 5432) in SUPABASE_DB_URL.
       - name: Dump database
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -42,8 +34,17 @@ jobs:
           fi
           DATE=$(date -u +%Y-%m-%d)
           OUT="hooshagar-db-${DATE}.sql"
-          # اتصال مستقیم (پورت 5432) — pooler transaction برای dump مناسب نیست
-          supabase db dump --db-url "$SUPABASE_DB_URL" -f "$OUT"
+          # Redact password for diagnostics (host/user/port only)
+          python3 - <<'PY'
+          import os, urllib.parse
+          u = urllib.parse.urlparse(os.environ["SUPABASE_DB_URL"])
+          print(f"dump target host={u.hostname} port={u.port} user={u.username}")
+          PY
+          docker run --rm \
+            -e DATABASE_URL="$SUPABASE_DB_URL" \
+            -v "$PWD:/out" \
+            postgres:17 \
+            bash -c "pg_dump \"\$DATABASE_URL\" --no-owner --no-acl -f /out/${OUT}"
           gzip -9 "$OUT"
           ls -lh "${OUT}.gz"
           echo "BACKUP_FILE=${OUT}.gz" >> "$GITHUB_ENV"

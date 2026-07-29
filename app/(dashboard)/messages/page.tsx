@@ -18,7 +18,6 @@ import {
   
   
   X,
-  Image as 
   FileText,
   Download,
   Eye,
@@ -766,7 +765,11 @@ export default function MessagesPage() {
   // ============================================
 
   return (
-    <div className="lux-dash-card h-[calc(100vh-100px)] overflow-hidden flex border border-white/10" dir="rtl">
+    <div className="flex flex-col gap-2" dir="rtl">
+      <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-7 text-amber-100">
+        پیام‌رسانی درون‌برنامه‌ای فعلاً نمایش آزمایشی است و به سرور واقعی وصل نیست. از منوی اصلی نیز مخفی شده است.
+      </div>
+    <div className="lux-dash-card h-[calc(100vh-140px)] overflow-hidden flex border border-white/10">
       {/* Sidebar */}
       <div className="w-[350px] bg-[var(--lux-card)] border-l border-white/10 flex flex-col">
         {/* Sidebar Header */}
@@ -1121,6 +1124,7 @@ export default function MessagesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   )
 }

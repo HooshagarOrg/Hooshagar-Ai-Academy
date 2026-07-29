@@ -147,44 +147,31 @@ export default function SchoolLogo({
         setIsLoading(true)
         setError(false)
 
-        // در محیط واقعی از Supabase استفاده می‌شود
-        // const supabase = createClient()
-        
-        // اگر schoolId نداریم، از کاربر فعلی بگیریم
-        // let currentSchoolId = schoolId
-        // if (!currentSchoolId) {
-        //   const { data: { user } } = await supabase.auth.getUser()
-        //   if (user) {
-        //     const { data: profile } = await supabase
-        //       .from('profiles')
-        //       .select('school_id')
-        //       .eq('id', user.id)
-        //       .single()
-        //     currentSchoolId = profile?.school_id
-        //   }
-        // }
-
-        // if (currentSchoolId) {
-        //   const { data: school } = await supabase
-        //     .from('schools')
-        //     .select('logo_url, name, primary_color')
-        //     .eq('id', currentSchoolId)
-        //     .single()
-        //   if (school) {
-        //     setSchoolData({
-        //       logoUrl: school.logo_url,
-        //       name: school.name,
-        //       primaryColor: school.primary_color || '#3b82f6',
-        //     })
-        //   }
-        // }
-
-        // داده نمونه
-        await new Promise((r) => setTimeout(r, 300))
+        const url = schoolId
+          ? `/api/admin/school-branding?school_id=${encodeURIComponent(schoolId)}`
+          : '/api/admin/school-branding'
+        const res = await fetch(url)
+        if (!res.ok) {
+          // کاربر غیر ادمین: از پروفایل عمومی‌تر استفاده نمی‌کنیم؛ fallback مینیمال
+          setSchoolData({
+            logoUrl: null,
+            name: 'هوشاگر',
+            primaryColor: '#3b82f6',
+          })
+          return
+        }
+        const data = (await res.json()) as {
+          branding?: {
+            logo_url?: string | null
+            name?: string
+            primary_color?: string
+          }
+        }
+        const b = data.branding
         setSchoolData({
-          logoUrl: null, // یا URL تصویر
-          name: 'دبستان تلاش',
-          primaryColor: '#3b82f6',
+          logoUrl: b?.logo_url ?? null,
+          name: b?.name ?? 'هوشاگر',
+          primaryColor: b?.primary_color || '#3b82f6',
         })
       } catch (err) {
         console.error('Error fetching school data:', err)

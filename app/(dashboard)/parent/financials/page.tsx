@@ -19,6 +19,7 @@ import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { StatCard } from '@/components/ui/stat-card'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 // ============================================
 // تایپ‌ها
@@ -120,6 +121,12 @@ export default function ParentFinancialsPage() {
       }
       animatedSections={false}
     >
+        <Alert className="mb-4 border-amber-500/40 bg-amber-500/10">
+          <Info className="h-4 w-4" />
+          <AlertDescription className="text-right leading-7">
+            این صفحه فعلاً نمایش آزمایشی است و به سامانهٔ مالی واقعی وصل نیست. مبالغ را مبنای پرداخت قرار ندهید.
+          </AlertDescription>
+        </Alert>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
             label="شهریه کل"

@@ -37,10 +37,7 @@ export const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'هوش مصنوعی',
       items: [
-        { title: 'مدل‌های AI', href: '/admin/ai-models', icon: Brain },
-        { title: 'اعتبار AI', href: '/admin/ai-credits', icon: Zap },
-        { title: 'محدودیت‌ها', href: '/admin/ai-limits', icon: Sliders },
-        { title: 'کنترل دسترسی', href: '/admin/ai-access-control', icon: Shield },
+        // صفحات تئاتری (ai-models/credits/limits/access) از منوی پایلوت مخفی‌اند — docs/PILOT_ALLOWED_MENU.md
         { title: 'مصرف AI', href: '/admin/ai-usage-dashboard', icon: BarChart3 },
         { title: 'تست AI', href: '/admin/ai-test', icon: HelpCircle },
       ],
@@ -49,9 +46,7 @@ export const navConfig: Record<string, NavGroup[]> = {
       title: 'گزارش و ارتباط',
       items: [
         { title: 'گزارشات', href: '/admin/reports', icon: BarChart3 },
-        { title: 'ارسال پیام گروهی', href: '/admin/broadcast', icon: Send },
         { title: 'نظرسنجی‌ها', href: '/admin/surveys', icon: MessageSquare },
-        { title: 'هشدار زودهنگام', href: '/admin/early-warning', icon: AlertCircle },
       ],
     },
     {
@@ -72,9 +67,7 @@ export const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'تنظیمات',
       items: [
-        { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders },
         { title: 'سال تحصیلی', href: '/admin/academic-years', icon: Calendar },
-        { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign },
         { title: 'پلن‌های اشتراک', href: '/admin/subscriptions', icon: CreditCard },
         { title: 'ظرفیت و سهمیه', href: '/admin/quota-settings', icon: Sliders },
         { title: 'برندینگ مدرسه', href: '/admin/school-settings', icon: Palette },
@@ -122,7 +115,6 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'گزارشات', href: '/parent/reports', icon: BarChart3 },
         { title: 'حضور و غیاب', href: '/parent/attendance', icon: ClipboardCheck },
         { title: 'بهداشت', href: '/parent/health', icon: Heart },
-        { title: 'مالی', href: '/parent/financials', icon: DollarSign },
       ],
     },
     {
@@ -249,7 +241,7 @@ export const simpleNavs: Record<string, NavItem[]> = {
 }
 
 export const commonItems: NavItem[] = [
-  { title: 'پیام‌ها', href: '/messages', icon: MessageSquare },
+  // /messages تا اتصال واقعی از منو مخفی است (GAP C4)
   { title: 'اعلانات', href: '/notifications', icon: Bell },
 ]
 
@@ -257,7 +249,7 @@ export const mobileTabItems: Record<string, NavItem[]> = {
   admin: [
     { title: 'خانه', href: '/admin', icon: Home },
     { title: 'کاربران', href: '/admin/users', icon: Users },
-    { title: 'AI', href: '/admin/ai-limits', icon: Brain },
+    { title: 'AI', href: '/admin/ai-usage-dashboard', icon: Brain },
     { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
     { title: 'اعلان', href: '/notifications', icon: Bell },
   ],
@@ -265,14 +257,12 @@ export const mobileTabItems: Record<string, NavItem[]> = {
     { title: 'خانه', href: '/teacher', icon: Home },
     { title: 'کلاس', href: '/teacher/students', icon: Users },
     { title: 'آزمون', href: '/teacher/exam-generator', icon: PenTool },
-    { title: 'پیام', href: '/messages', icon: MessageSquare },
     { title: 'اعلان', href: '/notifications', icon: Bell },
   ],
   parent: [
     { title: 'خانه', href: '/parent', icon: Home },
     { title: 'گزارش', href: '/parent/reports', icon: BarChart3 },
     { title: 'حضور', href: '/parent/attendance', icon: ClipboardCheck },
-    { title: 'پیام', href: '/messages', icon: MessageSquare },
     { title: 'اعلان', href: '/notifications', icon: Bell },
   ],
   student: [
@@ -286,7 +276,6 @@ export const mobileTabItems: Record<string, NavItem[]> = {
     { title: 'خانه', href: '/counselor', icon: Home },
     { title: 'پرونده‌ها', href: '/counselor/records', icon: Users },
     { title: 'گزارش', href: '/counselor/reports', icon: BarChart3 },
-    { title: 'پیام', href: '/messages', icon: MessageSquare },
     { title: 'اعلان', href: '/notifications', icon: Bell },
   ],
 }

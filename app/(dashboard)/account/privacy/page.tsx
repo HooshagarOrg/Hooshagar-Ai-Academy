@@ -104,6 +104,8 @@ export default function AccountPrivacyPage() {
               <h2 className="text-lg font-bold text-red-400">حذف حساب و داده</h2>
             </div>
             <p className="mb-4 text-sm leading-7 text-[var(--lux-text-muted)]">
+              حذف حساب، داده‌های مرتبط در پایگاه و حساب احراز هویت را پاک می‌کند.
+              برخی فایل‌های ذخیره‌شده یا لاگ‌های قانونی ممکن است طبق سیاست نگهداری باقی بمانند.
               برای تأیید، عبارت <code className="rounded bg-white/10 px-1 text-xs">DELETE_MY_DATA</code> را وارد کنید.
             </p>
             <div className="space-y-4">

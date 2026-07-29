@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback} from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import {
   Settings,
   Building,
@@ -120,15 +120,15 @@ interface ColorPreset {
 // داده‌های نمونه
 // ============================================
 
-const INITIAL_SETTINGS: SchoolSettings = {
-  id: 'school-1',
-  name: 'دبستان تلاش',
-  description: 'مدرسه ابتدایی پسرانه با سابقه 40 ساله در آموزش و پرورش',
-  phone: '021-12345678',
-  address: 'تهران، خیابان ولیعصر، کوچه امید، پلاک 15',
-  postalCode: '1234567890',
-  website: 'https://talash-school.ir',
-  email: 'info@talash-school.ir',
+const EMPTY_SETTINGS: SchoolSettings = {
+  id: '',
+  name: '',
+  description: '',
+  phone: '',
+  address: '',
+  postalCode: '',
+  website: '',
+  email: '',
   logoUrl: '',
   faviconUrl: '',
   primaryColor: '#3b82f6',
@@ -139,7 +139,55 @@ const INITIAL_SETTINGS: SchoolSettings = {
   showNameInSidebar: true,
   showNameInLogin: false,
   logoSizeInSidebar: 'md',
-  footerText: 'مدرسه تلاش - از سال 1380',
+  footerText: '',
+}
+
+function mapBrandingToSettings(branding: Record<string, unknown>): SchoolSettings {
+  const size = String(branding.logo_size_in_sidebar ?? 'md')
+  return {
+    id: String(branding.id ?? ''),
+    name: String(branding.name ?? ''),
+    description: String(branding.description ?? ''),
+    phone: String(branding.phone ?? ''),
+    address: String(branding.address ?? ''),
+    postalCode: String(branding.postal_code ?? ''),
+    website: String(branding.website ?? ''),
+    email: String(branding.email ?? ''),
+    logoUrl: String(branding.logo_url ?? ''),
+    faviconUrl: String(branding.favicon_url ?? ''),
+    primaryColor: String(branding.primary_color ?? '#3b82f6'),
+    secondaryColor: String(branding.secondary_color ?? '#8b5cf6'),
+    textColor: String(branding.text_color ?? '#1f2937'),
+    backgroundColor: String(branding.background_color ?? '#f9fafb'),
+    showNameInHeader: branding.show_name_in_header !== false,
+    showNameInSidebar: branding.show_name_in_sidebar !== false,
+    showNameInLogin: branding.show_name_in_login === true,
+    logoSizeInSidebar: (size === 'sm' || size === 'lg' ? size : 'md') as 'sm' | 'md' | 'lg',
+    footerText: String(branding.footer_text ?? ''),
+  }
+}
+
+function settingsToRpcPayload(settings: SchoolSettings): Record<string, unknown> {
+  return {
+    name: settings.name,
+    description: settings.description,
+    phone: settings.phone,
+    address: settings.address,
+    postal_code: settings.postalCode,
+    website: settings.website,
+    email: settings.email,
+    logo_url: settings.logoUrl || null,
+    favicon_url: settings.faviconUrl || null,
+    primary_color: settings.primaryColor,
+    secondary_color: settings.secondaryColor,
+    text_color: settings.textColor,
+    background_color: settings.backgroundColor,
+    show_name_in_header: settings.showNameInHeader,
+    show_name_in_sidebar: settings.showNameInSidebar,
+    show_name_in_login: settings.showNameInLogin,
+    logo_size_in_sidebar: settings.logoSizeInSidebar,
+    footer_text: settings.footerText,
+  }
 }
 
 const COLOR_PRESETS: ColorPreset[] = [
@@ -241,6 +289,7 @@ function LogoUploader({
   recommendedSize,
   maxSize,
   formats,
+  schoolId,
 }: {
   currentUrl: string
   onUpload: (url: string) => void
@@ -249,9 +298,11 @@ function LogoUploader({
   recommendedSize: string
   maxSize: string
   formats: string
+  schoolId: string
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string>('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [rotation, setRotation] = useState(0)
   const [zoom, setZoom] = useState(1)
@@ -270,12 +321,9 @@ function LogoUploader({
       return
     }
 
+    setSelectedFile(file)
     const reader = new FileReader()
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string)
-      setRotation(0)
-      setZoom(1)
-    }
+    reader.onload = () => setPreviewUrl(String(reader.result ?? ''))
     reader.readAsDataURL(file)
   }, [maxSize])
 
@@ -287,18 +335,28 @@ function LogoUploader({
   }, [handleFileSelect])
 
   const handleSave = async () => {
-    if (!previewUrl) return
+    if (!selectedFile || !schoolId) {
+      toast.error('ابتدا مدرسه را بارگذاری کنید')
+      return
+    }
 
     setIsUploading(true)
     try {
-      // در واقعیت، آپلود به Arvan S3
-      await new Promise((r) => setTimeout(r, 1500))
-      onUpload(previewUrl)
+      const form = new FormData()
+      form.append('school_id', schoolId)
+      form.append('file', selectedFile)
+      const res = await fetch('/api/admin/school-branding', { method: 'POST', body: form })
+      const data = (await res.json()) as { success?: boolean; url?: string; error?: string }
+      if (!res.ok || !data.url) {
+        throw new Error(data.error ?? 'آپلود ناموفق')
+      }
+      onUpload(data.url)
       setIsDialogOpen(false)
       setPreviewUrl('')
+      setSelectedFile(null)
       toast.success('لوگو با موفقیت ذخیره شد')
     } catch (error) {
-      toast.error('خطا در ذخیره لوگو')
+      toast.error(error instanceof Error ? error.message : 'خطا در ذخیره لوگو')
     } finally {
       setIsUploading(false)
     }
@@ -306,7 +364,7 @@ function LogoUploader({
 
   const handleRemove = () => {
     onUpload('')
-    toast.success('لوگو حذف شد')
+    toast.success('لوگو حذف شد — برای اعمال، ذخیره تغییرات را بزنید')
   }
 
   return (
@@ -702,11 +760,39 @@ function LivePreview({
 // ============================================
 
 export default function SchoolSettingsPage() {
-  const [settings, setSettings] = useState<SchoolSettings>(INITIAL_SETTINGS)
+  const [settings, setSettings] = useState<SchoolSettings>(EMPTY_SETTINGS)
   const [activeTab, setActiveTab] = useState('general')
   const [previewMode, setPreviewMode] = useState<'header' | 'sidebar' | 'login' | 'pdf'>('header')
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [hasChanges, setHasChanges] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setIsLoading(true)
+      try {
+        const res = await fetch('/api/admin/school-branding')
+        const data = (await res.json()) as {
+          branding?: Record<string, unknown>
+          error?: string
+        }
+        if (!res.ok) throw new Error(data.error ?? 'بارگذاری ناموفق')
+        if (!cancelled && data.branding) {
+          setSettings(mapBrandingToSettings(data.branding))
+        }
+      } catch (err) {
+        if (!cancelled) {
+          toast.error(err instanceof Error ? err.message : 'خطا در بارگذاری تنظیمات مدرسه')
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // Track changes
   const updateSettings = (updates: Partial<SchoolSettings>) => {
@@ -715,13 +801,26 @@ export default function SchoolSettingsPage() {
   }
 
   const handleSave = async () => {
+    if (!settings.id) {
+      toast.error('مدرسه یافت نشد')
+      return
+    }
     setIsSaving(true)
     try {
-      await new Promise((r) => setTimeout(r, 1000))
+      const res = await fetch('/api/admin/school-branding', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          school_id: settings.id,
+          settings: settingsToRpcPayload(settings),
+        }),
+      })
+      const data = (await res.json()) as { error?: string }
+      if (!res.ok) throw new Error(data.error ?? 'ذخیره ناموفق')
       setHasChanges(false)
       toast.success('تغییرات ذخیره شد')
     } catch (error) {
-      toast.error('خطا در ذخیره تغییرات')
+      toast.error(error instanceof Error ? error.message : 'خطا در ذخیره تغییرات')
     } finally {
       setIsSaving(false)
     }
@@ -769,7 +868,13 @@ export default function SchoolSettingsPage() {
       }
       animatedSections={false}
     >
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16 text-[var(--lux-text-muted)]">
+            <Loader2 className="w-6 h-6 animate-spin ml-2" />
+            در حال بارگذاری تنظیمات مدرسه…
+          </div>
+        ) : null}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className={isLoading ? 'hidden' : undefined}>
           <TabsList className="grid grid-cols-3 w-[500px] mb-6 glass-panel-quiet">
             <TabsTrigger value="general" className="gap-2">
               <Building className="w-4 h-4" />
@@ -912,20 +1017,22 @@ export default function SchoolSettingsPage() {
                   <LogoUploader
                     currentUrl={settings.logoUrl}
                     onUpload={(url) => updateSettings({ logoUrl: url })}
+                    schoolId={settings.id}
                     title="لوگوی اصلی مدرسه"
                     description="استفاده در Header, Sidebar و گزارشات"
                     recommendedSize="500×500 پیکسل"
-                    maxSize="1MB"
+                    maxSize="1"
                     formats="PNG یا SVG (پس‌زمینه شفاف)"
                   />
 
                   <LogoUploader
                     currentUrl={settings.faviconUrl}
                     onUpload={(url) => updateSettings({ faviconUrl: url })}
+                    schoolId={settings.id}
                     title="Favicon (آیکون مرورگر)"
                     description="نمایش در تب مرورگر"
                     recommendedSize="32×32 یا 64×64 پیکسل"
-                    maxSize="100KB"
+                    maxSize="1"
                     formats="PNG یا ICO"
                   />
                 </div>

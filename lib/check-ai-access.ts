@@ -43,17 +43,17 @@ export interface AccessHistoryRecord {
   createdAt: string
 }
 
-/** سمت سرور: از API داخلی استفاده می‌کند؛ در مرورگر هم از همان API */
+/**
+ * فقط برای استفاده در Client Component‌ها — همیشه از /api/ai/check-access می‌خواند.
+ * منطق سمت سرور واقعی در lib/check-ai-access.server.ts است (import مستقیم در route handler ها،
+ * هرگز از این فایل — تا next/headers به bundle کلاینت نشت نکند).
+ */
 export async function checkAIFeatureAccess(
   userId: string,
   featureName: string
 ): Promise<AIAccessStatus> {
   void userId
   try {
-    if (typeof window === 'undefined') {
-      const { checkAIFeatureAccessServer } = await import('./check-ai-access.server')
-      return checkAIFeatureAccessServer(userId, featureName)
-    }
     const res = await fetch(`/api/ai/check-access?feature=${encodeURIComponent(featureName)}`)
     if (!res.ok) return { hasAccess: true }
     const data = (await res.json()) as AIAccessStatus

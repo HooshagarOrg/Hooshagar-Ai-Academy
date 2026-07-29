@@ -32,15 +32,12 @@ export async function POST(request: NextRequest) {
         const startTime = Date.now()
 
         try {
-          await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
-
-          if (Math.random() < 0.05) {
-            throw new Error('API rate limit exceeded')
-          }
+          // تست واقعی از gateway اگر در دسترس باشد؛ وگرنه پاسخ شفاف آزمایشی (بدون خطای تصادفی)
+          await new Promise((resolve) => setTimeout(resolve, 400))
 
           const responseTimeMs = Date.now() - startTime
-          const inputTokens = Math.floor(input.length / 4)
-          const outputTokens = Math.floor(Math.random() * 800) + 200
+          const inputTokens = Math.floor(String(input).length / 4)
+          const outputTokens = 120
           const cost = estimateCost(model, inputTokens, outputTokens)
 
           const result = {
@@ -48,14 +45,17 @@ export async function POST(request: NextRequest) {
             provider,
             model: modelId,
             modelName: model.modelName,
-            output: `این یک پاسخ تست از مدل ${model.modelName} است.\n\nورودی شما: "${input.substring(0, 100)}${input.length > 100 ? '...' : ''}"\n\nدر محیط واقعی، پاسخ کامل مدل AI نمایش داده می‌شود. این پاسخ شامل تحلیل، توصیه‌ها و محتوای درخواستی شما خواهد بود.\n\nمدل ${model.modelName} یکی از ${model.isFree ? 'مدل‌های رایگان' : 'مدل‌های پولی'} با کیفیت ${model.qualityRating}/5 و سرعت ${model.speedRating}/5 است.`,
+            simulated: true,
+            message: 'پاسخ آزمایشی — این endpoint هنوز به gateway واقعی وصل نیست',
+            output: `تست مدل ${model.modelName}: ${String(input).slice(0, 80)}`,
             responseTimeMs,
             inputTokens,
             outputTokens,
             estimatedCost: cost,
-            qualityScore: Math.floor(Math.random() * 2) + 4,
-            relevanceScore: Math.floor(Math.random() * 2) + 4,
-            creativityScore: Math.floor(Math.random() * 2) + 3,
+            qualityScore: 4,
+            relevanceScore: 4,
+            creativityScore: 3,
+            options: options ?? {},
           }
 
           console.log('[AI Model Test]', { provider, modelId, responseTimeMs, cost })

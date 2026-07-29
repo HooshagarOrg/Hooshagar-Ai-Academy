@@ -5,6 +5,7 @@ import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard'
 import {
   buildSyntheticEmail,
 } from '@/lib/auth/synthetic-email'
+import { hashPin } from '@/lib/security/pin-hash'
 
 // ============================================
 // GET: لیست کاربران
@@ -219,7 +220,7 @@ export async function POST(request: NextRequest) {
             parent_id: parent_id || null,
             full_name,
             student_number: studentNum,
-            pin_hash: Buffer.from(studentPin).toString('base64'),
+            pin_hash: hashPin(studentPin),
             phone: phone || null,
             grade: grade || 1,
             school_id: school_id || null,

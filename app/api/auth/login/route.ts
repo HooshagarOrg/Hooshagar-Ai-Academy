@@ -22,6 +22,8 @@ import { sanitizeString, normalizeIranPhone } from '@/lib/security/sanitize'
 import { getSupabaseServerUrl } from '@/lib/supabase/resolve-url'
 import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
 import { supabaseGlobalOptions } from '@/lib/supabase/fetch'
+import { verifyPin, isScryptPinHash } from '@/lib/security/pin-hash'
+import { randomBytes } from 'crypto'
 
 type SessionCookie = { name: string; value: string; options: CookieOptions }
 
@@ -350,11 +352,7 @@ async function handleLoginCode(loginCode: string, password: string) {
     return { success: false as const, error: 'رمز ورود تنظیم نشده — با مدرسه تماس بگیرید', userId: profile.id }
   }
 
-  const pinMatches =
-    profile.pin_hash === password.trim() ||
-    profile.pin_hash === Buffer.from(password.trim()).toString('base64')
-
-  if (!pinMatches) {
+  if (!verifyPin(password.trim(), profile.pin_hash)) {
     return { success: false as const, error: 'رمز ورود اشتباه است', userId: profile.id }
   }
 
@@ -365,6 +363,7 @@ async function handleLoginCode(loginCode: string, password: string) {
   const uidClean = profile.id.replace(/-/g, '').slice(0, 12)
   const authPassword = `hg_user_${uidClean}_${password.trim()}`
 
+  // فقط برای signIn سمت سرور — هرگز در JSON پاسخ HTTP برنگردانید
   return {
     success: true as const,
     userId: profile.id,
@@ -444,14 +443,39 @@ async function handleOtpLogin(phone: string, otp: string) {
     if (!student?.pin_hash) {
       return { success: false as const, error: 'رمز دانش‌آموز تنظیم نشده است', userId: profile.id }
     }
-    const pinPlain = Buffer.from(student.pin_hash, 'base64').toString('utf8')
-    authPassword = `hg_student_${uidClean}_${pinPlain}`
+
+    // هش یک‌طرفه قابل بازیابی نیست — برای OTP یک رمز موقت می‌سازیم
+    if (isScryptPinHash(student.pin_hash)) {
+      authPassword = `hg_otp_${uidClean}_${randomBytes(16).toString('hex')}`
+      const { error: updErr } = await admin.auth.admin.updateUserById(profile.id, {
+        password: authPassword,
+      })
+      if (updErr) {
+        console.error('OTP temp password update failed:', updErr.message)
+        return { success: false as const, error: 'خطا در احراز هویت', userId: profile.id }
+      }
+    } else {
+      const pinPlain = Buffer.from(student.pin_hash, 'base64').toString('utf8')
+      authPassword = `hg_student_${uidClean}_${pinPlain}`
+    }
   } else {
     if (!profile.pin_hash) {
       return { success: false as const, error: 'رمز ورود تنظیم نشده است', userId: profile.id }
     }
-    const passPlain = Buffer.from(profile.pin_hash, 'base64').toString('utf8')
-    authPassword = `hg_user_${uidClean}_${passPlain}`
+
+    if (isScryptPinHash(profile.pin_hash)) {
+      authPassword = `hg_otp_${uidClean}_${randomBytes(16).toString('hex')}`
+      const { error: updErr } = await admin.auth.admin.updateUserById(profile.id, {
+        password: authPassword,
+      })
+      if (updErr) {
+        console.error('OTP temp password update failed:', updErr.message)
+        return { success: false as const, error: 'خطا در احراز هویت', userId: profile.id }
+      }
+    } else {
+      const passPlain = Buffer.from(profile.pin_hash, 'base64').toString('utf8')
+      authPassword = `hg_user_${uidClean}_${passPlain}`
+    }
   }
 
   await admin
@@ -568,10 +592,7 @@ async function handleStudentPinLogin(student_number: string, pin: string) {
     }
   }
 
-  const pinMatches =
-    student.pin_hash === pin || student.pin_hash === Buffer.from(pin).toString('base64')
-
-  if (!pinMatches) {
+  if (!verifyPin(pin, student.pin_hash)) {
     return {
       success: false as const,
       error: 'رمز ورود (PIN) اشتباه است',

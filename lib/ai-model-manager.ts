@@ -686,18 +686,13 @@ async function callAI(
   //   return callOpenRouter(model, prompt, options)
   // }
   
-  // شبیه‌سازی پاسخ
-  await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000))
-  
-  // شبیه‌سازی خطای تصادفی (5%)
-  if (Math.random() < 0.05) {
-    throw new Error('API call failed')
-  }
-  
+  // شبیه‌سازی پاسخ آزمایشی — بدون خطای تصادفی
+  await new Promise(resolve => setTimeout(resolve, 300))
+
   return {
-    content: `پاسخ نمونه از ${provider}/${model} برای prompt: ${prompt.slice(0, 50)}...`,
+    content: `[آزمایشی] پاسخ نمونه از ${provider}/${model} برای prompt: ${prompt.slice(0, 50)}...`,
     inputTokens: Math.floor(prompt.length / 4),
-    outputTokens: Math.floor(Math.random() * 500) + 100,
+    outputTokens: 120,
   }
 }
 

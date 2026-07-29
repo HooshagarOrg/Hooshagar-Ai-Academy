@@ -34,9 +34,7 @@ export function generatePin(length = 4): string {
   return Array.from({ length }, () => Math.floor(Math.random() * 10)).join('')
 }
 
-export function hashPin(pin: string): string {
-  return Buffer.from(pin, 'utf8').toString('base64')
-}
+export { hashPin, verifyPin } from '@/lib/security/pin-hash'
 
 export function buildAuthPassword(userId: string, secret: string, prefix: 'student' | 'user'): string {
   const uid = userId.replace(/-/g, '').slice(0, 12)

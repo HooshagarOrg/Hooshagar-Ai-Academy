@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard'
+import { hashPin } from '@/lib/security/pin-hash'
 
 const issueStaffSchema = z.object({
   type: z.literal('staff'),
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest) {
           await admin
             .from('students')
             .update({
-              pin_hash: Buffer.from(pin).toString('base64'),
+              pin_hash: hashPin(pin),
               can_login: true,
               login_enabled_at: new Date().toISOString(),
             })
@@ -183,7 +184,7 @@ export async function POST(request: NextRequest) {
             await admin
               .from('students')
               .update({
-                pin_hash: Buffer.from(pin).toString('base64'),
+                pin_hash: hashPin(pin),
                 can_login: true,
                 login_enabled_at: new Date().toISOString(),
               })

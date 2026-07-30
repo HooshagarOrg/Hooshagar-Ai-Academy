@@ -309,6 +309,19 @@ export async function PATCH(request: NextRequest) {
 // ============================================
 // DELETE: حذف کاربر
 // ============================================
+// نکته: برخی کاربران قدیمی/دمو با INSERT مستقیم SQL در auth.users ساخته
+// شده‌اند و ستون‌های instance_id/aud/token را NULL دارند (به‌جای مقدار
+// مورد انتظار GoTrue). این باعث خطای "Database error loading user" یا
+// 404 در Admin API می‌شود. قبل از حذف، این ستون‌ها را ترمیم می‌کنیم تا
+// حذف بدون مداخله دستی دیتابیس انجام شود.
+async function repairLegacyAuthUserRow(id: string): Promise<void> {
+  const admin = createServiceClient()
+  await admin.rpc('repair_auth_user_row', { p_user_id: id }).then(
+    () => {},
+    () => {}
+  )
+}
+
 export async function DELETE(request: NextRequest) {
   return withAuth(
     request,
@@ -325,9 +338,22 @@ export async function DELETE(request: NextRequest) {
         { auth: { autoRefreshToken: false, persistSession: false } }
       )
 
-      const { error } = await admin.auth.admin.deleteUser(id)
+      let { error } = await admin.auth.admin.deleteUser(id)
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+      if (error) {
+        // تلاش برای ترمیم رکورد قدیمی/معیوب و تکرار حذف
+        await repairLegacyAuthUserRow(id)
+        const retry = await admin.auth.admin.deleteUser(id)
+        error = retry.error
+      }
+
+      if (error) {
+        console.error('خطا در حذف کاربر (auth.admin.deleteUser):', error.message)
+        return NextResponse.json(
+          { error: 'حذف ناموفق بود: ' + error.message },
+          { status: 400 }
+        )
+      }
 
       return NextResponse.json({ success: true })
     },

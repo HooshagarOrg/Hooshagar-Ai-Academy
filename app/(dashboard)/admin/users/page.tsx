@@ -184,12 +184,13 @@ export default function AdminUsersPage() {
     setIsDeleting(true)
     try {
       const res = await fetch(`/api/admin/users?id=${deleteUser.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error()
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'حذف ناموفق بود')
       toast.success('کاربر حذف شد')
       setDeleteUser(null)
       fetchUsers()
-    } catch {
-      toast.error('خطا در حذف کاربر')
+    } catch (e: unknown) {
+      toast.error('خطا در حذف کاربر: ' + (e instanceof Error ? e.message : 'خطای نامشخص'))
     } finally {
       setIsDeleting(false)
     }

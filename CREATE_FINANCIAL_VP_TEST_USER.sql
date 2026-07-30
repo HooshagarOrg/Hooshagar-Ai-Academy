@@ -26,8 +26,14 @@ BEGIN
 
   -- اگر کاربر وجود ندارد، آن را ایجاد کن
   IF v_user_id IS NULL THEN
+    -- نکته مهم: instance_id، aud و ستون‌های token باید دقیقاً مطابق
+    -- انتظار GoTrue پر شوند وگرنه Admin API (حذف/ویرایش کاربر) با
+    -- خطای "Database error loading user" یا 404 مواجه می‌شود.
     INSERT INTO auth.users (
+      instance_id,
       id,
+      aud,
+      role,
       email,
       encrypted_password,
       email_confirmed_at,
@@ -36,9 +42,19 @@ BEGIN
       raw_app_meta_data,
       raw_user_meta_data,
       is_super_admin,
-      role
+      confirmation_token,
+      recovery_token,
+      email_change_token_new,
+      email_change,
+      email_change_token_current,
+      phone_change,
+      phone_change_token,
+      reauthentication_token
     ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
       gen_random_uuid(),
+      'authenticated',
+      'authenticated',
       'financial@test.com',
       crypt('Test1234!', gen_salt('bf')), -- رمز هش شده
       NOW(),
@@ -47,7 +63,7 @@ BEGIN
       '{"provider": "email", "providers": ["email"]}'::jsonb,
       '{"full_name": "معاون مالی تست"}'::jsonb,
       false,
-      'authenticated'
+      '', '', '', '', '', '', '', ''
     )
     RETURNING id INTO v_user_id;
 

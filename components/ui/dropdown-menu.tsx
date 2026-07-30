@@ -59,11 +59,10 @@ DropdownMenuSubContent.displayName =
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => (
+>(({ className, sideOffset = 4, style, ...props }, ref) => (
   <DropdownMenuPrimitive.Portal>
     <DropdownMenuPrimitive.Content
       ref={ref}
-      dir="rtl"
       sideOffset={sideOffset}
       className={cn(
         "z-[100] max-h-[min(20rem,var(--radix-dropdown-menu-content-available-height))] min-w-[10rem] overflow-y-auto overflow-x-hidden rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-2xl text-right",
@@ -71,6 +70,8 @@ const DropdownMenuContent = React.forwardRef<
         className
       )}
       style={{
+        ...style,
+        direction: "rtl",
         backgroundColor: "hsl(var(--popover, 225 18% 15%))",
         color: "hsl(var(--popover-foreground, 220 25% 93%))",
         transformOrigin: "var(--radix-dropdown-menu-content-transform-origin)",

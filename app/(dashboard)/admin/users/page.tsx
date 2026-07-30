@@ -271,10 +271,10 @@ export default function AdminUsersPage() {
           />
         </div>
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-full sm:w-48">
+          <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder="نقش" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" className="min-w-[var(--radix-select-trigger-width)]">
             <SelectItem value="all">همه نقش‌ها</SelectItem>
             {ROLES.map(r => (
               <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>

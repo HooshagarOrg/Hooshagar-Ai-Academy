@@ -218,11 +218,11 @@ export default function AdminUsersPage() {
       }
       description={`${users.length} کاربر در سیستم`}
       actions={
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchUsers}>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={fetchUsers} className="touch-target">
             <RefreshCw className="w-4 h-4" />
           </Button>
-          <Button className="bg-brand-cyan hover:opacity-90 text-space gap-2" onClick={openCreate}>
+          <Button className="bg-brand-cyan hover:opacity-90 text-space gap-2 flex-1 sm:flex-none touch-target" onClick={openCreate}>
             <Plus className="w-4 h-4" />
             کاربر جدید
           </Button>
@@ -231,7 +231,7 @@ export default function AdminUsersPage() {
     >
       <DashboardSectionBlock>
       {/* آمار نقش‌ها */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 mb-6">
         {ROLES.slice(0, 12).map(r => {
           const Icon = r.icon
           return (
@@ -239,17 +239,17 @@ export default function AdminUsersPage() {
               key={r.value}
               onClick={() => setRoleFilter(r.value)}
               className={cn(
-                'p-3 rounded-2xl border text-right transition-all cursor-pointer',
+                'p-3 rounded-2xl border text-right transition-all cursor-pointer min-w-0',
                 roleFilter === r.value
                   ? 'border-brand-cyan/40 bg-brand-cyan/10'
                   : 'glass-panel-quiet hover:border-white/[0.12]'
               )}
             >
-              <div className="flex items-center justify-between">
-                <Icon className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xl font-bold tabular-nums">{stats[r.value] || 0}</span>
+              <div className="flex items-center justify-between gap-1">
+                <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-lg sm:text-xl font-bold tabular-nums">{stats[r.value] || 0}</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{r.label}</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 truncate">{r.label}</p>
             </button>
           )
         })}
@@ -258,8 +258,8 @@ export default function AdminUsersPage() {
 
       <DashboardSectionBlock>
       {/* جستجو */}
-      <div className="flex gap-3 mb-6">
-        <div className="relative flex-1">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="جستجو در نام، ایمیل یا نام کاربری..."
@@ -270,7 +270,7 @@ export default function AdminUsersPage() {
           />
         </div>
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="نقش" />
           </SelectTrigger>
           <SelectContent>
@@ -377,7 +377,7 @@ export default function AdminUsersPage() {
       {/* دیالوگ ساخت کاربر */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent dir="rtl" className="max-w-md">
-          <DialogHeader>
+          <DialogHeader className="text-right sm:text-right">
             <DialogTitle>کاربر جدید</DialogTitle>
             <DialogDescription>
               اگر ایمیل ندارید خالی بگذارید؛ سیستم خودش ایمیل سیستمی می‌سازد. ورود با موبایل/نام کاربری/کد دانش‌آموزی انجام می‌شود.
@@ -389,7 +389,7 @@ export default function AdminUsersPage() {
               <Label>نام و نام خانوادگی *</Label>
               <Input value={newUser.full_name} onChange={e => setNewUser({...newUser, full_name: e.target.value})} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>ایمیل (اختیاری)</Label>
                 <Input
@@ -408,7 +408,7 @@ export default function AdminUsersPage() {
             <p className="text-xs text-muted-foreground -mt-1">
               برای کسانی که ایمیل ندارند، موبایل یا نام کاربری را پر کنید تا ورود آسان‌تر باشد.
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>نام کاربری</Label>
                 <Input value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})} dir="ltr" />

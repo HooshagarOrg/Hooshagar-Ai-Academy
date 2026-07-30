@@ -72,7 +72,7 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
       <div
         data-sidebar
         className={cn(
-          'lg:hidden fixed top-0 right-0 h-app z-50 transition-transform duration-300 will-change-transform',
+          'lg:hidden fixed inset-y-0 right-0 z-50 w-[min(18rem,88vw)] max-w-full shadow-2xl transition-transform duration-300 will-change-transform',
           mobileSidebarOpen ? 'translate-x-0' : 'translate-x-full',
         )}
       >
@@ -82,6 +82,7 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
           schoolName={schoolName}
           collapsed={false}
           onCollapse={() => setMobileSidebarOpen(false)}
+          className="w-full max-w-full"
         />
       </div>
 

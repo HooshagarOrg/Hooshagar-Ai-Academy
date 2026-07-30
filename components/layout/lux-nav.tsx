@@ -31,6 +31,7 @@ export interface LuxNavProps {
   avatarUrl?: string
   collapsed?: boolean
   onCollapse?: (v: boolean) => void
+  className?: string
 }
 
 export function LuxNav({
@@ -40,6 +41,7 @@ export function LuxNav({
   avatarUrl,
   collapsed = false,
   onCollapse,
+  className,
 }: LuxNavProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -47,6 +49,7 @@ export function LuxNav({
 
   const groups = resolveNavGroups(role)
   const arc = getArcColor(role)
+  const closeMobileNav = () => onCollapse?.(false)
 
   const itemBase =
     'lux-focus-ring flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-150 min-h-[44px] group cursor-pointer'
@@ -58,6 +61,7 @@ export function LuxNav({
         className={cn(
           'flex flex-col h-full transition-[width] duration-200',
           collapsed ? 'w-[4.5rem]' : 'w-64',
+          className,
         )}
         style={{
           background: 'var(--lux-nav-bg)',
@@ -134,6 +138,7 @@ export function LuxNav({
                     <TooltipTrigger asChild>
                       <Link
                         href={item.href}
+                        onClick={closeMobileNav}
                         className="lux-focus-ring flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-colors min-h-[44px]"
                         style={active
                           ? { color: arc, background: `color-mix(in srgb, ${arc} 14%, transparent)` }
@@ -150,6 +155,7 @@ export function LuxNav({
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={closeMobileNav}
                     className={cn(itemBase, active ? '' : itemInactive)}
                     style={active ? { color: arc, background: `color-mix(in srgb, ${arc} 12%, transparent)` } : undefined}
                     aria-current={active ? 'page' : undefined}
@@ -182,6 +188,7 @@ export function LuxNav({
                   <TooltipTrigger asChild>
                     <Link
                       href={item.href}
+                      onClick={closeMobileNav}
                       className="lux-focus-ring flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-colors min-h-[44px]"
                       style={active ? { color: arc, background: `color-mix(in srgb, ${arc} 14%, transparent)` } : undefined}
                       aria-label={item.title}
@@ -195,6 +202,7 @@ export function LuxNav({
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={closeMobileNav}
                   className={cn(itemBase, active ? '' : itemInactive)}
                   style={active ? { color: arc, background: `color-mix(in srgb, ${arc} 12%, transparent)` } : undefined}
                 >

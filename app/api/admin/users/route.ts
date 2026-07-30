@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard'
 import {
   buildSyntheticEmail,
@@ -9,12 +9,13 @@ import { hashPin } from '@/lib/security/pin-hash'
 
 // ============================================
 // GET: لیست کاربران
+// از service role استفاده می‌کند تا RLS فقط-خود، لیست ادمین را خالی نکند
 // ============================================
 export async function GET(request: NextRequest) {
   return withAuth(
     request,
     async () => {
-      const supabase = await createClient()
+      const admin = createServiceClient()
       const { searchParams } = new URL(request.url)
 
       const role = searchParams.get('role')
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
       const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 200)
       const offset = parseInt(searchParams.get('offset') || '0')
 
-      let query = supabase
+      let query = admin
         .from('profiles')
         .select('id, email, full_name, role, username, phone, is_staff, school_id, created_at, last_login_at, must_change_password', { count: 'exact' })
         .order('created_at', { ascending: false })
@@ -30,7 +31,8 @@ export async function GET(request: NextRequest) {
 
       if (role && role !== 'all') query = query.eq('role', role)
       if (search) {
-        query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,username.ilike.%${search}%`)
+        const escaped = search.replace(/[%_,]/g, '')
+        query = query.or(`full_name.ilike.%${escaped}%,email.ilike.%${escaped}%,username.ilike.%${escaped}%`)
       }
 
       const { data, error, count } = await query
@@ -39,8 +41,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 })
       }
 
-      // آمار کلی
-      const { data: roleStats } = await supabase
+      const { data: roleStats } = await admin
         .from('profiles')
         .select('role')
 

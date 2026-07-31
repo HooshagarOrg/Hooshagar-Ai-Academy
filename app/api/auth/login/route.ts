@@ -897,20 +897,51 @@ export async function POST(request: NextRequest) {
 
         const serverSigninClient = createLoginClient(request, sessionCookies)
 
-        const { error: serverSignInError } = await new Promise<{ error: unknown }>((resolve) => {
-          const p = serverSigninClient.auth.signInWithPassword({
-            email: creds.email,
+        const attemptSignIn = async () =>
+          new Promise<{ error: unknown }>((resolve) => {
+            const p = serverSigninClient.auth.signInWithPassword({
+              email: creds.email,
+              password: creds.password,
+            })
+            const timer = setTimeout(() => resolve({ error: new Error('server_signin_timeout') }), 30000)
+            p.then(({ error }) => {
+              clearTimeout(timer)
+              resolve({ error })
+            }).catch((err) => {
+              clearTimeout(timer)
+              resolve({ error: err })
+            })
+          })
+
+        let { error: serverSignInError } = await attemptSignIn()
+
+        // اگر PIN درست بود ولی رمز Auth قدیمی/ناهم‌تراز بود، هم‌تراز کن و یک‌بار دیگر تلاش کن
+        if (serverSignInError && pinResult.userId) {
+          console.warn('Student signIn mismatch — syncing auth password and retrying')
+          const admin = getAdminClient()
+          const { error: syncErr } = await admin.auth.admin.updateUserById(pinResult.userId, {
             password: creds.password,
           })
-          const timer = setTimeout(() => resolve({ error: new Error('server_signin_timeout') }), 30000)
-          p.then(({ error }) => {
-            clearTimeout(timer)
-            resolve({ error })
-          }).catch((err) => {
-            clearTimeout(timer)
-            resolve({ error: err })
-          })
-        })
+          if (!syncErr) {
+            sessionCookies.length = 0
+            const retryClient = createLoginClient(request, sessionCookies)
+            const retry = await new Promise<{ error: unknown }>((resolve) => {
+              const p = retryClient.auth.signInWithPassword({
+                email: creds.email,
+                password: creds.password,
+              })
+              const timer = setTimeout(() => resolve({ error: new Error('server_signin_timeout') }), 30000)
+              p.then(({ error }) => {
+                clearTimeout(timer)
+                resolve({ error })
+              }).catch((err) => {
+                clearTimeout(timer)
+                resolve({ error: err })
+              })
+            })
+            serverSignInError = retry.error
+          }
+        }
 
         if (!serverSignInError) {
           await onLoginSuccess({

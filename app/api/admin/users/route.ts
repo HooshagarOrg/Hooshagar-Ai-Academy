@@ -6,6 +6,7 @@ import {
   buildSyntheticEmail,
 } from '@/lib/auth/synthetic-email'
 import { hashPin } from '@/lib/security/pin-hash'
+import { buildAuthPassword } from '@/lib/bulk-import/login-code'
 
 // ============================================
 // GET: لیست کاربران
@@ -97,21 +98,32 @@ const optionalUuid = z.preprocess(
   z.string().uuid().nullable()
 )
 
-const createUserSchema = z.object({
-  email: optionalEmail,
-  password: z.string().min(6, 'رمز عبور باید حداقل ۶ کاراکتر باشد'),
-  full_name: z.string().trim().min(2, 'نام الزامی است').max(200),
-  role: z.string().min(2, 'نقش الزامی است'),
-  username: optionalText,
-  phone: optionalText,
-  school_id: optionalUuid,
-  student_number: optionalText,
-  pin: optionalText,
-  grade: z.coerce.number().int().min(1).max(12).optional().nullable(),
-  education_stage: optionalText,
-  parent_id: optionalUuid,
-  children_ids: z.array(z.string().uuid()).optional(),
-})
+const createUserSchema = z
+  .object({
+    email: optionalEmail,
+    password: z.string().optional().nullable(),
+    full_name: z.string().trim().min(2, 'نام الزامی است').max(200),
+    role: z.string().min(2, 'نقش الزامی است'),
+    username: optionalText,
+    phone: optionalText,
+    school_id: optionalUuid,
+    student_number: optionalText,
+    pin: optionalText,
+    grade: z.coerce.number().int().min(1).max(12).optional().nullable(),
+    education_stage: optionalText,
+    parent_id: optionalUuid,
+    children_ids: z.array(z.string().uuid()).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === 'student') return
+    if (!data.password || data.password.trim().length < 6) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'رمز عبور باید حداقل ۶ کاراکتر باشد',
+        path: ['password'],
+      })
+    }
+  })
 
 export async function POST(request: NextRequest) {
   return withAuth(
@@ -164,10 +176,19 @@ export async function POST(request: NextRequest) {
         { auth: { autoRefreshToken: false, persistSession: false } }
       )
 
+      const studentPinForCreate =
+        role === 'student'
+          ? (pin || Math.floor(1000 + Math.random() * 9000).toString())
+          : null
+      const initialAuthPassword =
+        role === 'student'
+          ? `temp_student_${Date.now()}`
+          : (password || '').trim()
+
       // 1. ساخت auth.user
       const { data: authUser, error: authError } = await admin.auth.admin.createUser({
         email,
-        password,
+        password: initialAuthPassword,
         email_confirm: true,
       })
 
@@ -181,6 +202,21 @@ export async function POST(request: NextRequest) {
       }
 
       const userId = authUser.user.id
+
+      // دانش‌آموز: رمز Auth باید با الگوی ورود PIN هم‌تراز باشد
+      if (role === 'student' && studentPinForCreate) {
+        const authPass = buildAuthPassword(userId, studentPinForCreate, 'student')
+        const { error: passErr } = await admin.auth.admin.updateUserById(userId, {
+          password: authPass,
+        })
+        if (passErr) {
+          await admin.auth.admin.deleteUser(userId).catch(() => {})
+          return NextResponse.json(
+            { error: 'خطا در تنظیم رمز ورود دانش‌آموز: ' + passErr.message },
+            { status: 400 }
+          )
+        }
+      }
 
       // 2. ساخت پروفایل
       const isStaff = ['admin', 'platform_admin', 'principal', 'teacher', 'counselor',
@@ -199,7 +235,8 @@ export async function POST(request: NextRequest) {
           phone: phone || null,
           school_id: school_id || null,
           is_staff: isStaff,
-          must_change_password: !isStaff && role !== 'student' ? false : true,
+          // کارکنان باید رمز موقت را عوض کنند؛ دانش‌آموز/والد با PIN یا کد ورود
+          must_change_password: isStaff,
         })
 
       if (profileError) {
@@ -212,7 +249,7 @@ export async function POST(request: NextRequest) {
       if (role === 'student') {
         // ساخت رکورد در جدول students
         const studentNum = student_number || `STD${Date.now().toString().slice(-8)}`
-        const studentPin = pin || Math.floor(1000 + Math.random() * 9000).toString()
+        const studentPin = studentPinForCreate!
 
         const { error: studentError } = await admin
           .from('students')

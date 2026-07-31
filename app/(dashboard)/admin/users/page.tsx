@@ -161,7 +161,11 @@ export default function AdminUsersPage() {
   }
 
   const handleCreate = async () => {
-    if (!newUser.password || !newUser.full_name) {
+    if (!newUser.full_name) {
+      toast.error('نام الزامی است')
+      return
+    }
+    if (newUser.role !== 'student' && !newUser.password) {
       toast.error('نام و رمز عبور الزامی است')
       return
     }
@@ -177,6 +181,7 @@ export default function AdminUsersPage() {
         body: JSON.stringify({
           ...newUser,
           email: newUser.email.trim() || null,
+          password: newUser.role === 'student' ? (newUser.password || null) : newUser.password,
         }),
       })
       const data = await res.json()
@@ -550,10 +555,18 @@ export default function AdminUsersPage() {
                   placeholder="خالی = ساخت خودکار"
                 />
               </div>
-              <div>
-                <Label>رمز عبور موقت *</Label>
-                <Input type="text" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} dir="ltr" />
-              </div>
+              {newUser.role !== 'student' ? (
+                <div>
+                  <Label>رمز عبور موقت *</Label>
+                  <Input type="text" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} dir="ltr" />
+                </div>
+              ) : (
+                <div className="flex items-end">
+                  <p className="text-xs text-[var(--lux-text-muted)] pb-2">
+                    برای دانش‌آموز فقط PIN کافی است (نیازی به رمز جدا نیست).
+                  </p>
+                </div>
+              )}
             </div>
             <p className="text-xs text-muted-foreground -mt-1">
               برای کسانی که ایمیل ندارند، موبایل یا نام کاربری را پر کنید تا ورود آسان‌تر باشد.

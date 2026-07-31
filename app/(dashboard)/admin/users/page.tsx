@@ -110,9 +110,13 @@ export default function AdminUsersPage() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [deleteUser, setDeleteUser] = useState<UserData | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [showBulkDelete, setShowBulkDelete] = useState(false)
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
 
   useEffect(() => {
     fetchUsers()
+    setSelectedIds([])
   }, [roleFilter])
 
   const fetchUsers = async () => {
@@ -239,11 +243,34 @@ export default function AdminUsersPage() {
       if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'حذف ناموفق بود')
       toast.success('کاربر حذف شد')
       setDeleteUser(null)
+      setSelectedIds((prev) => prev.filter((id) => id !== deleteUser.id))
       fetchUsers()
     } catch (e: unknown) {
       toast.error('خطا در حذف کاربر: ' + (e instanceof Error ? e.message : 'خطای نامشخص'))
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return
+    setIsBulkDeleting(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'حذف گروهی ناموفق بود')
+      toast.success(typeof data.message === 'string' ? data.message : `${selectedIds.length} کاربر حذف شد`)
+      setShowBulkDelete(false)
+      setSelectedIds([])
+      fetchUsers()
+    } catch (e: unknown) {
+      toast.error('خطا در حذف گروهی: ' + (e instanceof Error ? e.message : 'خطای نامشخص'))
+    } finally {
+      setIsBulkDeleting(false)
     }
   }
 
@@ -253,6 +280,24 @@ export default function AdminUsersPage() {
     u.email?.includes(search) ||
     u.username?.includes(search)
   )
+
+  const allFilteredSelected =
+    filtered.length > 0 && filtered.every((u) => selectedIds.includes(u.id))
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      const filteredSet = new Set(filtered.map((u) => u.id))
+      setSelectedIds((prev) => prev.filter((id) => !filteredSet.has(id)))
+    } else {
+      setSelectedIds((prev) => [...new Set([...prev, ...filtered.map((u) => u.id)])])
+    }
+  }
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
+  }
 
   const formatDate = (d: string | null) =>
     d ? new Intl.DateTimeFormat('fa-IR').format(new Date(d)) : '-'
@@ -333,6 +378,33 @@ export default function AdminUsersPage() {
           </SelectContent>
         </Select>
       </div>
+
+      {selectedIds.length > 0 && (
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3">
+          <p className="text-sm flex-1">
+            {selectedIds.length.toLocaleString('fa-IR')} کاربر انتخاب شده
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedIds([])}
+              disabled={isBulkDeleting}
+            >
+              لغو انتخاب
+            </Button>
+            <Button
+              size="sm"
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => setShowBulkDelete(true)}
+              disabled={isBulkDeleting}
+            >
+              <Trash2 className="w-4 h-4 ml-1" />
+              حذف انتخاب‌شده‌ها
+            </Button>
+          </div>
+        </div>
+      )}
       </DashboardSectionBlock>
 
       <DashboardSectionBlock>
@@ -347,12 +419,38 @@ export default function AdminUsersPage() {
         />
       ) : (
         <GlassCard className="overflow-hidden p-0">
+          <div className="flex items-center gap-3 px-5 py-2.5 border-b border-white/[0.06] bg-white/[0.02]">
+            <input
+              type="checkbox"
+              checked={allFilteredSelected}
+              onChange={toggleSelectAll}
+              className="h-4 w-4 rounded border-white/20 accent-[var(--lux-primary)]"
+              aria-label="انتخاب همه"
+            />
+            <span className="text-xs text-muted-foreground">
+              انتخاب همه در لیست فعلی ({filtered.length.toLocaleString('fa-IR')})
+            </span>
+          </div>
           <div className="divide-y divide-white/[0.06]">
             {filtered.map(user => {
               const roleCfg = getRoleConfig(user.role)
               const RoleIcon = roleCfg.icon
+              const isSelected = selectedIds.includes(user.id)
               return (
-                <div key={user.id} className="flex items-center gap-3 px-5 py-3 hover:bg-white/[0.03] transition-colors">
+                <div
+                  key={user.id}
+                  className={cn(
+                    'flex items-center gap-3 px-5 py-3 hover:bg-white/[0.03] transition-colors',
+                    isSelected && 'bg-red-500/5'
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleSelectOne(user.id)}
+                    className="h-4 w-4 shrink-0 rounded border-white/20 accent-[var(--lux-primary)]"
+                    aria-label={`انتخاب ${user.full_name || 'کاربر'}`}
+                  />
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-cyan/30 to-brand-purple/30 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-bold text-foreground">
                       {user.full_name?.charAt(0) || '?'}
@@ -677,6 +775,33 @@ export default function AdminUsersPage() {
               className="bg-red-600 hover:bg-red-700"
             >
               {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'حذف'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* تایید حذف گروهی */}
+      <AlertDialog open={showBulkDelete} onOpenChange={setShowBulkDelete}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف گروهی کاربران</AlertDialogTitle>
+            <AlertDialogDescription>
+              آیا از حذف {selectedIds.length.toLocaleString('fa-IR')} کاربر انتخاب‌شده مطمئن هستید؟
+              این عملیات قابل بازگشت نیست.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>انصراف</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              disabled={isBulkDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isBulkDeleting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                `حذف ${selectedIds.length.toLocaleString('fa-IR')} کاربر`
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

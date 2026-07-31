@@ -351,40 +351,96 @@ async function repairLegacyAuthUserRow(id: string): Promise<void> {
   )
 }
 
+async function deleteAuthUserById(
+  id: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const admin = createServiceClient()
+  let { error } = await admin.auth.admin.deleteUser(id)
+  if (error) {
+    await repairLegacyAuthUserRow(id)
+    const retry = await admin.auth.admin.deleteUser(id)
+    error = retry.error
+  }
+  if (error) {
+    return { ok: false, error: error.message }
+  }
+  return { ok: true }
+}
+
 export async function DELETE(request: NextRequest) {
   return withAuth(
     request,
-    async () => {
+    async (ctx) => {
       const { searchParams } = new URL(request.url)
-      const id = searchParams.get('id')
+      const singleId = searchParams.get('id')
 
-      if (!id) return NextResponse.json({ error: 'شناسه کاربر الزامی' }, { status: 400 })
-
-      const { createClient: createAdminClient } = await import('@supabase/supabase-js')
-      const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        { auth: { autoRefreshToken: false, persistSession: false } }
-      )
-
-      let { error } = await admin.auth.admin.deleteUser(id)
-
-      if (error) {
-        // تلاش برای ترمیم رکورد قدیمی/معیوب و تکرار حذف
-        await repairLegacyAuthUserRow(id)
-        const retry = await admin.auth.admin.deleteUser(id)
-        error = retry.error
+      let ids: string[] = []
+      if (singleId) {
+        ids = [singleId]
+      } else {
+        try {
+          const body: unknown = await request.json()
+          const parsed = z
+            .object({
+              ids: z.array(z.string().uuid()).min(1, 'حداقل یک کاربر انتخاب کنید').max(100),
+            })
+            .safeParse(body)
+          if (!parsed.success) {
+            return NextResponse.json(
+              { error: parsed.error.issues[0]?.message ?? 'داده‌های نامعتبر' },
+              { status: 400 }
+            )
+          }
+          ids = parsed.data.ids
+        } catch {
+          return NextResponse.json({ error: 'شناسه کاربر الزامی' }, { status: 400 })
+        }
       }
 
-      if (error) {
-        console.error('خطا در حذف کاربر (auth.admin.deleteUser):', error.message)
+      const uniqueIds = [...new Set(ids)].filter((id) => id !== ctx.userId)
+      if (uniqueIds.length === 0) {
         return NextResponse.json(
-          { error: 'حذف ناموفق بود: ' + error.message },
+          { error: 'نمی‌توانید حساب خودتان را حذف کنید. کاربر دیگری انتخاب کنید.' },
           { status: 400 }
         )
       }
 
-      return NextResponse.json({ success: true })
+      const failed: { id: string; error: string }[] = []
+      let deleted = 0
+
+      for (const id of uniqueIds) {
+        const result = await deleteAuthUserById(id)
+        if (result.ok) {
+          deleted += 1
+        } else {
+          console.error('خطا در حذف کاربر (auth.admin.deleteUser):', result.error)
+          failed.push({ id, error: result.error })
+        }
+      }
+
+      if (deleted === 0) {
+        return NextResponse.json(
+          {
+            error: failed[0]?.error
+              ? `حذف ناموفق بود: ${failed[0].error}`
+              : 'حذف هیچ کاربری انجام نشد',
+            failed,
+          },
+          { status: 400 }
+        )
+      }
+
+      return NextResponse.json({
+        success: true,
+        deleted,
+        failed_count: failed.length,
+        failed,
+        skipped_self: ids.includes(ctx.userId),
+        message:
+          failed.length > 0
+            ? `${deleted} کاربر حذف شد؛ ${failed.length} مورد ناموفق بود`
+            : `${deleted} کاربر با موفقیت حذف شد`,
+      })
     },
     { roles: ADMIN_ROLES, rateLimit: 'admin_action' }
   )

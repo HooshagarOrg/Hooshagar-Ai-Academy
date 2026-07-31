@@ -413,21 +413,24 @@ function SpellingGame({ onFinish, onBack }: SpellingGameProps) {
   const [isChecked, setIsChecked] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [audioHint, setAudioHint] = useState('')
 
   const currentWord = words[currentIndex]
 
-  // پخش صدا (شبیه‌سازی)
-  const playSound = (): void => {
+  const playSound = async (): Promise<void> => {
+    if (isPlaying) return
     setIsPlaying(true)
-    // در نسخه واقعی از Web Speech API استفاده می‌شود
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(currentWord.word)
-      utterance.lang = 'fa-IR'
-      utterance.rate = 0.8
-      utterance.onend = () => setIsPlaying(false)
-      speechSynthesis.speak(utterance)
-    } else {
-      setTimeout(() => setIsPlaying(false), 1000)
+    setAudioHint('')
+    try {
+      const { speakPersian } = await import('@/lib/speech/speak-persian')
+      const result = await speakPersian(currentWord.word)
+      if (!result.ok) {
+        setAudioHint('پخش صدا در این دستگاه پشتیبانی نشد. از راهنمای تلفظ استفاده کنید.')
+      }
+    } catch {
+      setAudioHint('خطا در پخش صدا. لطفاً دوباره تلاش کنید.')
+    } finally {
+      setIsPlaying(false)
     }
   }
 
@@ -500,7 +503,7 @@ function SpellingGame({ onFinish, onBack }: SpellingGameProps) {
 
           {/* دکمه پخش صدا */}
           <button
-            onClick={playSound}
+            onClick={() => { void playSound() }}
             disabled={isPlaying}
             className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 transition-all transform hover:scale-110 active:scale-95
               ${isPlaying
@@ -515,9 +518,14 @@ function SpellingGame({ onFinish, onBack }: SpellingGameProps) {
             )}
           </button>
 
-          <p className="text-white/50 text-sm mb-6">
+          <p className="text-white/50 text-sm mb-2">
             راهنما: {currentWord.pronunciation}
           </p>
+          {audioHint ? (
+            <p className="mb-6 text-xs text-amber-300">{audioHint}</p>
+          ) : (
+            <div className="mb-6" />
+          )}
 
           {/* Input */}
           <input

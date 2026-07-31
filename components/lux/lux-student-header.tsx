@@ -91,7 +91,8 @@ export function LuxStudentHeader({ userName, onMenuToggle }: LuxStudentHeaderPro
               {xpData.current_streak.toLocaleString('fa-IR')}
             </span>
           </div>
-          <HooshiarOrb size={48} />
+          {/* روی موبایل آواتار هدر روی مشخصات می‌افتد — فقط دسکتاپ؛ موبایل از FAB شناور استفاده می‌کند */}
+          <HooshiarOrb size={44} className="hidden md:flex" />
         </div>
       </div>
     </header>

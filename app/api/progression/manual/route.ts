@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
       .insert({
         full_name: validatedData.full_name,
         national_code: validatedData.national_code,
+        national_id: validatedData.national_code,
         date_of_birth: validatedData.date_of_birth,
         school_id: validatedData.school_id,
         grade: validatedData.grade,

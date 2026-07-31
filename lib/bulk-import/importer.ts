@@ -124,6 +124,7 @@ export async function importStudentRows(
           user_id: userId,
           full_name: name,
           national_code: row.nationalCode,
+          national_id: row.nationalCode,
           student_number: row.nationalCode,
           pin_hash: hashPin(pin),
           grade: row.grade,

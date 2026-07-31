@@ -12,10 +12,12 @@ import { getPageTitleFromPath } from '@/lib/nav/page-title'
 interface LuxRoleHeaderProps {
   userName: string
   role: string
+  /** مثلاً نام فرزند در پنل خانواده */
+  contextLabel?: string
   onMenuToggle?: () => void
 }
 
-export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderProps) {
+export function LuxRoleHeader({ userName, role, contextLabel, onMenuToggle }: LuxRoleHeaderProps) {
   const pathname = usePathname()
   const arc = getArcColor(role)
   const experienceLabel = getRoleExperienceLabel(role)
@@ -26,6 +28,9 @@ export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderPro
     pathname === '/parent' ||
     pathname === '/student' ||
     pathname === '/counselor'
+
+  const primaryTitle = pageTitle && !isHome ? pageTitle : experienceLabel
+  const secondaryLine = pageTitle && !isHome ? experienceLabel : null
 
   return (
     <header
@@ -54,11 +59,13 @@ export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderPro
         </span>
         <div className="min-w-0">
           <p className="truncate text-sm font-bold text-[var(--lux-text)]">
-            {pageTitle && !isHome ? pageTitle : experienceLabel}
+            {primaryTitle}
           </p>
-          {pageTitle && !isHome && (
-            <p className="truncate text-[11px] text-[var(--lux-text-muted)]">{experienceLabel}</p>
-          )}
+          {secondaryLine ? (
+            <p className="truncate text-[11px] text-[var(--lux-text-muted)]">{secondaryLine}</p>
+          ) : contextLabel ? (
+            <p className="truncate text-[11px] text-[var(--lux-text-muted)] sm:hidden">{contextLabel}</p>
+          ) : null}
         </div>
       </div>
 
@@ -66,6 +73,15 @@ export function LuxRoleHeader({ userName, role, onMenuToggle }: LuxRoleHeaderPro
         <PersianDateDisplay variant="compact" className="hidden md:inline-flex" />
         <ThemeToggle compact />
         <NotificationBell />
+        <div
+          className="hidden min-w-0 max-w-[11rem] flex-col items-end sm:flex"
+          title={[userName, contextLabel].filter(Boolean).join(' — ')}
+        >
+          <span className="truncate text-xs font-semibold text-[var(--lux-text)]">{userName}</span>
+          {contextLabel ? (
+            <span className="truncate text-[10px] text-[var(--lux-text-muted)]">{contextLabel}</span>
+          ) : null}
+        </div>
         <div
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white ring-2 ring-white/10"
           style={{ background: `color-mix(in srgb, ${arc} 35%, #1a1f2e)` }}

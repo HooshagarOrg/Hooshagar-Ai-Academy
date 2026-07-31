@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [otpSent, setOtpSent] = useState(false)
   const [otpPhone, setOtpPhone] = useState('')
+  const [otpCode, setOtpCode] = useState('')
   const [otpTimer, setOtpTimer] = useState(0)
   const [activeTab, setActiveTab] = useState('staff')
   const [requireCaptcha, setRequireCaptcha] = useState(false)
@@ -147,6 +148,7 @@ export default function LoginPage() {
 
       if (response.ok && data.success) {
         toast.success('کد تأیید ارسال شد')
+        setOtpCode('')
         setOtpSent(true)
         setOtpPhone(phone)
         let t = 120
@@ -240,8 +242,13 @@ export default function LoginPage() {
   const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
-    const formData = new FormData(e.currentTarget)
-    const otp = formData.get('otp') as string
+    const otp = otpCode.replace(/\D/g, '').slice(0, 6)
+
+    if (!/^\d{6}$/.test(otp)) {
+      toast.error('کد تأیید باید ۶ رقم باشد')
+      setIsLoading(false)
+      return
+    }
 
     try {
       const supabase = createClient()
@@ -590,11 +597,11 @@ export default function LoginPage() {
                   والدین و کارکنان: شماره ثبت‌شده در مدرسه. دانش‌آموز: فقط اگر موبایل اختصاصی در سیستم ثبت شده باشد.
                 </p>
                 {!otpSent ? (
-                  <form onSubmit={handleSendOtp} className="space-y-4">
+                  <form key="sms-phone-form" onSubmit={handleSendOtp} className="space-y-4" autoComplete="on">
                     <div className="space-y-2">
-                      <Label htmlFor="phone">شماره موبایل</Label>
+                      <Label htmlFor="login-phone">شماره موبایل</Label>
                       <Input
-                        id="phone"
+                        id="login-phone"
                         name="phone"
                         type="tel"
                         placeholder="09123456789"
@@ -604,6 +611,8 @@ export default function LoginPage() {
                         dir="ltr"
                         pattern="09[0-9]{9}"
                         maxLength={11}
+                        autoComplete="tel"
+                        inputMode="tel"
                       />
                     </div>
                     <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
@@ -611,26 +620,32 @@ export default function LoginPage() {
                     </button>
                   </form>
                 ) : (
-                  <form onSubmit={handleVerifyOtp} className="space-y-4">
+                  <form key="sms-otp-form" onSubmit={handleVerifyOtp} className="space-y-4" autoComplete="off">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="otp">کد تأیید ۶ رقمی</Label>
+                        <Label htmlFor="login-otp">کد تأیید ۶ رقمی</Label>
                         {otpTimer > 0 && (
                           <span className="text-xs text-muted-foreground">{otpTimer} ثانیه</span>
                         )}
                       </div>
                       <Input
-                        id="otp"
+                        id="login-otp"
                         name="otp"
                         type="text"
                         inputMode="numeric"
-                        placeholder="۱۲۳۴۵۶"
+                        placeholder="------"
                         required
                         disabled={isLoading}
                         className="text-center text-3xl tracking-[0.5em] font-mono"
                         dir="ltr"
                         maxLength={6}
                         pattern="[0-9]{6}"
+                        autoComplete="one-time-code"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                         autoFocus
                       />
                       <p className="text-xs text-muted-foreground text-center">
@@ -644,7 +659,7 @@ export default function LoginPage() {
                       <button
                         type="button"
                         className="lux-btn-ghost w-full"
-                        onClick={() => setOtpSent(false)}
+                        onClick={() => { setOtpCode(''); setOtpSent(false) }}
                       >
                         ارسال مجدد کد
                       </button>
@@ -652,7 +667,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       className="w-full text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-text)]"
-                      onClick={() => { setOtpSent(false); setOtpPhone('') }}
+                      onClick={() => { setOtpSent(false); setOtpPhone(''); setOtpCode('') }}
                       disabled={isLoading}
                     >
                       تغییر شماره موبایل

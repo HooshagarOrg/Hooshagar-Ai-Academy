@@ -13,10 +13,11 @@ interface DashboardShellProps {
   role: string
   userName: string
   schoolName?: string
+  contextLabel?: string
   children: React.ReactNode
 }
 
-export function DashboardShell({ role, userName, schoolName, children }: DashboardShellProps) {
+export function DashboardShell({ role, userName, schoolName, contextLabel, children }: DashboardShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const isStudent = role === 'student'
@@ -96,6 +97,7 @@ export function DashboardShell({ role, userName, schoolName, children }: Dashboa
           <LuxRoleHeader
             userName={userName}
             role={role}
+            contextLabel={contextLabel}
             onMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           />
         )}

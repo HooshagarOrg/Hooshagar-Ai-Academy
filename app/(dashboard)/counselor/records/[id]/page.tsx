@@ -442,10 +442,12 @@ export default function CounselingRecordDetailPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 gap-2">
-                  <Edit className="w-4 h-4" />
-                  ویرایش
-                </Button>
+                <Link href={`/counselor/records/${record.id}/edit`}>
+                  <Button variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 gap-2">
+                    <Edit className="w-4 h-4" />
+                    ویرایش
+                  </Button>
+                </Link>
                 {record.status === 'active' && (
                   <Button variant="outline" className="bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 gap-2">
                     <Lock className="w-4 h-4" />

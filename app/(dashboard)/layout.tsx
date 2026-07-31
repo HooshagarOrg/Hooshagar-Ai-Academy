@@ -37,12 +37,34 @@ export default async function DashboardLayout({
   const userName = profile?.full_name || user.email?.split('@')[0] || 'کاربر'
   const initialTheme: UiTheme = isUiTheme(profile?.ui_theme) ? profile.ui_theme : DEFAULT_UI_THEME
 
+  let contextLabel: string | undefined
+  if (role === 'parent') {
+    const { data: children } = await supabase
+      .from('students')
+      .select('full_name, grade')
+      .eq('parent_id', user.id)
+      .order('full_name', { ascending: true })
+      .limit(3)
+
+    if (children && children.length > 0) {
+      const first = children[0]
+      const firstLabel = first.grade
+        ? `${first.full_name} · پایه ${first.grade}`
+        : first.full_name
+      contextLabel =
+        children.length === 1
+          ? `فرزند: ${firstLabel}`
+          : `فرزند: ${firstLabel} و ${children.length - 1} نفر دیگر`
+    }
+  }
+
   return (
     <DashboardThemeProvider initialTheme={initialTheme}>
       <DashboardShell
         role={role}
         userName={userName}
         schoolName={schoolName}
+        contextLabel={contextLabel}
       >
         {children}
       </DashboardShell>

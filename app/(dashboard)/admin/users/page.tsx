@@ -100,6 +100,14 @@ export default function AdminUsersPage() {
 
   // ویرایش
   const [editUser, setEditUser] = useState<UserData | null>(null)
+  const [editForm, setEditForm] = useState({
+    full_name: '',
+    username: '',
+    phone: '',
+    role: 'teacher',
+    must_change_password: false,
+  })
+  const [isUpdating, setIsUpdating] = useState(false)
   const [deleteUser, setDeleteUser] = useState<UserData | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -176,6 +184,49 @@ export default function AdminUsersPage() {
       toast.error('خطا: ' + (e instanceof Error ? e.message : 'خطا در ایجاد'))
     } finally {
       setIsCreating(false)
+    }
+  }
+
+  const openEdit = (user: UserData) => {
+    setEditUser(user)
+    setEditForm({
+      full_name: user.full_name || '',
+      username: user.username || '',
+      phone: user.phone || '',
+      role: user.role || 'teacher',
+      must_change_password: !!user.must_change_password,
+    })
+  }
+
+  const handleUpdate = async () => {
+    if (!editUser) return
+    if (!editForm.full_name.trim() || editForm.full_name.trim().length < 2) {
+      toast.error('نام باید حداقل ۲ کاراکتر باشد')
+      return
+    }
+    setIsUpdating(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editUser.id,
+          full_name: editForm.full_name.trim(),
+          username: editForm.username.trim() || null,
+          phone: editForm.phone.trim() || null,
+          role: editForm.role,
+          must_change_password: editForm.must_change_password,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'بروزرسانی ناموفق بود')
+      toast.success('اطلاعات کاربر بروزرسانی شد')
+      setEditUser(null)
+      fetchUsers()
+    } catch (e: unknown) {
+      toast.error('خطا در ویرایش: ' + (e instanceof Error ? e.message : 'خطای نامشخص'))
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -352,7 +403,7 @@ export default function AdminUsersPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setEditUser(user)}>
+                      <DropdownMenuItem onClick={() => openEdit(user)}>
                         <Edit className="w-4 h-4 ml-2 text-[var(--lux-secondary)]" />
                         ویرایش
                       </DropdownMenuItem>
@@ -524,6 +575,85 @@ export default function AdminUsersPage() {
               disabled={isCreating}
             >
               {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'ایجاد'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* دیالوگ ویرایش کاربر */}
+      <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader className="text-right sm:text-right">
+            <DialogTitle>ویرایش کاربر</DialogTitle>
+            <DialogDescription>
+              {editUser?.email ? `ایمیل: ${editUser.email}` : 'بروزرسانی اطلاعات پروفایل'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div>
+              <Label>نام و نام خانوادگی *</Label>
+              <Input
+                value={editForm.full_name}
+                onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label>نام کاربری</Label>
+                <Input
+                  value={editForm.username}
+                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                  dir="ltr"
+                />
+              </div>
+              <div>
+                <Label>موبایل</Label>
+                <Input
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  dir="ltr"
+                  placeholder="09..."
+                />
+              </div>
+            </div>
+            <div>
+              <Label>نقش *</Label>
+              <Select
+                value={editForm.role}
+                onValueChange={(v) => setEditForm({ ...editForm, role: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLES.map((r) => (
+                    <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={editForm.must_change_password}
+                onChange={(e) => setEditForm({ ...editForm, must_change_password: e.target.checked })}
+                className="rounded border-white/20"
+              />
+              اجبار به تغییر رمز در ورود بعدی
+            </label>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditUser(null)} disabled={isUpdating}>
+              انصراف
+            </Button>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleUpdate}
+              disabled={isUpdating}
+            >
+              {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'ذخیره تغییرات'}
             </Button>
           </DialogFooter>
         </DialogContent>

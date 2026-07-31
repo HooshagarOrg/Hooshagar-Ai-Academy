@@ -284,18 +284,47 @@ export async function PATCH(request: NextRequest) {
   return withAuth(
     request,
     async () => {
-      const body = await request.json()
-      const { id, ...updates } = body
+      const body: unknown = await request.json()
+      const schema = z.object({
+        id: z.string().uuid('شناسه کاربر نامعتبر است'),
+        full_name: z.string().trim().min(2).max(200).optional(),
+        username: z.preprocess(
+          (v) => (typeof v === 'string' && v.trim() === '' ? null : v),
+          z.string().trim().min(2).max(50).nullable().optional()
+        ),
+        phone: z.preprocess(
+          (v) => (typeof v === 'string' && v.trim() === '' ? null : v),
+          z.string().trim().max(20).nullable().optional()
+        ),
+        role: z.string().min(2).optional(),
+        must_change_password: z.boolean().optional(),
+      })
+      const parsed = schema.safeParse(body)
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: 'داده‌های نامعتبر', details: parsed.error.issues },
+          { status: 400 }
+        )
+      }
 
-      if (!id) return NextResponse.json({ error: 'شناسه کاربر الزامی' }, { status: 400 })
+      const { id, ...rawUpdates } = parsed.data
+      const updates: Record<string, unknown> = { ...rawUpdates }
 
-      const { createClient: createAdminClient } = await import('@supabase/supabase-js')
-      const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        { auth: { autoRefreshToken: false, persistSession: false } }
-      )
+      if (typeof updates.role === 'string') {
+        const staffRoles = [
+          'admin', 'platform_admin', 'principal', 'teacher', 'counselor',
+          'health_vp', 'educational_vp', 'financial_vp', 'disciplinary_vp',
+          'evaluation_vp', 'art_teacher', 'sports_teacher', 'secretary',
+          'librarian', 'security', 'maintenance',
+        ]
+        updates.is_staff = staffRoles.includes(updates.role)
+      }
 
+      if (Object.keys(updates).length === 0) {
+        return NextResponse.json({ error: 'هیچ فیلدی برای بروزرسانی ارسال نشده' }, { status: 400 })
+      }
+
+      const admin = createServiceClient()
       const { error } = await admin.from('profiles').update(updates).eq('id', id)
 
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })

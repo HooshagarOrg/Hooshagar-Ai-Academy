@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { createServiceClient } from '@/lib/supabase/service'
 
 // ============================================
 // تایپ‌ها و اینترفیس‌ها
 // ============================================
 type OtpPurpose = 'login' | 'reset-password'
-
-interface OtpRequest {
-  phoneNumber: string
-  purpose: OtpPurpose
-}
 
 interface SuccessResponse {
   success: true
@@ -45,6 +40,8 @@ const OTP_EXPIRY_MINUTES = 5
 const OTP_EXPIRY_SECONDS = OTP_EXPIRY_MINUTES * 60
 const RATE_LIMIT_MINUTES = 10
 const RATE_LIMIT_MAX_ATTEMPTS = 3
+
+type ServiceClient = ReturnType<typeof createServiceClient>
 
 // ============================================
 // Helper: Generate 6-digit OTP
@@ -101,7 +98,7 @@ async function sendSMS(phoneNumber: string, code: string): Promise<boolean> {
 // Helper: Check Rate Limit
 // ============================================
 async function checkRateLimit(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ServiceClient,
   phoneNumber: string
 ): Promise<{ allowed: boolean; attemptsLeft: number }> {
   const tenMinutesAgo = new Date(Date.now() - RATE_LIMIT_MINUTES * 60 * 1000).toISOString()
@@ -114,7 +111,6 @@ async function checkRateLimit(
 
   if (error) {
     console.error('Rate limit check error:', error)
-    // در صورت خطا، اجازه می‌دهیم ادامه یابد
     return { allowed: true, attemptsLeft: RATE_LIMIT_MAX_ATTEMPTS }
   }
 
@@ -131,13 +127,13 @@ async function checkRateLimit(
 // Helper: Invalidate Previous OTPs
 // ============================================
 async function invalidatePreviousOTPs(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ServiceClient,
   phoneNumber: string,
   purpose: OtpPurpose
 ): Promise<void> {
   const { error } = await supabase
     .from('otp_codes')
-    .update({ is_used: true })
+    .update({ is_used: true, verified: true })
     .eq('phone_number', phoneNumber)
     .eq('purpose', purpose)
     .eq('is_used', false)
@@ -151,19 +147,22 @@ async function invalidatePreviousOTPs(
 // Helper: Save OTP to Database
 // ============================================
 async function saveOTP(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ServiceClient,
   phoneNumber: string,
   code: string,
   purpose: OtpPurpose
 ): Promise<boolean> {
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_SECONDS * 1000).toISOString()
 
+  // phone + phone_number هر دو برای سازگاری با اسکیمای قدیمی/جدید
   const { error } = await supabase.from('otp_codes').insert({
+    phone: phoneNumber,
     phone_number: phoneNumber,
     code,
     purpose,
     expires_at: expiresAt,
     is_used: false,
+    verified: false,
   })
 
   if (error) {
@@ -179,7 +178,6 @@ async function saveOTP(
 // ============================================
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
-    // 1. Parse request body
     let body: unknown
     try {
       body = await request.json()
@@ -194,7 +192,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       )
     }
 
-    // 2. Validate input
     const validationResult = otpRequestSchema.safeParse(body)
 
     if (!validationResult.success) {
@@ -202,7 +199,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       return NextResponse.json(
         {
           success: false,
-          error: firstError.message,
+          error: firstError?.message ?? 'داده‌های نامعتبر',
           code: 'VALIDATION_ERROR',
         },
         { status: 400 }
@@ -211,17 +208,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     const { phoneNumber, purpose } = validationResult.data
 
-    // 3. Create Supabase client
-    const supabase = await createClient()
+    // OTP باید با service role ذخیره شود (RLS روی otp_codes برای anon بسته است)
+    const admin = createServiceClient()
 
-    // 3b. برای ورود: بررسی وجود کاربر با این موبایل
     if (purpose === 'login') {
-      const { createClient: createAdminClient } = await import('@supabase/supabase-js')
-      const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        { auth: { autoRefreshToken: false, persistSession: false } }
-      )
       const { data: matches } = await admin
         .from('profiles')
         .select('id, role, phone')
@@ -249,8 +239,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       }
     }
 
-    // 4. Check rate limit
-    const { allowed, attemptsLeft } = await checkRateLimit(supabase, phoneNumber)
+    const { allowed } = await checkRateLimit(admin, phoneNumber)
 
     if (!allowed) {
       console.warn(`Rate limit exceeded for ${phoneNumber}`)
@@ -264,14 +253,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       )
     }
 
-    // 5. Invalidate previous OTPs for this phone/purpose
-    await invalidatePreviousOTPs(supabase, phoneNumber, purpose)
+    await invalidatePreviousOTPs(admin, phoneNumber, purpose)
 
-    // 6. Generate new OTP
     const otpCode = generateOTP()
-
-    // 7. Save OTP to database
-    const saved = await saveOTP(supabase, phoneNumber, otpCode, purpose)
+    const saved = await saveOTP(admin, phoneNumber, otpCode, purpose)
 
     if (!saved) {
       return NextResponse.json(
@@ -284,8 +269,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       )
     }
 
-    // 8. Send SMS
-    // در محیط development، کد را لاگ کن و ارسال نکن
     if (process.env.NODE_ENV === 'development') {
       console.log(`🔐 [DEV] OTP for ${phoneNumber}: ${otpCode}`)
     } else {
@@ -303,10 +286,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         )
       }
 
-      // لاگ OTP (بدون سقف روزانه مدرسه)
       try {
         const { logSmsDelivery } = await import('@/lib/sms/controlled-send')
-        const { data: profileByPhone } = await supabase
+        const { data: profileByPhone } = await admin
           .from('profiles')
           .select('id, school_id')
           .eq('phone', phoneNumber)
@@ -324,10 +306,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       }
     }
 
-    // 9. Log success
     console.log(`✅ OTP request successful for ${phoneNumber} (purpose: ${purpose})`)
 
-    // 10. Return success response
     return NextResponse.json(
       {
         success: true,
@@ -337,7 +317,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       { status: 200 }
     )
   } catch (error) {
-    // Catch-all error handler
     console.error('Unexpected error in send-otp:', error)
 
     return NextResponse.json(
@@ -351,9 +330,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
   }
 }
 
-// ============================================
-// Other Methods - Not Allowed
-// ============================================
 export async function GET(): Promise<NextResponse> {
   return NextResponse.json(
     { success: false, error: 'Method not allowed' },
@@ -374,51 +350,3 @@ export async function DELETE(): Promise<NextResponse> {
     { status: 405 }
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

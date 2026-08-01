@@ -7,6 +7,8 @@ import {
   generateFilePath,
   validateFile,
   deleteFromArvan,
+  getSignedDownloadUrl,
+  isPublicFileType,
   type FileType,
 } from '@/lib/arvan-storage'
 
@@ -14,10 +16,17 @@ import {
 // تایپ‌ها
 // ============================================
 
+/** Short-lived signed URL TTL for private uploads (15 minutes) */
+const PRIVATE_SIGNED_URL_TTL_SEC = 900
+
 interface UploadResponse {
   success: boolean
+  /** CDN/public URL for public types; omitted for private */
   url?: string
   path?: string
+  /** Short-lived signed download URL for private types */
+  signedUrl?: string
+  isPublic?: boolean
   size?: number
   type?: string
   originalName?: string
@@ -126,18 +135,31 @@ export async function POST(request: NextRequest) {
     // 8. Generate unique file path
     const filePath = generateFilePath(type, file.name, userId, schoolId || undefined)
 
-    // 9. Upload to Arvan S3
-    console.log(`📤 Uploading file: ${file.name} (${file.size} bytes) to ${filePath}`)
+    const isPublic = isPublicFileType(type)
 
-    const result = await uploadToArvan(buffer, filePath, file.type)
+    // 9. Upload to Arvan S3 (public ACL only for avatar/logo)
+    console.log(
+      `📤 Uploading file: ${file.name} (${file.size} bytes) to ${filePath} (public=${isPublic})`
+    )
 
-    if (!result.success) {
+    const result = await uploadToArvan(buffer, filePath, file.type, { fileType: type })
+
+    if (!result.success || !result.path) {
       console.error(`❌ Upload failed: ${result.error}`)
       return NextResponse.json(
         { success: false, error: result.error || 'خطا در آپلود فایل' },
         { status: 500 }
       )
     }
+
+    // Short-lived signed URL for private objects (immediate client access)
+    let signedUrl: string | undefined
+    if (!isPublic) {
+      signedUrl = (await getSignedDownloadUrl(result.path, PRIVATE_SIGNED_URL_TTL_SEC)) ?? undefined
+    }
+
+    // Persistent URL for DB: CDN for public; path for private (file_path is source of truth)
+    const persistentUrl = isPublic ? (result.url ?? '') : result.path
 
     // 10. Save metadata to database (optional, based on file type)
     if (['avatar', 'document', 'attachment', 'report', 'art-sample'].includes(type)) {
@@ -146,7 +168,7 @@ export async function POST(request: NextRequest) {
         school_id: schoolId,
         file_type: type,
         file_path: result.path,
-        file_url: result.url,
+        file_url: persistentUrl,
         file_size: file.size,
         mime_type: file.type,
         original_name: file.name,
@@ -159,17 +181,25 @@ export async function POST(request: NextRequest) {
     }
 
     // 11. Log success
-    console.log(`✅ File uploaded successfully: ${result.url}`)
+    console.log(`✅ File uploaded successfully: ${result.path}`)
 
     // 12. Return success response
-    return NextResponse.json({
+    const response: UploadResponse = {
       success: true,
-      url: result.url,
       path: result.path,
+      isPublic,
       size: file.size,
       type: file.type,
       originalName: file.name,
-    })
+    }
+
+    if (isPublic) {
+      response.url = result.url
+    } else {
+      response.signedUrl = signedUrl
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('❌ Upload API error:', error)
     return NextResponse.json(

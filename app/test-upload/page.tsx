@@ -34,7 +34,7 @@ export default function TestUploadPage() {
 
       if (response.ok && data.success) {
         toast.success('✅ فایل با موفقیت آپلود شد!')
-        setUploadedUrl(data.url)
+        setUploadedUrl(data.signedUrl || data.url || data.path || null)
       } else {
         toast.error(data.error || 'خطا در آپلود فایل')
       }

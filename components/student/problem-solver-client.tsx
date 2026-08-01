@@ -70,7 +70,7 @@ export function ProblemSolverClient() {
       const uploadData = await uploadResponse.json()
 
       if (uploadData.success) {
-        setImageUrl(uploadData.url)
+        setImageUrl(uploadData.signedUrl || uploadData.url || '')
         setImagePath(uploadData.path)
         toast.success('تصویر آماده است')
       } else {

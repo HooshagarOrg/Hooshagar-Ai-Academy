@@ -1,0 +1,79 @@
+name: Files Backup
+
+on:
+  schedule:
+    # روزانه ساعت 02:00 UTC — حدود ۳۰ دقیقه بعد از DB dump (01:30 UTC)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Install AWS CLI (for Arvan S3)
+        id: install-aws
+        run: |
+          pip install --quiet awscli
+
+      - name: Sync prod files to backup bucket
+        id: sync
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.ARVAN_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.ARVAN_SECRET_KEY }}
+          AWS_DEFAULT_REGION: default
+          ARVAN_ENDPOINT: ${{ secrets.ARVAN_ENDPOINT }}
+          ARVAN_BUCKET: ${{ secrets.ARVAN_BUCKET }}
+          ARVAN_BACKUP_BUCKET: ${{ secrets.ARVAN_BACKUP_BUCKET }}
+        run: |
+          set -euo pipefail
+          ENDPOINT="${ARVAN_ENDPOINT:-https://s3.ir-thr-at1.arvanstorage.ir}"
+          SRC_BUCKET="${ARVAN_BUCKET:-hooshagar-prod}"
+          DEST_BUCKET="${ARVAN_BACKUP_BUCKET:-hooshagar-backups}"
+          if [ -z "${AWS_ACCESS_KEY_ID}" ] || [ -z "${AWS_SECRET_ACCESS_KEY}" ]; then
+            echo "ARVAN_ACCESS_KEY / ARVAN_SECRET_KEY secrets are missing"
+            exit 1
+          fi
+          echo "Syncing s3://${SRC_BUCKET}/ → s3://${DEST_BUCKET}/files/"
+          aws --endpoint-url "$ENDPOINT" s3 sync \
+            "s3://${SRC_BUCKET}/" \
+            "s3://${DEST_BUCKET}/files/"
+          echo "Sync completed: s3://${DEST_BUCKET}/files/"
+
+      - name: Write failure Job Summary
+        if: failure()
+        env:
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          INSTALL_AWS_OUTCOME: ${{ steps.install-aws.outcome }}
+          SYNC_OUTCOME: ${{ steps.sync.outcome }}
+        run: |
+          set -euo pipefail
+          DATE_UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          {
+            echo "## Files backup failed"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Date (UTC) | ${DATE_UTC} |"
+            echo "| Workflow | ${{ github.workflow }} |"
+            echo "| Run | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |"
+            echo ""
+            echo "### Failed stages"
+            echo ""
+            FAILED=0
+            if [ "${CHECKOUT_OUTCOME}" = "failure" ]; then echo "- Checkout"; FAILED=1; fi
+            if [ "${INSTALL_AWS_OUTCOME}" = "failure" ]; then echo "- Install AWS CLI"; FAILED=1; fi
+            if [ "${SYNC_OUTCOME}" = "failure" ]; then echo "- Sync prod files to backup bucket"; FAILED=1; fi
+            if [ "$FAILED" -eq 0 ]; then
+              echo "- Unknown (job failed before or outside named steps)"
+            fi
+            echo ""
+            echo "Check the failed step logs in this run for details."
+          } >> "$GITHUB_STEP_SUMMARY"

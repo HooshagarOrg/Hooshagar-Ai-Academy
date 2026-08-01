@@ -15,15 +15,18 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
+        id: checkout
         uses: actions/checkout@v4
 
       - name: Install AWS CLI (for Arvan S3)
+        id: install-aws
         run: |
           pip install --quiet awscli
 
       # Supabase hosted DB is Postgres 17; supabase CLI ships pg_dump 15 → version mismatch.
       # Use official postgres:17 client image for dump. Prefer Session pooler (port 5432) in SUPABASE_DB_URL.
       - name: Dump database
+        id: dump
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
@@ -50,6 +53,7 @@ jobs:
           echo "BACKUP_FILE=${OUT}.gz" >> "$GITHUB_ENV"
 
       - name: Upload to Arvan S3
+        id: upload
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.ARVAN_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.ARVAN_SECRET_KEY }}
@@ -65,6 +69,7 @@ jobs:
           echo "Uploaded s3://${BUCKET}/${KEY}"
 
       - name: Prune backups older than 60 days
+        id: prune
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.ARVAN_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.ARVAN_SECRET_KEY }}
@@ -82,3 +87,38 @@ jobs:
               echo "Deleting old backup: $key"
               aws --endpoint-url "$ENDPOINT" s3 rm "s3://${BUCKET}/${key}"
             done
+
+      - name: Write failure Job Summary
+        if: failure()
+        env:
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          INSTALL_AWS_OUTCOME: ${{ steps.install-aws.outcome }}
+          DUMP_OUTCOME: ${{ steps.dump.outcome }}
+          UPLOAD_OUTCOME: ${{ steps.upload.outcome }}
+          PRUNE_OUTCOME: ${{ steps.prune.outcome }}
+        run: |
+          set -euo pipefail
+          DATE_UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          {
+            echo "## Database backup failed"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Date (UTC) | ${DATE_UTC} |"
+            echo "| Workflow | ${{ github.workflow }} |"
+            echo "| Run | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |"
+            echo ""
+            echo "### Failed stages"
+            echo ""
+            FAILED=0
+            if [ "${CHECKOUT_OUTCOME}" = "failure" ]; then echo "- Checkout"; FAILED=1; fi
+            if [ "${INSTALL_AWS_OUTCOME}" = "failure" ]; then echo "- Install AWS CLI"; FAILED=1; fi
+            if [ "${DUMP_OUTCOME}" = "failure" ]; then echo "- Dump database"; FAILED=1; fi
+            if [ "${UPLOAD_OUTCOME}" = "failure" ]; then echo "- Upload to Arvan S3"; FAILED=1; fi
+            if [ "${PRUNE_OUTCOME}" = "failure" ]; then echo "- Prune backups older than 60 days"; FAILED=1; fi
+            if [ "$FAILED" -eq 0 ]; then
+              echo "- Unknown (job failed before or outside named steps)"
+            fi
+            echo ""
+            echo "Check the failed step logs in this run for details."
+          } >> "$GITHUB_STEP_SUMMARY"

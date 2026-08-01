@@ -23,10 +23,22 @@ import { GetObjectCommand } from '@aws-sdk/client-s3'
 
 export interface UploadResult {
   success: boolean
+  /** CDN/public URL — only set for public-read objects (avatar/logo) */
   url?: string
   path?: string
   size?: number
+  /** Whether the object was uploaded with public-read ACL */
+  isPublic?: boolean
   error?: string
+}
+
+export interface UploadOptions {
+  /**
+   * Force public-read ACL. If omitted, derived from `fileType`
+   * (only `avatar` / `logo` are public). Defaults to private.
+   */
+  publicRead?: boolean
+  fileType?: FileType
 }
 
 export interface FileValidationResult {
@@ -51,6 +63,27 @@ export type FileType =
   | 'art-sample'
   | 'story-image'
   | 'misc'
+
+/** File types served via CDN with public-read ACL */
+export const PUBLIC_FILE_TYPES: readonly FileType[] = ['avatar', 'logo'] as const
+
+/**
+ * آیا این نوع فایل باید با ACL عمومی آپلود شود؟
+ * فقط avatar و logo عمومی هستند؛ بقیه private + signed URL.
+ */
+export function isPublicFileType(type: FileType): boolean {
+  return (PUBLIC_FILE_TYPES as readonly string[]).includes(type)
+}
+
+function resolvePublicRead(options?: UploadOptions): boolean {
+  if (options?.publicRead !== undefined) {
+    return options.publicRead
+  }
+  if (options?.fileType) {
+    return isPublicFileType(options.fileType)
+  }
+  return false
+}
 
 // ============================================
 // Constants
@@ -125,14 +158,17 @@ function getClient(): S3Client {
 
 /**
  * آپلود فایل به Arvan S3
+ * پیش‌فرض: private (بدون public-read). فقط avatar/logo یا `publicRead: true` عمومی‌اند.
  */
 export async function uploadToArvan(
   fileBuffer: Buffer,
   path: string,
-  contentType: string
+  contentType: string,
+  options?: UploadOptions
 ): Promise<UploadResult> {
   try {
     const client = getClient()
+    const publicRead = resolvePublicRead(options)
 
     const upload = new Upload({
       client,
@@ -141,7 +177,7 @@ export async function uploadToArvan(
         Key: path,
         Body: fileBuffer,
         ContentType: contentType,
-        ACL: 'public-read',
+        ...(publicRead ? { ACL: 'public-read' as const } : {}),
         CacheControl: 'max-age=31536000', // 1 year cache
       },
     })
@@ -156,15 +192,14 @@ export async function uploadToArvan(
 
     await upload.done()
 
-    const url = getArvanURL(path)
-
-    console.log(`✅ File uploaded: ${path}`)
+    console.log(`✅ File uploaded: ${path} (public=${publicRead})`)
 
     return {
       success: true,
-      url,
+      url: publicRead ? getArvanURL(path) : undefined,
       path,
       size: fileBuffer.length,
+      isPublic: publicRead,
     }
   } catch (error) {
     console.error('❌ Arvan upload error:', error)
@@ -182,10 +217,12 @@ export async function uploadStreamToArvan(
   stream: ReadableStream | NodeJS.ReadableStream,
   path: string,
   contentType: string,
-  contentLength?: number
+  contentLength?: number,
+  options?: UploadOptions
 ): Promise<UploadResult> {
   try {
     const client = getClient()
+    const publicRead = resolvePublicRead(options)
 
     const upload = new Upload({
       client,
@@ -194,7 +231,7 @@ export async function uploadStreamToArvan(
         Key: path,
         Body: stream as unknown as Buffer,
         ContentType: contentType,
-        ACL: 'public-read',
+        ...(publicRead ? { ACL: 'public-read' as const } : {}),
         ContentLength: contentLength,
       },
       queueSize: 4, // concurrent uploads
@@ -205,8 +242,9 @@ export async function uploadStreamToArvan(
 
     return {
       success: true,
-      url: getArvanURL(path),
+      url: publicRead ? getArvanURL(path) : undefined,
       path,
+      isPublic: publicRead,
     }
   } catch (error) {
     console.error('❌ Arvan stream upload error:', error)
@@ -223,10 +261,12 @@ export async function uploadStreamToArvan(
 export async function uploadSmallFile(
   fileBuffer: Buffer,
   path: string,
-  contentType: string
+  contentType: string,
+  options?: UploadOptions
 ): Promise<UploadResult> {
   try {
     const client = getClient()
+    const publicRead = resolvePublicRead(options)
 
     await client.send(
       new PutObjectCommand({
@@ -234,15 +274,16 @@ export async function uploadSmallFile(
         Key: path,
         Body: fileBuffer,
         ContentType: contentType,
-        ACL: 'public-read',
+        ...(publicRead ? { ACL: 'public-read' as const } : {}),
       })
     )
 
     return {
       success: true,
-      url: getArvanURL(path),
+      url: publicRead ? getArvanURL(path) : undefined,
       path,
       size: fileBuffer.length,
+      isPublic: publicRead,
     }
   } catch (error) {
     console.error('❌ Arvan small file upload error:', error)
@@ -385,21 +426,27 @@ export async function listFiles(prefix: string, maxKeys: number = 100): Promise<
 
 /**
  * کپی فایل
+ * پیش‌فرض: بدون public-read (خصوصی)
  */
-export async function copyFile(sourcePath: string, destPath: string): Promise<boolean> {
+export async function copyFile(
+  sourcePath: string,
+  destPath: string,
+  options?: UploadOptions
+): Promise<boolean> {
   try {
     const client = getClient()
+    const publicRead = resolvePublicRead(options)
 
     await client.send(
       new CopyObjectCommand({
         Bucket: BUCKET_NAME,
         CopySource: `${BUCKET_NAME}/${sourcePath}`,
         Key: destPath,
-        ACL: 'public-read',
+        ...(publicRead ? { ACL: 'public-read' as const } : {}),
       })
     )
 
-    console.log(`📋 File copied: ${sourcePath} → ${destPath}`)
+    console.log(`📋 File copied: ${sourcePath} → ${destPath} (public=${publicRead})`)
     return true
   } catch (error) {
     console.error('❌ Arvan copy error:', error)
@@ -717,6 +764,8 @@ export default {
   formatFileSize,
   base64ToBuffer,
   getMimeFromBase64,
+  isPublicFileType,
+  PUBLIC_FILE_TYPES,
 }
 
 

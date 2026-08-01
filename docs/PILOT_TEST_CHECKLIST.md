@@ -100,6 +100,16 @@
 
 ---
 
+## ۸) Ops — بک‌آپ (کوتاه)
+
+جزئیات: [`BACKUP_RUNBOOK.md`](BACKUP_RUNBOOK.md) · نقشه راه: [`BACKUP_HARDENING_PLAN.md`](BACKUP_HARDENING_PLAN.md)
+
+- [ ] باکت بک‌آپ آروان (`hooshagar-backups` یا `ARVAN_BACKUP_BUCKET`) وجود دارد و عمومی نیست
+- [ ] آخرین dump دیتابیس در باکت تازه‌تر از ۷ روز است (پنل آروان یا run موفق Actions)
+- [ ] در صورت فعال بودن mirror فایل: آبجکت‌هایی زیر prefix `files/` در باکت بک‌آپ دیده می‌شود
+
+---
+
 ## نتیجه پایلوت
 
 | معیار | وضعیت |

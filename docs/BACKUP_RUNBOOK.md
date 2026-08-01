@@ -1,5 +1,7 @@
 # Runbook بک‌آپ و بازیابی — هوشاگر
 
+**نقشه راه سخت‌سازی:** [BACKUP_HARDENING_PLAN.md](./BACKUP_HARDENING_PLAN.md)
+
 **استراتژی قفل‌شده:** A′ + B  
 - **A′:** بک‌آپ روزانه پلتفرم Supabase (پلن Pro توصیه می‌شود؛ Free بک‌آپ خودکار ندارد و بعد از ~۱ هفته بی‌فعالیتی pause می‌شود)  
 - **B:** dump زمان‌بندی‌شده → باکت جدا روی **آروان** (`ARVAN_BACKUP_BUCKET` یا پیش‌فرض `hooshagar-backups`)
@@ -18,7 +20,17 @@
 
 ## ۲) بک‌آپ خودکار به آروان (B)
 
+### دیتابیس
+
 Workflow: [`.github/workflows/db-backup.yml`](../.github/workflows/db-backup.yml)
+
+**مسیر رسمی:** GitHub Actions (schedule روزانه + `workflow_dispatch`).
+
+### فایل‌ها (mirror)
+
+Workflow: [`.github/workflows/files-backup.yml`](../.github/workflows/files-backup.yml)
+
+همگام‌سازی روزانه باکت production (`ARVAN_BUCKET` / `hooshagar-prod`) به prefix `files/` داخل باکت بک‌آپ. جزئیات و چک‌باکس‌ها در [BACKUP_HARDENING_PLAN.md](./BACKUP_HARDENING_PLAN.md) فاز ۳.
 
 ### Secrets لازم در GitHub
 
@@ -29,6 +41,7 @@ Workflow: [`.github/workflows/db-backup.yml`](../.github/workflows/db-backup.yml
 | `ARVAN_SECRET_KEY` | رمز آروان |
 | `ARVAN_ENDPOINT` | مثلاً `https://s3.ir-thr-at1.arvanstorage.ir` |
 | `ARVAN_BACKUP_BUCKET` | باکت جدا از فایل کاربران، مثلاً `hooshagar-backups` |
+| `ARVAN_BUCKET` | باکت فایل‌های production، مثلاً `hooshagar-prod` (برای mirror فایل‌ها) |
 
 ### باکت آروان
 
@@ -38,14 +51,20 @@ Workflow: [`.github/workflows/db-backup.yml`](../.github/workflows/db-backup.yml
 
 ### اجرای دستی
 
-در GitHub → Actions → **Database Backup** → Run workflow
+در GitHub → Actions → **Database Backup** (یا **Files Backup**) → Run workflow
 
-یا محلی (با احتیاط):
+یا محلی برای dump دیتابیس (با احتیاط):
 
 ```bash
 pnpm db:dump
-# سپس آپلود backup.sql.gz به آروان با اسکریپت scripts/upload-backup.mjs
+# خروجی: backup.sql — در صورت نیاز فشرده کنید:
+gzip -9 backup.sql
+# سپس آپلود با AWS CLI به آروان (مسیر رسمی CI است؛ این فقط برای اضطرار/دیباگ):
+# aws --endpoint-url "$ARVAN_ENDPOINT" s3 cp backup.sql.gz \
+#   "s3://${ARVAN_BACKUP_BUCKET:-hooshagar-backups}/db/hooshagar-db-$(date -u +%Y-%m-%d).sql.gz"
 ```
+
+از اسکریپت جداگانه برای آپلود استفاده نکنید؛ در ریپو اسکریپت اختصاصی آپلود وجود ندارد.
 
 ## ۳) تست بازیابی (ماهانه — توسعه‌دهنده)
 
@@ -53,7 +72,7 @@ pnpm db:dump
 2. ایجاد/استفاده از پروژهٔ **تست** Supabase (نه production)  
 3. `psql` یا `supabase db reset` + restore فایل dump  
 4. ورود تست و شمارش چند جدول کلیدی (`profiles`, `students`, `schools`)  
-5. نتیجه را در جدول زیر ثبت کنید
+5. نتیجه را در جدول زیر (و در [BACKUP_HARDENING_PLAN.md](./BACKUP_HARDENING_PLAN.md) فاز ۲) ثبت کنید
 
 | تاریخ | فایل بک‌آپ | پروژهٔ تست | نتیجه | امضا |
 |-------|------------|------------|--------|------|
@@ -68,4 +87,5 @@ pnpm db:dump
 
 ## ۵) چک هفتگی اپراتور
 
-وجود فایل بک‌آپ تازه‌تر از ۷ روز در پنل آروان یا تأیید Daily backup در Supabase.
+وجود فایل بک‌آپ تازه‌تر از ۷ روز در پنل آروان یا تأیید Daily backup در Supabase.  
+برای آمادگی پایلوت: [PILOT_TEST_CHECKLIST.md](./PILOT_TEST_CHECKLIST.md) بخش Ops.

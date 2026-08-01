@@ -172,7 +172,11 @@ export async function POST(request: NextRequest) {
 
       const buffer = Buffer.from(await file.arrayBuffer())
       const path = generateSchoolLogoPath(schoolId)
-      const uploaded = await uploadToArvan(buffer, path, file.type || 'image/png')
+      // Logo must remain publicly readable (CDN)
+      const uploaded = await uploadToArvan(buffer, path, file.type || 'image/png', {
+        publicRead: true,
+        fileType: 'logo',
+      })
       if (!uploaded.success || !uploaded.url) {
         return NextResponse.json(
           { error: uploaded.error ?? 'آپلود لوگو ناموفق بود' },

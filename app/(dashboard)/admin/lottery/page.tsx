@@ -12,6 +12,8 @@ import { Shuffle, Plus, Play, Trash2, Loader2, ChevronDown, ChevronUp, Users, Sc
 import { toast } from 'sonner'
 import { PageLoading } from '@/components/ui/page-states'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { PersianDateTimePicker } from '@/components/ui/persian-datetime-picker'
+import { formatShamsiDateTime } from '@/lib/date/jalali'
 
 type Period = {
   id: string; title: string; academic_year: string
@@ -109,6 +111,11 @@ export default function AdminLotteryPage() {
     if (!res.ok) { toast.error(data.error); return }
     toast.success('دوره ثبت‌نام ساخته شد')
     setShowPeriod(false)
+    setPeriodForm({
+      title: '', academic_year: '1404-1405',
+      for_grade: '4', from_grade: '3',
+      start_at: '', end_at: '',
+    })
     loadPeriods()
   }
 
@@ -215,6 +222,16 @@ export default function AdminLotteryPage() {
                       <p className="font-bold text-lg">{period.title}</p>
                       <p className="text-sm text-[var(--lux-text-muted)]">
                         پایه {period.from_grade} → پایه {period.for_grade} | {period.academic_year}
+                      </p>
+                      <p className="text-xs text-[var(--lux-text-muted)] mt-0.5">
+                        ثبت اولویت:{' '}
+                        {period.start_at
+                          ? formatShamsiDateTime(new Date(period.start_at))
+                          : '—'}
+                        {' '}تا{' '}
+                        {period.end_at
+                          ? formatShamsiDateTime(new Date(period.end_at))
+                          : '—'}
                       </p>
                     </div>
                   </div>
@@ -383,16 +400,23 @@ export default function AdminLotteryPage() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>شروع ثبت اولویت *</Label>
-                <Input type="datetime-local" value={periodForm.start_at}
-                  onChange={e => setPeriodForm({ ...periodForm, start_at: e.target.value })} />
+                <PersianDateTimePicker
+                  value={periodForm.start_at}
+                  onChange={(start_at) => setPeriodForm({ ...periodForm, start_at })}
+                  placeholder="تاریخ و ساعت شروع (شمسی)"
+                />
               </div>
               <div>
                 <Label>پایان ثبت اولویت *</Label>
-                <Input type="datetime-local" value={periodForm.end_at}
-                  onChange={e => setPeriodForm({ ...periodForm, end_at: e.target.value })} />
+                <PersianDateTimePicker
+                  value={periodForm.end_at}
+                  onChange={(end_at) => setPeriodForm({ ...periodForm, end_at })}
+                  min={periodForm.start_at || undefined}
+                  placeholder="تاریخ و ساعت پایان (شمسی)"
+                />
               </div>
             </div>
           </div>

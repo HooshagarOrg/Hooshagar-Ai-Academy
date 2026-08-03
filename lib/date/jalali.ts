@@ -23,6 +23,11 @@ export function formatShamsiDate(
   return formatJalali(date, PRESET_PATTERNS[preset], { locale: faIR })
 }
 
+/** فرمت تاریخ و ساعت شمسی — مثلاً ۱۲ تیر ۱۴۰۵، ۱۴:۳۰ */
+export function formatShamsiDateTime(date: Date = new Date()): string {
+  return formatJalali(date, 'd MMMM yyyy، HH:mm', { locale: faIR })
+}
+
 /** تاریخ میلادی ISO برای attribute dateTime */
 export function toGregorianIsoDate(date: Date = new Date()): string {
   return date.toISOString().slice(0, 10)

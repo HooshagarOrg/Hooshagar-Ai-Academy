@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import {
   Users, Plus, Search, Edit, Trash2, MoreVertical, Loader2,
   Shield, GraduationCap, Heart, Briefcase, RefreshCw, X,
-  CheckCircle2, XCircle, Phone, Mail, Lock, AlertCircle,
+  CheckCircle2, XCircle, Phone, Mail, Lock, AlertCircle, Eye, EyeOff,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -106,7 +106,9 @@ export default function AdminUsersPage() {
     phone: '',
     role: 'teacher',
     must_change_password: false,
+    new_password: '',
   })
+  const [showNewPassword, setShowNewPassword] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [deleteUser, setDeleteUser] = useState<UserData | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -204,7 +206,9 @@ export default function AdminUsersPage() {
       phone: user.phone || '',
       role: user.role || 'teacher',
       must_change_password: !!user.must_change_password,
+      new_password: '',
     })
+    setShowNewPassword(false)
   }
 
   const handleUpdate = async () => {
@@ -212,6 +216,18 @@ export default function AdminUsersPage() {
     if (!editForm.full_name.trim() || editForm.full_name.trim().length < 2) {
       toast.error('نام باید حداقل ۲ کاراکتر باشد')
       return
+    }
+    const newPass = editForm.new_password.trim()
+    if (newPass) {
+      if (editForm.role === 'student') {
+        if (!/^\d{4,6}$/.test(newPass)) {
+          toast.error('PIN دانش‌آموز باید ۴ تا ۶ رقم باشد')
+          return
+        }
+      } else if (newPass.length < 6) {
+        toast.error('رمز جدید باید حداقل ۶ کاراکتر باشد')
+        return
+      }
     }
     setIsUpdating(true)
     try {
@@ -225,11 +241,20 @@ export default function AdminUsersPage() {
           phone: editForm.phone.trim() || null,
           role: editForm.role,
           must_change_password: editForm.must_change_password,
+          new_password: newPass || undefined,
         }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'بروزرسانی ناموفق بود')
-      toast.success('اطلاعات کاربر بروزرسانی شد')
+      toast.success(typeof data.message === 'string' ? data.message : 'اطلاعات کاربر بروزرسانی شد')
+      if (newPass) {
+        toast.message(
+          editForm.role === 'student'
+            ? `PIN جدید: ${newPass}`
+            : `رمز جدید برای «${editForm.username || editUser.email}»: ${newPass}`,
+          { duration: 12000 }
+        )
+      }
       setEditUser(null)
       fetchUsers()
     } catch (e: unknown) {
@@ -744,6 +769,43 @@ export default function AdminUsersPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-2">
+              <p className="text-xs text-[var(--lux-text-muted)] leading-6">
+                رمز فعلی به دلایل امنیتی قابل مشاهده نیست (فقط به‌صورت هش ذخیره می‌شود).
+                در صورت فراموشی، رمز/PIN جدید تنظیم کنید.
+              </p>
+              <div className="space-y-1">
+                <Label>
+                  {editForm.role === 'student' ? 'PIN جدید (اختیاری)' : 'رمز عبور جدید (اختیاری)'}
+                </Label>
+                <div className="relative">
+                  <Input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={editForm.new_password}
+                    onChange={(e) => setEditForm({ ...editForm, new_password: e.target.value })}
+                    dir="ltr"
+                    className="pl-10"
+                    placeholder={editForm.role === 'student' ? '۴ تا ۶ رقم' : 'حداقل ۶ کاراکتر'}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowNewPassword((v) => !v)}
+                    tabIndex={-1}
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+              {editForm.username ? (
+                <p className="text-xs text-[var(--lux-text-muted)]" dir="ltr">
+                  نام کاربری ورود: <span className="font-mono text-[var(--lux-text)]">{editForm.username}</span>
+                </p>
+              ) : null}
+            </div>
+
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input
                 type="checkbox"

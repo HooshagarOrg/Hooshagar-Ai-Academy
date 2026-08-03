@@ -406,7 +406,6 @@ export default function AdminLotteryPage() {
                 <PersianDateTimePicker
                   value={periodForm.start_at}
                   onChange={(start_at) => setPeriodForm({ ...periodForm, start_at })}
-                  placeholder="تاریخ و ساعت شروع (شمسی)"
                 />
               </div>
               <div>
@@ -415,7 +414,6 @@ export default function AdminLotteryPage() {
                   value={periodForm.end_at}
                   onChange={(end_at) => setPeriodForm({ ...periodForm, end_at })}
                   min={periodForm.start_at || undefined}
-                  placeholder="تاریخ و ساعت پایان (شمسی)"
                 />
               </div>
             </div>

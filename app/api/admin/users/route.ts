@@ -335,6 +335,11 @@ export async function PATCH(request: NextRequest) {
         ),
         role: z.string().min(2).optional(),
         must_change_password: z.boolean().optional(),
+        /** رمز/PIN جدید — رمز قبلی هرگز خوانده نمی‌شود (هش یک‌طرفه) */
+        new_password: z.preprocess(
+          (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+          z.string().trim().min(4).max(100).optional()
+        ),
       })
       const parsed = schema.safeParse(body)
       if (!parsed.success) {
@@ -344,7 +349,7 @@ export async function PATCH(request: NextRequest) {
         )
       }
 
-      const { id, ...rawUpdates } = parsed.data
+      const { id, new_password, ...rawUpdates } = parsed.data
       const updates: Record<string, unknown> = { ...rawUpdates }
 
       if (typeof updates.role === 'string') {
@@ -357,16 +362,98 @@ export async function PATCH(request: NextRequest) {
         updates.is_staff = staffRoles.includes(updates.role)
       }
 
-      if (Object.keys(updates).length === 0) {
+      const admin = createServiceClient()
+
+      const { data: existing, error: existingError } = await admin
+        .from('profiles')
+        .select('id, role, email, username, is_staff')
+        .eq('id', id)
+        .single()
+
+      if (existingError || !existing) {
+        return NextResponse.json({ error: 'کاربر یافت نشد' }, { status: 404 })
+      }
+
+      const effectiveRole = (typeof updates.role === 'string' ? updates.role : existing.role) as string
+      const staffRoles = [
+        'admin', 'platform_admin', 'principal', 'teacher', 'counselor',
+        'health_vp', 'educational_vp', 'financial_vp', 'disciplinary_vp',
+        'evaluation_vp', 'art_teacher', 'sports_teacher', 'secretary',
+        'librarian', 'security', 'maintenance',
+      ]
+      const isStaffRole = Boolean(existing.is_staff) || staffRoles.includes(effectiveRole)
+
+      if (new_password) {
+        if (effectiveRole === 'student') {
+          if (!/^\d{4,6}$/.test(new_password)) {
+            return NextResponse.json(
+              { error: 'PIN دانش‌آموز باید ۴ تا ۶ رقم باشد' },
+              { status: 400 }
+            )
+          }
+          const { error: pinErr } = await admin
+            .from('students')
+            .update({ pin_hash: hashPin(new_password) })
+            .eq('user_id', id)
+          if (pinErr) {
+            return NextResponse.json({ error: 'خطا در بروزرسانی PIN: ' + pinErr.message }, { status: 400 })
+          }
+          const authPass = buildAuthPassword(id, new_password, 'student')
+          const { error: authErr } = await admin.auth.admin.updateUserById(id, { password: authPass })
+          if (authErr) {
+            return NextResponse.json({ error: 'خطا در تنظیم رمز ورود: ' + authErr.message }, { status: 400 })
+          }
+        } else if (isStaffRole) {
+          if (new_password.length < 6) {
+            return NextResponse.json({ error: 'رمز عبور باید حداقل ۶ کاراکتر باشد' }, { status: 400 })
+          }
+          const { error: authErr } = await admin.auth.admin.updateUserById(id, { password: new_password })
+          if (authErr) {
+            return NextResponse.json({ error: 'خطا در تنظیم رمز ورود: ' + authErr.message }, { status: 400 })
+          }
+          updates.pin_hash = hashPin(new_password)
+          if (updates.must_change_password === undefined) {
+            updates.must_change_password = true
+          }
+        } else {
+          if (new_password.length < 4) {
+            return NextResponse.json({ error: 'رمز جدید خیلی کوتاه است' }, { status: 400 })
+          }
+          updates.pin_hash = hashPin(new_password)
+          const authPass = buildAuthPassword(id, new_password, 'user')
+          const { error: authErr } = await admin.auth.admin.updateUserById(id, { password: authPass })
+          if (authErr) {
+            return NextResponse.json({ error: 'خطا در تنظیم رمز ورود: ' + authErr.message }, { status: 400 })
+          }
+          if (updates.must_change_password === undefined) {
+            updates.must_change_password = true
+          }
+        }
+      }
+
+      if (Object.keys(updates).length === 0 && !new_password) {
         return NextResponse.json({ error: 'هیچ فیلدی برای بروزرسانی ارسال نشده' }, { status: 400 })
       }
 
-      const admin = createServiceClient()
-      const { error } = await admin.from('profiles').update(updates).eq('id', id)
+      if (Object.keys(updates).length > 0) {
+        const { error } = await admin.from('profiles').update(updates).eq('id', id)
+        if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+      }
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-
-      return NextResponse.json({ success: true })
+      return NextResponse.json({
+        success: true,
+        password_updated: Boolean(new_password),
+        message: new_password
+          ? (effectiveRole === 'student'
+            ? `اطلاعات ذخیره شد. PIN جدید: ${new_password}`
+            : `اطلاعات ذخیره شد. رمز جدید تنظیم شد.`)
+          : 'اطلاعات کاربر بروزرسانی شد',
+        // فقط برای نمایش یک‌بار به ادمین — در لاگ کلاینت نگه ندارید
+        new_password: new_password || undefined,
+        username: typeof updates.username === 'string'
+          ? updates.username
+          : existing.username,
+      })
     },
     { roles: ADMIN_ROLES, rateLimit: 'admin_action' }
   )

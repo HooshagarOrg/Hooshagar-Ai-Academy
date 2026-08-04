@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Menu, Flame } from 'lucide-react'
-import { motion, useReducedMotion } from 'framer-motion'
-import { HooshiarOrb } from '@/components/lux/hooshiar-orb'
+import { motion } from 'framer-motion'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { PersianDateDisplay } from '@/components/ui/persian-date-display'
 import { LUX_EASE } from '@/components/lux/lux-motion'
@@ -21,7 +20,6 @@ type XpPayload = {
 }
 
 export function LuxStudentHeader({ userName, onMenuToggle }: LuxStudentHeaderProps) {
-  const reduce = useReducedMotion()
   const [xpData, setXpData] = useState<XpPayload>({
     xp: 0,
     level: 1,
@@ -91,8 +89,6 @@ export function LuxStudentHeader({ userName, onMenuToggle }: LuxStudentHeaderPro
               {xpData.current_streak.toLocaleString('fa-IR')}
             </span>
           </div>
-          {/* روی موبایل آواتار هدر روی مشخصات می‌افتد — فقط دسکتاپ؛ موبایل از FAB شناور استفاده می‌کند */}
-          <HooshiarOrb size={44} className="hidden md:flex" />
         </div>
       </div>
     </header>

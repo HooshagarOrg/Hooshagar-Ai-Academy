@@ -128,7 +128,7 @@ export function DashboardShell({ role, userName, schoolName, contextLabel, child
         </main>
 
         <LuxMobileNav role={role} />
-        <AvatarFab defaultCorner={isStudent ? 'br' : 'bl'} />
+        <AvatarFab defaultCorner="bl" />
       </div>
     </div>
   )

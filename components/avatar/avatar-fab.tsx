@@ -17,13 +17,17 @@ const CORNER_CLASS: Record<FabCorner, string> = {
   tr: 'top-[calc(4.25rem+var(--safe-top))] right-3 sm:right-6',
 }
 
-const CORNER_CYCLE: FabCorner[] = ['br', 'bl', 'tr', 'tl']
+const CORNER_CYCLE: FabCorner[] = ['bl', 'br', 'tl', 'tr']
 
 function readStoredCorner(fallback: FabCorner): FabCorner {
   if (typeof window === 'undefined') return fallback
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw === 'bl' || raw === 'br' || raw === 'tl' || raw === 'tr') return raw
+    if (raw === 'bl' || raw === 'br' || raw === 'tl' || raw === 'tr') {
+      // موقعیت ذخیره‌شدهٔ بالای صفحه را به پایین‌چپ برمی‌گردانیم (درخواست محصول)
+      if (raw === 'tl' || raw === 'tr') return fallback
+      return raw
+    }
   } catch {
     /* ignore */
   }
@@ -37,9 +41,9 @@ interface AvatarFabProps {
 }
 
 /**
- * دکمه شناور آواتار هوشیار — قابل جابجایی بین چهار گوشه
+ * دکمه شناور آواتار هوشیار — پیش‌فرض پایین‌چپ، قابل جابجایی
  */
-export function AvatarFab({ className, defaultCorner = 'br' }: AvatarFabProps) {
+export function AvatarFab({ className, defaultCorner = 'bl' }: AvatarFabProps) {
   const [open, setOpen] = useState(false)
   const [corner, setCorner] = useState<FabCorner>(defaultCorner)
   const [mounted, setMounted] = useState(false)

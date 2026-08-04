@@ -39,15 +39,23 @@ export default function ParentReportsPage() {
       }
 
       const res = await fetch(url)
-      if (!res.ok) throw new Error('network')
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setError(
+          typeof data.error === 'string'
+            ? data.error
+            : 'دریافت گزارش‌ها ناموفق بود. لطفاً دوباره تلاش کنید.'
+        )
+        return
+      }
 
       if (!data.success) {
         setError(data.error || 'دریافت گزارش‌ها ناموفق بود. لطفاً دوباره تلاش کنید.')
         return
       }
 
-      setReports(data.reports)
+      setReports(Array.isArray(data.reports) ? data.reports : [])
     } catch {
       setError('اتصال برقرار نشد. اینترنت خود را بررسی کنید و دوباره تلاش کنید.')
     } finally {

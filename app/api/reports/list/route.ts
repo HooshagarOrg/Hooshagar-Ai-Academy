@@ -37,13 +37,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // ساخت query
+    // ساخت query — بدون ستون‌های شکننده مثل class_name
     let query = supabase
       .from('parent_reports')
-      .select(`
-        *,
-        student:students(id, full_name, grade, class_name)
-      `, { count: 'exact' })
+      .select(
+        'id, parent_id, student_id, report_type, report_status, period_start, period_end, title, summary, created_at, updated_at, published_at, viewed_at, student:students!student_id(id, full_name, grade)',
+        { count: 'exact' }
+      )
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -89,8 +89,25 @@ export async function GET(request: NextRequest) {
 
     if (fetchError) {
       console.error('خطای دریافت گزارش‌ها:', fetchError);
+      // اگر جدول/رابطه نباشد، برای والد لیست خالی برگردان (نه ۵۰۰ مبهم)
+      const code = fetchError.code || ''
+      if (
+        code === '42P01' ||
+        code === 'PGRST205' ||
+        fetchError.message?.includes('does not exist') ||
+        fetchError.message?.includes('Could not find')
+      ) {
+        return NextResponse.json({
+          success: true,
+          reports: [],
+          total: 0,
+          limit,
+          offset,
+          note: 'جدول گزارش هنوز آماده نیست یا خالی است',
+        })
+      }
       return NextResponse.json(
-        { success: false, error: 'دریافت گزارش‌ها ناموفق بود' },
+        { success: false, error: 'دریافت گزارش‌ها ناموفق بود', details: fetchError.message },
         { status: 500 }
       );
     }

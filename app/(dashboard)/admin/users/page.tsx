@@ -90,6 +90,8 @@ export default function AdminUsersPage() {
   const [newUser, setNewUser] = useState({
     email: '', password: '', full_name: '', role: 'teacher',
     username: '', phone: '',
+    school_id: '',
+    class_id: '',
     // برای دانش‌آموز
     student_number: '', pin: '', grade: 1, parent_id: '',
     // برای والد
@@ -97,6 +99,13 @@ export default function AdminUsersPage() {
   })
   // لیست دانش‌آموزان برای انتخاب توسط والد
   const [studentsList, setStudentsList] = useState<{id: string; full_name: string; student_number: string}[]>([])
+  const [schools, setSchools] = useState<{ id: string; name: string }[]>([])
+  const [classes, setClasses] = useState<{ id: string; name: string; grade: number | null }[]>([])
+  const [credentialsInfo, setCredentialsInfo] = useState<{
+    title: string
+    lines: { label: string; value: string }[]
+    warning?: string
+  } | null>(null)
 
   // ویرایش
   const [editUser, setEditUser] = useState<UserData | null>(null)
@@ -120,6 +129,18 @@ export default function AdminUsersPage() {
     fetchUsers()
     setSelectedIds([])
   }, [roleFilter])
+
+  useEffect(() => {
+    void loadSchools()
+  }, [])
+
+  useEffect(() => {
+    if (!newUser.school_id) {
+      setClasses([])
+      return
+    }
+    void loadClasses(newUser.school_id)
+  }, [newUser.school_id])
 
   const fetchUsers = async () => {
     setIsLoading(true)
@@ -153,12 +174,51 @@ export default function AdminUsersPage() {
     } catch {}
   }
 
+  const loadSchools = async () => {
+    try {
+      const res = await fetch('/api/admin/schools')
+      const data = await res.json()
+      setSchools(
+        (data.schools || []).map((s: { id: string; name: string }) => ({
+          id: s.id,
+          name: s.name,
+        }))
+      )
+    } catch {
+      setSchools([])
+    }
+  }
+
+  const loadClasses = async (schoolId: string) => {
+    try {
+      const res = await fetch(`/api/admin/classes?school_id=${encodeURIComponent(schoolId)}`)
+      const data = await res.json()
+      setClasses(
+        (data.classes || []).map((c: { id: string; name: string; grade: number | null }) => ({
+          id: c.id,
+          name: c.name,
+          grade: c.grade ?? null,
+        }))
+      )
+    } catch {
+      setClasses([])
+    }
+  }
+
+  const needsSchoolFields = (role: string) =>
+    !['platform_admin', 'admin', 'parent'].includes(role)
+
+  const needsClassField = (role: string) =>
+    ['teacher', 'art_teacher', 'sports_teacher', 'student'].includes(role)
+
   const openCreate = () => {
     setNewUser({
       email: '', password: '', full_name: '', role: 'teacher',
-      username: '', phone: '', student_number: '', pin: '', grade: 1,
+      username: '', phone: '', school_id: '', class_id: '',
+      student_number: '', pin: '', grade: 1,
       parent_id: '', children_ids: [],
     })
+    setClasses([])
     setShowCreate(true)
   }
 
@@ -175,6 +235,10 @@ export default function AdminUsersPage() {
       toast.error('فرمت ایمیل نامعتبر است')
       return
     }
+    if (needsSchoolFields(newUser.role) && !newUser.school_id) {
+      toast.error('انتخاب مدرسه الزامی است')
+      return
+    }
     setIsCreating(true)
     try {
       const res = await fetch('/api/admin/users', {
@@ -184,12 +248,42 @@ export default function AdminUsersPage() {
           ...newUser,
           email: newUser.email.trim() || null,
           password: newUser.role === 'student' ? (newUser.password || null) : newUser.password,
+          school_id: newUser.school_id || null,
+          class_id: newUser.class_id || null,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       toast.success(data.message || 'کاربر ایجاد شد')
       setShowCreate(false)
+
+      const lines: { label: string; value: string }[] = []
+      if (data.email) lines.push({ label: 'ایمیل', value: String(data.email) })
+      if (data.username || data.credentials?.username) {
+        lines.push({
+          label: newUser.role === 'student' ? 'کد دانش‌آموزی / نام کاربری' : 'نام کاربری / شناسه ورود',
+          value: String(data.username || data.credentials?.username),
+        })
+      }
+      if (data.phone) lines.push({ label: 'موبایل', value: String(data.phone) })
+      if (data.pin || (newUser.role === 'student' && data.credentials?.password)) {
+        lines.push({ label: 'PIN', value: String(data.pin || data.credentials?.password) })
+      } else if (data.credentials?.password) {
+        lines.push({ label: 'رمز موقت', value: String(data.credentials.password) })
+      }
+      if (data.student_number && !lines.some((l) => l.value === data.student_number)) {
+        lines.push({ label: 'کد دانش‌آموزی', value: String(data.student_number) })
+      }
+
+      if (lines.length > 0) {
+        setCredentialsInfo({
+          title: 'اطلاعات ورود (فقط یک‌بار نمایش)',
+          lines,
+          warning:
+            'این اطلاعات دوباره از پنل قابل مشاهده نیستند. همین الان کپی/ذخیره کنید و به کاربر بدهید.',
+        })
+      }
+
       fetchUsers()
     } catch (e: unknown) {
       toast.error('خطا: ' + (e instanceof Error ? e.message : 'خطا در ایجاد'))
@@ -248,12 +342,17 @@ export default function AdminUsersPage() {
       if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'بروزرسانی ناموفق بود')
       toast.success(typeof data.message === 'string' ? data.message : 'اطلاعات کاربر بروزرسانی شد')
       if (newPass) {
-        toast.message(
-          editForm.role === 'student'
-            ? `PIN جدید: ${newPass}`
-            : `رمز جدید برای «${editForm.username || editUser.email}»: ${newPass}`,
-          { duration: 12000 }
-        )
+        setCredentialsInfo({
+          title: 'رمز/PIN جدید (فقط یک‌بار نمایش)',
+          lines: [
+            { label: 'کاربر', value: editForm.full_name.trim() },
+            {
+              label: editForm.role === 'student' ? 'PIN جدید' : 'رمز جدید',
+              value: newPass,
+            },
+          ],
+          warning: 'این مقدار دوباره قابل مشاهده نیست. همین الان ذخیره کنید.',
+        })
       }
       setEditUser(null)
       fetchUsers()
@@ -611,7 +710,12 @@ export default function AdminUsersPage() {
               <Select
                 value={newUser.role}
                 onValueChange={v => {
-                  setNewUser({...newUser, role: v})
+                  setNewUser({
+                    ...newUser,
+                    role: v,
+                    class_id: needsClassField(v) ? newUser.class_id : '',
+                    school_id: needsSchoolFields(v) ? newUser.school_id : '',
+                  })
                   if (v === 'parent') loadStudents()
                 }}
               >
@@ -625,6 +729,71 @@ export default function AdminUsersPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {needsSchoolFields(newUser.role) && (
+              <div className="border-t pt-3 space-y-3">
+                <p className="text-xs font-bold text-[var(--lux-primary)]">مدرسه و کلاس</p>
+                <div>
+                  <Label>مدرسه *</Label>
+                  <Select
+                    value={newUser.school_id || undefined}
+                    onValueChange={(v) =>
+                      setNewUser({ ...newUser, school_id: v, class_id: '' })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="انتخاب مدرسه" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {schools.length === 0 ? (
+                        <SelectItem value="__none" disabled>
+                          مدرسه‌ای یافت نشد
+                        </SelectItem>
+                      ) : (
+                        schools.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {needsClassField(newUser.role) && (
+                  <div>
+                    <Label>
+                      کلاس {newUser.role === 'student' ? '(اختیاری)' : '(اختیاری — معلم کلاس)'}
+                    </Label>
+                    <Select
+                      value={newUser.class_id || '__none'}
+                      onValueChange={(v) =>
+                        setNewUser({
+                          ...newUser,
+                          class_id: v === '__none' ? '' : v,
+                        })
+                      }
+                      disabled={!newUser.school_id}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={newUser.school_id ? 'انتخاب کلاس' : 'اول مدرسه را انتخاب کنید'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none">بدون کلاس</SelectItem>
+                        {classes.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                            {c.grade != null ? ` — پایه ${c.grade}` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-[var(--lux-text-muted)] mt-1">
+                      برای معلم: در صورت انتخاب، به‌عنوان معلم همان کلاس ثبت می‌شود.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* فیلدهای ویژه دانش‌آموز */}
             {newUser.role === 'student' && (
@@ -711,6 +880,57 @@ export default function AdminUsersPage() {
               disabled={isCreating}
             >
               {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'ایجاد'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* نمایش یک‌بارهٔ اطلاعات ورود */}
+      <Dialog
+        open={!!credentialsInfo}
+        onOpenChange={(open) => {
+          if (!open) setCredentialsInfo(null)
+        }}
+      >
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader className="text-right sm:text-right">
+            <DialogTitle>{credentialsInfo?.title || 'اطلاعات ورود'}</DialogTitle>
+            <DialogDescription>
+              {credentialsInfo?.warning ||
+                'این اطلاعات فقط همین‌بار نمایش داده می‌شود.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+            {credentialsInfo?.lines.map((line) => (
+              <div key={line.label} className="flex items-start justify-between gap-3 text-sm">
+                <span className="text-[var(--lux-text-muted)] shrink-0">{line.label}</span>
+                <span className="font-mono text-left break-all" dir="ltr">
+                  {line.value}
+                </span>
+              </div>
+            ))}
+          </div>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={async () => {
+                if (!credentialsInfo) return
+                const text = credentialsInfo.lines
+                  .map((l) => `${l.label}: ${l.value}`)
+                  .join('\n')
+                try {
+                  await navigator.clipboard.writeText(text)
+                  toast.success('کپی شد')
+                } catch {
+                  toast.error('کپی ناموفق بود')
+                }
+              }}
+            >
+              کپی همه
+            </Button>
+            <Button type="button" onClick={() => setCredentialsInfo(null)}>
+              متوجه شدم
             </Button>
           </DialogFooter>
         </DialogContent>

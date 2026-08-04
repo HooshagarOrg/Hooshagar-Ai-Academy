@@ -196,6 +196,19 @@ export default function AdminLotteryPage() {
       }
     >
       <DashboardSectionBlock>
+      <Card className="mb-4 border-[var(--lux-primary)]/30 bg-[var(--lux-primary)]/5">
+        <CardContent className="p-4 space-y-2 text-sm">
+          <p className="font-bold text-[var(--lux-primary)]">مراحل انجام قرعه‌کشی (ادمین باید دستی جلو ببرد)</p>
+          <ol className="list-decimal list-inside space-y-1 text-[var(--lux-text-muted)] leading-7">
+            <li>دوره جدید بسازید و کلاس‌های مقصد را اضافه کنید.</li>
+            <li>دکمهٔ <strong className="text-[var(--lux-text)]">باز کردن ثبت</strong> را بزنید تا دانش‌آموزان اولویت ثبت کنند.</li>
+            <li>دانش‌آموزان از مسیر «قرعه‌کشی کلاس» اولویت‌ها را ذخیره می‌کنند.</li>
+            <li>وقتی ثبت تمام شد، <strong className="text-[var(--lux-text)]">بستن ثبت</strong> را بزنید.</li>
+            <li>سپس دکمهٔ بنفش <strong className="text-[var(--lux-text)]">اجرای قرعه‌کشی</strong> ظاهر می‌شود — فقط با زدن آن عملیات اجرا می‌شود (خودکار نیست).</li>
+            <li>ارسال پیامک نتیجه اختیاری و جدا از اجرای قرعه است.</li>
+          </ol>
+        </CardContent>
+      </Card>
       {loading ? (
         <PageLoading label="در حال بارگذاری قرعه‌کشی..." compact />
       ) : periods.length === 0 ? (
@@ -243,9 +256,14 @@ export default function AdminLotteryPage() {
                       </Button>
                     )}
                     {period.status === 'open' && (
-                      <Button size="sm" variant="outline" onClick={() => setStatus(period.id, 'closed')}>
-                        بستن ثبت
-                      </Button>
+                      <>
+                        <span className="hidden sm:inline text-xs text-[var(--lux-text-muted)] max-w-[10rem]">
+                          دانش‌آموزان در حال ثبت اولویت — بعد بستن ثبت
+                        </span>
+                        <Button size="sm" variant="outline" onClick={() => setStatus(period.id, 'closed')}>
+                          بستن ثبت
+                        </Button>
+                      </>
                     )}
                     {period.status === 'closed' && (
                       <Button
@@ -259,6 +277,9 @@ export default function AdminLotteryPage() {
                           : <Play size={14} />}
                         اجرای قرعه‌کشی
                       </Button>
+                    )}
+                    {period.status === 'done' && (
+                      <span className="text-xs text-emerald-300">انجام شد — نتایج را در پایین ببینید</span>
                     )}
                     <Button size="sm" variant="ghost" onClick={() => deletePeriod(period.id)}>
                       <Trash2 size={16} className="text-red-500" />

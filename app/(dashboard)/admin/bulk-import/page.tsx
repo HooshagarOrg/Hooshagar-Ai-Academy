@@ -189,7 +189,7 @@ export default function BulkImportPage() {
                   <div>
                     <p className="font-semibold text-blue-800">شیت دانش‌آموزان</p>
                     <p className="text-sm text-blue-700 mt-1">
-                      نام، کد ملی، پایه، کلاس + مشخصات والد در همان سطر
+                      نام، کد ملی، پایه، کلاس (+ ساخت/اتصال کلاس) و مشخصات والد در همان سطر
                     </p>
                   </div>
                 </div>
@@ -202,7 +202,7 @@ export default function BulkImportPage() {
                   <div>
                     <p className="font-semibold text-purple-800">شیت کارکنان</p>
                     <p className="text-sm text-purple-700 mt-1">
-                      نام، کد ملی، نقش، موبایل — کد ورود: کد ملی یا موبایل ۱۰ رقمی
+                      نام، کد ملی، نقش، موبایل، کد ورود — برای معلم: پایه و کلاس مسئول (مثلاً چهارم الف)
                     </p>
                   </div>
                 </div>
@@ -357,8 +357,11 @@ function PreviewTable({ sheets, type }: { sheets: SheetPreview[]; type: 'student
                   <th className="p-2 text-right">نام</th>
                   <th className="p-2 text-right">کد ملی</th>
                   {type === 'students' && <th className="p-2 text-center">پایه</th>}
+                  {type === 'students' && <th className="p-2 text-right">کلاس</th>}
                   {type === 'students' && <th className="p-2 text-right">والد</th>}
                   {type === 'staff' && <th className="p-2 text-right">نقش</th>}
+                  {type === 'staff' && <th className="p-2 text-center">پایه</th>}
+                  {type === 'staff' && <th className="p-2 text-right">کلاس</th>}
                   <th className="p-2 text-center">وضعیت</th>
                 </tr>
               </thead>
@@ -380,6 +383,9 @@ function PreviewTable({ sheets, type }: { sheets: SheetPreview[]; type: 'student
                       </td>
                       {isStudent && <td className="p-2 text-center">{sRow.grade}</td>}
                       {isStudent && (
+                        <td className="p-2 text-xs">{sRow.className || '—'}</td>
+                      )}
+                      {isStudent && (
                         <td className="p-2 text-xs">
                           {sRow.parentFirstName
                             ? `${sRow.parentFirstName} (${sRow.parentLoginCode || '—'})`
@@ -387,6 +393,12 @@ function PreviewTable({ sheets, type }: { sheets: SheetPreview[]; type: 'student
                         </td>
                       )}
                       {!isStudent && <td className="p-2">{fRow.role}</td>}
+                      {!isStudent && (
+                        <td className="p-2 text-center">{fRow.grade ?? '—'}</td>
+                      )}
+                      {!isStudent && (
+                        <td className="p-2 text-xs">{fRow.className || '—'}</td>
+                      )}
                       <td className="p-2 text-center">
                         {row.status === 'error' && <XCircle className="text-red-500 mx-auto" size={16} />}
                         {row.status === 'warning' && <AlertCircle className="text-orange-500 mx-auto" size={16} />}
@@ -415,6 +427,8 @@ function rawFromRow(row: StudentImportRow | StaffImportRow, type: 'students' | '
       نقش: r.role,
       موبایل: r.mobile || '',
       کد_ورود: r.loginCode,
+      پایه: r.grade != null ? String(r.grade) : '',
+      کلاس: r.className || '',
     }
   }
   const r = row as StudentImportRow

@@ -72,6 +72,16 @@ export function mapStudentRow(row: Record<string, string>, rowNumber: number) {
 }
 
 export function mapStaffRow(row: Record<string, string>, rowNumber: number) {
+  const gradeRaw = pick(row, ['پایه', 'grade', 'پایه تحصیلی', 'پایه_تحصیلی'])
+  const className = pick(row, [
+    'کلاس',
+    'class',
+    'class_name',
+    'نام کلاس',
+    'کلاس مسئول',
+    'کلاس_مسئول',
+  ])
+
   return {
     rowNumber,
     firstName: pick(row, ['نام', 'first_name', 'firstname']),
@@ -80,5 +90,7 @@ export function mapStaffRow(row: Record<string, string>, rowNumber: number) {
     role: pick(row, ['نقش', 'role', 'سمت']),
     mobile: pick(row, ['موبایل', 'mobile', 'phone', 'تلفن', 'شماره موبایل']),
     loginCode: pick(row, ['کد ورود', 'کد_ورود', 'login_code', 'کد ملی']),
+    grade: gradeRaw ? parseGrade(gradeRaw) : undefined,
+    className: className || undefined,
   }
 }

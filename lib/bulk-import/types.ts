@@ -27,6 +27,10 @@ export interface StaffImportRow {
   role: string
   mobile?: string
   loginCode: string
+  /** پایه کلاس مسئول (برای معلم) */
+  grade?: number
+  /** نام کلاس مسئول — مثلاً «چهارم الف» یا «خانم ثلبتی» */
+  className?: string
   status: RowStatus
   errors: string[]
   warnings: string[]
@@ -38,6 +42,8 @@ export interface ImportOptions {
   skipDuplicates: boolean
   defaultParentPassword?: string
   defaultStaffPassword?: string
+  /** سال تحصیلی مثل 1404-1405؛ پیش‌فرض: سال جاری شمسی */
+  academicYear?: string
 }
 
 export interface ImportRowResult {

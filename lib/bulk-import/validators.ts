@@ -1,5 +1,6 @@
 import { toLoginCode } from './login-code'
 import { mapStaffRole } from './column-mapper'
+import { CLASS_TEACHER_ROLES } from './resolve-class'
 import type { StaffImportRow, StudentImportRow } from './types'
 
 function validateNationalCode(code: string): boolean {
@@ -73,11 +74,27 @@ export function validateStaffRow(
     errors.push(`نقش «${raw.role}» نامعتبر است`)
   }
 
+  const className = raw.className?.trim() || undefined
+  const grade = raw.grade
+
+  if (CLASS_TEACHER_ROLES.has(role)) {
+    if (className && grade == null) {
+      warnings.push('برای ساخت کلاس جدید، ستون پایه را هم وارد کنید؛ در غیر این صورت فقط کلاس موجود با همان نام وصل می‌شود')
+    }
+    if (!className) {
+      warnings.push('کلاس مسئول مشخص نشده — معلم بدون اتصال به کلاس ثبت می‌شود')
+    }
+  } else if (className) {
+    warnings.push('ستون کلاس فقط برای نقش معلم اعمال می‌شود و نادیده گرفته می‌شود')
+  }
+
   return {
     ...raw,
     nationalCode,
     role,
     loginCode,
+    grade,
+    className,
     status: errors.length ? 'error' : warnings.length ? 'warning' : 'valid',
     errors,
     warnings,

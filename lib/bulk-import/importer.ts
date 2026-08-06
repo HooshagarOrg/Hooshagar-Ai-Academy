@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { getCurrentAcademicYear } from './academic-year'
 import {
   buildAuthPassword,
   buildInternalEmail,
@@ -7,6 +8,7 @@ import {
   hashPin,
   toIranPhone,
 } from './login-code'
+import { CLASS_TEACHER_ROLES, ClassResolver } from './resolve-class'
 import type {
   ImportOptions,
   ImportRowResult,
@@ -54,14 +56,10 @@ async function createAuthUser(
   return { userId: data.user.id, error: null }
 }
 
-export async function importStudentRows(
-  rows: StudentImportRow[],
-  options: ImportOptions
-): Promise<ImportSummary> {
-  const admin = getAdmin()
-  const summary: ImportSummary = {
+function emptySummary(total: number): ImportSummary {
+  return {
     success: true,
-    total: rows.length,
+    total,
     successful: 0,
     warnings: 0,
     errors: 0,
@@ -69,6 +67,16 @@ export async function importStudentRows(
     parentAccounts: 0,
     details: [],
   }
+}
+
+export async function importStudentRows(
+  rows: StudentImportRow[],
+  options: ImportOptions
+): Promise<ImportSummary> {
+  const admin = getAdmin()
+  const summary = emptySummary(rows.length)
+  const academicYear = options.academicYear || getCurrentAcademicYear()
+  const classes = new ClassResolver(admin, academicYear)
 
   for (const row of rows) {
     const name = `${row.firstName} ${row.lastName}`.trim()
@@ -118,6 +126,24 @@ export async function importStudentRows(
 
       if (profileErr) throw new Error(profileErr.message)
 
+      let classId: string | null = null
+      let classMsg = ''
+      const classWarnings: string[] = [...row.warnings]
+
+      if (row.className?.trim()) {
+        const resolved = await classes.findOrCreate({
+          schoolId: options.schoolId,
+          grade: row.grade,
+          className: row.className,
+          academicYear,
+        })
+        classId = resolved.classId
+        classMsg = resolved.created
+          ? ` | کلاس جدید: ${resolved.name}`
+          : ` | کلاس: ${resolved.name}`
+        if (resolved.warning) classWarnings.push(resolved.warning)
+      }
+
       const { data: student, error: studentErr } = await admin
         .from('students')
         .insert({
@@ -129,6 +155,7 @@ export async function importStudentRows(
           pin_hash: hashPin(pin),
           grade: row.grade,
           school_id: options.schoolId,
+          class_id: classId,
           can_login: true,
           status: 'active',
         })
@@ -136,6 +163,16 @@ export async function importStudentRows(
         .single()
 
       if (studentErr) throw new Error(studentErr.message)
+
+      if (classId) {
+        const { data: cls } = await admin
+          .from('classes')
+          .select('current_count')
+          .eq('id', classId)
+          .maybeSingle()
+        const next = (cls?.current_count ?? 0) + 1
+        await admin.from('classes').update({ current_count: next }).eq('id', classId)
+      }
 
       let parentMsg = ''
       if (options.createParentAccounts && row.parentFirstName && row.parentLoginCode) {
@@ -182,12 +219,12 @@ export async function importStudentRows(
       }
 
       summary.successful++
-      if (row.warnings.length) summary.warnings++
+      if (classWarnings.length) summary.warnings++
       summary.details.push({
         rowNumber: row.rowNumber,
         name,
-        status: row.warnings.length ? 'warning' : 'success',
-        message: (row.warnings.join(' | ') || 'ثبت شد') + parentMsg,
+        status: classWarnings.length ? 'warning' : 'success',
+        message: (classWarnings.join(' | ') || 'ثبت شد') + classMsg + parentMsg,
         loginCode: row.nationalCode,
         pin,
         role: 'student',
@@ -213,16 +250,9 @@ export async function importStaffRows(
   options: ImportOptions
 ): Promise<ImportSummary> {
   const admin = getAdmin()
-  const summary: ImportSummary = {
-    success: true,
-    total: rows.length,
-    successful: 0,
-    warnings: 0,
-    errors: 0,
-    skipped: 0,
-    parentAccounts: 0,
-    details: [],
-  }
+  const summary = emptySummary(rows.length)
+  const academicYear = options.academicYear || getCurrentAcademicYear()
+  const classes = new ClassResolver(admin, academicYear)
 
   for (const row of rows) {
     const name = `${row.firstName} ${row.lastName}`.trim()
@@ -277,13 +307,50 @@ export async function importStaffRows(
 
       if (profileErr) throw new Error(profileErr.message)
 
+      const resultWarnings: string[] = [...row.warnings]
+      let classMsg = ''
+
+      if (CLASS_TEACHER_ROLES.has(row.role) && row.className?.trim()) {
+        if (row.grade != null) {
+          const resolved = await classes.findOrCreate({
+            schoolId: options.schoolId,
+            grade: row.grade,
+            className: row.className,
+            academicYear,
+            teacherId: userId,
+            teacherName: name,
+          })
+          classMsg = resolved.created
+            ? ` | کلاس جدید: ${resolved.name} (پایه ${row.grade})`
+            : ` | معلم کلاس: ${resolved.name}`
+          if (resolved.warning) resultWarnings.push(resolved.warning)
+        } else {
+          const existing = await classes.findByName(options.schoolId, row.className, academicYear)
+          if (existing) {
+            const { error: linkErr } = await admin
+              .from('classes')
+              .update({ teacher_id: userId, teacher_name: name })
+              .eq('id', existing.id)
+            if (linkErr) throw new Error(linkErr.message)
+            classMsg = ` | معلم کلاس: ${existing.name}`
+            if (existing.teacher_id && existing.teacher_id !== userId) {
+              resultWarnings.push('معلم قبلی کلاس جایگزین شد')
+            }
+          } else {
+            resultWarnings.push(
+              `کلاس «${row.className}» یافت نشد و پایه برای ساخت مشخص نشده بود`
+            )
+          }
+        }
+      }
+
       summary.successful++
-      if (row.warnings.length) summary.warnings++
+      if (resultWarnings.length) summary.warnings++
       summary.details.push({
         rowNumber: row.rowNumber,
         name,
-        status: row.warnings.length ? 'warning' : 'success',
-        message: row.warnings.join(' | ') || 'ثبت شد',
+        status: resultWarnings.length ? 'warning' : 'success',
+        message: (resultWarnings.join(' | ') || 'ثبت شد') + classMsg,
         loginCode: row.loginCode,
         pin: password,
         role: row.role,

@@ -8,7 +8,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import {
   ArrowLeft,
-  BarChart3,
   BookOpen,
   Bot,
   BrainCircuit,
@@ -25,6 +24,7 @@ import {
   Wand2,
 } from 'lucide-react'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
+import { EnamadSeal } from '@/components/brand/enamad-seal'
 import {
   GlowCounter,
   MagneticButton,
@@ -389,26 +389,38 @@ function CTASection(): JSX.Element {
 function Footer(): JSX.Element {
   return (
     <footer className="border-t border-[rgba(232,236,244,0.08)] py-10">
-      <div className="lux-container flex flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-right">
-        <div>
+      <div className="lux-container flex flex-col items-center gap-8 sm:flex-row sm:items-end sm:justify-between">
+        {/* در RTL: این بلوک سمت راست دیده می‌شود */}
+        <div className="text-center sm:text-right">
           <HooshagarLogo size="sm" href="/" inverted showWordmark={false} />
           <p className="mt-1 text-xs text-[var(--lux-text-muted)]">
             سیستم‌عامل هوشمند مدیریت مدارس
           </p>
+          <div className="mt-4 flex flex-col items-center gap-2 text-xs font-bold text-[var(--lux-text-muted)] sm:items-start">
+            <a
+              href="mailto:info@hooshagar.ir"
+              className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--lux-text)]"
+              dir="ltr"
+            >
+              <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+              info@hooshagar.ir
+            </a>
+            <a
+              href="mailto:contact@hooshagar.ir"
+              className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--lux-text)]"
+              dir="ltr"
+            >
+              <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+              contact@hooshagar.ir
+            </a>
+          </div>
+          <p className="mt-3 text-[11px] text-[var(--lux-text-muted)]">
+            © ۱۴۰۵ هوشاگر · نسخهٔ ۲.۱
+          </p>
         </div>
-        <div className="flex items-center gap-6 text-xs font-bold text-[var(--lux-text-muted)]">
-          <a
-            href="mailto:info@hooshagar.ir"
-            className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--lux-text)]"
-          >
-            <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
-            info@hooshagar.ir
-          </a>
-          <span className="inline-flex items-center gap-1.5">
-            <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
-            نسخهٔ ۲.۱
-          </span>
-        </div>
+
+        {/* سمت چپ صفحه — محل رایج نشان اینماد */}
+        <EnamadSeal />
       </div>
     </footer>
   )

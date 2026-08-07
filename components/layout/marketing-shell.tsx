@@ -8,6 +8,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
+import { EnamadSeal } from '@/components/brand/enamad-seal'
 import { ScrollProgressBar } from '@/components/landing/motion'
 import { PersianDateDisplay } from '@/components/ui/persian-date-display'
 
@@ -48,13 +49,20 @@ export function MarketingShell({
       <main className="lux-container py-10 sm:py-14">{children}</main>
 
       <footer className="border-t border-[rgba(232,236,244,0.08)] py-8" style={{ background: 'var(--lux-void)' }}>
-        <div className="lux-container flex flex-col items-center justify-between gap-4 text-center text-xs text-[var(--lux-text-muted)] sm:flex-row sm:text-right">
-          <p>© ۱۴۰۵ هوشاگر — سیستم‌عامل هوشمند مدیریت مدارس</p>
-          <div className="flex gap-5 font-bold">
-            <Link href="/terms" className="hover:text-[var(--lux-text)]">قوانین</Link>
-            <Link href="/privacy" className="hover:text-[var(--lux-text)]">حریم خصوصی</Link>
-            <Link href="/pricing" className="hover:text-[var(--lux-text)]">تعرفه</Link>
+        <div className="lux-container flex flex-col items-center gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="text-center text-xs text-[var(--lux-text-muted)] sm:text-right">
+            <p>© ۱۴۰۵ هوشاگر — سیستم‌عامل هوشمند مدیریت مدارس</p>
+            <div className="mt-3 flex flex-col items-center gap-1.5 font-bold sm:items-start" dir="ltr">
+              <a href="mailto:info@hooshagar.ir" className="hover:text-[var(--lux-text)]">info@hooshagar.ir</a>
+              <a href="mailto:contact@hooshagar.ir" className="hover:text-[var(--lux-text)]">contact@hooshagar.ir</a>
+            </div>
+            <div className="mt-4 flex justify-center gap-5 font-bold sm:justify-start" dir="rtl">
+              <Link href="/terms" className="hover:text-[var(--lux-text)]">قوانین</Link>
+              <Link href="/privacy" className="hover:text-[var(--lux-text)]">حریم خصوصی</Link>
+              <Link href="/pricing" className="hover:text-[var(--lux-text)]">تعرفه</Link>
+            </div>
           </div>
+          <EnamadSeal />
         </div>
       </footer>
     </div>

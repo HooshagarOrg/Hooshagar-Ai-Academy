@@ -8,6 +8,7 @@ import {
   hashPin,
   toIranPhone,
 } from './login-code'
+import { resolveParentDisplayName } from './parent-name'
 import { CLASS_TEACHER_ROLES, ClassResolver } from './resolve-class'
 import type {
   ImportOptions,
@@ -175,8 +176,15 @@ export async function importStudentRows(
       }
 
       let parentMsg = ''
-      if (options.createParentAccounts && row.parentFirstName && row.parentLoginCode) {
-        const parentName = `${row.parentFirstName} ${row.parentLastName || ''}`.trim()
+      // ساخت حساب والد فقط با کد ورود/موبایل؛ نام اختیاری است
+      if (options.createParentAccounts && row.parentLoginCode) {
+        const { name: parentName, usedFallback } = resolveParentDisplayName({
+          parentFirstName: row.parentFirstName,
+          parentLastName: row.parentLastName,
+          studentFullName: name,
+          parentLoginCode: row.parentLoginCode,
+          parentPhone: row.parentMobile,
+        })
         const parentPass = options.defaultParentPassword || defaultPasswordFromCode(row.parentLoginCode)
         const parentEmail = buildInternalEmail(row.parentLoginCode, 'parent')
 
@@ -213,9 +221,16 @@ export async function importStudentRows(
 
             await admin.from('students').update({ parent_id: parentId }).eq('id', student.id)
             summary.parentAccounts++
-            parentMsg = ` | والد: ${row.parentLoginCode}`
+            parentMsg = usedFallback
+              ? ` | والد: ${row.parentLoginCode} (نام موقت: ${parentName})`
+              : ` | والد: ${row.parentLoginCode}`
+            if (usedFallback) {
+              classWarnings.push('نام والد موقت ثبت شد')
+            }
           }
         }
+      } else if (options.createParentAccounts && (row.parentFirstName || row.parentMobile)) {
+        classWarnings.push('حساب والد ساخته نشد — کد ورود/موبایل ۱۰ رقمی لازم است')
       }
 
       summary.successful++

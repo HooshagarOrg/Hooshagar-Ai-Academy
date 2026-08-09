@@ -29,8 +29,19 @@ export function validateStudentRow(
   }
 
   const parentCode = toLoginCode(raw.parentLoginCode, raw.parentMobile)
-  if (raw.parentFirstName && !parentCode) {
-    warnings.push('کد ورود والد (کد ملی یا موبایل ۱۰ رقمی) یافت نشد')
+  const hasParentName = Boolean(
+    (raw.parentFirstName && raw.parentFirstName.trim()) ||
+    (raw.parentLastName && raw.parentLastName.trim())
+  )
+
+  if (parentCode && !hasParentName) {
+    warnings.push('نام والد خالی است — با نام موقت «والد + نام دانش‌آموز» ثبت می‌شود')
+  }
+  if (hasParentName && !parentCode) {
+    warnings.push('کد ورود/موبایل والد یافت نشد — حساب والد ساخته نمی‌شود')
+  }
+  if (!parentCode && !hasParentName && (raw.parentMobile || raw.parentLoginCode)) {
+    warnings.push('شناسه تماس والد ناقص است — حساب والد ساخته نمی‌شود')
   }
 
   return {

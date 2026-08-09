@@ -11,6 +11,7 @@ const schema = z.object({
     .regex(/[A-Z]/, 'باید حداقل یک حرف بزرگ داشته باشد')
     .regex(/[a-z]/, 'باید حداقل یک حرف کوچک داشته باشد')
     .regex(/[0-9]/, 'باید حداقل یک عدد داشته باشد'),
+  full_name: z.string().trim().min(2).max(200).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
       .update({
         must_change_password: false,
         password_changed_at: new Date().toISOString(),
+        ...(result.data.full_name ? { full_name: result.data.full_name } : {}),
       })
       .eq('id', user.id)
 

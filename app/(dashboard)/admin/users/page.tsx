@@ -223,12 +223,20 @@ export default function AdminUsersPage() {
   }
 
   const handleCreate = async () => {
-    if (!newUser.full_name) {
+    if (newUser.role === 'parent') {
+      const hasName = newUser.full_name.trim().length >= 2
+      const hasChild = newUser.children_ids.length > 0
+      const hasPhone = newUser.phone.trim().length > 0
+      if (!hasName && !hasChild && !hasPhone) {
+        toast.error('برای والد: نام، انتخاب فرزند، یا موبایل لازم است')
+        return
+      }
+    } else if (!newUser.full_name.trim()) {
       toast.error('نام الزامی است')
       return
     }
     if (newUser.role !== 'student' && !newUser.password) {
-      toast.error('نام و رمز عبور الزامی است')
+      toast.error('رمز عبور الزامی است')
       return
     }
     if (newUser.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email.trim())) {
@@ -665,8 +673,20 @@ export default function AdminUsersPage() {
 
           <div className="space-y-3">
             <div>
-              <Label>نام و نام خانوادگی *</Label>
-              <Input value={newUser.full_name} onChange={e => setNewUser({...newUser, full_name: e.target.value})} />
+              <Label>
+                نام و نام خانوادگی
+                {newUser.role === 'parent' ? ' (اختیاری)' : ' *'}
+              </Label>
+              <Input
+                value={newUser.full_name}
+                onChange={e => setNewUser({...newUser, full_name: e.target.value})}
+                placeholder={newUser.role === 'parent' ? 'خالی = والد + نام فرزند' : undefined}
+              />
+              {newUser.role === 'parent' && (
+                <p className="mt-1 text-[11px] text-[var(--lux-text-muted)]">
+                  اگر نام ندارید خالی بگذارید؛ سیستم «والد + نام فرزند» می‌سازد.
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>

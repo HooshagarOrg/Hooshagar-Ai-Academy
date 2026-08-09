@@ -189,7 +189,7 @@ export default function BulkImportPage() {
                   <div>
                     <p className="font-semibold text-blue-800">شیت دانش‌آموزان</p>
                     <p className="text-sm text-blue-700 mt-1">
-                      نام، کد ملی، پایه، کلاس (+ ساخت/اتصال کلاس) و مشخصات والد در همان سطر
+                      نام، کد ملی، پایه، کلاس (+ ساخت/اتصال کلاس) و مشخصات والد در همان سطر — نام والد اختیاری
                     </p>
                   </div>
                 </div>
@@ -256,6 +256,9 @@ export default function BulkImportPage() {
                 <Checkbox checked={createParents} onCheckedChange={(v) => setCreateParents(Boolean(v))} />
                 ایجاد حساب والد در کنار دانش‌آموز
               </label>
+              <p className="text-[11px] text-[var(--lux-text-muted)] mr-6">
+                نام والد اختیاری است؛ با کد ورود/موبایل ۱۰ رقمی ساخته می‌شود و در صورت نبود نام، «والد + نام دانش‌آموز» ثبت می‌گردد.
+              </p>
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <Checkbox checked={skipDuplicates} onCheckedChange={(v) => setSkipDuplicates(Boolean(v))} />
                 رد کردن ردیف‌های تکراری
@@ -387,9 +390,13 @@ function PreviewTable({ sheets, type }: { sheets: SheetPreview[]; type: 'student
                       )}
                       {isStudent && (
                         <td className="p-2 text-xs">
-                          {sRow.parentFirstName
-                            ? `${sRow.parentFirstName} (${sRow.parentLoginCode || '—'})`
-                            : '—'}
+                          {sRow.parentLoginCode
+                            ? `${sRow.parentFirstName || sRow.parentLastName
+                                ? `${sRow.parentFirstName || ''} ${sRow.parentLastName || ''}`.trim()
+                                : 'نام موقت'} (${sRow.parentLoginCode})`
+                            : sRow.parentFirstName
+                              ? `${sRow.parentFirstName} (بدون کد ورود)`
+                              : '—'}
                         </td>
                       )}
                       {!isStudent && <td className="p-2">{fRow.role}</td>}

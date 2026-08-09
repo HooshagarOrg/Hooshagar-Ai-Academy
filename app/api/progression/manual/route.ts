@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { resolveParentDisplayName } from '@/lib/bulk-import/parent-name'
 import { z } from 'zod'
 
 const manualAddSchema = z.object({
@@ -11,7 +12,7 @@ const manualAddSchema = z.object({
   grade: z.number().int().min(1).max(12),
   class_id: z.string().uuid().optional(),
   parent_phone: z.string().regex(/^09\d{9}$/),
-  parent_name: z.string().min(2).max(100),
+  parent_name: z.string().max(100).optional().default(''),
   field_id: z.string().uuid().optional(), // برای متوسطه دوم
 })
 
@@ -54,12 +55,17 @@ export async function POST(req: NextRequest) {
     if (existingParent) {
       parentId = existingParent.id
     } else {
+      const { name: parentDisplayName } = resolveParentDisplayName({
+        parentFullName: validatedData.parent_name,
+        studentFullName: validatedData.full_name,
+        parentPhone: validatedData.parent_phone,
+      })
+
       // ایجاد پروفایل والد جدید (فقط در profiles، بدون auth.users)
-      // والد باید خودش ثبت‌نام کند یا توسط سیستم دعوت شود
       const { data: newParent, error: parentError } = await supabase
         .from('profiles')
         .insert({
-          full_name: validatedData.parent_name,
+          full_name: parentDisplayName,
           phone: validatedData.parent_phone,
           role: 'parent',
           school_id: validatedData.school_id,
@@ -80,7 +86,7 @@ export async function POST(req: NextRequest) {
           const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hooshagar.ir'
           await sendControlledSms({
             to: validatedData.parent_phone,
-            text: `${validatedData.parent_name} عزیز، فرزند شما ${validatedData.full_name} در هوشاگر ثبت شد. ورود: ${appUrl}/login`,
+            text: `${parentDisplayName} عزیز، فرزند شما ${validatedData.full_name} در هوشاگر ثبت شد. ورود: ${appUrl}/login`,
             schoolId: validatedData.school_id,
             userId: parentId,
             smsType: 'parent_invite',

@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { createClient } from '@/lib/supabase/client'
+import { isPlaceholderParentName } from '@/lib/bulk-import/parent-name'
 
 const passwordRules = [
   { id: 'length', label: 'حداقل ۸ کاراکتر', test: (p: string) => p.length >= 8 },
@@ -22,12 +24,43 @@ export default function ChangePasswordPage(): JSX.Element {
   const [showConfirm, setShowConfirm] = useState(false)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [needsFullName, setNeedsFullName] = useState(false)
+  const [fullName, setFullName] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user || cancelled) return
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, role')
+          .eq('id', user.id)
+          .maybeSingle()
+        if (cancelled || !profile) return
+        if (profile.role === 'parent' && isPlaceholderParentName(profile.full_name)) {
+          setNeedsFullName(true)
+          setFullName('')
+        }
+      } catch {
+        // ignore — فرم رمز همچنان کار می‌کند
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   const allRulesMet = passwordRules.every((r) => r.test(newPassword))
   const passwordsMatch = newPassword === confirmPassword && confirmPassword.length > 0
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
+
+    if (needsFullName && fullName.trim().length < 2) {
+      toast.error('لطفاً نام و نام خانوادگی واقعی خود را وارد کنید')
+      return
+    }
 
     if (!allRulesMet) {
       toast.error('رمز عبور باید تمام شرایط را داشته باشد')
@@ -44,7 +77,10 @@ export default function ChangePasswordPage(): JSX.Element {
       const response = await fetch('/api/auth/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newPassword }),
+        body: JSON.stringify({
+          newPassword,
+          full_name: needsFullName ? fullName.trim() : undefined,
+        }),
       })
       const data = await response.json() as { success?: boolean; error?: string }
 
@@ -63,6 +99,25 @@ export default function ChangePasswordPage(): JSX.Element {
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="w-full space-y-5" dir="rtl">
+      {needsFullName && (
+        <div className="space-y-2">
+          <Label htmlFor="full-name">نام و نام خانوادگی</Label>
+          <Input
+            id="full-name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="نام واقعی خود را وارد کنید"
+            required
+            disabled={isLoading}
+            className="lp-input-dark"
+            autoComplete="name"
+          />
+          <p className="text-[11px] text-[var(--lux-text-muted)]">
+            حساب شما با نام موقت ساخته شده؛ لطفاً نام واقعی را تکمیل کنید.
+          </p>
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="new-password">رمز عبور جدید</Label>
         <div className="relative">
@@ -80,9 +135,8 @@ export default function ChangePasswordPage(): JSX.Element {
           />
           <button
             type="button"
+            onClick={() => setShowNew((v) => !v)}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--lux-text-muted)]"
-            onClick={() => setShowNew(!showNew)}
-            tabIndex={-1}
             aria-label={showNew ? 'مخفی کردن رمز' : 'نمایش رمز'}
           >
             {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -90,23 +144,17 @@ export default function ChangePasswordPage(): JSX.Element {
         </div>
       </div>
 
-      {newPassword.length > 0 && (
-        <div className="grid grid-cols-2 gap-2">
-          {passwordRules.map((rule) => (
-            <div
-              key={rule.id}
-              className={`flex items-center gap-1.5 text-xs transition-colors ${
-                rule.test(newPassword)
-                  ? 'text-[var(--lux-success)]'
-                  : 'text-[var(--lux-text-muted)]'
-              }`}
-            >
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      <ul className="space-y-1.5 text-xs">
+        {passwordRules.map((rule) => {
+          const ok = rule.test(newPassword)
+          return (
+            <li key={rule.id} className={`flex items-center gap-2 ${ok ? 'text-emerald-400' : 'text-[var(--lux-text-muted)]'}`}>
+              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
               {rule.label}
-            </div>
-          ))}
-        </div>
-      )}
+            </li>
+          )
+        })}
+      </ul>
 
       <div className="space-y-2">
         <Label htmlFor="confirm-password">تکرار رمز عبور</Label>
@@ -116,7 +164,7 @@ export default function ChangePasswordPage(): JSX.Element {
             type={showConfirm ? 'text' : 'password'}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="رمز عبور را مجدداً وارد کنید"
+            placeholder="تکرار رمز عبور"
             required
             disabled={isLoading}
             className="lp-input-dark pl-10 text-left"
@@ -125,31 +173,23 @@ export default function ChangePasswordPage(): JSX.Element {
           />
           <button
             type="button"
+            onClick={() => setShowConfirm((v) => !v)}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--lux-text-muted)]"
-            onClick={() => setShowConfirm(!showConfirm)}
-            tabIndex={-1}
             aria-label={showConfirm ? 'مخفی کردن رمز' : 'نمایش رمز'}
           >
             {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
-        {confirmPassword.length > 0 && !passwordsMatch && (
-          <p className="text-xs text-[var(--lux-accent)]">رمزهای وارد شده یکسان نیستند</p>
-        )}
       </div>
 
-      <Button
-        type="submit"
-        className="lux-btn-accent w-full"
-        disabled={isLoading || !allRulesMet || !passwordsMatch}
-      >
+      <Button type="submit" className="lux-btn-primary w-full" disabled={isLoading || !allRulesMet || !passwordsMatch}>
         {isLoading ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            در حال ذخیره...
+            <Loader2 className="h-4 w-4 animate-spin" />
+            در حال ذخیره…
           </>
         ) : (
-          'ذخیره رمز عبور جدید'
+          'ذخیره و ادامه'
         )}
       </Button>
     </form>

@@ -7,6 +7,7 @@ import {
 } from '@/lib/auth/synthetic-email'
 import { hashPin } from '@/lib/security/pin-hash'
 import { buildAuthPassword } from '@/lib/bulk-import/login-code'
+import { resolveParentDisplayName } from '@/lib/bulk-import/parent-name'
 
 // ============================================
 // GET: لیست کاربران
@@ -102,7 +103,7 @@ const createUserSchema = z
   .object({
     email: optionalEmail,
     password: z.string().optional().nullable(),
-    full_name: z.string().trim().min(2, 'نام الزامی است').max(200),
+    full_name: z.string().trim().max(200).optional().default(''),
     role: z.string().min(2, 'نقش الزامی است'),
     username: optionalText,
     phone: optionalText,
@@ -124,6 +125,24 @@ const createUserSchema = z
         path: ['password'],
       })
     }
+    const name = (data.full_name || '').trim()
+    if (data.role === 'parent') {
+      if (name.length < 2 && !(data.children_ids && data.children_ids.length > 0) && !(data.phone || '').trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'برای والد: نام، یا انتخاب فرزند، یا موبایل لازم است',
+          path: ['full_name'],
+        })
+      }
+      return
+    }
+    if (name.length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'نام الزامی است',
+        path: ['full_name'],
+      })
+    }
   })
 
 export async function POST(request: NextRequest) {
@@ -141,7 +160,6 @@ export async function POST(request: NextRequest) {
 
       const {
         password,
-        full_name,
         role,
         username,
         phone,
@@ -154,6 +172,27 @@ export async function POST(request: NextRequest) {
         parent_id,
         children_ids,
       } = parsed.data
+
+      let full_name = (parsed.data.full_name || '').trim()
+      if (role === 'parent' && full_name.length < 2) {
+        let studentFullName: string | null = null
+        if (children_ids && children_ids.length > 0) {
+          const { data: child } = await createServiceClient()
+            .from('students')
+            .select('full_name')
+            .eq('id', children_ids[0])
+            .maybeSingle()
+          studentFullName = child?.full_name ?? null
+        }
+        full_name = resolveParentDisplayName({
+          studentFullName,
+          parentPhone: phone,
+        }).name
+      }
+
+      if (full_name.length < 2) {
+        return NextResponse.json({ error: 'نام الزامی است' }, { status: 400 })
+      }
 
       const providedEmail = parsed.data.email
       let email = providedEmail

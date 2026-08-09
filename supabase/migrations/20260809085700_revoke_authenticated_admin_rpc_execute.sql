@@ -27,9 +27,6 @@ DECLARE
     'handle_new_user',
     'increment_ai_tier_usage',
     'increment_sms_count',
-    'is_admin_role',
-    'is_ip_blocked',
-    'is_platform_admin_role',
     'log_security_event',
     'manually_progress_student',
     'notify_all_parents',
@@ -48,6 +45,8 @@ DECLARE
     'update_exam_stats',
     'user_login_by_code'
   ];
+  -- NOTE: is_admin_role / is_platform_admin_role must stay executable by
+  -- authenticated — profiles/schools RLS policies call them.
 BEGIN
   FOR r IN
     SELECT

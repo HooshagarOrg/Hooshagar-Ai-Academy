@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { z } from 'zod'
 import { sendControlledSmsBatch } from '@/lib/sms/controlled-send'
 import { withAuth } from '@/lib/security/api-guard'
@@ -44,8 +45,8 @@ export async function GET(request: NextRequest) {
             )
           }
 
-          // دریافت آمار
-          const { data: stats } = await supabase
+          // دریافت آمار (فقط service_role)
+          const { data: stats } = await createServiceClient()
             .rpc('get_lottery_stats', { p_lottery_setting_id: lotteryId })
 
           // دریافت کلاس‌ها
@@ -296,9 +297,9 @@ export async function PATCH(request: NextRequest) {
           )
         }
 
-        // اجرای قرعه‌کشی
+        // اجرای قرعه‌کشی (فقط service_role)
         if (action === 'run') {
-          const { data: result, error } = await supabase
+          const { data: result, error } = await createServiceClient()
             .rpc('run_lottery', {
               p_lottery_setting_id: id,
               p_executed_by: ctx.userId,

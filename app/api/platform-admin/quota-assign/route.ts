@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { z } from 'zod'
 import { secureErrorResponse } from '@/lib/security/error-handler'
 import { withAuth } from '@/lib/security/api-guard'
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest) {
     async () => {
       try {
         const supabase = await createClient()
+        const service = createServiceClient()
 
         const body = await request.json()
         const { action, period_id, student_id, class_id, note, quota } = assignSchema.parse(body)
@@ -76,7 +78,7 @@ export async function POST(request: NextRequest) {
           if (!student_id || !class_id) {
             return NextResponse.json({ error: 'student_id و class_id الزامی است' }, { status: 400 })
           }
-          const { data, error } = await supabase.rpc('assign_platform_quota', {
+          const { data, error } = await service.rpc('assign_platform_quota', {
             p_period_id:  period_id,
             p_student_id: student_id,
             p_class_id:   class_id,
@@ -91,7 +93,7 @@ export async function POST(request: NextRequest) {
           if (!student_id) {
             return NextResponse.json({ error: 'student_id الزامی است' }, { status: 400 })
           }
-          const { data, error } = await supabase.rpc('revoke_platform_quota', {
+          const { data, error } = await service.rpc('revoke_platform_quota', {
             p_period_id:  period_id,
             p_student_id: student_id,
           })

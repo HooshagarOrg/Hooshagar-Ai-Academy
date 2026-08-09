@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { z } from 'zod'
 
 const manualAddSchema = z.object({
@@ -113,8 +114,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'خطا در ایجاد دانش‌آموز' }, { status: 500 })
     }
 
-    // 3. ثبت در تاریخچه
-    await supabase.rpc('manually_progress_student', {
+    // 3. ثبت در تاریخچه (فقط service_role)
+    const service = createServiceClient()
+    await service.rpc('manually_progress_student', {
       p_student_id: student.id,
       p_to_grade: validatedData.grade,
       p_to_class_id: validatedData.class_id || null,

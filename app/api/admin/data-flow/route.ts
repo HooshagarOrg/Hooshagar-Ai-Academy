@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard'
 
 // ============================================
@@ -10,9 +11,10 @@ export async function GET(request: NextRequest) {
     request,
     async () => {
       const supabase = await createClient()
+      const service = createServiceClient()
 
-      // اجرای تابع SQL
-      const { data: stats } = await supabase.rpc('get_data_flow_stats')
+      // اجرای تابع SQL (فقط service_role)
+      const { data: stats } = await service.rpc('get_data_flow_stats')
 
       // یافتن نقاط ضعف
       const issues: { severity: 'high' | 'medium' | 'low'; title: string; detail: string; count: number }[] = []

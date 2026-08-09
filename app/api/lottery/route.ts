@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth, type AllowedRole } from '@/lib/security/api-guard'
 import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
 
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest) {
       const { period_id } = body
       if (!period_id) return NextResponse.json({ error: 'شناسه دوره الزامی' }, { status: 400 })
 
-      const { data, error } = await supabase.rpc('run_lottery', { p_period_id: period_id })
+      const { data, error } = await createServiceClient().rpc('run_lottery', { p_period_id: period_id })
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })
       return NextResponse.json({ success: true, result: data })
     }

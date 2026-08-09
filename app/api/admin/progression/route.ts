@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { asOne } from '@/lib/supabase/relation'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard'
 
 export async function GET(request: NextRequest) {
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'دانش‌آموزی برای ارتقاء انتخاب نشده' }, { status: 400 })
         }
 
-        const { data: result, error } = await supabase.rpc('promote_students_batch', {
+        const { data: result, error } = await createServiceClient().rpc('promote_students_batch', {
           p_student_ids: targetStudentIds,
           p_academic_year: academic_year,
           p_created_by: ctx.userId,

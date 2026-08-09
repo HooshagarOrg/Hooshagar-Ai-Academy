@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { z } from 'zod'
 
 const bulkPromotionSchema = z.object({
@@ -34,8 +35,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const validatedData = bulkPromotionSchema.parse(body)
 
-    // اجرای تابع انتقال گروهی
-    const { data, error } = await supabase.rpc('promote_students_end_of_year', {
+    // اجرای تابع انتقال گروهی (فقط service_role)
+    const service = createServiceClient()
+    const { data, error } = await service.rpc('promote_students_end_of_year', {
       p_school_id: validatedData.school_id,
       p_from_grade: validatedData.from_grade,
       p_academic_year: validatedData.academic_year,

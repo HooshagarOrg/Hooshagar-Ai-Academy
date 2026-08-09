@@ -101,12 +101,13 @@ export async function POST(request: NextRequest) {
         .maybeSingle()
 
       if (studentRow?.parent_id) {
-        await supabase.from('notifications').insert({
-          user_id: studentRow.parent_id,
-          title: 'نشان جدید برای فرزند شما',
-          body: `${studentRow.full_name} نشان «${badgeData?.name || 'جدید'}» ${badgeData?.icon_emoji || '🏅'} دریافت کرد.`,
-          type: 'badge',
-          metadata: { student_id: studentRow.id, badge_id },
+        // SECURITY DEFINER RPC — بدون policy باز برای INSERT روی notifications
+        await supabase.rpc('create_in_app_notification', {
+          p_user_id: studentRow.parent_id,
+          p_title: 'نشان جدید برای فرزند شما',
+          p_message: `${studentRow.full_name} نشان «${badgeData?.name || 'جدید'}» ${badgeData?.icon_emoji || '🏅'} دریافت کرد.`,
+          p_type: 'badge',
+          p_link_url: null,
         })
       }
     }

@@ -42,9 +42,11 @@ const verifyOtpSchema = z.object({
 // ============================================
 // Constants
 // ============================================
-const MAX_ATTEMPTS = 3
-const BLOCK_DURATION_MINUTES = 10
-const RESET_TOKEN_EXPIRY_HOURS = 1
+/** هم‌تراز با login-lockout: ۵ شکست → ۱۵ دقیقه قفل */
+const MAX_ATTEMPTS = 5
+const BLOCK_DURATION_MINUTES = 15
+/** توکن بازیابی کوتاه‌عمر پس از تأیید OTP */
+const RESET_TOKEN_EXPIRY_MINUTES = 30
 
 // ============================================
 // Helper: Generate Secure Token
@@ -179,10 +181,10 @@ async function handleLogin(
     .single()
 
   if (phoneError || !userPhone) {
-    // شاید در profiles باشد
+    // شاید در profiles باشد (PK = id = auth.users.id)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('user_id')
+      .select('id')
       .eq('phone', phoneNumber)
       .single()
 
@@ -194,7 +196,7 @@ async function handleLogin(
     const token = generateSecureToken()
 
     const { error: tokenError } = await supabase.from('phone_login_tokens').insert({
-      user_id: profile.user_id,
+      user_id: profile.id,
       token,
       phone_number: phoneNumber,
       is_used: false,
@@ -256,23 +258,24 @@ async function handleResetPassword(
   if (userPhone) {
     userId = userPhone.user_id
   } else {
-    // جستجو در profiles
+    // جستجو در profiles (PK = id)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('user_id')
+      .select('id')
       .eq('phone', phoneNumber)
       .single()
 
     if (profile) {
-      userId = profile.user_id
+      userId = profile.id
     }
   }
 
   if (!userId) {
-    return { success: false, error: 'کاربری با این شماره یافت نشد' }
+    // پیام خنثی — جلوگیری از enumeration پس از OTP
+    return { success: false, error: 'امکان ادامه بازیابی وجود ندارد. با پشتیبانی تماس بگیرید.' }
   }
 
-  // ایجاد reset token با اعتبار 1 ساعت
+  // ایجاد reset token کوتاه‌عمر
   const resetToken = generateSecureToken()
 
   const { error: tokenError } = await supabase.from('password_reset_tokens').insert({
@@ -281,7 +284,7 @@ async function handleResetPassword(
     phone_number: phoneNumber,
     is_used: false,
     expires_at: new Date(
-      Date.now() + RESET_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000
+      Date.now() + RESET_TOKEN_EXPIRY_MINUTES * 60 * 1000
     ).toISOString(),
   })
 
@@ -342,7 +345,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     // 3. Create Supabase client
     const supabase = await createClient()
 
-    // 4. Check if blocked (3 attempts exceeded)
+    // 4. Check if blocked (5 attempts → 15 min lock)
     const { blocked, attemptsLeft } = await checkIfBlocked(supabase, phoneNumber)
 
     if (blocked) {
@@ -350,7 +353,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       return NextResponse.json(
         {
           success: false,
-          error: `تلاش‌های زیادی انجام شد. لطفاً ${BLOCK_DURATION_MINUTES} دقیقه صبر کنید.`,
+          error: `به‌خاطر تلاش‌های ناموفق زیاد، تا ${BLOCK_DURATION_MINUTES} دقیقه امکان تأیید کد وجود ندارد.`,
           code: 'BLOCKED',
           attemptsLeft: 0,
         },

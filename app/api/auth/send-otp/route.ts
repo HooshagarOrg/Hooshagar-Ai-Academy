@@ -211,6 +211,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     // OTP باید با service role ذخیره شود (RLS روی otp_codes برای anon بسته است)
     const admin = createServiceClient()
 
+    // پیام یکسان برای جلوگیری از user enumeration در بازیابی رمز
+    const NEUTRAL_RESET_MESSAGE = 'اگر این شماره در سیستم ثبت باشد، کد تأیید ارسال می‌شود.'
+
     if (purpose === 'login') {
       const { data: matches } = await admin
         .from('profiles')
@@ -239,6 +242,37 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       }
     }
 
+    if (purpose === 'reset-password') {
+      const { data: resetMatches } = await admin
+        .from('profiles')
+        .select('id')
+        .eq('phone', phoneNumber)
+
+      const { allowed } = await checkRateLimit(admin, phoneNumber)
+      if (!allowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'بیش از حد مجاز درخواست کرده‌اید. لطفاً ۱۰ دقیقه صبر کنید.',
+            code: 'RATE_LIMIT_EXCEEDED',
+          },
+          { status: 429 }
+        )
+      }
+
+      // شماره ناموجود یا مبهم: پاسخ موفق خنثی بدون ارسال SMS
+      if (!resetMatches?.length || resetMatches.length > 1) {
+        return NextResponse.json(
+          {
+            success: true,
+            message: NEUTRAL_RESET_MESSAGE,
+            expiresIn: OTP_EXPIRY_SECONDS,
+          },
+          { status: 200 }
+        )
+      }
+    }
+
     const { allowed } = await checkRateLimit(admin, phoneNumber)
 
     if (!allowed) {
@@ -246,7 +280,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       return NextResponse.json(
         {
           success: false,
-          error: 'بیش از حد مجاز درخواست کرده‌اید. لطفاً 10 دقیقه صبر کنید.',
+          error: 'بیش از حد مجاز درخواست کرده‌اید. لطفاً ۱۰ دقیقه صبر کنید.',
           code: 'RATE_LIMIT_EXCEEDED',
         },
         { status: 429 }
@@ -276,6 +310,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
       if (!sent) {
         console.error(`Failed to send SMS to ${phoneNumber}`)
+        // برای reset-password پیام خنثی؛ برای login خطای واقعی
+        if (purpose === 'reset-password') {
+          return NextResponse.json(
+            {
+              success: true,
+              message: NEUTRAL_RESET_MESSAGE,
+              expiresIn: OTP_EXPIRY_SECONDS,
+            },
+            { status: 200 }
+          )
+        }
         return NextResponse.json(
           {
             success: false,
@@ -311,7 +356,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     return NextResponse.json(
       {
         success: true,
-        message: 'کد تایید ارسال شد',
+        message:
+          purpose === 'reset-password' ? NEUTRAL_RESET_MESSAGE : 'کد تایید ارسال شد',
         expiresIn: OTP_EXPIRY_SECONDS,
       },
       { status: 200 }

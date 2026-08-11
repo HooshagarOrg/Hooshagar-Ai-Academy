@@ -1013,7 +1013,9 @@ export default function AdminUsersPage() {
             <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-2">
               <p className="text-xs text-[var(--lux-text-muted)] leading-6">
                 رمز فعلی به دلایل امنیتی قابل مشاهده نیست (فقط به‌صورت هش ذخیره می‌شود).
-                در صورت فراموشی، رمز/PIN جدید تنظیم کنید.
+                در صورت فراموشی، رمز/PIN جدید تنظیم کنید؛ رمز موقت فقط یک‌بار به شما نشان داده می‌شود
+                و کاربر باید در ورود بعدی آن را عوض کند.
+                {editForm.role !== 'student' ? ' رمز کارکنان/والدین باید قوی باشد (۸+ حرف بزرگ/کوچک، عدد و نماد).' : ''}
               </p>
               <div className="space-y-1">
                 <Label>
@@ -1026,7 +1028,7 @@ export default function AdminUsersPage() {
                     onChange={(e) => setEditForm({ ...editForm, new_password: e.target.value })}
                     dir="ltr"
                     className="pl-10"
-                    placeholder={editForm.role === 'student' ? '۴ تا ۶ رقم' : 'حداقل ۶ کاراکتر'}
+                    placeholder={editForm.role === 'student' ? '۴ تا ۶ رقم' : 'حداقل ۸ کاراکتر + حرف/عدد/نماد'}
                     autoComplete="new-password"
                   />
                   <button

@@ -3,14 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
+import { strongPasswordSchema } from '@/lib/security/password-policy'
 
 const schema = z.object({
-  newPassword: z
-    .string()
-    .min(8, 'رمز باید حداقل ۸ کاراکتر باشد')
-    .regex(/[A-Z]/, 'باید حداقل یک حرف بزرگ داشته باشد')
-    .regex(/[a-z]/, 'باید حداقل یک حرف کوچک داشته باشد')
-    .regex(/[0-9]/, 'باید حداقل یک عدد داشته باشد'),
+  newPassword: strongPasswordSchema,
   full_name: z.string().trim().min(2).max(200).optional(),
 })
 

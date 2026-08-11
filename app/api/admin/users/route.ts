@@ -8,6 +8,8 @@ import {
 import { hashPin } from '@/lib/security/pin-hash'
 import { buildAuthPassword } from '@/lib/bulk-import/login-code'
 import { resolveParentDisplayName } from '@/lib/bulk-import/parent-name'
+import { validatePassword } from '@/lib/security/sanitize'
+import { PASSWORD_GUIDE_FA } from '@/lib/security/password-policy'
 
 // ============================================
 // GET: لیست کاربران
@@ -444,7 +446,7 @@ export async function PATCH(request: NextRequest) {
 
       const { data: existing, error: existingError } = await admin
         .from('profiles')
-        .select('id, role, email, username, is_staff')
+        .select('id, role, email, username, is_staff, phone, school_id')
         .eq('id', id)
         .single()
 
@@ -481,31 +483,45 @@ export async function PATCH(request: NextRequest) {
           if (authErr) {
             return NextResponse.json({ error: 'خطا در تنظیم رمز ورود: ' + authErr.message }, { status: 400 })
           }
-        } else if (isStaffRole) {
-          if (new_password.length < 6) {
-            return NextResponse.json({ error: 'رمز عبور باید حداقل ۶ کاراکتر باشد' }, { status: 400 })
-          }
-          const { error: authErr } = await admin.auth.admin.updateUserById(id, { password: new_password })
-          if (authErr) {
-            return NextResponse.json({ error: 'خطا در تنظیم رمز ورود: ' + authErr.message }, { status: 400 })
-          }
-          updates.pin_hash = hashPin(new_password)
           if (updates.must_change_password === undefined) {
             updates.must_change_password = true
           }
         } else {
-          if (new_password.length < 4) {
-            return NextResponse.json({ error: 'رمز جدید خیلی کوتاه است' }, { status: 400 })
+          // کارکنان و والدین (غیر دانش‌آموز): سیاست رمز قوی — نه PIN کوتاه
+          const pwCheck = validatePassword(new_password)
+          if (!pwCheck.valid) {
+            return NextResponse.json(
+              {
+                error: pwCheck.errors[0] ?? 'رمز عبور شرایط امنیتی لازم را ندارد',
+                hint: PASSWORD_GUIDE_FA,
+              },
+              { status: 400 }
+            )
           }
-          updates.pin_hash = hashPin(new_password)
-          const authPass = buildAuthPassword(id, new_password, 'user')
-          const { error: authErr } = await admin.auth.admin.updateUserById(id, { password: authPass })
-          if (authErr) {
-            return NextResponse.json({ error: 'خطا در تنظیم رمز ورود: ' + authErr.message }, { status: 400 })
+
+          if (isStaffRole) {
+            const { error: authErr } = await admin.auth.admin.updateUserById(id, { password: new_password })
+            if (authErr) {
+              return NextResponse.json({ error: 'خطا در تنظیم رمز ورود: ' + authErr.message }, { status: 400 })
+            }
+            updates.pin_hash = hashPin(new_password)
+          } else {
+            // والدین / سایر: هش PIN برای ورود با کد + رمز مشتق‌شده در Auth
+            updates.pin_hash = hashPin(new_password)
+            const authPass = buildAuthPassword(id, new_password, 'user')
+            const { error: authErr } = await admin.auth.admin.updateUserById(id, { password: authPass })
+            if (authErr) {
+              return NextResponse.json({ error: 'خطا در تنظیم رمز ورود: ' + authErr.message }, { status: 400 })
+            }
           }
+
+          // همیشه پس از ریست ادمین، اجبار به تغییر در ورود بعدی
           if (updates.must_change_password === undefined) {
             updates.must_change_password = true
           }
+          updates.password_changed_at = new Date().toISOString()
+          updates.login_attempts = 0
+          updates.locked_until = null
         }
       }
 
@@ -518,15 +534,85 @@ export async function PATCH(request: NextRequest) {
         if (error) return NextResponse.json({ error: error.message }, { status: 400 })
       }
 
+      // اعلان + SMS + ممیزی پس از ریست رمز (بدون ذخیره رمز قدیمی — غیرممکن)
+      if (new_password && effectiveRole !== 'student') {
+        try {
+          await admin.rpc('create_in_app_notification', {
+            p_user_id: id,
+            p_title: 'رمز عبور بازنشانی شد',
+            p_message:
+              'رمز عبور شما توسط مدیر بازنشانی شده است. لطفاً در ورود بعدی رمز موقت را تغییر دهید.',
+            p_type: 'system',
+            p_link_url: '/change-password',
+          })
+        } catch (notifyErr) {
+          console.warn('Admin password reset notification failed:', notifyErr)
+        }
+
+        const phone =
+          (typeof updates.phone === 'string' ? updates.phone : null) ||
+          (typeof existing.phone === 'string' ? existing.phone : null)
+        if (phone && /^09[0-9]{9}$/.test(phone)) {
+          try {
+            const { sendControlledSms } = await import('@/lib/sms/controlled-send')
+            await sendControlledSms({
+              to: phone,
+              text: 'هوشاگر: رمز عبور شما توسط مدیر بازنشانی شد. در ورود بعدی رمز موقت را تغییر دهید.',
+              smsType: 'other',
+              schoolId: existing.school_id ?? null,
+              userId: id,
+              bypassDailyCap: true,
+            })
+          } catch (smsErr) {
+            console.warn('Admin password reset SMS failed:', smsErr)
+          }
+        }
+
+        try {
+          await admin.from('security_audit_log').insert({
+            event_type: 'admin_action',
+            user_id: id,
+            success: true,
+            risk_level: 'medium',
+            details: {
+              action: 'admin_password_reset',
+              target_user_id: id,
+              role: effectiveRole,
+              must_change_password: true,
+              password_never_readable: true,
+            },
+          })
+        } catch (auditErr) {
+          console.warn('Admin password reset audit failed:', auditErr)
+        }
+
+        // باطل‌سازی نشست‌ها (بهترین تلاش)
+        try {
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+          const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+          if (supabaseUrl && serviceRoleKey) {
+            await fetch(`${supabaseUrl}/auth/v1/admin/users/${id}/sessions`, {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${serviceRoleKey}`,
+                apikey: serviceRoleKey,
+              },
+            })
+          }
+        } catch {
+          // non-fatal
+        }
+      }
+
       return NextResponse.json({
         success: true,
         password_updated: Boolean(new_password),
         message: new_password
           ? (effectiveRole === 'student'
             ? `اطلاعات ذخیره شد. PIN جدید: ${new_password}`
-            : `اطلاعات ذخیره شد. رمز جدید تنظیم شد.`)
+            : `اطلاعات ذخیره شد. رمز موقت تنظیم شد — فقط یک‌بار نمایش داده می‌شود. کاربر باید در ورود بعدی رمز را عوض کند.`)
           : 'اطلاعات کاربر بروزرسانی شد',
-        // فقط برای نمایش یک‌بار به ادمین — در لاگ کلاینت نگه ندارید
+        // فقط برای نمایش یک‌بار به ادمین — رمز قبلی هرگز قابل مشاهده نیست
         new_password: new_password || undefined,
         username: typeof updates.username === 'string'
           ? updates.username

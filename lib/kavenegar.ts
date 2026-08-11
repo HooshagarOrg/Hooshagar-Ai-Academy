@@ -68,6 +68,18 @@ export function getKavenegarOtpTemplate(): string {
   )
 }
 
+/**
+ * نام الگوهای پیشنهادی کاوه‌نگار (داشبورد کاوه‌نگار → ایجاد الگو)
+ * - OTP بازیابی: token = کد ۶ رقمی
+ * - ریست ادمین: بدون رمز در SMS (امن‌تر) یا token = رمز موقت فقط در صورت نیاز
+ * - تأیید تغییر رمز: اطلاع‌رسانی ساده
+ */
+export const KAVENEGAR_TEMPLATE_HINTS = {
+  otpForgotPassword: 'hooshagar-otp-reset',
+  adminPasswordReset: 'hooshagar-admin-reset',
+  passwordChanged: 'hooshagar-password-changed',
+} as const
+
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
 const RATE_LIMIT_MAX_ATTEMPTS = 3
 

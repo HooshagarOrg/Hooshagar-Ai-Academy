@@ -59,10 +59,16 @@ describe('sanitize', () => {
       expect(result.errors.length).toBeGreaterThan(0)
     })
 
-    it('accepts a reasonably strong password', () => {
+    it('rejects password without special character', () => {
       const result = validatePassword('SecurePass1')
+      expect(result.valid).toBe(false)
+      expect(result.errors.some((e) => e.includes('ویژه'))).toBe(true)
+    })
+
+    it('accepts a strong password with special char', () => {
+      const result = validatePassword('SecurePass1!')
       expect(result.valid).toBe(true)
-      expect(result.score).toBeGreaterThanOrEqual(3)
+      expect(result.score).toBeGreaterThanOrEqual(4)
     })
   })
 

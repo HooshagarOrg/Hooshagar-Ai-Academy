@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
+import { strongPasswordSchema } from '@/lib/security/password-policy'
 
 // ============================================
 // تایپ‌ها و اینترفیس‌ها
@@ -30,10 +31,7 @@ const resetPasswordSchema = z.object({
   resetToken: z
     .string()
     .min(1, 'توکن بازیابی الزامی است'),
-  newPassword: z
-    .string()
-    .min(6, 'رمز عبور باید حداقل 6 کاراکتر باشد')
-    .max(72, 'رمز عبور نمی‌تواند بیش از 72 کاراکتر باشد'),
+  newPassword: strongPasswordSchema,
 })
 
 // ============================================
@@ -176,10 +174,47 @@ async function updatePassword(
       return { success: false, error: 'خطا در به‌روزرسانی رمز عبور' }
     }
 
+    // پاک‌کردن پرچم اجبار و ثبت زمان تغییر
+    await adminClient
+      .from('profiles')
+      .update({
+        must_change_password: false,
+        password_changed_at: new Date().toISOString(),
+        login_attempts: 0,
+        locked_until: null,
+      })
+      .eq('id', userId)
+
     return { success: true }
   } catch (error) {
     console.error('Admin client error:', error)
     return { success: false, error: 'خطای سرور در تغییر رمز' }
+  }
+}
+
+/**
+ * باطل‌سازی نشست‌های فعال پس از بازیابی رمز (بهترین تلاش)
+ * endpoint داشبورد Auth — اگر در دسترس نباشد خطا را نادیده می‌گیریم
+ * Leaked Password Protection فقط از داشبورد Supabase Pro فعال می‌شود.
+ */
+async function invalidateUserSessions(userId: string): Promise<void> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!supabaseUrl || !serviceRoleKey) return
+
+  try {
+    const res = await fetch(`${supabaseUrl}/auth/v1/admin/users/${userId}/sessions`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${serviceRoleKey}`,
+        apikey: serviceRoleKey,
+      },
+    })
+    if (!res.ok && res.status !== 404) {
+      console.warn('Session invalidation response:', res.status, await res.text().catch(() => ''))
+    }
+  } catch (err) {
+    console.warn('Session invalidation failed (non-fatal):', err)
   }
 }
 
@@ -305,6 +340,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     // 8. Invalidate all other reset tokens for this user
     await invalidateAllResetTokens(supabase, userId)
+
+    // 8b. Invalidate active auth sessions (best-effort)
+    await invalidateUserSessions(userId)
 
     // 9. Log the password reset
     await logPasswordReset(supabase, userId, phoneNumber, ipAddress)

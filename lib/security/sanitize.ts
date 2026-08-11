@@ -64,11 +64,15 @@ export function validateUsername(username: string): { valid: boolean; error?: st
 }
 
 // ============================================
-// اعتبارسنجی رمز عبور
+// اعتبارسنجی رمز عبور (منبع واحد — بدون PIN دانش‌آموز)
+// نمادها مطابق Supabase Auth / HaveIBeenPwned policy
 // ============================================
+/** هم‌تراز با lib/security/password-policy.ts و داشبورد Supabase */
+const PASSWORD_SPECIAL_REGEX = /[!@#$%^&*()_+\-=[\]{};'\\:"|<>?,./`~]/
+
 export interface PasswordValidation {
   valid: boolean
-  score: number // 0-4
+  score: number // 0-5
   errors: string[]
 }
 
@@ -79,14 +83,20 @@ export function validatePassword(password: string): PasswordValidation {
   if (password.length < 8) errors.push('حداقل ۸ کاراکتر')
   else score++
 
-  if (!/[A-Z]/.test(password)) errors.push('حداقل یک حرف بزرگ')
+  if (!/[A-Z]/.test(password)) errors.push('حداقل یک حرف بزرگ انگلیسی')
   else score++
 
-  if (!/[a-z]/.test(password)) errors.push('حداقل یک حرف کوچک')
+  if (!/[a-z]/.test(password)) errors.push('حداقل یک حرف کوچک انگلیسی')
   else score++
 
   if (!/[0-9]/.test(password)) errors.push('حداقل یک عدد')
   else score++
+
+  if (!PASSWORD_SPECIAL_REGEX.test(password)) {
+    errors.push('حداقل یک کاراکتر ویژه (!@#$%…)')
+  } else {
+    score++
+  }
 
   if (/^(.)\1+$/.test(password)) errors.push('رمز عبور نباید تکراری باشد')
 

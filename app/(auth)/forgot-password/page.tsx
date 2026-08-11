@@ -35,12 +35,12 @@ export default function ForgotPasswordPage(): JSX.Element {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: phone, purpose: 'reset-password' }),
       })
-      const data = await res.json() as { success?: boolean; error?: string; expiresIn?: number }
+      const data = await res.json() as { success?: boolean; error?: string; expiresIn?: number; message?: string }
       if (!res.ok || !data.success) {
         toast.error(data.error || 'ارسال کد ناموفق بود')
         return
       }
-      toast.success('کد تأیید ارسال شد')
+      toast.success(data.message || 'اگر شماره ثبت باشد، کد تأیید ارسال شد')
       setStep('otp')
       setTimer(data.expiresIn ?? 300)
     } catch {
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage(): JSX.Element {
   return (
     <div className="w-full space-y-6" dir="rtl">
       <p className="text-sm leading-7 text-[var(--lux-text-muted)]">
-        شماره موبایل ثبت‌شده را وارد کنید. کد تأیید برای بازیابی رمز ارسال می‌شود.
+        شماره موبایل ثبت‌شده را وارد کنید. اگر شماره در سیستم باشد، کد تأیید برای بازیابی رمز ارسال می‌شود.
       </p>
 
       {step === 'phone' ? (

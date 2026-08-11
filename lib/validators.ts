@@ -1,8 +1,11 @@
 import { z } from 'zod'
+import { strongPasswordSchema } from '@/lib/security/password-policy'
 
 // =====================================
 // Zod Schemas برای Validation
 // =====================================
+
+export { strongPasswordSchema } from '@/lib/security/password-policy'
 
 // =====================================
 // User & Auth Schemas
@@ -10,17 +13,13 @@ import { z } from 'zod'
 
 export const loginSchema = z.object({
   email: z.string().email('ایمیل نامعتبر است'),
-  password: z.string().min(6, 'رمز عبور باید حداقل 6 کاراکتر باشد'),
+  // ورود: فقط حداقل طول — سیاست قوی هنگام ثبت/تغییر اعمال می‌شود
+  password: z.string().min(1, 'رمز عبور الزامی است'),
 })
 
 export const registerSchema = z.object({
   email: z.string().email('ایمیل نامعتبر است'),
-  password: z
-    .string()
-    .min(8, 'رمز عبور باید حداقل 8 کاراکتر باشد')
-    .regex(/[A-Z]/, 'رمز عبور باید حداقل یک حرف بزرگ داشته باشد')
-    .regex(/[a-z]/, 'رمز عبور باید حداقل یک حرف کوچک داشته باشد')
-    .regex(/[0-9]/, 'رمز عبور باید حداقل یک عدد داشته باشد'),
+  password: strongPasswordSchema,
   full_name: z.string().min(2, 'نام باید حداقل 2 کاراکتر باشد').max(100),
   role: z.enum(['teacher', 'parent', 'student', 'admin']),
 })

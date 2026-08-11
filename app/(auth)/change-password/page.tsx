@@ -9,13 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import { isPlaceholderParentName } from '@/lib/bulk-import/parent-name'
-
-const passwordRules = [
-  { id: 'length', label: 'حداقل ۸ کاراکتر', test: (p: string) => p.length >= 8 },
-  { id: 'upper', label: 'حداقل یک حرف بزرگ', test: (p: string) => /[A-Z]/.test(p) },
-  { id: 'lower', label: 'حداقل یک حرف کوچک', test: (p: string) => /[a-z]/.test(p) },
-  { id: 'number', label: 'حداقل یک عدد', test: (p: string) => /[0-9]/.test(p) },
-]
+import { PASSWORD_GUIDE_FA, PASSWORD_UI_RULES } from '@/lib/security/password-policy'
 
 export default function ChangePasswordPage(): JSX.Element {
   const router = useRouter()
@@ -51,7 +45,7 @@ export default function ChangePasswordPage(): JSX.Element {
     return () => { cancelled = true }
   }, [])
 
-  const allRulesMet = passwordRules.every((r) => r.test(newPassword))
+  const allRulesMet = PASSWORD_UI_RULES.every((r) => r.test(newPassword))
   const passwordsMatch = newPassword === confirmPassword && confirmPassword.length > 0
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
@@ -112,7 +106,7 @@ export default function ChangePasswordPage(): JSX.Element {
             className="lp-input-dark"
             autoComplete="name"
           />
-          <p className="text-[11px] text-[var(--lux-text-muted)]">
+          <p className="text-[11px] text-[var(--lux-text-muted)] leading-[1.8]">
             حساب شما با نام موقت ساخته شده؛ لطفاً نام واقعی را تکمیل کنید.
           </p>
         </div>
@@ -142,10 +136,13 @@ export default function ChangePasswordPage(): JSX.Element {
             {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
+        <p className="text-[11px] text-[var(--lux-text-muted)] leading-[1.8] text-right">
+          {PASSWORD_GUIDE_FA}
+        </p>
       </div>
 
       <ul className="space-y-1.5 text-xs">
-        {passwordRules.map((rule) => {
+        {PASSWORD_UI_RULES.map((rule) => {
           const ok = rule.test(newPassword)
           return (
             <li key={rule.id} className={`flex items-center gap-2 ${ok ? 'text-emerald-400' : 'text-[var(--lux-text-muted)]'}`}>

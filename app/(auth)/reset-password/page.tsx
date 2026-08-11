@@ -8,11 +8,7 @@ import { ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, Lock } from 'lucide-reac
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-
-const passwordRules = [
-  { id: 'length', label: 'حداقل ۶ کاراکتر', test: (p: string) => p.length >= 6 },
-  { id: 'number', label: 'حداقل یک عدد', test: (p: string) => /[0-9]/.test(p) },
-]
+import { PASSWORD_GUIDE_FA, PASSWORD_UI_RULES } from '@/lib/security/password-policy'
 
 function ResetPasswordForm(): JSX.Element {
   const router = useRouter()
@@ -30,7 +26,7 @@ function ResetPasswordForm(): JSX.Element {
     [phone, token],
   )
 
-  const allRulesMet = passwordRules.every((r) => r.test(password))
+  const allRulesMet = PASSWORD_UI_RULES.every((r) => r.test(password))
   const passwordsMatch = password === confirm && confirm.length > 0
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
@@ -71,7 +67,7 @@ function ResetPasswordForm(): JSX.Element {
   if (!validParams) {
     return (
       <div className="space-y-4 text-center" dir="rtl">
-        <p className="text-sm text-[var(--lux-text-muted)]">
+        <p className="text-sm text-[var(--lux-text-muted)] leading-[1.8]">
           لینک بازیابی نامعتبر یا منقضی شده است.
         </p>
         <Link href="/forgot-password" className="lux-btn-accent inline-flex px-6 py-2 text-sm">
@@ -83,7 +79,7 @@ function ResetPasswordForm(): JSX.Element {
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="w-full space-y-5" dir="rtl">
-      <p className="text-sm text-[var(--lux-text-muted)]">
+      <p className="text-sm text-[var(--lux-text-muted)] leading-[1.8]">
         رمز جدید برای شماره{' '}
         <span className="font-mono text-[var(--lux-text)]" dir="ltr">
           {phone}
@@ -112,6 +108,9 @@ function ResetPasswordForm(): JSX.Element {
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
+        <p className="text-[11px] text-[var(--lux-text-muted)] leading-[1.8] text-right">
+          {PASSWORD_GUIDE_FA}
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -129,7 +128,7 @@ function ResetPasswordForm(): JSX.Element {
       </div>
 
       <ul className="space-y-1.5 text-xs">
-        {passwordRules.map((rule) => {
+        {PASSWORD_UI_RULES.map((rule) => {
           const ok = rule.test(password)
           return (
             <li

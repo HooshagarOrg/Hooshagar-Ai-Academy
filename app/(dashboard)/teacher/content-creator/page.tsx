@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Sparkles,
@@ -25,6 +25,7 @@ import {
   BarChart3,
   Hash,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
@@ -40,6 +41,7 @@ interface ContentHistory {
   date: string
   grade: string
   subject: string
+  content: string
 }
 
 interface GeneratedContent {
@@ -49,12 +51,12 @@ interface GeneratedContent {
     grade?: string
     subject?: string
     topic?: string
+    model?: string
   }
 }
 
-// ============================================
-// داده‌های نمونه
-// ============================================
+const HISTORY_KEY = 'hooshagar:teacher-content-history'
+
 const gradeOptions = [
   { value: '1', label: 'پایه اول' },
   { value: '2', label: 'پایه دوم' },
@@ -75,166 +77,41 @@ const difficultyOptions = [
   { value: 'hard', label: 'سخت' },
 ]
 
-const mockHistory: ContentHistory[] = [
-  {
-    id: '1',
-    type: 'lesson-plan',
-    title: 'طرح درس ریاضی - کسرها',
-    date: '۱۴۰۳/۰۹/۱۵',
-    grade: 'پایه پنجم',
-    subject: 'ریاضی',
-  },
-  {
-    id: '2',
-    type: 'exam-questions',
-    title: 'سوالات علوم - دستگاه گوارش',
-    date: '۱۴۰۳/۰۹/۱۴',
-    grade: 'پایه ششم',
-    subject: 'علوم',
-  },
-  {
-    id: '3',
-    type: 'activity-idea',
-    title: 'فعالیت گروهی فارسی',
-    date: '۱۴۰۳/۰۹/۱۳',
-    grade: 'پایه چهارم',
-    subject: 'فارسی',
-  },
-  {
-    id: '4',
-    type: 'lesson-plan',
-    title: 'طرح درس علوم - آهنربا',
-    date: '۱۴۰۳/۰۹/۱۲',
-    grade: 'پایه سوم',
-    subject: 'علوم',
-  },
-  {
-    id: '5',
-    type: 'exam-questions',
-    title: 'سوالات ریاضی - ضرب اعداد',
-    date: '۱۴۰۳/۰۹/۱۱',
-    grade: 'پایه چهارم',
-    subject: 'ریاضی',
-  },
-]
+function gradeLabel(value: string): string {
+  return gradeOptions.find((g) => g.value === value)?.label ?? `پایه ${value}`
+}
 
-// محتوای نمونه
-const sampleLessonPlan = `📚 طرح درس: کسرها
+function todayFa(): string {
+  try {
+    return new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date())
+  } catch {
+    return new Date().toLocaleDateString('fa-IR')
+  }
+}
 
-🎯 اهداف آموزشی:
-۱. دانش‌آموز بتواند مفهوم کسر را توضیح دهد
-۲. دانش‌آموز بتواند کسرهای مساوی را شناسایی کند
-۳. دانش‌آموز بتواند کسرها را با هم مقایسه کند
+function loadHistory(): ContentHistory[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as ContentHistory[]
+    return Array.isArray(parsed) ? parsed.slice(0, 30) : []
+  } catch {
+    return []
+  }
+}
 
-⏰ مراحل تدریس:
-
-📍 مرحله اول - آمادگی (۵ دقیقه):
-• مرور درس قبل
-• طرح سوال برانگیزاننده: "اگر یک پیتزا را به ۴ قسمت مساوی تقسیم کنیم..."
-
-📍 مرحله دوم - ارائه مفهوم (۱۵ دقیقه):
-• نمایش عملی با کاغذ رنگی
-• رسم شکل روی تخته
-• توضیح صورت و مخرج کسر
-
-📍 مرحله سوم - تمرین (۱۵ دقیقه):
-• حل مثال‌های گروهی
-• فعالیت با کاردستی
-
-📍 مرحله چهارم - ارزیابی (۱۰ دقیقه):
-• پرسش و پاسخ
-• تکلیف منزل
-
-🛠️ وسایل مورد نیاز:
-• کاغذ رنگی
-• قیچی
-• تخته وایت‌برد
-
-✨ نکات تکمیلی:
-• از مثال‌های روزمره مانند پیتزا و کیک استفاده شود
-• به دانش‌آموزان ضعیف‌تر توجه ویژه شود`
-
-const sampleExamQuestions = `📝 سوالات آزمون علوم - دستگاه گوارش
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🔵 سوال ۱ (تستی - آسان):
-کدام عضو وظیفه خرد کردن غذا را دارد؟
-
-الف) معده
-ب) دندان ✓
-ج) روده
-د) کبد
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🔵 سوال ۲ (تستی - متوسط):
-غذا پس از معده به کدام قسمت می‌رود؟
-
-الف) مری
-ب) دهان
-ج) روده کوچک ✓
-د) روده بزرگ
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🔵 سوال ۳ (تستی - سخت):
-کدام ماده در معده ترشح می‌شود و به هضم پروتئین کمک می‌کند؟
-
-الف) صفرا
-ب) آب دهان
-ج) اسید معده ✓
-د) آنزیم لیپاز
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📋 پاسخنامه:
-۱- ب | ۲- ج | ۳- ج
-
-💡 بارم‌بندی:
-هر سوال ۱ نمره - جمع: ۳ نمره`
-
-const sampleActivityIdea = `🎨 ایده فعالیت: کارگاه ساخت مدل دستگاه گوارش
-
-👥 نوع فعالیت: گروهی (۴-۵ نفره)
-
-⏱️ مدت زمان: ۴۵ دقیقه
-
-🎯 هدف:
-• درک بهتر ساختار دستگاه گوارش
-• تقویت کار گروهی
-• یادگیری عملی
-
-📦 مواد مورد نیاز:
-• مقوا و کاغذ رنگی
-• چسب و قیچی
-• ماژیک رنگی
-• نخ و نوار چسب
-
-📋 مراحل اجرا:
-
-گام ۱ - آماده‌سازی (۵ دقیقه):
-• تقسیم گروه‌ها
-• توزیع وسایل
-
-گام ۲ - طراحی (۱۰ دقیقه):
-• هر گروه طرح اولیه را روی کاغذ بکشد
-• مشورت با معلم
-
-گام ۳ - ساخت (۲۰ دقیقه):
-• برش و چسباندن قطعات
-• رنگ‌آمیزی و نام‌گذاری اعضا
-
-گام ۴ - ارائه (۱۰ دقیقه):
-• هر گروه مدل خود را معرفی کند
-• توضیح عملکرد هر بخش
-
-⭐ امتیازدهی:
-• دقت علمی: ۵ امتیاز
-• خلاقیت: ۳ امتیاز
-• کار گروهی: ۲ امتیاز
-
-🏆 جایزه: گروه برتر ستاره طلایی می‌گیرد!`
+function persistHistory(items: ContentHistory[]): void {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 30)))
+  } catch {
+    // ignore quota
+  }
+}
 
 // ============================================
 // کامپوننت Select سفارشی
@@ -404,14 +281,14 @@ function ResultCard({ content, onCopy, onDownload, onSave, copied }: ResultCardP
             className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white/70 hover:bg-white/20 hover:text-white rounded-xl transition-all text-sm font-medium"
           >
             <Download className="w-4 h-4" />
-            PDF
+            دانلود متن
           </button>
           <button
             onClick={onSave}
             className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-xl transition-all text-sm font-medium"
           >
             <Save className="w-4 h-4" />
-            ذخیره
+            تاریخچه
           </button>
         </div>
       </div>
@@ -429,11 +306,15 @@ function ResultCard({ content, onCopy, onDownload, onSave, copied }: ResultCardP
 // کامپوننت اصلی
 // ============================================
 export default function ContentCreatorPage() {
-  // State ها
   const [activeTab, setActiveTab] = useState('lesson-plan')
   const [isLoading, setIsLoading] = useState(false)
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null)
   const [copied, setCopied] = useState(false)
+  const [history, setHistory] = useState<ContentHistory[]>([])
+
+  useEffect(() => {
+    setHistory(loadHistory())
+  }, [])
 
   // فرم طرح درس
   const [lessonGrade, setLessonGrade] = useState('')
@@ -456,48 +337,143 @@ export default function ContentCreatorPage() {
   const [activityGroupWork, setActivityGroupWork] = useState(false)
   const [activityUseTools, setActivityUseTools] = useState(false)
 
-  // تولید محتوا (شبیه‌سازی)
   const generateContent = async (type: GeneratedContent['type']): Promise<void> => {
+    let body: Record<string, unknown> | null = null
+
+    if (type === 'lesson-plan') {
+      if (!lessonGrade || !lessonSubject.trim() || !lessonTopic.trim()) {
+        toast.error('پایه، نام درس و موضوع را کامل کنید')
+        return
+      }
+      body = {
+        type,
+        grade: Number(lessonGrade),
+        subject: lessonSubject.trim(),
+        topic: lessonTopic.trim(),
+        durationMinutes: lessonDuration ? Number(lessonDuration) : 45,
+      }
+    } else if (type === 'exam-questions') {
+      if (!examGrade || !examSubject.trim() || !examTopic.trim() || !examType || !examDifficulty) {
+        toast.error('همه فیلدهای سوال آزمون را پر کنید')
+        return
+      }
+      body = {
+        type,
+        grade: Number(examGrade),
+        subject: examSubject.trim(),
+        topic: examTopic.trim(),
+        questionType: examType,
+        difficulty: examDifficulty,
+        count: examCount ? Number(examCount) : 5,
+      }
+    } else {
+      if (!activityGrade || !activitySubject.trim() || !activityTopic.trim()) {
+        toast.error('پایه، نام درس و موضوع فعالیت را کامل کنید')
+        return
+      }
+      body = {
+        type,
+        grade: Number(activityGrade),
+        subject: activitySubject.trim(),
+        topic: activityTopic.trim(),
+        groupWork: activityGroupWork,
+        useTools: activityUseTools,
+      }
+    }
+
     setIsLoading(true)
     setGeneratedContent(null)
 
-    // شبیه‌سازی درخواست API
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    try {
+      const res = await fetch('/api/teacher/content-creator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = (await res.json()) as {
+        success?: boolean
+        content?: string
+        error?: string
+        metadata?: GeneratedContent['metadata']
+      }
 
-    let content = ''
-    switch (type) {
-      case 'lesson-plan':
-        content = sampleLessonPlan
-        break
-      case 'exam-questions':
-        content = sampleExamQuestions
-        break
-      case 'activity-idea':
-        content = sampleActivityIdea
-        break
+      if (!res.ok || !data.success || !data.content) {
+        toast.error(data.error || 'تولید محتوا ناموفق بود')
+        return
+      }
+
+      const next: GeneratedContent = {
+        type,
+        content: data.content,
+        metadata: {
+          grade: String(body.grade),
+          subject: String(body.subject),
+          topic: String(body.topic),
+          model: data.metadata?.model,
+        },
+      }
+      setGeneratedContent(next)
+
+      const titlePrefix =
+        type === 'lesson-plan' ? 'طرح درس' : type === 'exam-questions' ? 'سوالات' : 'فعالیت'
+      const entry: ContentHistory = {
+        id: `${Date.now()}`,
+        type,
+        title: `${titlePrefix} ${String(body.subject)} — ${String(body.topic)}`,
+        date: todayFa(),
+        grade: gradeLabel(String(body.grade)),
+        subject: String(body.subject),
+        content: data.content,
+      }
+      const updated = [entry, ...history].slice(0, 30)
+      setHistory(updated)
+      persistHistory(updated)
+      toast.success('محتوا با هوش مصنوعی تولید شد')
+    } catch {
+      toast.error('خطای شبکه. دوباره تلاش کنید.')
+    } finally {
+      setIsLoading(false)
     }
-
-    setGeneratedContent({ type, content })
-    setIsLoading(false)
   }
 
-  // کپی محتوا
   const handleCopy = async (): Promise<void> => {
     if (generatedContent) {
       await navigator.clipboard.writeText(generatedContent.content)
       setCopied(true)
+      toast.success('کپی شد')
       setTimeout(() => setCopied(false), 2000)
     }
   }
 
-  // دانلود PDF (شبیه‌سازی)
   const handleDownload = (): void => {
-    alert('در نسخه نهایی، فایل PDF دانلود خواهد شد.')
+    if (!generatedContent) return
+    const blob = new Blob([generatedContent.content], {
+      type: 'text/plain;charset=utf-8',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `hooshagar-content-${generatedContent.type}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('فایل متنی دانلود شد')
   }
 
-  // ذخیره در بانک (شبیه‌سازی)
   const handleSave = (): void => {
-    alert('محتوا در بانک سوالات ذخیره شد!')
+    if (!generatedContent) {
+      toast.error('ابتدا محتوا تولید کنید')
+      return
+    }
+    toast.success('در تاریخچهٔ این دستگاه ذخیره است')
+  }
+
+  const openHistoryItem = (item: ContentHistory): void => {
+    setGeneratedContent({
+      type: item.type,
+      content: item.content,
+      metadata: { grade: item.grade, subject: item.subject },
+    })
+    toast.message('محتوای تاریخچه نمایش داده شد')
   }
 
   // آیکون تاریخچه
@@ -521,7 +497,7 @@ export default function ContentCreatorPage() {
           دستیار محتوای خلاق
         </span>
       }
-      description="تولید طرح درس، سوالات آزمون و ایده‌های فعالیت با هوش مصنوعی"
+      description="تولید واقعی طرح درس، سوالات و ایدهٔ فعالیت با هوش مصنوعی (سهمیه‌دار)"
       actions={
         <Link href="/teacher">
           <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
@@ -841,7 +817,7 @@ export default function ContentCreatorPage() {
               <Clock className="w-5 h-5 text-blue-400" />
               تاریخچه محتوا
             </h2>
-            <span className="text-white/50 text-sm">۵ مورد اخیر</span>
+            <span className="text-white/50 text-sm">{history.length} مورد در این دستگاه</span>
           </div>
 
           {/* جدول در دسکتاپ */}
@@ -858,7 +834,7 @@ export default function ContentCreatorPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {mockHistory.map((item) => (
+                {history.map((item) => (
                   <tr key={item.id} className="hover:bg-white/5 transition-colors">
                     <td className="py-4">
                       <div className="flex items-center gap-3">
@@ -881,7 +857,12 @@ export default function ContentCreatorPage() {
                     <td className="py-4 text-center text-white/70">{item.subject}</td>
                     <td className="py-4 text-center text-white/70">{item.date}</td>
                     <td className="py-4 text-center">
-                      <button className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all">
+                      <button
+                        type="button"
+                        onClick={() => openHistoryItem(item)}
+                        className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all"
+                        aria-label="نمایش محتوا"
+                      >
                         <Eye className="w-4 h-4 text-white/70" />
                       </button>
                     </td>
@@ -893,7 +874,7 @@ export default function ContentCreatorPage() {
 
           {/* کارت‌ها در موبایل */}
           <div className="md:hidden space-y-3">
-            {mockHistory.map((item) => (
+            {history.map((item) => (
               <div
                 key={item.id}
                 className="bg-white/5 rounded-xl p-4 border border-white/10"
@@ -903,7 +884,12 @@ export default function ContentCreatorPage() {
                     {getHistoryIcon(item.type)}
                     <span className="text-white font-medium text-sm">{item.title}</span>
                   </div>
-                  <button className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all">
+                  <button
+                    type="button"
+                    onClick={() => openHistoryItem(item)}
+                    className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all"
+                    aria-label="نمایش محتوا"
+                  >
                     <Eye className="w-4 h-4 text-white/70" />
                   </button>
                 </div>
@@ -918,7 +904,7 @@ export default function ContentCreatorPage() {
             ))}
           </div>
 
-          {mockHistory.length === 0 && (
+          {history.length === 0 && (
             <div className="text-center py-12">
               <FileText className="w-16 h-16 mx-auto mb-4 text-white/20" />
               <p className="text-white/50">هنوز محتوایی تولید نشده است</p>

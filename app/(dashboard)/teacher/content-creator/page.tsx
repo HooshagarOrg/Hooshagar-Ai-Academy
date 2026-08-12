@@ -263,6 +263,9 @@ function ResultCard({ content, onCopy, onDownload, onSave, copied }: ResultCardP
         <div className="flex items-center gap-3">
           <div className={`${typeInfo.color}`}>{typeInfo.icon}</div>
           <h3 className="text-lg font-bold text-white">{typeInfo.label}</h3>
+          {content.metadata?.model ? (
+            <span className="text-xs text-white/40">مدل: {content.metadata.model}</span>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           <button

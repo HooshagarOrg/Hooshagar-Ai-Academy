@@ -158,7 +158,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'گزارشات', href: '/parent/reports', icon: BarChart3 },
         { title: 'حضور و غیاب', href: '/parent/attendance', icon: ClipboardCheck },
         { title: 'بهداشت', href: '/parent/health', icon: Heart },
-        { title: 'مالی', href: '/parent/financials', icon: DollarSign },
+        // /parent/financials تا اتصال سامانهٔ واقعی از منو مخفی است (GAP C3)
       ]
     },
     {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { AlertCircle, BarChart3, ChevronLeft, ClipboardCheck, DollarSign, GraduationCap, Heart, HelpCircle, Loader2, MessageSquare, Sparkles, Star, TrendingUp, Users, Video } from 'lucide-react'
+import { AlertCircle, BarChart3, ChevronLeft, ClipboardCheck, GraduationCap, Heart, HelpCircle, Loader2, MessageSquare, Sparkles, Star, TrendingUp, Users, Video } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxStatGrid } from '@/components/lux/lux-stat-grid'
@@ -25,7 +25,6 @@ const PARENT_HUB: LuxHubGroup[] = [
       { title: 'نمرات فرزند', description: 'مشاهده نمرات و کارنامه', icon: GraduationCap, href: '/parent/grades', color: 'text-brand-cyan', bg: 'bg-brand-cyan/15 border border-brand-cyan/20' },
       { title: 'گزارش‌های AI', description: 'گزارش‌های هوشمند هفتگی', icon: Sparkles, href: '/parent/reports', color: 'text-brand-purple', bg: 'bg-brand-purple/15 border border-brand-purple/20', featured: true },
       { title: 'حضور و غیاب', description: 'وضعیت حضور در کلاس', icon: ClipboardCheck, href: '/parent/attendance', color: 'text-brand-green', bg: 'bg-brand-green/15 border border-brand-green/20' },
-      { title: 'مالی', description: 'شهریه و پرداخت‌ها', icon: DollarSign, href: '/parent/financials', color: 'text-emerald-400', bg: 'bg-emerald-500/15 border border-emerald-500/20' },
       { title: 'بهداشت', description: 'پرونده و معاینات', icon: Heart, href: '/parent/health', color: 'text-brand-pink', bg: 'bg-brand-pink/15 border border-brand-pink/20' },
       { title: 'مشاوره', description: 'جلسات و پیگیری', icon: HelpCircle, href: '/parent/counseling', color: 'text-brand-yellow', bg: 'bg-brand-yellow/15 border border-brand-yellow/20' },
       { title: 'کلاس مجازی', description: 'ورود به جلسات آنلاین', icon: Video, href: '/parent#virtual-class', color: 'text-brand-cyan', bg: 'bg-brand-cyan/15 border border-brand-cyan/20' },

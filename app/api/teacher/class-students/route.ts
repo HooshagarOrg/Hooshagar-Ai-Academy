@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
           grade: s.grade,
           classId: s.class_id,
           className: s.class_id ? classNameById.get(s.class_id) || '' : '',
+          parentId: s.parent_id,
           parentName: s.parent_id ? parentNames.get(s.parent_id) || '' : '',
         })),
       })

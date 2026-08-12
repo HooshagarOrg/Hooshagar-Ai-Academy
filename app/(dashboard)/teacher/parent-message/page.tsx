@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import {
   MessageSquareText,
   ArrowRight,
@@ -38,6 +39,7 @@ interface Student {
   name: string
   className: string
   parentName: string
+  parentId: string | null
 }
 
 interface MessageTemplate {
@@ -49,16 +51,8 @@ interface MessageTemplate {
 }
 
 // ============================================
-// داده‌های نمونه
+// الگوهای آماده (متن ثابت، نه دادهٔ دانش‌آموز نمونه)
 // ============================================
-const students: Student[] = [
-  { id: '1', name: 'علی محمدی', className: 'کلاس چهارم الف', parentName: 'آقای محمدی' },
-  { id: '2', name: 'سارا رضایی', className: 'کلاس چهارم الف', parentName: 'خانم رضایی' },
-  { id: '3', name: 'محمد احمدی', className: 'کلاس چهارم الف', parentName: 'آقای احمدی' },
-  { id: '4', name: 'زهرا کریمی', className: 'کلاس چهارم الف', parentName: 'خانم کریمی' },
-  { id: '5', name: 'امیر حسینی', className: 'کلاس چهارم الف', parentName: 'آقای حسینی' },
-]
-
 const messageTemplates: MessageTemplate[] = [
   {
     id: '1',
@@ -157,7 +151,7 @@ const messageTemplates: MessageTemplate[] = [
 // کامپوننت اصلی
 // ============================================
 export default function ParentMessagePage() {
-  // State‌ها
+  const [students, setStudents] = useState<Student[]>([])
   const [selectedStudent, setSelectedStudent] = useState<string>('')
   const [messageType, setMessageType] = useState<MessageType>('positive')
   const [subjects, setSubjects] = useState<string[]>([])
@@ -168,6 +162,33 @@ export default function ParentMessagePage() {
   const [editedMessage, setEditedMessage] = useState('')
   const [copied, setCopied] = useState(false)
   const [sent, setSent] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+
+  useEffect(() => {
+    void fetch('/api/teacher/class-students')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!Array.isArray(data.students)) return
+        setStudents(
+          data.students.map(
+            (s: {
+              id: string
+              name: string
+              className?: string
+              parentName?: string
+              parentId?: string | null
+            }) => ({
+              id: s.id,
+              name: s.name,
+              className: s.className || '',
+              parentName: s.parentName || 'والد',
+              parentId: s.parentId || null,
+            })
+          )
+        )
+      })
+      .catch(() => toast.error('خطا در دریافت دانش‌آموزان'))
+  }, [])
 
   // موضوعات پیام
   const messageSubjects = [
@@ -199,112 +220,43 @@ export default function ParentMessagePage() {
   // تولید پیام
   const generateMessage = async (): Promise<void> => {
     if (!selectedStudent || subjects.length === 0) {
-      alert('لطفاً دانش‌آموز و حداقل یک موضوع را انتخاب کنید.')
+      toast.error('لطفاً دانش‌آموز و حداقل یک موضوع را انتخاب کنید.')
+      return
+    }
+
+    const student = students.find((s) => s.id === selectedStudent)
+    if (!student) {
+      toast.error('دانش‌آموز یافت نشد')
       return
     }
 
     setIsGenerating(true)
     setSent(false)
-
-    // شبیه‌سازی تولید با AI
-    await new Promise(resolve => setTimeout(resolve, 2500))
-
-    const student = students.find(s => s.id === selectedStudent)
-    const selectedSubjects = subjects.map(s => messageSubjects.find(ms => ms.id === s)?.label).join('، ')
-
-    // تولید پیام بر اساس نوع
-    let messageContent = ''
-
-    if (messageType === 'positive') {
-      messageContent = `${student?.parentName} گرامی،
-
-با سلام و احترام،
-
-امیدوارم از سلامتی و شادکامی برخوردار باشید.
-
-با کمال خوشحالی می‌خواهم درباره ${student?.name} عزیز با شما صحبت کنم. فرزند گرامی‌تان در زمینه ${selectedSubjects} عملکرد بسیار خوبی داشته‌اند.
-
-نقاط قوت:
-• مشارکت فعال در کلاس و پرسیدن سوالات هوشمندانه
-• انجام به موقع تکالیف با دقت بالا
-• رفتار محترمانه با همکلاسی‌ها و معلم
-• پیشرفت چشمگیر در یادگیری مطالب جدید
-
-${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
-این موفقیت‌ها نتیجه تلاش ${student?.name} و البته حمایت‌های شما خانواده محترم است. از همکاری و توجه شما صمیمانه سپاسگزاریم.
-
-با احترام فراوان،
-معلم کلاس ${student?.className}`
-    } else if (messageType === 'critical') {
-      messageContent = `${student?.parentName} گرامی،
-
-با سلام و احترام،
-
-امیدوارم این پیام شما را در کمال سلامتی و آرامش بیابد.
-
-می‌خواستم در مورد ${student?.name} عزیز با شما صحبتی داشته باشم. فرزند گرامی‌تان دانش‌آموز با استعدادی است و من به پتانسیل بالای ایشان ایمان دارم.
-
-با این حال، اخیراً در زمینه ${selectedSubjects} به توجه بیشتری نیاز داریم:
-• نیاز به تمرکز بیشتر در کلاس
-• اهمیت انجام منظم تکالیف
-• تقویت مهارت‌های سازماندهی
-
-${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
-پیشنهادات:
-✓ برنامه‌ریزی روزانه برای مطالعه
-✓ ایجاد محیط آرام برای انجام تکالیف
-✓ تشویق و حمایت مستمر
-
-من مطمئنم با همکاری شما، ${student?.name} می‌تواند به بهترین نسخه از خودش تبدیل شود. در صورت تمایل، می‌توانیم جلسه‌ای حضوری یا تلفنی داشته باشیم.
-
-با احترام،
-معلم کلاس ${student?.className}`
-    } else if (messageType === 'informational') {
-      messageContent = `${student?.parentName} گرامی،
-
-با سلام و احترام،
-
-بدینوسیله به استحضار می‌رسانم که در زمینه ${selectedSubjects} اطلاعاتی به شرح زیر وجود دارد:
-
-📌 نکات مهم:
-• برنامه درسی هفته آینده شامل مباحث جدید است
-• تکالیف باید تا پایان هفته تحویل داده شوند
-• آزمون میان‌ترم در تاریخ اعلام شده برگزار می‌گردد
-
-${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
-لطفاً ${student?.name} عزیز را در آمادگی برای این موارد یاری فرمایید.
-
-در صورت داشتن هرگونه سوال، در خدمت شما هستم.
-
-با تشکر از همکاری شما،
-معلم کلاس ${student?.className}`
-    } else {
-      messageContent = `${student?.parentName} گرامی،
-
-با سلام و احترام،
-
-بدینوسیله از شما دعوت می‌شود تا در جلسه‌ای درباره ${selectedSubjects} شرکت فرمایید.
-
-📅 زمان پیشنهادی: روز پنجشنبه، ساعت ۱۰ صبح
-📍 مکان: دفتر مدرسه
-
-موضوعات مورد بحث:
-• بررسی وضعیت تحصیلی ${student?.name}
-• برنامه‌ریزی برای پیشرفت بیشتر
-• پاسخ به سوالات شما
-
-${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
-حضور شما برای ما بسیار ارزشمند است و به بهبود کیفیت آموزش فرزندتان کمک شایانی خواهد کرد.
-
-لطفاً در صورت امکان، حضور یا عدم حضور خود را اطلاع دهید.
-
-با احترام فراوان،
-معلم کلاس ${student?.className}`
+    try {
+      const res = await fetch('/api/teacher/parent-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_name: student.name,
+          parent_name: student.parentName,
+          class_name: student.className,
+          message_type: messageType,
+          subjects,
+          extra_notes: additionalNotes.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || 'تولید پیام ناموفق بود')
+        return
+      }
+      setGeneratedMessage(data.content)
+      setEditedMessage(data.content)
+    } catch {
+      toast.error('خطای شبکه')
+    } finally {
+      setIsGenerating(false)
     }
-
-    setGeneratedMessage(messageContent)
-    setEditedMessage(messageContent)
-    setIsGenerating(false)
   }
 
   // کپی پیام
@@ -324,8 +276,42 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
 
   // ارسال پیام
   const sendMessage = async (): Promise<void> => {
-    setSent(true)
-    setTimeout(() => setSent(false), 3000)
+    const student = students.find((s) => s.id === selectedStudent)
+    const text = (isEditing ? editedMessage : generatedMessage).trim()
+    if (!text) {
+      toast.error('متن پیام خالی است')
+      return
+    }
+    if (!student?.parentId) {
+      toast.error('برای این دانش‌آموز والد ثبت نشده؛ پیام را کپی کنید یا از صفحه پیام‌ها بفرستید')
+      return
+    }
+
+    setIsSending(true)
+    try {
+      const typeLabel = messageTypes.find((t) => t.value === messageType)?.label || 'پیام معلم'
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          receiver_id: student.parentId,
+          subject: typeLabel,
+          content: text,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || 'ارسال ناموفق بود')
+        return
+      }
+      setSent(true)
+      toast.success('پیام برای والد ارسال شد')
+      setTimeout(() => setSent(false), 3000)
+    } catch {
+      toast.error('خطای شبکه')
+    } finally {
+      setIsSending(false)
+    }
   }
 
   return (
@@ -365,6 +351,7 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                 {students.map(student => (
                   <option key={student.id} value={student.id} className="bg-slate-800">
                     {student.name} - {student.className}
+                    {!student.parentId ? ' (بدون والد)' : ''}
                   </option>
                 ))}
               </select>
@@ -511,10 +498,16 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                     )}
                   </button>
                   <button
-                    onClick={sendMessage}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl transition-all shadow-lg shadow-green-500/20"
+                    onClick={() => void sendMessage()}
+                    disabled={isSending || sent}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl transition-all shadow-lg shadow-green-500/20 disabled:opacity-50"
                   >
-                    {sent ? (
+                    {isSending ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        در حال ارسال...
+                      </>
+                    ) : sent ? (
                       <>
                         <CheckCircle2 className="w-5 h-5" />
                         ارسال شد!
@@ -522,7 +515,7 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                     ) : (
                       <>
                         <Send className="w-5 h-5" />
-                        ارسال مستقیم
+                        ارسال به والد
                       </>
                     )}
                   </button>
@@ -578,7 +571,7 @@ ${additionalNotes ? `توضیحات تکمیلی:\n${additionalNotes}\n` : ''}
                   <li>• حداقل یک موضوع پیام را انتخاب کنید</li>
                   <li>• در صورت نیاز توضیحات اضافی بنویسید</li>
                   <li>• دکمه «تولید پیش‌نویس» را بزنید</li>
-                  <li>• پیام را ویرایش کرده و ارسال کنید</li>
+                  <li>• پیام را ویرایش کنید و برای والد داخل سامانه بفرستید</li>
                 </ul>
               </GlassCard>
             )}

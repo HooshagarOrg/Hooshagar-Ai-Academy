@@ -241,7 +241,7 @@ export const simpleNavs: Record<string, NavItem[]> = {
 }
 
 export const commonItems: NavItem[] = [
-  // /messages تا اتصال واقعی از منو مخفی است (GAP C4)
+  { title: 'پیام‌ها', href: '/messages', icon: MessageSquare },
   { title: 'اعلانات', href: '/notifications', icon: Bell },
 ]
 

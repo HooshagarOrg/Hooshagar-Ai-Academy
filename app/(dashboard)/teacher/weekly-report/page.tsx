@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import {
   FileText,
   ArrowRight,
@@ -14,14 +15,11 @@ import {
   Sparkles,
   Loader2,
   CheckCircle2,
-  Clock,
   StickyNote,
   TrendingUp,
-  AlertTriangle,
   Lightbulb,
   ThumbsUp,
   Settings,
-  Bell,
   Check,
   Hash,
 } from 'lucide-react'
@@ -29,19 +27,8 @@ import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 
-// ============================================
-// تایپ‌ها
-// ============================================
-interface StudentNote {
-  id: string
-  studentId: string
-  date: string
-  type: 'positive' | 'negative' | 'neutral'
-  subject: string
-  content: string
-}
-
 interface StudentReport {
+  id: string
   studentId: string
   studentName: string
   parentName: string
@@ -57,51 +44,26 @@ interface Student {
   id: string
   name: string
   parentName: string
+  classId: string
   className: string
 }
 
-// ============================================
-// داده‌های نمونه
-// ============================================
-const students: Student[] = [
-  { id: '1', name: 'علی محمدی', parentName: 'آقای محمدی', className: 'چهارم الف' },
-  { id: '2', name: 'سارا رضایی', parentName: 'خانم رضایی', className: 'چهارم الف' },
-  { id: '3', name: 'محمد احمدی', parentName: 'آقای احمدی', className: 'چهارم الف' },
-  { id: '4', name: 'زهرا کریمی', parentName: 'خانم کریمی', className: 'چهارم الف' },
-  { id: '5', name: 'امیر حسینی', parentName: 'آقای حسینی', className: 'چهارم الف' },
-  { id: '6', name: 'فاطمه نوری', parentName: 'خانم نوری', className: 'چهارم الف' },
-  { id: '7', name: 'رضا صادقی', parentName: 'آقای صادقی', className: 'چهارم الف' },
-  { id: '8', name: 'مریم جعفری', parentName: 'خانم جعفری', className: 'چهارم الف' },
-  { id: '9', name: 'حسین موسوی', parentName: 'آقای موسوی', className: 'چهارم الف' },
-  { id: '10', name: 'نرگس طاهری', parentName: 'خانم طاهری', className: 'چهارم الف' },
-]
+interface ClassItem {
+  id: string
+  name: string
+}
 
-const sampleNotes: StudentNote[] = [
-  { id: '1', studentId: '1', date: '۱۴۰۳/۰۹/۱۰', type: 'positive', subject: 'تحصیلی', content: 'عملکرد عالی در امتحان ریاضی' },
-  { id: '2', studentId: '1', date: '۱۴۰۳/۰۹/۱۲', type: 'positive', subject: 'رفتاری', content: 'کمک به همکلاسی در درس علوم' },
-  { id: '3', studentId: '1', date: '۱۴۰۳/۰۹/۱۴', type: 'neutral', subject: 'تکالیف', content: 'تکالیف با کمی تاخیر تحویل شد' },
-  { id: '4', studentId: '2', date: '۱۴۰۳/۰۹/۱۱', type: 'positive', subject: 'تحصیلی', content: 'مشارکت فعال در کلاس' },
-  { id: '5', studentId: '2', date: '۱۴۰۳/۰۹/۱۳', type: 'positive', subject: 'هنری', content: 'نقاشی بسیار زیبا کشید' },
-  { id: '6', studentId: '3', date: '۱۴۰۳/۰۹/۱۰', type: 'negative', subject: 'رفتاری', content: 'بی‌توجهی در کلاس' },
-  { id: '7', studentId: '3', date: '۱۴۰۳/۰۹/۱۲', type: 'positive', subject: 'تحصیلی', content: 'پیشرفت در درس فارسی' },
-  { id: '8', studentId: '4', date: '۱۴۰۳/۰۹/۱۱', type: 'positive', subject: 'تحصیلی', content: 'نمره عالی در دیکته' },
-  { id: '9', studentId: '4', date: '۱۴۰۳/۰۹/۱۴', type: 'positive', subject: 'رفتاری', content: 'رفتار بسیار مودبانه' },
-  { id: '10', studentId: '5', date: '۱۴۰۳/۰۹/۱۰', type: 'negative', subject: 'تکالیف', content: 'تکالیف ناقص تحویل داده شد' },
-  { id: '11', studentId: '5', date: '۱۴۰۳/۰۹/۱۳', type: 'positive', subject: 'ورزشی', content: 'عملکرد خوب در ورزش' },
-  { id: '12', studentId: '6', date: '۱۴۰۳/۰۹/۱۲', type: 'positive', subject: 'تحصیلی', content: 'پرسیدن سوالات هوشمندانه' },
-  { id: '13', studentId: '7', date: '۱۴۰۳/۰۹/۱۱', type: 'neutral', subject: 'حضور', content: 'یک روز غیبت با اطلاع قبلی' },
-  { id: '14', studentId: '8', date: '۱۴۰۳/۰۹/۱۰', type: 'positive', subject: 'تحصیلی', content: 'بهترین نمره کلاس در علوم' },
-  { id: '15', studentId: '8', date: '۱۴۰۳/۰۹/۱۴', type: 'positive', subject: 'رفتاری', content: 'کمک به معلم در کلاس' },
-  { id: '16', studentId: '9', date: '۱۴۰۳/۰۹/۱۳', type: 'positive', subject: 'تحصیلی', content: 'تلاش برای بهبود خط' },
-  { id: '17', studentId: '10', date: '۱۴۰۳/۰۹/۱۲', type: 'negative', subject: 'رفتاری', content: 'صحبت کردن در کلاس' },
-  { id: '18', studentId: '10', date: '۱۴۰۳/۰۹/۱۴', type: 'positive', subject: 'تحصیلی', content: 'بهبود قابل توجه در ریاضی' },
-]
+function isoToday(): string {
+  return new Date().toISOString().slice(0, 10)
+}
 
-const classes = [
-  { id: '1', name: 'چهارم الف' },
-  { id: '2', name: 'چهارم ب' },
-  { id: '3', name: 'پنجم الف' },
-]
+function isoMonday(): string {
+  const d = new Date()
+  const day = d.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  d.setDate(d.getDate() + diff)
+  return d.toISOString().slice(0, 10)
+}
 
 // ============================================
 // کامپوننت Accordion
@@ -225,133 +187,200 @@ function AccordionItem({ report, isOpen, onToggle, onSend }: AccordionItemProps)
 // کامپوننت اصلی
 // ============================================
 export default function WeeklyReportPage() {
-  // State‌ها
-  const [selectedClass, setSelectedClass] = useState('1')
-  const [startDate, setStartDate] = useState('۱۴۰۳/۰۹/۱۰')
-  const [endDate, setEndDate] = useState('۱۴۰۳/۰۹/۱۶')
+  const [classes, setClasses] = useState<ClassItem[]>([])
+  const [allStudents, setAllStudents] = useState<Student[]>([])
+  const [behaviorCount, setBehaviorCount] = useState(0)
+  const [selectedClass, setSelectedClass] = useState('')
+  const [startDate, setStartDate] = useState(isoMonday())
+  const [endDate, setEndDate] = useState(isoToday())
   const [selectAll, setSelectAll] = useState(true)
-  const [selectedStudents, setSelectedStudents] = useState<string[]>(students.map(s => s.id))
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [reports, setReports] = useState<StudentReport[]>([])
   const [openAccordion, setOpenAccordion] = useState<string | null>(null)
-  const [autoSendEnabled, setAutoSendEnabled] = useState(false)
-  const [autoSendTime, setAutoSendTime] = useState('14:00')
   const [sendingAll, setSendingAll] = useState(false)
 
-  // آمار
-  const stats = useMemo(() => {
-    const studentsWithNotes = new Set(sampleNotes.map(n => n.studentId)).size
-    const subjects = sampleNotes.reduce((acc, note) => {
-      acc[note.subject] = (acc[note.subject] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-
-    const topSubjects = Object.entries(subjects)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([subject, count]) => ({ subject, count }))
-
-    return {
-      totalNotes: sampleNotes.length,
-      studentsWithNotes,
-      topSubjects,
-    }
+  useEffect(() => {
+    void Promise.all([
+      fetch('/api/teacher/class-students').then((r) => r.json()),
+      fetch('/api/teacher/behavior').then((r) => r.json()),
+      fetch('/api/teacher/weekly-reports').then((r) => r.json()),
+    ])
+      .then(([st, bh, wr]) => {
+        const classList: ClassItem[] = Array.isArray(st.classes)
+          ? st.classes.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name }))
+          : []
+        const studentList: Student[] = Array.isArray(st.students)
+          ? st.students.map(
+              (s: {
+                id: string
+                name: string
+                parentName?: string
+                classId?: string
+                className?: string
+              }) => ({
+                id: s.id,
+                name: s.name,
+                parentName: s.parentName || 'والد',
+                classId: s.classId || '',
+                className: s.className || '',
+              })
+            )
+          : []
+        setClasses(classList)
+        setAllStudents(studentList)
+        const firstClass = classList[0]?.id || ''
+        setSelectedClass(firstClass)
+        const initial = firstClass
+          ? studentList.filter((s) => s.classId === firstClass).map((s) => s.id)
+          : studentList.map((s) => s.id)
+        setSelectedStudents(initial)
+        if (Array.isArray(bh.reports)) setBehaviorCount(bh.reports.length)
+        if (Array.isArray(wr.reports)) {
+          setReports(
+            wr.reports.map(
+              (r: {
+                id: string
+                studentId: string
+                studentName: string
+                summary: string
+                positivePoints: string[]
+                improvementPoints: string[]
+                parentSuggestions: string[]
+                sent: boolean
+              }) => ({
+                id: r.id,
+                studentId: r.studentId,
+                studentName: r.studentName,
+                parentName: studentList.find((s) => s.id === r.studentId)?.parentName || 'والد',
+                summary: r.summary,
+                positivePoints: r.positivePoints || [],
+                improvementPoints: r.improvementPoints || [],
+                parentSuggestions: r.parentSuggestions || [],
+                notesCount: 0,
+                sent: r.sent,
+              })
+            )
+          )
+        }
+      })
+      .catch(() => toast.error('خطا در دریافت داده‌ها'))
   }, [])
 
-  // Toggle دانش‌آموز
+  const students = useMemo(
+    () => (selectedClass ? allStudents.filter((s) => s.classId === selectedClass) : allStudents),
+    [allStudents, selectedClass]
+  )
+
+  const stats = useMemo(
+    () => ({
+      totalNotes: behaviorCount,
+      studentsWithNotes: students.length,
+    }),
+    [behaviorCount, students.length]
+  )
+
   const toggleStudent = (studentId: string): void => {
-    setSelectedStudents(prev =>
-      prev.includes(studentId)
-        ? prev.filter(id => id !== studentId)
-        : [...prev, studentId]
+    setSelectedStudents((prev) =>
+      prev.includes(studentId) ? prev.filter((id) => id !== studentId) : [...prev, studentId]
     )
     setSelectAll(false)
   }
 
-  // انتخاب همه
   const handleSelectAll = (): void => {
     if (selectAll) {
       setSelectedStudents([])
     } else {
-      setSelectedStudents(students.map(s => s.id))
+      setSelectedStudents(students.map((s) => s.id))
     }
     setSelectAll(!selectAll)
   }
 
-  // تولید گزارش‌ها
   const generateReports = async (): Promise<void> => {
     if (selectedStudents.length === 0) {
-      alert('لطفاً حداقل یک دانش‌آموز انتخاب کنید.')
+      toast.error('لطفاً حداقل یک دانش‌آموز انتخاب کنید.')
       return
     }
 
     setIsGenerating(true)
-    await new Promise(resolve => setTimeout(resolve, 3000))
-
-    // تولید گزارش برای هر دانش‌آموز
-    const generatedReports: StudentReport[] = selectedStudents.map(studentId => {
-      const student = students.find(s => s.id === studentId)!
-      const studentNotes = sampleNotes.filter(n => n.studentId === studentId)
-
-      // داده‌های نمونه برای گزارش
-      const summaries: Record<string, string> = {
-        '1': 'این هفته علی عملکرد بسیار خوبی داشت. در امتحان ریاضی نمره عالی گرفت و به همکلاسی‌هایش کمک کرد. تکالیف با کمی تاخیر تحویل داده شد که نیاز به توجه دارد.',
-        '2': 'سارا این هفته فعالانه در کلاس مشارکت داشت. نقاشی بسیار زیبایی کشید که نشان‌دهنده استعداد هنری اوست. رفتار و ادب ایشان قابل تقدیر است.',
-        '3': 'محمد این هفته پیشرفت خوبی در درس فارسی نشان داد. با این حال، گاهی در کلاس بی‌توجه است که نیاز به تمرکز بیشتر دارد.',
-        '4': 'زهرا در دیکته نمره عالی گرفت و رفتار بسیار مودبانه‌ای داشت. او یکی از بهترین دانش‌آموزان کلاس از نظر رفتاری است.',
-        '5': 'امیر در ورزش عملکرد خوبی داشت اما تکالیف ناقص تحویل داده شد. نیاز است والدین بر انجام تکالیف نظارت بیشتری داشته باشند.',
-        '6': 'فاطمه سوالات هوشمندانه‌ای در کلاس پرسید که نشان‌دهنده کنجکاوی و علاقه او به یادگیری است.',
-        '7': 'رضا یک روز غیبت موجه داشت. در روزهای حضور، عملکرد قابل قبولی داشته است.',
-        '8': 'مریم بهترین نمره کلاس در علوم را کسب کرد و به معلم در کلاس کمک کرد. او الگوی خوبی برای سایر دانش‌آموزان است.',
-        '9': 'حسین تلاش خوبی برای بهبود خط خود انجام داده است. این پیشرفت قابل تقدیر است.',
-        '10': 'نرگس بهبود قابل توجهی در ریاضی داشت اما گاهی در کلاس صحبت می‌کند که نیاز به توجه دارد.',
+    try {
+      const res = await fetch('/api/teacher/weekly-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_ids: selectedStudents,
+          week_start: startDate,
+          week_end: endDate,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || 'تولید گزارش ناموفق بود')
+        return
       }
-
-      return {
-        studentId,
-        studentName: student.name,
-        parentName: student.parentName,
-        summary: summaries[studentId] || 'این هفته عملکرد خوبی داشته است.',
-        positivePoints: [
-          'مشارکت فعال در کلاس',
-          'رفتار محترمانه با دیگران',
-          'تلاش برای یادگیری',
-        ],
-        improvementPoints: studentNotes.some(n => n.type === 'negative')
-          ? ['تمرکز بیشتر در کلاس', 'انجام به موقع تکالیف']
-          : ['ادامه روند فعلی'],
-        parentSuggestions: [
-          'تشویق فرزند برای مطالعه روزانه',
-          'ایجاد برنامه منظم برای انجام تکالیف',
-          'صحبت درباره تجربیات روزانه مدرسه',
-        ],
-        notesCount: studentNotes.length,
-        sent: false,
-      }
-    })
-
-    setReports(generatedReports)
-    setIsGenerating(false)
-    if (generatedReports.length > 0) {
-      setOpenAccordion(generatedReports[0].studentId)
+      const generated: StudentReport[] = (data.reports || []).map(
+        (r: {
+          id: string
+          studentId: string
+          studentName: string
+          summary: string
+          positivePoints: string[]
+          improvementPoints: string[]
+          parentSuggestions: string[]
+          notesCount: number
+          sent: boolean
+        }) => ({
+          ...r,
+          parentName: students.find((s) => s.id === r.studentId)?.parentName || 'والد',
+        })
+      )
+      setReports(generated)
+      if (generated[0]) setOpenAccordion(generated[0].id)
+      toast.success(`${generated.length} گزارش تولید شد`)
+    } catch {
+      toast.error('خطای شبکه')
+    } finally {
+      setIsGenerating(false)
     }
   }
 
-  // ارسال یک گزارش
-  const sendReport = (studentId: string): void => {
-    setReports(prev =>
-      prev.map(r =>
-        r.studentId === studentId ? { ...r, sent: true } : r
-      )
-    )
+  const sendReport = async (reportId: string): Promise<void> => {
+    try {
+      const res = await fetch('/api/teacher/weekly-reports', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ report_id: reportId }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        toast.error(data.error || 'ارسال ناموفق بود')
+        return
+      }
+      setReports((prev) => prev.map((r) => (r.id === reportId ? { ...r, sent: true } : r)))
+      toast.success('گزارش برای والد علامت‌گذاری شد')
+    } catch {
+      toast.error('خطای شبکه')
+    }
   }
 
-  // ارسال همه گزارش‌ها
   const sendAllReports = async (): Promise<void> => {
     setSendingAll(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setReports(prev => prev.map(r => ({ ...r, sent: true })))
-    setSendingAll(false)
+    try {
+      const pending = reports.filter((r) => !r.sent)
+      for (const report of pending) {
+        await fetch('/api/teacher/weekly-reports', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ report_id: report.id }),
+        })
+      }
+      setReports((prev) => prev.map((r) => ({ ...r, sent: true })))
+      toast.success('همه گزارش‌ها ارسال شدند')
+    } catch {
+      toast.error('خطای شبکه')
+    } finally {
+      setSendingAll(false)
+    }
   }
 
   // تعداد ارسال نشده
@@ -391,7 +420,7 @@ export default function WeeklyReportPage() {
                 <div>
                   <label className="text-white/70 text-sm mb-1 block">از تاریخ</label>
                   <input
-                    type="text"
+                    type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
@@ -402,7 +431,7 @@ export default function WeeklyReportPage() {
                 <div>
                   <label className="text-white/70 text-sm mb-1 block">تا تاریخ</label>
                   <input
-                    type="text"
+                    type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
@@ -414,7 +443,13 @@ export default function WeeklyReportPage() {
                   <label className="text-white/70 text-sm mb-1 block">کلاس</label>
                   <select
                     value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value)}
+                    onChange={(e) => {
+                      const next = e.target.value
+                      setSelectedClass(next)
+                      const ids = allStudents.filter((s) => s.classId === next).map((s) => s.id)
+                      setSelectedStudents(ids)
+                      setSelectAll(true)
+                    }}
                     className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                   >
                     {classes.map(cls => (
@@ -479,7 +514,7 @@ export default function WeeklyReportPage() {
                     <Hash className="w-5 h-5 text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-white/50 text-sm">یادداشت‌های ثبت شده</p>
+                    <p className="text-white/50 text-sm">گزارش‌های رفتاری ثبت‌شده</p>
                     <p className="text-white text-xl font-bold">{stats.totalNotes}</p>
                   </div>
                 </div>
@@ -489,76 +524,25 @@ export default function WeeklyReportPage() {
                     <Users className="w-5 h-5 text-green-400" />
                   </div>
                   <div>
-                    <p className="text-white/50 text-sm">دانش‌آموزان دارای یادداشت</p>
+                    <p className="text-white/50 text-sm">دانش‌آموزان این کلاس</p>
                     <p className="text-white text-xl font-bold">{stats.studentsWithNotes}</p>
                   </div>
                 </div>
 
-                <div className="bg-white/5 rounded-xl p-4">
-                  <p className="text-white/50 text-sm mb-2">موضوعات پرتکرار</p>
-                  <div className="space-y-2">
-                    {stats.topSubjects.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-white text-sm">{item.subject}</span>
-                        <span className="text-purple-400 text-sm">{item.count} مورد</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <p className="text-white/60 text-sm leading-relaxed">
+                  گزارش هفتگی از ثبت رفتار همین بازه ساخته می‌شود. اگر رفتاری ثبت نشده باشد، متن کلی و محترمانه تولید می‌شود.
+                </p>
               </div>
             </GlassCard>
 
-            {/* تنظیمات ارسال خودکار */}
             <GlassCard className="p-6">
               <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <Settings className="w-5 h-5 text-gray-400" />
-                ارسال خودکار
+                ارسال به والدین
               </h2>
-
-              <div className="space-y-4">
-                <button
-                  onClick={() => setAutoSendEnabled(!autoSendEnabled)}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
-                    autoSendEnabled
-                      ? 'bg-green-500/20 border-green-500/30'
-                      : 'bg-white/5 border-white/10'
-                  }`}
-                >
-                  <span className="text-white text-sm flex items-center gap-2">
-                    <Bell className="w-4 h-4" />
-                    ارسال خودکار هر جمعه
-                  </span>
-                  <div className={`w-10 h-6 rounded-full p-1 transition-all ${
-                    autoSendEnabled ? 'bg-green-500' : 'bg-white/20'
-                  }`}>
-                    <div className={`w-4 h-4 bg-white rounded-full transition-all ${
-                      autoSendEnabled ? 'translate-x-0' : '-translate-x-4'
-                    }`} />
-                  </div>
-                </button>
-
-                {autoSendEnabled && (
-                  <>
-                    <div>
-                      <label className="text-white/70 text-sm mb-1 block">ساعت ارسال</label>
-                      <select
-                        value={autoSendTime}
-                        onChange={(e) => setAutoSendTime(e.target.value)}
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
-                      >
-                        <option value="10:00" className="bg-slate-800">۱۰:۰۰ صبح</option>
-                        <option value="12:00" className="bg-slate-800">۱۲:۰۰ ظهر</option>
-                        <option value="14:00" className="bg-slate-800">۱۴:۰۰ بعدازظهر</option>
-                        <option value="16:00" className="bg-slate-800">۱۶:۰۰ عصر</option>
-                        <option value="18:00" className="bg-slate-800">۱۸:۰۰ عصر</option>
-                      </select>
-                    </div>
-                    <button className="w-full py-2 bg-green-500/20 text-green-400 rounded-xl border border-green-500/30 hover:bg-green-500/30 transition-all">
-                      فعال‌سازی
-                    </button>
-                  </>
-                )}
-              </div>
+              <p className="text-white/60 text-sm leading-relaxed">
+                پس از تولید، هر گزارش را جداگانه یا همه را یکجا برای والد علامت‌گذاری کنید. ارسال خودکار جمعه هنوز فعال نیست.
+              </p>
             </GlassCard>
           </div>
 
@@ -627,13 +611,13 @@ export default function WeeklyReportPage() {
                 <div className="space-y-3">
                   {reports.map((report) => (
                     <AccordionItem
-                      key={report.studentId}
+                      key={report.id}
                       report={report}
-                      isOpen={openAccordion === report.studentId}
+                      isOpen={openAccordion === report.id}
                       onToggle={() => setOpenAccordion(
-                        openAccordion === report.studentId ? null : report.studentId
+                        openAccordion === report.id ? null : report.id
                       )}
-                      onSend={() => sendReport(report.studentId)}
+                      onSend={() => void sendReport(report.id)}
                     />
                   ))}
                 </div>
@@ -651,8 +635,7 @@ export default function WeeklyReportPage() {
                   <li>• کلاس و دانش‌آموزان را انتخاب کنید</li>
                   <li>• دکمه «تولید گزارش‌های هفتگی» را بزنید</li>
                   <li>• هوش مصنوعی تمام یادداشت‌ها را خلاصه می‌کند</li>
-                  <li>• گزارش‌ها را بررسی و به والدین ارسال کنید</li>
-                  <li>• می‌توانید ارسال خودکار هر جمعه را فعال کنید</li>
+                  <li>• گزارش‌ها را بررسی و برای والدین علامت‌گذاری کنید</li>
                 </ul>
 
                 <div className="mt-4 p-3 bg-white/5 rounded-lg">

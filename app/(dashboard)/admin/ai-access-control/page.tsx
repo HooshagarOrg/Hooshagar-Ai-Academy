@@ -89,11 +89,11 @@ import { DashboardPage } from '@/components/layout/dashboard-page'
 import { AI_FEATURES } from '@/lib/check-ai-limit'
 import {
   type AccessHistoryRecord,
+  getFeatureAccessStatus,
+  getAccessHistory,
   setFeatureAccess,
   setAllFeaturesAccess,
   translateScope,
-  
-  
 } from '@/lib/check-ai-access'
 
 // ============================================
@@ -133,85 +133,6 @@ interface UserItem {
 // داده‌های نمونه
 // ============================================
 
-const SAMPLE_SCHOOLS: School[] = [
-  { id: 'school-1', name: 'دبستان تلاش' },
-  { id: 'school-2', name: 'دبستان نور' },
-  { id: 'school-3', name: 'دبیرستان تیزهوشان' },
-]
-
-const SAMPLE_CLASSES: ClassItem[] = [
-  { id: 'class-1', name: 'کلاس ششم الف', grade: 6, schoolId: 'school-1' },
-  { id: 'class-2', name: 'کلاس ششم ب', grade: 6, schoolId: 'school-1' },
-  { id: 'class-3', name: 'کلاس پنجم الف', grade: 5, schoolId: 'school-1' },
-  { id: 'class-4', name: 'کلاس چهارم الف', grade: 4, schoolId: 'school-2' },
-]
-
-const SAMPLE_USERS: UserItem[] = [
-  { id: 'user-1', name: 'علی رضایی', role: 'دانش‌آموز', class: 'ششم الف', school: 'دبستان تلاش' },
-  { id: 'user-2', name: 'سارا احمدی', role: 'دانش‌آموز', class: 'پنجم ب', school: 'دبستان تلاش' },
-  { id: 'user-3', name: 'محمد کریمی', role: 'معلم', school: 'دبستان تلاش' },
-  { id: 'user-4', name: 'فاطمه محمدی', role: 'دانش‌آموز', class: 'ششم الف', school: 'دبستان نور' },
-]
-
-const SAMPLE_HISTORY: AccessHistoryRecord[] = [
-  {
-    id: '1',
-    featureName: 'story_wizard',
-    featureLabel: 'تولید داستان',
-    scope: 'school',
-    scopeId: 'school-1',
-    scopeName: 'دبستان تلاش',
-    action: 'disabled',
-    reason: 'تست محدودیت',
-    changedBy: 'admin-1',
-    changedByName: 'مدیر سیستم',
-    createdAt: '1403/09/15 14:30',
-  },
-  {
-    id: '2',
-    featureName: 'ocr_solver',
-    featureLabel: 'حل مسئله با OCR',
-    scope: 'class',
-    scopeId: 'class-1',
-    scopeName: 'کلاس ششم الف',
-    action: 'disabled',
-    reason: 'زمان امتحانات',
-    disabledUntil: '1403/09/20',
-    changedBy: 'admin-1',
-    changedByName: 'مدیر سیستم',
-    createdAt: '1403/09/10 09:15',
-  },
-  {
-    id: '3',
-    featureName: 'study_buddy',
-    featureLabel: 'دستیار مطالعه',
-    scope: 'user',
-    scopeId: 'user-1',
-    scopeName: 'علی رضایی',
-    action: 'disabled',
-    reason: 'سوءاستفاده از سیستم',
-    changedBy: 'admin-1',
-    changedByName: 'مدیر سیستم',
-    createdAt: '1403/09/05 11:20',
-  },
-  {
-    id: '4',
-    featureName: 'study_buddy',
-    featureLabel: 'دستیار مطالعه',
-    scope: 'user',
-    scopeId: 'user-1',
-    scopeName: 'علی رضایی',
-    action: 'enabled',
-    changedBy: 'admin-1',
-    changedByName: 'مدیر سیستم',
-    createdAt: '1403/09/08 16:45',
-  },
-]
-
-// ============================================
-// کامپوننت اصلی
-// ============================================
-
 export default function AIAccessControlPage() {
   const [activeTab, setActiveTab] = useState('school')
   
@@ -221,6 +142,10 @@ export default function AIAccessControlPage() {
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null)
   const [userSearchOpen, setUserSearchOpen] = useState(false)
   const [userSearchQuery, setUserSearchQuery] = useState('')
+  const [schools, setSchools] = useState<School[]>([])
+  const [classes, setClasses] = useState<ClassItem[]>([])
+  const [users, setUsers] = useState<UserItem[]>([])
+  const [history, setHistory] = useState<AccessHistoryRecord[]>([])
   
   // وضعیت قابلیت‌ها
   const [featureStatuses, setFeatureStatuses] = useState<FeatureStatus[]>([])
@@ -240,39 +165,103 @@ export default function AIAccessControlPage() {
   // ============================================
 
   useEffect(() => {
-    const loadFeatureStatuses = () => {
-      // تبدیل AI_FEATURES به FeatureStatus
-      const statuses = Object.entries(AI_FEATURES).map(([name, feature]) => ({
+    void fetch('/api/admin/schools')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.schools)) {
+          setSchools(data.schools.map((s: { id: string; name: string }) => ({ id: s.id, name: s.name })))
+        }
+      })
+      .catch(() => undefined)
+
+    void getAccessHistory({ limit: 20 }).then(setHistory)
+  }, [])
+
+  useEffect(() => {
+    if (!selectedSchool) {
+      setClasses([])
+      return
+    }
+    void fetch(`/api/admin/classes?school_id=${encodeURIComponent(selectedSchool)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.classes)) {
+          setClasses(
+            data.classes.map((c: { id: string; name: string; grade: number; school_id: string }) => ({
+              id: c.id,
+              name: c.name,
+              grade: c.grade,
+              schoolId: c.school_id,
+            }))
+          )
+        }
+      })
+      .catch(() => undefined)
+  }, [selectedSchool])
+
+  useEffect(() => {
+    const q = userSearchQuery.trim()
+    if (q.length < 2) {
+      setUsers([])
+      return
+    }
+    const t = setTimeout(() => {
+      void fetch(`/api/admin/users?search=${encodeURIComponent(q)}&limit=20`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data.users)) {
+            setUsers(
+              data.users.map((u: { id: string; full_name: string | null; role: string }) => ({
+                id: u.id,
+                name: u.full_name || 'کاربر',
+                role: u.role,
+              }))
+            )
+          }
+        })
+        .catch(() => undefined)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [userSearchQuery])
+
+  useEffect(() => {
+    const loadFeatureStatuses = async () => {
+      const scopeId =
+        activeTab === 'school' ? selectedSchool : activeTab === 'class' ? selectedClass : selectedUser?.id || ''
+      const defaults = Object.entries(AI_FEATURES).map(([name, feature]) => ({
         featureName: name,
         featureLabel: feature.label,
         featureIcon: feature.icon,
-        isEnabled: Math.random() > 0.1, // 90% فعال در حالت نمونه
-        disabledReason: undefined,
-        disabledUntil: undefined,
+        isEnabled: true,
+        disabledReason: undefined as string | undefined,
+        disabledUntil: undefined as string | undefined,
       }))
-      setFeatureStatuses(statuses)
+      if (!scopeId) {
+        setFeatureStatuses(defaults)
+        return
+      }
+      const records = await getFeatureAccessStatus(activeTab as 'school' | 'class' | 'user', scopeId)
+      const byName = new Map(records.map((r) => [r.featureName, r]))
+      setFeatureStatuses(
+        defaults.map((d) => {
+          const rec = byName.get(d.featureName)
+          if (!rec) return d
+          return {
+            ...d,
+            isEnabled: rec.isEnabled,
+            disabledReason: rec.disabledReason,
+            disabledUntil: rec.disabledUntil,
+          }
+        })
+      )
     }
 
-    loadFeatureStatuses()
-  }, [selectedSchool, selectedClass, selectedUser])
+    void loadFeatureStatuses()
+  }, [selectedSchool, selectedClass, selectedUser, activeTab])
 
-  // ============================================
-  // فیلتر کردن کلاس‌ها بر اساس مدرسه
-  // ============================================
+  const filteredClasses = classes.filter((c) => !selectedSchool || c.schoolId === selectedSchool)
 
-  const filteredClasses = SAMPLE_CLASSES.filter(
-    c => !selectedSchool || c.schoolId === selectedSchool
-  )
-
-  // ============================================
-  // جستجوی کاربران
-  // ============================================
-
-  const filteredUsers = SAMPLE_USERS.filter(
-    u => !userSearchQuery || 
-         u.name.includes(userSearchQuery) ||
-         u.role.includes(userSearchQuery)
-  )
+  const filteredUsers = users
 
   // ============================================
   // Toggle قابلیت
@@ -299,6 +288,7 @@ export default function AIAccessControlPage() {
             ? { ...f, isEnabled: true, disabledReason: undefined, disabledUntil: undefined }
             : f
         ))
+        void getAccessHistory({ limit: 20 }).then(setHistory)
       } finally {
         setIsSaving(false)
       }
@@ -326,9 +316,9 @@ export default function AIAccessControlPage() {
                      selectedUser?.id || ''
       
       const scopeName = activeTab === 'school' 
-        ? SAMPLE_SCHOOLS.find(s => s.id === selectedSchool)?.name
+        ? schools.find(s => s.id === selectedSchool)?.name
         : activeTab === 'class'
-        ? SAMPLE_CLASSES.find(c => c.id === selectedClass)?.name
+        ? classes.find(c => c.id === selectedClass)?.name
         : selectedUser?.name
 
       await setFeatureAccess(
@@ -355,6 +345,7 @@ export default function AIAccessControlPage() {
       ))
       
       setDisableDialogOpen(false)
+      void getAccessHistory({ limit: 20 }).then(setHistory)
     } finally {
       setIsSaving(false)
     }
@@ -394,10 +385,10 @@ export default function AIAccessControlPage() {
 
   const getCurrentScopeName = () => {
     if (activeTab === 'school') {
-      return SAMPLE_SCHOOLS.find(s => s.id === selectedSchool)?.name || ''
+      return schools.find(s => s.id === selectedSchool)?.name || ''
     }
     if (activeTab === 'class') {
-      return SAMPLE_CLASSES.find(c => c.id === selectedClass)?.name || ''
+      return classes.find(c => c.id === selectedClass)?.name || ''
     }
     return selectedUser?.name || ''
   }
@@ -452,7 +443,7 @@ export default function AIAccessControlPage() {
                       <SelectValue placeholder="یک مدرسه انتخاب کنید" />
                     </SelectTrigger>
                     <SelectContent>
-                      {SAMPLE_SCHOOLS.map((school) => (
+                      {schools.map((school) => (
                         <SelectItem key={school.id} value={school.id}>
                           {school.name}
                         </SelectItem>
@@ -496,7 +487,7 @@ export default function AIAccessControlPage() {
                         <SelectValue placeholder="انتخاب مدرسه" />
                       </SelectTrigger>
                       <SelectContent>
-                        {SAMPLE_SCHOOLS.map((school) => (
+                        {schools.map((school) => (
                           <SelectItem key={school.id} value={school.id}>
                             {school.name}
                           </SelectItem>
@@ -662,7 +653,13 @@ export default function AIAccessControlPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {SAMPLE_HISTORY.map((item) => (
+                  {history.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-[var(--lux-text-muted)] py-8">
+                        هنوز تغییری ثبت نشده است
+                      </TableCell>
+                    </TableRow>
+                  ) : history.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="text-[var(--lux-text-muted)]">
                         {item.createdAt}

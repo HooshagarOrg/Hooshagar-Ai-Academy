@@ -1,6 +1,7 @@
 'use client'
 
-import { useState} from 'react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import {
   Search,
   Settings,
@@ -114,100 +115,6 @@ interface AILimit {
   createdAt: string
 }
 
-interface SpecialUser {
-  id: string
-  userId: string
-  userName: string
-  userRole: string
-  userClass?: string
-  feature: string
-  featureLabel: string
-  normalLimit: number
-  specialLimit: number
-  expiresAt?: string
-  reason: string
-}
-
-interface UsageStats {
-  totalUsage: number
-  totalCredits: number
-  topFeatures: { name: string; label: string; count: number }[]
-  bottomFeatures: { name: string; label: string; count: number }[]
-}
-
-// ============================================
-// داده‌های نمونه
-// ============================================
-
-const SAMPLE_LIMITS: AILimit[] = Object.entries(AI_FEATURES).map(([name, feature]) => ({
-  id: `limit-${name}`,
-  featureName: name,
-  featureLabel: feature.label,
-  featureIcon: feature.icon,
-  scope: 'global',
-  dailyLimit: feature.dailyLimit,
-  weeklyLimit: feature.weeklyLimit,
-  monthlyLimit: feature.monthlyLimit,
-  creditCost: feature.creditCost,
-  isEnabled: feature.isEnabled,
-  usageThisMonth: Math.floor(Math.random() * 5000),
-  createdAt: '1403/09/01',
-}))
-
-const SAMPLE_SPECIAL_USERS: SpecialUser[] = [
-  {
-    id: 'sp-1',
-    userId: 'user-1',
-    userName: 'علی رضایی',
-    userRole: 'دانش‌آموز',
-    userClass: 'ششم الف',
-    feature: 'story_wizard',
-    featureLabel: 'تولید داستان',
-    normalLimit: 3,
-    specialLimit: 10,
-    expiresAt: '1403/12/29',
-    reason: 'برنده مسابقه داستان‌نویسی مدرسه',
-  },
-  {
-    id: 'sp-2',
-    userId: 'user-2',
-    userName: 'سارا احمدی',
-    userRole: 'دانش‌آموز',
-    userClass: 'پنجم ب',
-    feature: 'ocr_solver',
-    featureLabel: 'حل مسئله با OCR',
-    normalLimit: 10,
-    specialLimit: 30,
-    expiresAt: '1403/11/15',
-    reason: 'شرکت‌کننده المپیاد ریاضی',
-  },
-  {
-    id: 'sp-3',
-    userId: 'user-3',
-    userName: 'محمد کریمی',
-    userRole: 'معلم',
-    feature: 'exam_generator',
-    featureLabel: 'تولید آزمون',
-    normalLimit: 3,
-    specialLimit: 20,
-    reason: 'آماده‌سازی آزمون‌های جامع',
-  },
-]
-
-const SAMPLE_STATS: UsageStats = {
-  totalUsage: 12456,
-  totalCredits: 45678,
-  topFeatures: [
-    { name: 'ocr_solver', label: 'حل مسئله با OCR', count: 4567 },
-    { name: 'story_wizard', label: 'تولید داستان', count: 3234 },
-    { name: 'study_buddy', label: 'دستیار مطالعه', count: 2890 },
-  ],
-  bottomFeatures: [
-    { name: 'konkur_roadmap', label: 'نقشه راه کنکور', count: 12 },
-    { name: 'future_compass', label: 'راهنمای آینده', count: 34 },
-  ],
-}
-
 const ROLES = [
   { value: 'student', label: 'دانش‌آموز', icon: '🎓' },
   { value: 'teacher', label: 'معلم', icon: '👨‍🏫' },
@@ -215,20 +122,43 @@ const ROLES = [
   { value: 'counselor', label: 'مشاور', icon: '💼' },
 ]
 
-const SCHOOLS = [
-  { id: 'school-1', name: 'دبستان تلاش' },
-  { id: 'school-2', name: 'دبستان نور' },
-  { id: 'school-3', name: 'دبیرستان تیزهوشان' },
-]
+function mergeWithDefaults(
+  rows: AILimit[],
+  scope: AILimit['scope'],
+  scopeId?: string
+): AILimit[] {
+  const byName = new Map(rows.map((r) => [r.featureName, r]))
+  return Object.entries(AI_FEATURES).map(([name, feature]) => {
+    const existing = byName.get(name)
+    if (existing) {
+      return { ...existing, usageThisMonth: existing.usageThisMonth ?? 0 }
+    }
+    return {
+      id: `draft-${scope}-${name}`,
+      featureName: name,
+      featureLabel: feature.label,
+      featureIcon: feature.icon,
+      scope,
+      scopeId,
+      dailyLimit: feature.dailyLimit,
+      weeklyLimit: feature.weeklyLimit,
+      monthlyLimit: feature.monthlyLimit,
+      creditCost: feature.creditCost,
+      isEnabled: feature.isEnabled,
+      usageThisMonth: 0,
+      createdAt: new Date().toISOString(),
+    }
+  })
+}
 
 // ============================================
 // کامپوننت اصلی
 // ============================================
 
 export default function AILimitsPage() {
-  const [limits, setLimits] = useState<AILimit[]>(SAMPLE_LIMITS)
-  const [specialUsers] = useState<SpecialUser[]>(SAMPLE_SPECIAL_USERS)
-  const [stats] = useState<UsageStats>(SAMPLE_STATS)
+  const [limits, setLimits] = useState<AILimit[]>([])
+  const [schools, setSchools] = useState<{ id: string; name: string }[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   
   const [activeTab, setActiveTab] = useState('global')
   const [searchQuery, setSearchQuery] = useState('')
@@ -240,6 +170,72 @@ export default function AILimitsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedLimits, setSelectedLimits] = useState<Set<string>>(new Set())
   const [isSaving, setIsSaving] = useState(false)
+
+  const currentScope = (activeTab === 'school' ? 'school' : activeTab === 'role' ? 'role' : 'global') as AILimit['scope']
+  const currentScopeId =
+    currentScope === 'role' ? selectedRole : currentScope === 'school' ? selectedSchool : undefined
+
+  const loadLimits = async (): Promise<void> => {
+    if (activeTab === 'special') return
+    if (currentScope === 'school' && !selectedSchool) {
+      setLimits([])
+      setIsLoading(false)
+      return
+    }
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams({ scope: currentScope })
+      if (currentScopeId) params.set('scopeId', currentScopeId)
+      const res = await fetch(`/api/admin/ai-limits?${params.toString()}`)
+      const data = await res.json()
+      const rows: AILimit[] = Array.isArray(data.limits) ? data.limits : []
+      setLimits(mergeWithDefaults(rows, currentScope, currentScopeId))
+    } catch {
+      toast.error('خطا در دریافت محدودیت‌ها')
+      setLimits(mergeWithDefaults([], currentScope, currentScopeId))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void fetch('/api/admin/schools')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.schools)) {
+          setSchools(data.schools.map((s: { id: string; name: string }) => ({ id: s.id, name: s.name })))
+        }
+      })
+      .catch(() => undefined)
+  }, [])
+
+  useEffect(() => {
+    void loadLimits()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, selectedRole, selectedSchool])
+
+  const saveLimitPayload = async (limit: AILimit, extra?: Partial<{ isEnabled: boolean }>): Promise<boolean> => {
+    const res = await fetch('/api/admin/ai-limits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        featureName: limit.featureName,
+        scope: limit.scope,
+        scopeId: limit.scopeId ?? currentScopeId ?? null,
+        dailyLimit: limit.dailyLimit,
+        weeklyLimit: limit.weeklyLimit,
+        monthlyLimit: limit.monthlyLimit,
+        creditCost: limit.creditCost,
+        isEnabled: extra?.isEnabled ?? limit.isEnabled,
+      }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      toast.error(data.error || 'ذخیره ناموفق بود')
+      return false
+    }
+    return true
+  }
 
   // ============================================
   // فیلتر کردن محدودیت‌ها
@@ -260,12 +256,10 @@ export default function AILimitsPage() {
     
     setIsSaving(true)
     try {
-      // در محیط واقعی API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      setLimits(prev => prev.map(l => 
-        l.id === editingLimit.id ? editingLimit : l
-      ))
+      const ok = await saveLimitPayload(editingLimit)
+      if (!ok) return
+      toast.success('محدودیت ذخیره شد')
+      await loadLimits()
       setIsEditDialogOpen(false)
       setEditingLimit(null)
     } finally {
@@ -273,37 +267,39 @@ export default function AILimitsPage() {
     }
   }
 
-  // ============================================
-  // Toggle فعال/غیرفعال
-  // ============================================
-
-  const toggleLimit = (limitId: string) => {
-    setLimits(prev => prev.map(l =>
-      l.id === limitId ? { ...l, isEnabled: !l.isEnabled } : l
-    ))
+  const toggleLimit = async (limitId: string) => {
+    const limit = limits.find((l) => l.id === limitId)
+    if (!limit) return
+    const nextEnabled = !limit.isEnabled
+    setLimits((prev) => prev.map((l) => (l.id === limitId ? { ...l, isEnabled: nextEnabled } : l)))
+    const ok = await saveLimitPayload(limit, { isEnabled: nextEnabled })
+    if (!ok) {
+      setLimits((prev) => prev.map((l) => (l.id === limitId ? { ...l, isEnabled: limit.isEnabled } : l)))
+    }
   }
 
-  // ============================================
-  // عملیات دسته‌جمعی
-  // ============================================
-
-  const handleBulkEnable = () => {
-    setLimits(prev => prev.map(l =>
-      selectedLimits.has(l.id) ? { ...l, isEnabled: true } : l
-    ))
+  const handleBulkEnable = async () => {
+    for (const id of selectedLimits) {
+      const limit = limits.find((l) => l.id === id)
+      if (limit) await saveLimitPayload(limit, { isEnabled: true })
+    }
     setSelectedLimits(new Set())
+    await loadLimits()
   }
 
-  const handleBulkDisable = () => {
-    setLimits(prev => prev.map(l =>
-      selectedLimits.has(l.id) ? { ...l, isEnabled: false } : l
-    ))
+  const handleBulkDisable = async () => {
+    for (const id of selectedLimits) {
+      const limit = limits.find((l) => l.id === id)
+      if (limit) await saveLimitPayload(limit, { isEnabled: false })
+    }
     setSelectedLimits(new Set())
+    await loadLimits()
   }
 
   const handleResetToDefault = () => {
-    setLimits(SAMPLE_LIMITS)
+    setLimits(mergeWithDefaults([], currentScope, currentScopeId))
     setSelectedLimits(new Set())
+    toast.message('مقادیر پیش‌فرض نمایش داده شد؛ برای اعمال، هر قابلیت را ذخیره کنید')
   }
 
   // ============================================
@@ -332,6 +328,12 @@ export default function AILimitsPage() {
           {/* محتوای اصلی */}
           <div className="flex-1">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
+              {isLoading && (
+                <p className="text-sm text-[var(--lux-text-muted)] mb-3 flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  در حال بارگذاری محدودیت‌ها...
+                </p>
+              )}
               <TabsList className="grid grid-cols-4 mb-6 glass-panel-quiet">
                 <TabsTrigger value="global" className="gap-2">
                   <Globe className="w-4 h-4" />
@@ -692,136 +694,16 @@ export default function AILimitsPage() {
                   </CardHeader>
                   
                   <CardContent>
-                    {/* فرم افزودن */}
-                    <div className="bg-[var(--lux-surface)] rounded-xl p-6 mb-6">
-                      <h4 className="font-medium mb-4">افزودن کاربر ویژه</h4>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>جستجوی کاربر</Label>
-                          <Command className="border rounded-md mt-1">
-                            <CommandInput placeholder="نام، کد ملی، شماره..." />
-                            <CommandList>
-                              <CommandEmpty>کاربری یافت نشد</CommandEmpty>
-                              <CommandGroup>
-                                <CommandItem>
-                                  <span>علی رضایی - دانش‌آموز - ششم الف</span>
-                                </CommandItem>
-                                <CommandItem>
-                                  <span>سارا احمدی - معلم - ریاضی</span>
-                                </CommandItem>
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </div>
-
-                        <div>
-                          <Label>قابلیت AI</Label>
-                          <Select>
-                            <SelectTrigger className="mt-1">
-                              <SelectValue placeholder="انتخاب قابلیت" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(AI_FEATURES).map(([name, feature]) => (
-                                <SelectItem key={name} value={name}>
-                                  {feature.icon} {feature.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>محدودیت ویژه روزانه</Label>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Input type="number" placeholder="10" className="w-20" />
-                            <span className="text-sm text-[var(--lux-text-muted)]">بار (عادی: 3 بار)</span>
-                          </div>
-                        </div>
-
-                        <div>
-                          <Label>تاریخ انقضا</Label>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Input type="text" placeholder="1403/12/29" className="flex-1" />
-                            <div className="flex items-center gap-1">
-                              <Checkbox id="no-expire" />
-                              <Label htmlFor="no-expire" className="text-sm">بدون انقضا</Label>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="col-span-2">
-                          <Label>دلیل</Label>
-                          <Textarea
-                            placeholder="برنده مسابقه داستان‌نویسی مدرسه"
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
-
-                      <Button className="mt-4 gap-2">
-                        <Plus className="w-4 h-4" />
-                        افزودن محدودیت ویژه
-                      </Button>
-                    </div>
-
-                    {/* جدول کاربران ویژه */}
-                    <div className="border rounded-lg overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-[var(--lux-surface)]">
-                            <TableHead>کاربر</TableHead>
-                            <TableHead>قابلیت</TableHead>
-                            <TableHead className="text-center">عادی</TableHead>
-                            <TableHead className="text-center">ویژه</TableHead>
-                            <TableHead>انقضا</TableHead>
-                            <TableHead>دلیل</TableHead>
-                            <TableHead className="w-20">حذف</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {specialUsers.map((user) => (
-                            <TableRow key={user.id}>
-                              <TableCell>
-                                <div>
-                                  <p className="font-medium">{user.userName}</p>
-                                  <p className="text-xs text-[var(--lux-text-muted)]">
-                                    {user.userRole} {user.userClass && `- ${user.userClass}`}
-                                  </p>
-                                </div>
-                              </TableCell>
-                              <TableCell>{user.featureLabel}</TableCell>
-                              <TableCell className="text-center">{user.normalLimit}</TableCell>
-                              <TableCell className="text-center">
-                                <Badge variant="secondary" className="bg-green-500/15 text-green-300">
-                                  {user.specialLimit}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                {user.expiresAt || '—'}
-                              </TableCell>
-                              <TableCell className="max-w-xs truncate">
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <span className="text-sm text-[var(--lux-text-muted)]">{user.reason}</span>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      {user.reason}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </TableCell>
-                              <TableCell>
-                                <Button variant="ghost" size="icon" className="text-red-500">
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                    <p className="text-sm text-[var(--lux-text-muted)] leading-relaxed">
+                      محدودیت کاربر خاص از صفحه «کنترل دسترسی» تنظیم می‌شود. این تب دیگر دادهٔ نمونه نشان نمی‌دهد.
+                    </p>
+                    <Button
+                      className="mt-4"
+                      variant="outline"
+                      onClick={() => { window.location.href = '/admin/ai-access-control' }}
+                    >
+                      رفتن به کنترل دسترسی
+                    </Button>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -843,7 +725,7 @@ export default function AILimitsPage() {
                           <SelectValue placeholder="انتخاب مدرسه" />
                         </SelectTrigger>
                         <SelectContent>
-                          {SCHOOLS.map((school) => (
+                          {schools.map((school) => (
                             <SelectItem key={school.id} value={school.id}>
                               {school.name}
                             </SelectItem>
@@ -954,55 +836,20 @@ export default function AILimitsPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <BarChart3 className="w-4 h-4" />
-                  آمار کلی این ماه
+                  آمار مصرف
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-2xl font-bold">{stats.totalUsage.toLocaleString('fa-IR')}</p>
-                  <p className="text-sm text-[var(--lux-text-muted)]">کل استفاده</p>
-                </div>
-                
-                <div>
-                  <p className="text-2xl font-bold">{stats.totalCredits.toLocaleString('fa-IR')}</p>
-                  <p className="text-sm text-[var(--lux-text-muted)]">کل credit مصرفی</p>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <p className="text-sm font-medium mb-2">پرکاربردترین:</p>
-                  <div className="space-y-2">
-                    {stats.topFeatures.map((f, i) => (
-                      <div key={f.name} className="flex items-center justify-between text-sm">
-                        <span className="text-[var(--lux-text-muted)]">
-                          {i + 1}. {f.label}
-                        </span>
-                        <span className="font-medium">
-                          {f.count.toLocaleString('fa-IR')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <p className="text-sm font-medium mb-2">کمترین استفاده:</p>
-                  <div className="space-y-2">
-                    {stats.bottomFeatures.map((f, i) => (
-                      <div key={f.name} className="flex items-center justify-between text-sm">
-                        <span className="text-[var(--lux-text-muted)]">
-                          {i + 1}. {f.label}
-                        </span>
-                        <span className="font-medium text-[var(--lux-text-muted)]">
-                          {f.count.toLocaleString('fa-IR')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-[var(--lux-text-muted)] leading-relaxed">
+                  آمار واقعی مصرف در داشبورد مصرف AI است؛ این صفحه فقط سقف‌ها را ذخیره می‌کند.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => { window.location.href = '/admin/ai-usage-dashboard' }}
+                >
+                  مشاهده داشبورد مصرف
+                </Button>
               </CardContent>
             </Card>
           </div>

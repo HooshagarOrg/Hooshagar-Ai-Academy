@@ -1,50 +1,68 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { AI_FEATURES } from '@/lib/check-ai-limit'
 import { withAuth, ADMIN_ROLES, type AllowedRole } from '@/lib/security/api-guard'
+import {
+  getFeatureAccessStatusServer,
+  setFeatureAccessServer,
+} from '@/lib/check-ai-access.server'
 
 const ADMIN_PLUS_PRINCIPAL: AllowedRole[] = [...ADMIN_ROLES, 'principal']
 
+const scopeSchema = z.enum(['school', 'class', 'user'])
+
+const postSchema = z.object({
+  featureName: z.string().min(1),
+  scope: scopeSchema,
+  scopeId: z.string().min(1),
+  isEnabled: z.boolean(),
+  reason: z.string().max(500).optional(),
+  disabledUntil: z.string().optional(),
+  scopeName: z.string().optional(),
+})
+
+const bulkSchema = z.object({
+  scope: scopeSchema,
+  scopeId: z.string().min(1),
+  isEnabled: z.boolean(),
+  reason: z.string().max(500).optional(),
+})
+
 /**
- * GET /api/admin/ai-access
- * دریافت وضعیت دسترسی قابلیت‌ها
+ * GET /api/admin/ai-access?scope=&scopeId=
  */
 export async function GET(request: NextRequest) {
   return withAuth(
     request,
     async () => {
-      try {
-        const { searchParams } = new URL(request.url)
-        const scope = searchParams.get('scope') as 'school' | 'class' | 'user' | null
-        const scopeId = searchParams.get('scopeId')
+      const { searchParams } = new URL(request.url)
+      const parsed = scopeSchema.safeParse(searchParams.get('scope'))
+      const scopeId = searchParams.get('scopeId')
 
-        if (!scope || !scopeId) {
-          return NextResponse.json(
-            { error: 'scope و scopeId الزامی است' },
-            { status: 400 }
-          )
-        }
+      if (!parsed.success || !scopeId) {
+        return NextResponse.json({ error: 'scope و scopeId الزامی است' }, { status: 400 })
+      }
 
-        const features = Object.entries(AI_FEATURES).map(([name, feature]) => ({
-          id: `access-${name}-${scopeId}`,
+      const records = await getFeatureAccessStatusServer(parsed.data, scopeId)
+      const byName = new Map(records.map((r) => [r.featureName, r]))
+
+      const features = Object.entries(AI_FEATURES).map(([name, feature]) => {
+        const rec = byName.get(name)
+        return {
+          id: rec?.id ?? `access-${name}-${scopeId}`,
           featureName: name,
           featureLabel: feature.label,
           featureIcon: feature.icon,
-          scope,
+          scope: parsed.data,
           scopeId,
-          isEnabled: Math.random() > 0.1,
-          disabledReason: Math.random() > 0.9 ? 'تست محدودیت' : null,
-          disabledUntil: null,
-          updatedAt: new Date().toISOString(),
-        }))
+          isEnabled: rec?.isEnabled ?? true,
+          disabledReason: rec?.disabledReason ?? null,
+          disabledUntil: rec?.disabledUntil ?? null,
+          updatedAt: rec?.updatedAt ?? new Date().toISOString(),
+        }
+      })
 
-        return NextResponse.json({ features })
-      } catch (error) {
-        console.error('Error fetching AI access:', error)
-        return NextResponse.json(
-          { error: 'خطا در دریافت وضعیت دسترسی' },
-          { status: 500 }
-        )
-      }
+      return NextResponse.json({ features })
     },
     { roles: ADMIN_PLUS_PRINCIPAL }
   )
@@ -52,111 +70,73 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/admin/ai-access
- * تنظیم دسترسی قابلیت
  */
 export async function POST(request: NextRequest) {
   return withAuth(
     request,
-    async () => {
-      try {
-        const body = await request.json()
-        const {
-          featureName,
-          scope,
-          scopeId,
-          isEnabled,
-          reason,
-          disabledUntil,
-          scopeName,
-        } = body
-
-        if (!featureName || !scope || !scopeId) {
-          return NextResponse.json(
-            { error: 'featureName، scope و scopeId الزامی است' },
-            { status: 400 }
-          )
-        }
-
-        if (!['school', 'class', 'user'].includes(scope)) {
-          return NextResponse.json(
-            { error: 'scope نامعتبر است' },
-            { status: 400 }
-          )
-        }
-
-        if (!AI_FEATURES[featureName]) {
-          return NextResponse.json(
-            { error: 'قابلیت نامعتبر است' },
-            { status: 400 }
-          )
-        }
-
-        if (!isEnabled && !reason) {
-          return NextResponse.json(
-            { error: 'دلیل غیرفعال‌سازی الزامی است' },
-            { status: 400 }
-          )
-        }
-
-        console.log('[AI Access Updated]', {
-          featureName,
-          scope,
-          scopeId,
-          isEnabled,
-          reason,
-          disabledUntil,
-          scopeName,
-        })
-
-        return NextResponse.json({
-          success: true,
-          message: isEnabled ? 'قابلیت فعال شد' : 'قابلیت غیرفعال شد',
-        })
-      } catch (error) {
-        console.error('Error setting AI access:', error)
-        return NextResponse.json(
-          { error: 'خطا در تنظیم دسترسی' },
-          { status: 500 }
-        )
+    async (ctx) => {
+      const parsed = postSchema.safeParse(await request.json())
+      if (!parsed.success) {
+        return NextResponse.json({ error: 'داده‌های نامعتبر' }, { status: 400 })
       }
+
+      const { featureName, scope, scopeId, isEnabled, reason, disabledUntil, scopeName } = parsed.data
+
+      if (!AI_FEATURES[featureName]) {
+        return NextResponse.json({ error: 'قابلیت نامعتبر است' }, { status: 400 })
+      }
+
+      if (!isEnabled && !reason) {
+        return NextResponse.json({ error: 'دلیل غیرفعال‌سازی الزامی است' }, { status: 400 })
+      }
+
+      const result = await setFeatureAccessServer(featureName, scope, scopeId, isEnabled, {
+        reason,
+        disabledUntil,
+        scopeName,
+        userId: ctx.userId,
+      })
+
+      if (!result.success) {
+        return NextResponse.json({ error: result.error || 'خطا در تنظیم دسترسی' }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: isEnabled ? 'قابلیت فعال شد' : 'قابلیت غیرفعال شد',
+      })
     },
     { roles: ADMIN_PLUS_PRINCIPAL }
   )
 }
 
 /**
- * PUT /api/admin/ai-access
- * فعال کردن همه قابلیت‌ها
+ * PUT /api/admin/ai-access — فعال/غیرفعال همه
  */
 export async function PUT(request: NextRequest) {
   return withAuth(
     request,
-    async () => {
-      try {
-        const body = await request.json()
-        const { scope, scopeId, isEnabled } = body
-
-        if (!scope || !scopeId) {
-          return NextResponse.json(
-            { error: 'scope و scopeId الزامی است' },
-            { status: 400 }
-          )
-        }
-
-        console.log('[AI Access Bulk Updated]', { scope, scopeId, isEnabled, count: Object.keys(AI_FEATURES).length })
-
-        return NextResponse.json({
-          success: true,
-          message: isEnabled ? 'همه قابلیت‌ها فعال شد' : 'همه قابلیت‌ها غیرفعال شد',
-          count: Object.keys(AI_FEATURES).length,
-        })
-      } catch (error) {
-        console.error('Error bulk updating AI access:', error)
-        return NextResponse.json(
-          { error: 'خطا در بروزرسانی دسترسی' },
-          { status: 500 }
-        )
+    async (ctx) => {
+      const parsed = bulkSchema.safeParse(await request.json())
+      if (!parsed.success) {
+        return NextResponse.json({ error: 'داده‌های نامعتبر' }, { status: 400 })
       }
+
+      const { scope, scopeId, isEnabled, reason } = parsed.data
+      let count = 0
+      for (const featureName of Object.keys(AI_FEATURES)) {
+        const result = await setFeatureAccessServer(featureName, scope, scopeId, isEnabled, {
+          reason: isEnabled ? undefined : reason || 'غیرفعال‌سازی گروهی',
+          userId: ctx.userId,
+        })
+        if (result.success) count++
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: isEnabled ? 'همه قابلیت‌ها فعال شد' : 'همه قابلیت‌ها غیرفعال شد',
+        count,
+      })
     },
     { roles: ADMIN_PLUS_PRINCIPAL }
   )

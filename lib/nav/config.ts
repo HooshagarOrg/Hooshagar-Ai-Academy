@@ -37,8 +37,9 @@ export const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'هوش مصنوعی',
       items: [
-        // صفحات تئاتری (ai-models/credits/limits/access) از منوی پایلوت مخفی‌اند — docs/PILOT_ALLOWED_MENU.md
         { title: 'مصرف AI', href: '/admin/ai-usage-dashboard', icon: BarChart3 },
+        { title: 'محدودیت‌ها', href: '/admin/ai-limits', icon: Sliders },
+        { title: 'کنترل دسترسی', href: '/admin/ai-access-control', icon: Shield },
         { title: 'تست AI', href: '/admin/ai-test', icon: HelpCircle },
       ],
     },

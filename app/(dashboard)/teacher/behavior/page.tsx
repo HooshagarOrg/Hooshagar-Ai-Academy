@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import {
   Heart,
   Users,
@@ -46,48 +47,6 @@ interface BehaviorReport {
   negativeCount: number
   description: string
 }
-
-// ============================================
-// داده‌های نمونه
-// ============================================
-const mockStudents: Student[] = [
-  { id: '1', name: 'علی محمدی', grade: 5, className: 'پنجم الف' },
-  { id: '2', name: 'زهرا حسینی', grade: 5, className: 'پنجم الف' },
-  { id: '3', name: 'محمد رضایی', grade: 5, className: 'پنجم الف' },
-  { id: '4', name: 'فاطمه کریمی', grade: 5, className: 'پنجم الف' },
-  { id: '5', name: 'امیر صادقی', grade: 5, className: 'پنجم الف' },
-  { id: '6', name: 'مریم نوری', grade: 5, className: 'پنجم الف' },
-]
-
-const mockReports: BehaviorReport[] = [
-  {
-    id: '1',
-    studentId: '1',
-    studentName: 'علی محمدی',
-    date: '۱۴۰۳/۰۹/۱۵',
-    positiveCount: 5,
-    negativeCount: 1,
-    description: 'مشارکت فعال در کلاس داشت اما یکبار بدون اجازه صحبت کرد.',
-  },
-  {
-    id: '2',
-    studentId: '3',
-    studentName: 'محمد رضایی',
-    date: '۱۴۰۳/۰۹/۱۴',
-    positiveCount: 2,
-    negativeCount: 3,
-    description: 'نیاز به توجه بیشتر در زمینه رفتار با همکلاسی‌ها دارد.',
-  },
-  {
-    id: '3',
-    studentId: '2',
-    studentName: 'زهرا حسینی',
-    date: '۱۴۰۳/۰۹/۱۳',
-    positiveCount: 8,
-    negativeCount: 0,
-    description: 'عملکرد عالی و رفتار نمونه در تمام زمینه‌ها.',
-  },
-]
 
 // رفتارهای مثبت
 const initialPositiveBehaviors: BehaviorItem[] = [
@@ -237,7 +196,6 @@ function CustomSelect({ value, onChange, options, placeholder, icon }: CustomSel
 // کامپوننت اصلی
 // ============================================
 export default function BehaviorGuidancePage() {
-  // State
   const [selectedStudent, setSelectedStudent] = useState('')
   const [selectedDate, setSelectedDate] = useState('')
   const [positiveBehaviors, setPositiveBehaviors] = useState<BehaviorItem[]>(initialPositiveBehaviors)
@@ -245,6 +203,27 @@ export default function BehaviorGuidancePage() {
   const [description, setDescription] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [students, setStudents] = useState<Student[]>([])
+  const [reports, setReports] = useState<BehaviorReport[]>([])
+
+  useEffect(() => {
+    void Promise.all([
+      fetch('/api/teacher/class-students').then((r) => r.json()),
+      fetch('/api/teacher/behavior').then((r) => r.json()),
+    ]).then(([st, rp]) => {
+      if (Array.isArray(st.students)) {
+        setStudents(
+          st.students.map((s: { id: string; name: string; grade: number; className: string }) => ({
+            id: s.id,
+            name: s.name,
+            grade: s.grade,
+            className: s.className,
+          }))
+        )
+      }
+      if (Array.isArray(rp.reports)) setReports(rp.reports)
+    }).catch(() => toast.error('خطا در دریافت داده‌ها'))
+  }, [])
 
   // فرمت تاریخ امروز
   const getTodayPersian = (): string => {
@@ -289,32 +268,61 @@ export default function BehaviorGuidancePage() {
   // ثبت گزارش
   const handleSubmit = async (): Promise<void> => {
     if (!selectedStudent) {
-      alert('لطفاً یک دانش‌آموز انتخاب کنید.')
+      toast.error('لطفاً یک دانش‌آموز انتخاب کنید.')
       return
     }
 
     if (positiveCount === 0 && negativeCount === 0) {
-      alert('لطفاً حداقل یک مورد رفتاری انتخاب کنید.')
+      toast.error('لطفاً حداقل یک مورد رفتاری انتخاب کنید.')
       return
     }
 
     setIsSubmitting(true)
-
-    // شبیه‌سازی ارسال به سرور
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    setIsSubmitting(false)
-    setShowSuccess(true)
-
-    // نمایش پیام موفقیت و ریست فرم
-    setTimeout(() => {
-      setShowSuccess(false)
-      resetForm()
-    }, 2000)
+    try {
+      const res = await fetch('/api/teacher/behavior', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: selectedStudent,
+          report_date: selectedDate || new Date().toISOString().slice(0, 10),
+          positive_behaviors: positiveBehaviors.filter((b) => b.checked).map((b) => b.label),
+          negative_behaviors: negativeBehaviors.filter((b) => b.checked).map((b) => b.label),
+          notes: description.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || 'ثبت گزارش ناموفق بود')
+        return
+      }
+      toast.success('گزارش رفتاری ثبت شد')
+      setShowSuccess(true)
+      const studentName = students.find((s) => s.id === selectedStudent)?.name || ''
+      setReports((prev) => [
+        {
+          id: data.id,
+          studentId: selectedStudent,
+          studentName,
+          date: selectedDate || getTodayPersian(),
+          positiveCount,
+          negativeCount,
+          description,
+        },
+        ...prev,
+      ])
+      setTimeout(() => {
+        setShowSuccess(false)
+        resetForm()
+      }, 1500)
+    } catch {
+      toast.error('خطای شبکه')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // آپشن‌های دانش‌آموزان
-  const studentOptions = mockStudents.map(s => ({
+  const studentOptions = students.map(s => ({
     value: s.id,
     label: `${s.name} - ${s.className}`,
   }))
@@ -359,10 +367,9 @@ export default function BehaviorGuidancePage() {
               </label>
               <div className="relative">
                 <input
-                  type="text"
-                  value={selectedDate || getTodayPersian()}
+                  type="date"
+                  value={selectedDate || new Date().toISOString().slice(0, 10)}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  placeholder="تاریخ را وارد کنید..."
                   className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-transparent"
                 />
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
@@ -501,7 +508,7 @@ export default function BehaviorGuidancePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {mockReports.map((report) => (
+                {reports.map((report) => (
                   <tr key={report.id} className="hover:bg-white/5 transition-colors">
                     <td className="py-4">
                       <div className="flex items-center gap-3">
@@ -537,7 +544,7 @@ export default function BehaviorGuidancePage() {
 
           {/* کارت‌ها در موبایل */}
           <div className="md:hidden space-y-3">
-            {mockReports.map((report) => (
+            {reports.map((report) => (
               <div
                 key={report.id}
                 className="bg-white/5 rounded-xl p-4 border border-white/10"
@@ -575,7 +582,7 @@ export default function BehaviorGuidancePage() {
             ))}
           </div>
 
-          {mockReports.length === 0 && (
+          {reports.length === 0 && (
             <div className="text-center py-12">
               <FileText className="w-16 h-16 mx-auto mb-4 text-white/20" />
               <p className="text-white/50">هنوز گزارشی ثبت نشده است</p>

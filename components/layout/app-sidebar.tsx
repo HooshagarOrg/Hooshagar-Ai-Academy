@@ -126,7 +126,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'نمرات', href: '/teacher/grades', icon: GraduationCap },
         { title: 'رفتار دانش‌آموزان', href: '/teacher/behavior', icon: Heart },
         { title: 'گزارش هفتگی', href: '/teacher/weekly-report', icon: FileText },
-        { title: 'کلاس مجازی', href: '/teacher#virtual-class', icon: Video },
+        { title: 'کلاس مجازی', href: '/teacher/virtual-class', icon: Video, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {

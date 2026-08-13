@@ -1,23 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   Music,
   Palette,
   Dumbbell,
   Bot,
-  Calendar,
   User,
   Star,
   Save,
-  ChevronLeft,
-  ChevronRight,
-  Search,
   Edit,
-  Eye,
   Plus,
   X,
+  Loader2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -66,23 +63,25 @@ import {
   type FinalGrade,
 } from '@/lib/types/specialty-assessment.types'
 
-// ==========================================
-// Mock Data
-// ==========================================
-const mockClasses = [
-  { id: '1', name: 'ششم الف' },
-  { id: '2', name: 'ششم ب' },
-  { id: '3', name: 'پنجم الف' },
-  { id: '4', name: 'پنجم ب' },
-]
+interface ClassRow {
+  id: string
+  name: string
+  grade?: number | null
+}
 
-const mockStudents = [
-  { id: '1', name: 'علی رضایی', grade: 6, lastAssessment: '1403/08/01', lastGrade: 'عالی' },
-  { id: '2', name: 'سارا احمدی', grade: 6, lastAssessment: '1403/08/01', lastGrade: 'خیلی خوب' },
-  { id: '3', name: 'محمد کریمی', grade: 6, lastAssessment: '1403/07/15', lastGrade: 'خوب' },
-  { id: '4', name: 'فاطمه نوری', grade: 6, lastAssessment: '—', lastGrade: '—' },
-  { id: '5', name: 'امیر صادقی', grade: 6, lastAssessment: '1403/08/05', lastGrade: 'عالی' },
-]
+interface ClassStudent {
+  id: string
+  name: string
+  grade: number | null
+  classId: string | null
+  className: string
+}
+
+interface AssessmentSummary {
+  student_id?: string
+  assessment_date?: string
+  final_grade?: string | null
+}
 
 const semesters = [
   { value: 'first_1403', label: 'نیمسال اول ۱۴۰۳-۱۴۰۴' },
@@ -344,10 +343,13 @@ export default function SpecialtyAssessmentPage() {
   const [selectedClass, setSelectedClass] = useState('')
   const [selectedSemester, setSelectedSemester] = useState(semesters[0].value)
   const [assessmentDate, setAssessmentDate] = useState(new Date().toISOString().split('T')[0])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [showAssessmentDialog, setShowAssessmentDialog] = useState(false)
-  const [selectedStudent, setSelectedStudent] = useState<typeof mockStudents[0] | null>(null)
+  const [selectedStudent, setSelectedStudent] = useState<ClassStudent | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [classes, setClasses] = useState<ClassRow[]>([])
+  const [students, setStudents] = useState<ClassStudent[]>([])
+  const [assessments, setAssessments] = useState<AssessmentSummary[]>([])
   
   // Form Data
   const [musicData, setMusicData] = useState<MusicFormData>({
@@ -371,7 +373,73 @@ export default function SpecialtyAssessmentPage() {
   
   // Similar state for art, sports, stem would go here
   
-  const handleOpenAssessment = (student: typeof mockStudents[0]) => {
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      setIsLoading(true)
+      try {
+        const res = await fetch('/api/teacher/class-students')
+        const data = (await res.json()) as {
+          error?: string
+          classes?: ClassRow[]
+          students?: ClassStudent[]
+        }
+        if (!res.ok) {
+          toast.error(data.error || 'دریافت دانش‌آموزان ناموفق بود')
+          return
+        }
+        if (cancelled) return
+        const nextClasses = data.classes ?? []
+        setClasses(nextClasses)
+        setStudents(data.students ?? [])
+        if (nextClasses.length === 1) {
+          setSelectedClass(nextClasses[0].id)
+        }
+      } catch {
+        toast.error('خطای شبکه در دریافت دانش‌آموزان')
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    const loadAssessments = async () => {
+      try {
+        const res = await fetch(`/api/specialty-assessments?type=${activeTab}&limit=100`)
+        const data = (await res.json()) as { assessments?: AssessmentSummary[]; error?: string }
+        if (!res.ok) return
+        if (!cancelled) setAssessments(data.assessments ?? [])
+      } catch {
+        if (!cancelled) setAssessments([])
+      }
+    }
+    void loadAssessments()
+    return () => {
+      cancelled = true
+    }
+  }, [activeTab])
+
+  const filteredStudents = useMemo(() => {
+    if (!selectedClass) return []
+    return students.filter((s) => s.classId === selectedClass)
+  }, [students, selectedClass])
+
+  const latestByStudent = useMemo(() => {
+    const map = new Map<string, AssessmentSummary>()
+    for (const row of assessments) {
+      if (!row.student_id) continue
+      if (!map.has(row.student_id)) map.set(row.student_id, row)
+    }
+    return map
+  }, [assessments])
+
+  const handleOpenAssessment = (student: ClassStudent) => {
     setSelectedStudent(student)
     setShowAssessmentDialog(true)
     // Reset form or load existing data
@@ -397,7 +465,11 @@ export default function SpecialtyAssessmentPage() {
   
   const handleSaveAssessment = async () => {
     if (!selectedStudent) return
-    
+    if (activeTab !== 'music') {
+      toast.error('فعلاً فقط ارزیابی موسیقی قابل ذخیره است')
+      return
+    }
+
     setIsSubmitting(true)
     
     try {
@@ -412,15 +484,19 @@ export default function SpecialtyAssessmentPage() {
         body: JSON.stringify(payload),
       })
       if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || 'save failed')
+        const err = (await res.json()) as { error?: string }
+        throw new Error(err.error || 'ذخیره ناموفق بود')
       }
 
-      alert('ارزیابی با موفقیت ذخیره شد')
+      toast.success('ارزیابی با موفقیت ذخیره شد')
       setShowAssessmentDialog(false)
+      const listRes = await fetch(`/api/specialty-assessments?type=${activeTab}&limit=100`)
+      if (listRes.ok) {
+        const listData = (await listRes.json()) as { assessments?: AssessmentSummary[] }
+        setAssessments(listData.assessments ?? [])
+      }
     } catch (error) {
-      console.error('Error:', error)
-      alert('خطا در ذخیره ارزیابی')
+      toast.error(error instanceof Error ? error.message : 'خطا در ذخیره ارزیابی')
     } finally {
       setIsSubmitting(false)
     }
@@ -468,7 +544,7 @@ export default function SpecialtyAssessmentPage() {
                     <SelectValue placeholder="انتخاب کلاس" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockClasses.map(cls => (
+                    {classes.map(cls => (
                       <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -523,15 +599,27 @@ export default function SpecialtyAssessmentPage() {
                   دانش‌آموزان
                   {selectedClass && (
                     <span className="text-white/50 text-sm font-normal">
-                      ({mockClasses.find(c => c.id === selectedClass)?.name || ''})
+                      ({classes.find(c => c.id === selectedClass)?.name || ''})
                     </span>
                   )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {!selectedClass ? (
+                {isLoading ? (
+                  <div className="flex justify-center py-10">
+                    <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+                  </div>
+                ) : classes.length === 0 ? (
+                  <div className="text-center py-8 text-white/40">
+                    کلاسی به شما اختصاص داده نشده است.
+                  </div>
+                ) : !selectedClass ? (
                   <div className="text-center py-8 text-white/40">
                     لطفاً ابتدا کلاس را انتخاب کنید
+                  </div>
+                ) : filteredStudents.length === 0 ? (
+                  <div className="text-center py-8 text-white/40">
+                    دانش‌آموزی در این کلاس ثبت نشده است.
                   </div>
                 ) : (
                   <Table>
@@ -545,7 +633,12 @@ export default function SpecialtyAssessmentPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {mockStudents.map((student, idx) => (
+                      {filteredStudents.map((student, idx) => {
+                        const latest = latestByStudent.get(student.id)
+                        const lastGrade = latest?.final_grade
+                          ? (FINAL_GRADE_LABELS[latest.final_grade as FinalGrade] ?? latest.final_grade)
+                          : '—'
+                        return (
                         <TableRow key={student.id} className="border-white/10 hover:bg-white/5">
                           <TableCell className="text-white/50">{idx + 1}</TableCell>
                           <TableCell>
@@ -556,15 +649,15 @@ export default function SpecialtyAssessmentPage() {
                               <span className="text-white">{student.name}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-white/60">{student.lastAssessment}</TableCell>
+                          <TableCell className="text-white/60">{latest?.assessment_date || '—'}</TableCell>
                           <TableCell>
                             <span className={`px-2 py-0.5 rounded-full text-xs ${
-                              student.lastGrade === 'عالی' ? 'bg-green-500/20 text-green-400' :
-                              student.lastGrade === 'خیلی خوب' ? 'bg-blue-500/20 text-blue-400' :
-                              student.lastGrade === 'خوب' ? 'bg-yellow-500/20 text-yellow-400' :
+                              lastGrade === 'عالی' ? 'bg-green-500/20 text-green-400' :
+                              lastGrade === 'خیلی خوب' ? 'bg-blue-500/20 text-blue-400' :
+                              lastGrade === 'خوب' ? 'bg-yellow-500/20 text-yellow-400' :
                               'bg-white/10 text-white/50'
                             }`}>
-                              {student.lastGrade}
+                              {lastGrade}
                             </span>
                           </TableCell>
                           <TableCell>
@@ -578,7 +671,8 @@ export default function SpecialtyAssessmentPage() {
                             </Button>
                           </TableCell>
                         </TableRow>
-                      ))}
+                        )
+                      })}
                     </TableBody>
                   </Table>
                 )}
@@ -604,29 +698,26 @@ export default function SpecialtyAssessmentPage() {
               
               {activeTab === 'art' && (
                 <div className="text-center py-8 text-white/40">
-                  فرم ارزیابی هنر
-                  {/* Similar form for art */}
+                  فرم هنر هنوز آماده نیست — ذخیره نمی‌شود.
                 </div>
               )}
               
               {activeTab === 'sports' && (
                 <div className="text-center py-8 text-white/40">
-                  فرم ارزیابی ورزش
-                  {/* Similar form for sports */}
+                  فرم ورزش هنوز آماده نیست — ذخیره نمی‌شود.
                 </div>
               )}
               
               {activeTab === 'stem' && (
                 <div className="text-center py-8 text-white/40">
-                  فرم ارزیابی STEM
-                  {/* Similar form for STEM */}
+                  فرم STEM هنوز آماده نیست — ذخیره نمی‌شود.
                 </div>
               )}
               
               <div className="flex gap-3 mt-6 pt-4 border-t border-white/10">
                 <Button
                   onClick={handleSaveAssessment}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || activeTab !== 'music'}
                   className="flex-1 bg-purple-500 hover:bg-purple-600 text-white gap-2"
                 >
                   <Save className="w-4 h-4" />

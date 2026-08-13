@@ -21,6 +21,7 @@ import {
   getRoleLabel,
   isNavActive,
   mobileTabItems,
+  navItemBadgeClassName,
   resolveNavGroups,
 } from '@/lib/nav/config'
 
@@ -163,7 +164,7 @@ export function LuxNav({
                     <Icon className="w-4 h-4 flex-shrink-0" />
                     <span className="truncate">{item.title}</span>
                     {item.badge !== undefined && (
-                      <Badge className="mr-auto text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] bg-red-500 text-white">
+                      <Badge className={navItemBadgeClassName(item.badge)}>
                         {item.badge}
                       </Badge>
                     )}

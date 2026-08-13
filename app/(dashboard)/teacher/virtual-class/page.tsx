@@ -1,0 +1,22 @@
+import { UnderConstruction } from '@/components/ui/under-construction'
+import {
+  COMING_SOON_LICENSE_VIRTUAL_CLASS,
+  COMING_SOON_PILOT_NOTE,
+} from '@/lib/copy/coming-soon'
+
+export default function TeacherVirtualClassPage() {
+  return (
+    <UnderConstruction
+      title="کلاس مجازی"
+      description={COMING_SOON_LICENSE_VIRTUAL_CLASS}
+      backHref="/teacher"
+      backLabel="بازگشت به داشبورد معلم"
+      pilotNote={COMING_SOON_PILOT_NOTE}
+      features={[
+        'ورود به جلسهٔ آنلاین کلاس',
+        'برنامهٔ جلسات و لینک حضور',
+        'پس از خرید لایسنس کلاس مجازی فعال می‌شود',
+      ]}
+    />
+  )
+}

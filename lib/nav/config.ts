@@ -7,6 +7,7 @@ import {
   ArrowLeftRight, Palette,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
 
 export type NavItem = {
   title: string
@@ -86,7 +87,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'نمرات', href: '/teacher/grades', icon: GraduationCap },
         { title: 'رفتار دانش‌آموزان', href: '/teacher/behavior', icon: Heart },
         { title: 'گزارش هفتگی', href: '/teacher/weekly-report', icon: FileText },
-        { title: 'کلاس مجازی', href: '/teacher#virtual-class', icon: Video },
+        { title: 'کلاس مجازی', href: '/teacher/virtual-class', icon: Video, badge: COMING_SOON_BADGE },
       ],
     },
     {
@@ -326,7 +327,16 @@ export function resolveNavGroups(role: string): NavGroup[] {
 }
 
 export function isNavActive(pathname: string, href: string): boolean {
-  if (pathname === href) return true
-  if (href === '/' || href === '/dashboard') return false
-  return pathname.startsWith(`${href}/`)
+  const pathOnly = href.split('#')[0] || href
+  if (pathname === pathOnly) return true
+  if (pathOnly === '/' || pathOnly === '/dashboard') return false
+  return pathname.startsWith(`${pathOnly}/`)
+}
+
+/** نشان عددی = شمارنده (قرمز)؛ متن مثل «به‌زودی» = کهربا */
+export function navItemBadgeClassName(badge: string | number): string {
+  if (typeof badge === 'string') {
+    return 'mr-auto text-[10px] px-1.5 py-0 h-[18px] bg-amber-500/90 text-white'
+  }
+  return 'mr-auto text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] bg-red-500 text-white'
 }

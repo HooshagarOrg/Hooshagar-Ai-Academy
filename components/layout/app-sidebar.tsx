@@ -10,9 +10,10 @@ import {
   Activity, ClipboardCheck, DollarSign, Mail, Search, AlertCircle,
   Wrench, Bell, Send, GraduationCap, Building, ChevronLeft, ChevronRight,
   Sparkles, Trophy, Compass, Gamepad2, Lightbulb, LogOut, User,
-  Heart, PenTool, HelpCircle, Clock, TrendingUp, X, CreditCard, Video,
+  Heart, PenTool, HelpCircle, Clock, TrendingUp, X, CreditCard, Video, Palette, Flame, ArrowLeftRight,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -63,8 +64,9 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'مدارس', href: '/admin/schools', icon: GraduationCap },
         { title: 'کاربران', href: '/admin/users', icon: Users },
         { title: 'واردسازی گروهی', href: '/admin/bulk-import', icon: FileText },
-        { title: 'انتقال دانش‌آموزان', href: '/admin/progression', icon: ArrowUpCircle },
-        { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'ارتقاء پایه', href: '/admin/progression', icon: ArrowUpCircle },
+        { title: 'انتقال بین‌مدرسه‌ای', href: '/admin/transfers', icon: ArrowLeftRight },
+        { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
@@ -77,12 +79,14 @@ const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'هوش مصنوعی',
       items: [
-        { title: 'مدل‌های AI', href: '/admin/ai-models', icon: Brain, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
-        { title: 'اعتبار AI', href: '/admin/ai-credits', icon: Zap, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'مصرف AI', href: '/admin/ai-usage-dashboard', icon: BarChart3 },
         { title: 'محدودیت‌ها', href: '/admin/ai-limits', icon: Sliders },
         { title: 'کنترل دسترسی', href: '/admin/ai-access-control', icon: Shield },
-        { title: 'مصرف AI', href: '/admin/ai-usage-dashboard', icon: BarChart3 },
         { title: 'تست AI', href: '/admin/ai-test', icon: HelpCircle },
+        { title: 'تنظیمات AI', href: '/admin/ai-settings', icon: Settings },
+        { title: 'سیستم AI', href: '/admin/ai-system', icon: Activity },
+        { title: 'مدل‌های AI', href: '/admin/ai-models', icon: Brain, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'اعتبار AI', href: '/admin/ai-credits', icon: Zap, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
@@ -91,7 +95,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'گزارشات', href: '/admin/reports', icon: BarChart3 },
         { title: 'ارسال پیام گروهی', href: '/admin/broadcast', icon: Send },
         { title: 'نظرسنجی‌ها', href: '/admin/surveys', icon: MessageSquare },
-        { title: 'هشدار زودهنگام', href: '/admin/early-warning', icon: AlertCircle, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'هشدار زودهنگام', href: '/admin/early-warning', icon: AlertCircle, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
@@ -105,11 +109,12 @@ const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'تنظیمات',
       items: [
-        { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'سال تحصیلی', href: '/admin/academic-years', icon: Calendar },
-        { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'پلن‌های اشتراک', href: '/admin/subscriptions', icon: CreditCard },
         { title: 'ظرفیت و سهمیه', href: '/admin/quota-settings', icon: Sliders },
+        { title: 'برندینگ مدرسه', href: '/admin/school-settings', icon: Palette },
+        { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
       ]
     },
@@ -126,7 +131,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'نمرات', href: '/teacher/grades', icon: GraduationCap },
         { title: 'رفتار دانش‌آموزان', href: '/teacher/behavior', icon: Heart },
         { title: 'گزارش هفتگی', href: '/teacher/weekly-report', icon: FileText },
-        { title: 'کلاس مجازی', href: '/teacher/virtual-class', icon: Video, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'کلاس مجازی', href: '/teacher/virtual-class', icon: Video, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
@@ -137,8 +142,8 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'بانک سوال', href: '/teacher/question-bank-v2', icon: BookOpen },
         { title: 'تولید محتوا (AI)', href: '/teacher/content-creator', icon: Sparkles },
         { title: 'سوالات شفاهی', href: '/teacher/oral-questions', icon: MessageSquare },
-        { title: 'ارزیابی مهارت پایه', href: '/teacher/academic-foundation', icon: Target, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
-        { title: 'اعطای نشان', href: '/teacher/award-badges', icon: Award, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'ارزیابی مهارت پایه', href: '/teacher/academic-foundation', icon: Target, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'اعطای نشان', href: '/teacher/award-badges', icon: Award, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
@@ -160,13 +165,14 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'گزارشات', href: '/parent/reports', icon: BarChart3 },
         { title: 'حضور و غیاب', href: '/parent/attendance', icon: ClipboardCheck },
         { title: 'بهداشت', href: '/parent/health', icon: Heart },
-        { title: 'امور مالی', href: '/parent/financials', icon: DollarSign, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'گزارش تخصصی', href: '/parent/specialty-reports', icon: Palette },
+        { title: 'امور مالی', href: '/parent/financials', icon: DollarSign, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
       title: 'خدمات',
       items: [
-        { title: 'کلاس مجازی', href: '/parent/virtual-class', icon: Video, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'کلاس مجازی', href: '/parent/virtual-class', icon: Video, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'مشاوره', href: '/parent/counseling', icon: HelpCircle },
         { title: 'ثبت‌نام کلاس', href: '/parent/class-registration', icon: GraduationCap },
         { title: 'نظرسنجی', href: '/parent/survey', icon: MessageSquare },
@@ -184,9 +190,11 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'نمراتم', href: '/student/grades', icon: GraduationCap },
         { title: 'مسیر یادگیری', href: '/student/learning-journey', icon: Compass },
         { title: 'آزمون‌هایم', href: '/student/exams', icon: ClipboardCheck },
-        { title: 'کلاس مجازی', href: '/student/virtual-class', icon: Video, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'کلاس مجازی', href: '/student/virtual-class', icon: Video, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'دستیار مطالعه', href: '/student/study-buddy', icon: BookOpen },
         { title: 'حل مسئله (OCR)', href: '/student/problem-solver', icon: Lightbulb },
+        { title: 'استریک یادگیری', href: '/student/streak', icon: Flame },
+        { title: 'راهنمای AI', href: '/student/ai-guidance', icon: Brain, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
@@ -194,21 +202,22 @@ const navConfig: Record<string, NavGroup[]> = {
       items: [
         { title: 'انتخاب رشته', href: '/student/field-selection', icon: Target },
         { title: 'کنکور', href: '/student/konkur', icon: Award },
-        { title: 'نقشه راه کنکور', href: '/student/konkur-roadmap', icon: Compass },
-        { title: 'قطب‌نمای آینده', href: '/student/future-compass', icon: Compass },
+        { title: 'نقشه راه کنکور', href: '/student/konkur-roadmap', icon: Compass, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'قطب‌نمای آینده', href: '/student/future-compass', icon: Compass, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
       title: 'ثبت‌نام',
       items: [
         { title: 'ثبت‌نام کلاس', href: '/student/class-registration', icon: GraduationCap },
+        { title: 'قرعه‌کشی کلاس', href: '/student/lottery', icon: Trophy },
       ]
     },
     {
       title: 'سرگرمی',
       items: [
         { title: 'باغ استعداد', href: '/student/talent-garden', icon: Trophy },
-        { title: 'زمین بازی', href: '/student/practice-playground', icon: Gamepad2 },
+        { title: 'زمین بازی', href: '/student/practice-playground', icon: Gamepad2, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'نشان‌هایم', href: '/student/badges', icon: Award },
         { title: 'فروشگاه', href: '/student/shop', icon: Zap },
       ]
@@ -216,28 +225,29 @@ const navConfig: Record<string, NavGroup[]> = {
   ],
   counselor: [
     {
-      items: [{ title: 'داشبورد', href: '/counselor', icon: Home }]
+      items: [{ title: 'داشبورد', href: '/counselor', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' }]
     },
     {
       title: 'مشاوره',
       items: [
-        { title: 'دانش‌آموزان', href: '/counselor/records', icon: Users },
-        { title: 'پرونده جدید', href: '/counselor/records/new', icon: FileText },
-        { title: 'گزارش‌ها', href: '/counselor/reports', icon: BarChart3 },
-        { title: 'بینش خانواده', href: '/counselor/family-insight', icon: Heart },
+        { title: 'دانش‌آموزان', href: '/counselor/records', icon: Users, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'پرونده جدید', href: '/counselor/records/new', icon: FileText, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'گزارش‌ها', href: '/counselor/reports', icon: BarChart3, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'بینش خانواده', href: '/counselor/family-insight', icon: Heart, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
   ],
   financial_vp: [
     {
-      items: [{ title: 'داشبورد', href: '/financial-vp', icon: Home }]
+      items: [{ title: 'داشبورد', href: '/financial-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' }]
     },
     {
       title: 'مالی',
       items: [
-        { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: DollarSign, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
-        { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: AlertCircle, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
-        { title: 'گزارش درآمد', href: '/financial-vp/reports/income', icon: TrendingUp, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: DollarSign, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'پیامک', href: '/financial-vp/sms', icon: MessageSquare, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: AlertCircle, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'گزارش درآمد', href: '/financial-vp/reports/income', icon: TrendingUp, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
   ],
@@ -246,56 +256,58 @@ const navConfig: Record<string, NavGroup[]> = {
 // نقش‌هایی که navConfig خاص ندارند
 const simpleNavs: Record<string, NavItem[]> = {
   principal: [
-    { title: 'داشبورد', href: '/principal', icon: Home },
-    { title: 'مدیریت مدرسه', href: '/principal/overview', icon: Building },
+    { title: 'داشبورد', href: '/principal', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'مدیریت مدرسه', href: '/principal/overview', icon: Building, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   educational_vp: [
-    { title: 'داشبورد', href: '/educational-vp', icon: Home },
-    { title: 'برنامه‌ریزی', href: '/educational-vp/planning', icon: Calendar },
-    { title: 'فعالیت‌ها', href: '/educational-vp/activities', icon: Activity },
+    { title: 'داشبورد', href: '/educational-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'برنامه‌ریزی', href: '/educational-vp/planning', icon: Calendar, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'فعالیت‌ها', href: '/educational-vp/activities', icon: Activity, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   disciplinary_vp: [
-    { title: 'داشبورد', href: '/discipline-vp', icon: Home },
-    { title: 'حضور و غیاب', href: '/discipline-vp/attendance', icon: ClipboardCheck },
-    { title: 'گزارش‌های انضباطی', href: '/discipline-vp/reports', icon: Shield },
+    { title: 'داشبورد', href: '/discipline-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'حضور و غیاب', href: '/discipline-vp/attendance', icon: ClipboardCheck, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'گزارش‌های انضباطی', href: '/discipline-vp/reports', icon: Shield, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   evaluation_vp: [
-    { title: 'داشبورد', href: '/evaluation-vp', icon: Home },
-    { title: 'ارزیابی معلمان', href: '/evaluation-vp/teacher-evaluation', icon: Award },
-    { title: 'آمار', href: '/evaluation-vp/stats', icon: BarChart3 },
+    { title: 'داشبورد', href: '/evaluation-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'ارزیابی معلمان', href: '/evaluation-vp/teacher-evaluation', icon: Award, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'آمار', href: '/evaluation-vp/stats', icon: BarChart3, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   health_vp: [
-    { title: 'داشبورد', href: '/health-vp', icon: Home },
-    { title: 'پرونده‌ها', href: '/health-vp/students', icon: Users },
-    { title: 'گزارش‌ها', href: '/health-vp/reports', icon: FileText },
+    { title: 'داشبورد', href: '/health-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'پرونده‌ها', href: '/health-vp/students', icon: Users, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'گزارش‌ها', href: '/health-vp/reports', icon: FileText, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   art_teacher: [
-    { title: 'داشبورد', href: '/art-teacher', icon: Home },
-    { title: 'گزارشات هنری', href: '/art-teacher/art-reports', icon: FileText },
+    { title: 'داشبورد', href: '/art-teacher', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'گزارشات هنری', href: '/art-teacher/art-reports', icon: FileText, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   sports_teacher: [
-    { title: 'داشبورد', href: '/sports-teacher', icon: Home },
-    { title: 'گزارشات ورزشی', href: '/sports-teacher/sports-reports', icon: FileText },
+    { title: 'داشبورد', href: '/sports-teacher', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'گزارشات ورزشی', href: '/sports-teacher/sports-reports', icon: FileText, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   secretary: [
-    { title: 'داشبورد', href: '/secretary', icon: Home },
-    { title: 'مکاتبات', href: '/secretary/correspondence', icon: Mail },
-    { title: 'جلسات', href: '/secretary/meetings', icon: Calendar },
+    { title: 'داشبورد', href: '/secretary', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'مکاتبات', href: '/secretary/correspondence', icon: Mail, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'جلسات', href: '/secretary/meetings', icon: Calendar, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   librarian: [
-    { title: 'داشبورد', href: '/librarian', icon: Home },
-    { title: 'امانت کتاب', href: '/librarian/lending', icon: BookOpen },
-    { title: 'جستجو', href: '/librarian/search', icon: Search },
+    { title: 'داشبورد', href: '/librarian', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'امانت کتاب', href: '/librarian/lending', icon: BookOpen, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'جستجو', href: '/librarian/search', icon: Search, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   security: [
-    { title: 'داشبورد', href: '/security', icon: Home },
-    { title: 'ورود و خروج', href: '/security/entry-exit', icon: Users },
-    { title: 'رخدادها', href: '/security/incidents', icon: AlertCircle },
+    { title: 'داشبورد', href: '/security', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'ورود و خروج', href: '/security/entry-exit', icon: Users, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'رخدادها', href: '/security/incidents', icon: AlertCircle, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   maintenance: [
-    { title: 'داشبورد', href: '/maintenance', icon: Home },
-    { title: 'درخواست تعمیر', href: '/maintenance/requests', icon: Wrench },
-    { title: 'برنامه', href: '/maintenance/schedule', icon: Calendar },
+    { title: 'داشبورد', href: '/maintenance', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'درخواست تعمیر', href: '/maintenance/requests', icon: Wrench, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'برنامه', href: '/maintenance/schedule', icon: Calendar, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+  ],
+}
   ],
 }
 

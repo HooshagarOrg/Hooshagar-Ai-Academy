@@ -122,6 +122,22 @@ const ADMIN_HUB: LuxHubGroup[] = [
         color: 'text-brand-green',
         bg: 'bg-brand-green/15 border border-brand-green/20',
       },
+      {
+        title: 'تنظیمات AI',
+        description: 'بودجه، کش و سوئیچ لایه',
+        icon: Settings,
+        href: '/admin/ai-settings',
+        color: 'text-brand-cyan',
+        bg: 'bg-brand-cyan/15 border border-brand-cyan/20',
+      },
+      {
+        title: 'سیستم AI',
+        description: 'وضعیت سرویس و مسیرهای هوش مصنوعی',
+        icon: Activity,
+        href: '/admin/ai-system',
+        color: 'text-brand-purple',
+        bg: 'bg-brand-purple/15 border border-brand-purple/20',
+      },
     ],
   },
   {

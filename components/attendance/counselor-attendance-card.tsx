@@ -25,13 +25,7 @@ interface CounselorAttendanceCardProps {
 }
 
 export default function CounselorAttendanceCard({ schoolId }: CounselorAttendanceCardProps) {
-  const [students, setStudents] = useState<HighAbsenceStudent[]>([
-    { id: '1', name: 'علی رضایی', class_name: 'ششم الف', absent_days: 8, trend: 'up', last_counseling: '1403/09/10' },
-    { id: '2', name: 'محمد کریمی', class_name: 'ششم ب', absent_days: 7, trend: 'same' },
-    { id: '3', name: 'سارا احمدی', class_name: 'پنجم ب', absent_days: 6, trend: 'down', last_counseling: '1403/09/05' },
-    { id: '4', name: 'فاطمه حسینی', class_name: 'پنجم الف', absent_days: 6, trend: 'up' },
-    { id: '5', name: 'امیرحسین نوری', class_name: 'ششم الف', absent_days: 5, trend: 'same', last_counseling: '1403/09/12' },
-  ])
+  const [students, setStudents] = useState<HighAbsenceStudent[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -80,7 +74,12 @@ export default function CounselorAttendanceCard({ schoolId }: CounselorAttendanc
       <CardContent className="space-y-4">
         <ScrollArea className="h-[280px] pr-4">
           <div className="space-y-3">
-            {students.map((student, index) => (
+            {students.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                دانش‌آموز پرغیبتی ثبت نشده است.
+              </p>
+            ) : (
+            students.map((student, index) => (
               <div
                 key={student.id}
                 className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -135,6 +134,7 @@ export default function CounselorAttendanceCard({ schoolId }: CounselorAttendanc
                 </div>
               </div>
             ))}
+            )}
           </div>
         </ScrollArea>
 

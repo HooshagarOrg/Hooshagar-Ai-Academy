@@ -1,323 +1,139 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import {
-  Shield,
-  ArrowRight,
-  FileText,
-  Download,
-  Eye,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Users,
-  TrendingUp,
-  AlertCircle,
-  Printer,
-} from 'lucide-react'
-import { DashboardPage } from '@/components/layout/dashboard-page'
-import { GlassCard } from '@/components/ui/glass-card'
-import { Button } from '@/components/ui/button'
+import { Shield, Loader2 } from 'lucide-react'
+import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { LuxEmptyState } from '@/components/lux/lux-empty-state'
+import { LuxErrorState } from '@/components/lux/lux-page-states'
 
-// ============================================
-// تایپ‌ها
-// ============================================
-interface LotteryAudit {
+type LotteryRow = {
   id: string
-  targetGrade: number
-  academicYear: string
+  target_grade: number
+  academic_year: string
   status: string
-  totalRegistrations: number
-  successful: number
-  failed: number
-  executedAt: string
-  executedBy: string
+  lottery_time?: string
 }
 
-interface LotteryLog {
+type LotteryLog = {
   id: string
-  type: string
-  message: string
-  timestamp: string
-  studentName?: string
-  className?: string
+  log_type?: string
+  message?: string
+  created_at?: string
 }
 
-// ============================================
-// داده‌های نمونه
-// ============================================
-const sampleLotteries: LotteryAudit[] = [
-  {
-    id: '1',
-    targetGrade: 2,
-    academicYear: '۱۴۰۳-۱۴۰۴',
-    status: 'completed',
-    totalRegistrations: 120,
-    successful: 115,
-    failed: 5,
-    executedAt: '۱۴۰۳/۰۳/۱۵ - ۱۰:۰۰',
-    executedBy: 'محمد رضایی (مدیر)',
-  },
-  {
-    id: '2',
-    targetGrade: 3,
-    academicYear: '۱۴۰۳-۱۴۰۴',
-    status: 'completed',
-    totalRegistrations: 95,
-    successful: 92,
-    failed: 3,
-    executedAt: '۱۴۰۳/۰۳/۱۶ - ۱۱:۳۰',
-    executedBy: 'محمد رضایی (مدیر)',
-  },
-]
-
-const sampleLogs: LotteryLog[] = [
-  { id: '1', type: 'started', message: 'قرعه‌کشی شروع شد', timestamp: '۱۴۰۳/۰۳/۱۵ - ۱۰:۰۰:۰۰' },
-  { id: '2', type: 'assigned', message: 'تخصیص به انتخاب 1', timestamp: '۱۴۰۳/۰۳/۱۵ - ۱۰:۰۰:۰۵', studentName: 'علی محمدی', className: 'دوم الف' },
-  { id: '3', type: 'assigned', message: 'تخصیص به انتخاب 2', timestamp: '۱۴۰۳/۰۳/۱۵ - ۱۰:۰۰:۰۶', studentName: 'سارا رضایی', className: 'دوم ب' },
-  { id: '4', type: 'failed', message: 'ظرفیت کلاس‌های انتخابی تکمیل شده', timestamp: '۱۴۰۳/۰۳/۱۵ - ۱۰:۰۰:۰۷', studentName: 'محمد احمدی' },
-  { id: '5', type: 'completed', message: 'قرعه‌کشی با موفقیت انجام شد', timestamp: '۱۴۰۳/۰۳/۱۵ - ۱۰:۰۱:۳۰' },
-]
-
-// ============================================
-// کامپوننت اصلی
-// ============================================
 export default function LotteryAuditPage() {
-  const [selectedLottery, setSelectedLottery] = useState<string>('1')
-  const [showDetailedLog, setShowDetailedLog] = useState(false)
+  const [lotteries, setLotteries] = useState<LotteryRow[]>([])
+  const [selectedId, setSelectedId] = useState('')
+  const [logs, setLogs] = useState<LotteryLog[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const selectedData = sampleLotteries.find(l => l.id === selectedLottery)
-  const successRate = selectedData ? ((selectedData.successful / selectedData.totalRegistrations) * 100).toFixed(1) : '0'
-
-  const getLogIcon = (type: string) => {
-    switch (type) {
-      case 'started': return <Clock className="w-4 h-4 text-blue-400" />
-      case 'assigned': return <CheckCircle className="w-4 h-4 text-green-400" />
-      case 'failed': return <XCircle className="w-4 h-4 text-red-400" />
-      case 'completed': return <CheckCircle className="w-4 h-4 text-emerald-400" />
-      default: return <AlertCircle className="w-4 h-4 text-[var(--lux-text-muted)]" />
-    }
+  const loadList = () => {
+    setLoading(true)
+    setError('')
+    fetch('/api/lottery/admin')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.success) {
+          setError(data.error || 'دریافت قرعه‌کشی‌ها ناموفق بود')
+          setLotteries([])
+          return
+        }
+        const list: LotteryRow[] = data.lotteries || []
+        setLotteries(list)
+        if (list[0]) setSelectedId(list[0].id)
+      })
+      .catch(() => setError('اتصال برقرار نشد'))
+      .finally(() => setLoading(false))
   }
 
-  const getLogBadge = (type: string) => {
-    switch (type) {
-      case 'started': return 'bg-blue-500/20 text-blue-400'
-      case 'assigned': return 'bg-green-500/20 text-green-400'
-      case 'failed': return 'bg-red-500/20 text-red-400'
-      case 'completed': return 'bg-emerald-500/20 text-emerald-400'
-      default: return 'bg-[var(--lux-surface)]0/20 text-[var(--lux-text-muted)]'
+  useEffect(() => {
+    loadList()
+  }, [])
+
+  useEffect(() => {
+    if (!selectedId) {
+      setLogs([])
+      return
     }
-  }
+    fetch(`/api/lottery/admin?id=${encodeURIComponent(selectedId)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setLogs(data.logs || [])
+        else setLogs([])
+      })
+      .catch(() => setLogs([]))
+  }, [selectedId])
 
   return (
     <DashboardPage
-      className="max-w-7xl mx-auto"
       title={
         <span className="flex items-center gap-3">
-          <Shield className="w-8 h-8 text-brand-green" />
-          ممیزی و بازرسی قرعه‌کشی
+          <Shield className="h-8 w-8 text-brand-green" />
+          ممیزی قرعه‌کشی
         </span>
       }
-      description="مشاهده جزئیات کامل، لاگ‌ها و گزارش‌های قابل چاپ"
+      description="لاگ واقعی اجرا — بدون دادهٔ نمونه"
       actions={
-        <div className="flex items-center gap-2">
-          <Link href="/admin/lottery">
-            <Button variant="outline" size="icon" className="glass-panel-quiet" aria-label="بازگشت">
-              <ArrowRight className="w-5 h-5" />
-            </Button>
-          </Link>
-          <Button variant="outline" className="gap-2">
-            <Printer className="w-4 h-4" />
-            چاپ گزارش
-          </Button>
-          <Button className="gap-2">
-            <Download className="w-4 h-4" />
-            دانلود PDF
-          </Button>
-        </div>
+        <Link href="/admin/lottery" className="lux-btn-ghost min-h-10 px-4 text-sm">
+          مدیریت قرعه‌کشی
+        </Link>
       }
-      animatedSections={false}
     >
-
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* ستون چپ: لیست قرعه‌کشی‌ها */}
-          <div className="lg:col-span-1">
-            <GlassCard className="p-6 sticky top-6">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-emerald-400" />
-                قرعه‌کشی‌های انجام شده
-              </h2>
-              <div className="space-y-3">
-                {sampleLotteries.map((lottery) => (
-                  <button
-                    key={lottery.id}
-                    onClick={() => setSelectedLottery(lottery.id)}
-                    className={`w-full text-right p-4 rounded-xl border transition-all ${
-                      selectedLottery === lottery.id
-                        ? 'bg-emerald-500/20 border-emerald-500/30'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-white font-bold">پایه {lottery.targetGrade}</span>
-                      <span className="px-2 py-0.5 rounded-lg text-xs bg-green-500/20 text-green-400">
-                        تکمیل شده
-                      </span>
-                    </div>
-                    <p className="text-white/60 text-sm">{lottery.academicYear}</p>
-                    <p className="text-white/40 text-xs mt-2">{lottery.executedAt}</p>
-                    <div className="flex gap-2 mt-3 text-xs">
-                      <span className="text-green-400">✓ {lottery.successful}</span>
-                      <span className="text-red-400">✗ {lottery.failed}</span>
-                      <span className="text-white/60">از {lottery.totalRegistrations}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </GlassCard>
+      {loading ? (
+        <DashboardSectionBlock>
+          <div className="flex justify-center p-10">
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--lux-primary)]" />
           </div>
-
-          {/* ستون راست: جزئیات */}
-          <div className="lg:col-span-2 space-y-6">
-            {selectedData && (
-              <>
-                {/* کارت اطلاعات کلی */}
-                <GlassCard className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-4">اطلاعات کلی</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-white/5 rounded-xl p-4">
-                      <p className="text-white/60 text-sm mb-1">پایه تحصیلی</p>
-                      <p className="text-2xl font-bold text-white">پایه {selectedData.targetGrade}</p>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-4">
-                      <p className="text-white/60 text-sm mb-1">سال تحصیلی</p>
-                      <p className="text-2xl font-bold text-white">{selectedData.academicYear}</p>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-4">
-                      <p className="text-white/60 text-sm mb-1">زمان اجرا</p>
-                      <p className="text-white font-bold">{selectedData.executedAt}</p>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-4">
-                      <p className="text-white/60 text-sm mb-1">اجرا شده توسط</p>
-                      <p className="text-white font-bold">{selectedData.executedBy}</p>
-                    </div>
-                  </div>
-                </GlassCard>
-
-                {/* آمار */}
-                <GlassCard className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-4">آمار نتایج</h3>
-                  <div className="grid md:grid-cols-4 gap-4">
-                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
-                      <Users className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                      <p className="text-blue-400 text-sm mb-1">کل ثبت‌نام</p>
-                      <p className="text-3xl font-bold text-blue-300">{selectedData.totalRegistrations}</p>
-                    </div>
-                    
-                    <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-                      <CheckCircle className="w-6 h-6 text-green-400 mx-auto mb-2" />
-                      <p className="text-green-400 text-sm mb-1">موفق</p>
-                      <p className="text-3xl font-bold text-green-300">{selectedData.successful}</p>
-                    </div>
-                    
-                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-center">
-                      <XCircle className="w-6 h-6 text-red-400 mx-auto mb-2" />
-                      <p className="text-red-400 text-sm mb-1">ناموفق</p>
-                      <p className="text-3xl font-bold text-red-300">{selectedData.failed}</p>
-                    </div>
-                    
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center">
-                      <TrendingUp className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
-                      <p className="text-emerald-400 text-sm mb-1">نرخ موفقیت</p>
-                      <p className="text-3xl font-bold text-emerald-300">{successRate}%</p>
-                    </div>
-                  </div>
-                </GlassCard>
-
-                {/* لاگ‌ها */}
-                <GlassCard className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-emerald-400" />
-                      لاگ‌های اجرا
-                    </h3>
-                    <button
-                      onClick={() => setShowDetailedLog(!showDetailedLog)}
-                      className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all text-sm"
-                    >
-                      <Eye className="w-4 h-4" />
-                      {showDetailedLog ? 'نمایش خلاصه' : 'نمایش کامل'}
-                    </button>
-                  </div>
-
-                  <div className="space-y-3 max-h-[500px] overflow-y-auto">
-                    {sampleLogs.map((log) => (
-                      <div
-                        key={log.id}
-                        className="bg-white/5 rounded-xl p-4 border border-white/10"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 mt-0.5">
-                            {getLogIcon(log.type)}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`px-2 py-0.5 rounded-lg text-xs ${getLogBadge(log.type)}`}>
-                                {log.type === 'started' ? 'شروع' :
-                                 log.type === 'assigned' ? 'تخصیص' :
-                                 log.type === 'failed' ? 'ناموفق' : 'تکمیل'}
-                              </span>
-                              <span className="text-white/40 text-xs">{log.timestamp}</span>
-                            </div>
-                            <p className="text-white text-sm">{log.message}</p>
-                            {showDetailedLog && log.studentName && (
-                              <div className="mt-2 text-xs text-white/60">
-                                <p>دانش‌آموز: {log.studentName}</p>
-                                {log.className && <p>کلاس: {log.className}</p>}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </GlassCard>
-
-                {/* تاییدیه */}
-                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-6">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0" />
-                    <div className="flex-1">
-                      <h4 className="text-emerald-300 font-bold mb-2">تأییدیه شفافیت</h4>
-                      <p className="text-emerald-200/80 text-sm leading-relaxed">
-                        این قرعه‌کشی با رعایت کامل اصول عدالت و شفافیت انجام شده است. 
-                        تمامی ثبت‌نام‌ها به صورت تصادفی شافل شده و به ترتیب پردازش شده‌اند.
-                        هیچ‌گونه دخالت انسانی در فرآیند قرعه‌کشی وجود نداشته است.
-                      </p>
-                      <div className="mt-4 pt-4 border-t border-emerald-500/20">
-                        <p className="text-emerald-300 text-sm">
-                          ✓ الگوریتم: Random Shuffle با توزیع یکنواخت
-                        </p>
-                        <p className="text-emerald-300 text-sm">
-                          ✓ زمان‌بندی: طبق برنامه اعلام شده
-                        </p>
-                        <p className="text-emerald-300 text-sm">
-                          ✓ ذخیره: تمام لاگ‌ها در دیتابیس ثبت شده
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
+        </DashboardSectionBlock>
+      ) : error ? (
+        <DashboardSectionBlock>
+          <LuxErrorState message={error} onRetry={loadList} variant="lux" />
+        </DashboardSectionBlock>
+      ) : lotteries.length === 0 ? (
+        <DashboardSectionBlock>
+          <LuxEmptyState
+            title="قرعه‌کشی ثبت نشده"
+            description="وقتی قرعه‌کشی اجرا شود، لاگ آن اینجا دیده می‌شود."
+          />
+        </DashboardSectionBlock>
+      ) : (
+        <DashboardSectionBlock>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {lotteries.map((row) => (
+              <button
+                key={row.id}
+                type="button"
+                onClick={() => setSelectedId(row.id)}
+                className={`rounded-xl px-3 py-2 text-sm ${
+                  selectedId === row.id
+                    ? 'bg-[var(--lux-primary)] text-white'
+                    : 'bg-white/5 text-[var(--lux-text)]'
+                }`}
+              >
+                پایه {row.target_grade} — {row.academic_year}
+              </button>
+            ))}
           </div>
-        </div>
-
-        <footer className="text-center text-muted-foreground text-sm py-6 mt-6">
-          <p>سیستم هوشمند مدیریت مدارس - هوشاگر | گزارش قابل ارائه به ناظران و والدین</p>
-        </footer>
+          {logs.length === 0 ? (
+            <p className="text-sm text-[var(--lux-text-muted)]">لاگی برای این دوره نیست.</p>
+          ) : (
+            <ul className="space-y-2">
+              {logs.map((log) => (
+                <li
+                  key={log.id}
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-[var(--lux-text)]"
+                >
+                  <span className="text-[var(--lux-text-muted)]">{log.log_type || 'رویداد'}</span>
+                  {' — '}
+                  {log.message || '—'}
+                </li>
+              ))}
+            </ul>
+          )}
+        </DashboardSectionBlock>
+      )}
     </DashboardPage>
   )
 }
-

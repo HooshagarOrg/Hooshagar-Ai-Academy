@@ -51,169 +51,6 @@ import {
   isExpired,
 } from '@/lib/types/shop.types'
 
-// داده نمونه خریدها
-const SAMPLE_PURCHASES: (UserPurchase & { item: ShopItem })[] = [
-  {
-    id: '1',
-    user_id: 'user1',
-    item_id: '3',
-    price_paid: 400,
-    is_equipped: true,
-    equipped_at: new Date().toISOString(),
-    expires_at: null,
-    is_used: false,
-    purchased_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    item: {
-      id: '3', name: 'جغد دانا', name_en: 'Wise Owl',
-      description: 'آواتار جغد نماد دانش و خرد',
-      type: 'avatar', price_coins: 400, image_url: '🦉', preview_url: null,
-      required_level: 4, is_limited: false, limited_quantity: null, available_until: null,
-      is_active: true, is_featured: false, rarity: 'rare', theme_config: null,
-      sort_order: 3, created_at: '', updated_at: ''
-    }
-  },
-  {
-    id: '2',
-    user_id: 'user1',
-    item_id: '11',
-    price_paid: 400,
-    is_equipped: true,
-    equipped_at: new Date().toISOString(),
-    expires_at: null,
-    is_used: false,
-    purchased_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    item: {
-      id: '11', name: 'جنگل سحرآمیز', name_en: 'Magic Forest',
-      description: 'پس‌زمینه جنگل رویایی و سحرآمیز',
-      type: 'background', price_coins: 400, image_url: '🌳', preview_url: null,
-      required_level: 5, is_limited: false, limited_quantity: null, available_until: null,
-      is_active: true, is_featured: false, rarity: 'rare', theme_config: null,
-      sort_order: 11, created_at: '', updated_at: ''
-    }
-  },
-  {
-    id: '3',
-    user_id: 'user1',
-    item_id: '1',
-    price_paid: 100,
-    is_equipped: false,
-    equipped_at: null,
-    expires_at: null,
-    is_used: false,
-    purchased_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    item: {
-      id: '1', name: 'ستاره درخشان', name_en: 'Shining Star',
-      description: 'آواتار ستاره طلایی برای شروع ماجراجویی',
-      type: 'avatar', price_coins: 100, image_url: '⭐', preview_url: null,
-      required_level: 1, is_limited: false, limited_quantity: null, available_until: null,
-      is_active: true, is_featured: false, rarity: 'common', theme_config: null,
-      sort_order: 1, created_at: '', updated_at: ''
-    }
-  },
-  {
-    id: '4',
-    user_id: 'user1',
-    item_id: '30',
-    price_paid: 150,
-    is_equipped: false,
-    equipped_at: null,
-    expires_at: null,
-    is_used: false,
-    purchased_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    item: {
-      id: '30', name: 'نشان ستاره', name_en: 'Star Badge',
-      description: 'نشان ستاره برای شروع',
-      type: 'badge', price_coins: 150, image_url: '⭐', preview_url: null,
-      required_level: 1, is_limited: false, limited_quantity: null, available_until: null,
-      is_active: true, is_featured: false, rarity: 'common', theme_config: null,
-      sort_order: 30, created_at: '', updated_at: ''
-    }
-  },
-  {
-    id: '5',
-    user_id: 'user1',
-    item_id: '40',
-    price_paid: 500,
-    is_equipped: false,
-    equipped_at: null,
-    expires_at: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(), // 12 ساعت دیگر
-    is_used: false,
-    purchased_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    item: {
-      id: '40', name: 'دو برابر XP', name_en: '2x XP Boost',
-      description: 'دو برابر امتیاز به مدت ۲۴ ساعت',
-      type: 'power_up', price_coins: 500, image_url: '⚡', preview_url: null,
-      required_level: 1, is_limited: false, limited_quantity: null, available_until: null,
-      is_active: true, is_featured: true, rarity: 'rare', theme_config: null,
-      sort_order: 40, created_at: '', updated_at: ''
-    }
-  },
-]
-
-// داده نمونه تراکنش‌ها
-const SAMPLE_TRANSACTIONS: CoinTransaction[] = [
-  {
-    id: '1',
-    user_id: 'user1',
-    type: 'spend',
-    amount: -500,
-    source: 'shop_purchase',
-    reference_id: '5',
-    balance_before: 1734,
-    balance_after: 1234,
-    description: 'خرید دو برابر XP از فروشگاه',
-    created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '2',
-    user_id: 'user1',
-    type: 'earn',
-    amount: 200,
-    source: 'quiz_complete',
-    reference_id: null,
-    balance_before: 1534,
-    balance_after: 1734,
-    description: 'پاداش تکمیل آزمون ریاضی',
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '3',
-    user_id: 'user1',
-    type: 'spend',
-    amount: -150,
-    source: 'shop_purchase',
-    reference_id: '4',
-    balance_before: 1684,
-    balance_after: 1534,
-    description: 'خرید نشان ستاره از فروشگاه',
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '4',
-    user_id: 'user1',
-    type: 'bonus',
-    amount: 100,
-    source: 'daily_login',
-    reference_id: null,
-    balance_before: 1584,
-    balance_after: 1684,
-    description: 'پاداش ورود روزانه (۷ روز متوالی)',
-    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '5',
-    user_id: 'user1',
-    type: 'spend',
-    amount: -400,
-    source: 'shop_purchase',
-    reference_id: '2',
-    balance_before: 1984,
-    balance_after: 1584,
-    description: 'خرید جنگل سحرآمیز از فروشگاه',
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-]
-
 export default function MyItemsPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
@@ -226,12 +63,27 @@ export default function MyItemsPage() {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 800))
-      setPurchases(SAMPLE_PURCHASES)
-      setTransactions(SAMPLE_TRANSACTIONS)
-      setIsLoading(false)
+      try {
+        const [itemsRes, txRes] = await Promise.all([
+          fetch('/api/shop/my-items'),
+          fetch('/api/shop/transactions'),
+        ])
+        const itemsJson = await itemsRes.json()
+        const txJson = await txRes.json()
+        if (!itemsRes.ok || itemsJson.success === false) {
+          throw new Error(itemsJson.error || 'دریافت آیتم‌ها ناموفق بود')
+        }
+        setPurchases(itemsJson.data?.purchases || [])
+        setTransactions(txJson.data?.transactions || [])
+      } catch {
+        setPurchases([])
+        setTransactions([])
+        toast.error('آیتم‌های خریداری‌شده دریافت نشد')
+      } finally {
+        setIsLoading(false)
+      }
     }
-    loadData()
+    void loadData()
   }, [])
 
   // گروه‌بندی آیتم‌ها
@@ -267,31 +119,29 @@ export default function MyItemsPage() {
     }
 
     setIsEquipping(purchase.id)
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    if (purchase.is_equipped) {
-      // غیرفعال کردن
-      setPurchases(prev => prev.map(p => 
-        p.id === purchase.id 
-          ? { ...p, is_equipped: false, equipped_at: null }
-          : p
-      ))
-      toast.success('آیتم غیرفعال شد')
-    } else {
-      // فعال کردن و غیرفعال کردن آیتم قبلی
-      setPurchases(prev => prev.map(p => {
-        if (p.id === purchase.id) {
-          return { ...p, is_equipped: true, equipped_at: new Date().toISOString() }
-        }
-        if (p.item.type === purchase.item.type && p.is_equipped) {
-          return { ...p, is_equipped: false, equipped_at: null }
-        }
-        return p
-      }))
-      toast.success('آیتم فعال شد! ✨')
+    try {
+      const res = await fetch('/api/shop/equip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          purchase_id: purchase.id,
+          action: purchase.is_equipped ? 'unequip' : 'equip',
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.success === false) {
+        toast.error(data.error || 'تغییر وضعیت آیتم ناموفق بود')
+        return
+      }
+      const itemsRes = await fetch('/api/shop/my-items')
+      const itemsJson = await itemsRes.json()
+      setPurchases(itemsJson.data?.purchases || [])
+      toast.success(purchase.is_equipped ? 'آیتم غیرفعال شد' : 'آیتم فعال شد')
+    } catch {
+      toast.error('تغییر وضعیت آیتم ناموفق بود')
+    } finally {
+      setIsEquipping(null)
     }
-
-    setIsEquipping(null)
   }
 
   // آیکون نوع آیتم

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { format } from 'date-fns-jalali'
 import { faIR } from 'date-fns-jalali/locale'
 import { 
@@ -71,43 +71,6 @@ interface ClassInfo {
   student_count: number
 }
 
-// داده نمونه کلاس‌ها
-const sampleClasses: ClassInfo[] = [
-  { id: '1', name: 'ششم الف', grade: 6, student_count: 25 },
-  { id: '2', name: 'ششم ب', grade: 6, student_count: 23 },
-  { id: '3', name: 'پنجم الف', grade: 5, student_count: 27 },
-  { id: '4', name: 'پنجم ب', grade: 5, student_count: 24 },
-]
-
-// داده نمونه دانش‌آموزان
-const sampleStudents: Student[] = [
-  { id: '1', full_name: 'علی رضایی', student_code: '1001', avatar_url: '' },
-  { id: '2', full_name: 'سارا احمدی', student_code: '1002', avatar_url: '' },
-  { id: '3', full_name: 'محمد کریمی', student_code: '1003', avatar_url: '' },
-  { id: '4', full_name: 'فاطمه حسینی', student_code: '1004', avatar_url: '' },
-  { id: '5', full_name: 'امیرحسین نوری', student_code: '1005', avatar_url: '' },
-  { id: '6', full_name: 'زهرا محمدی', student_code: '1006', avatar_url: '' },
-  { id: '7', full_name: 'رضا علیزاده', student_code: '1007', avatar_url: '' },
-  { id: '8', full_name: 'مریم صادقی', student_code: '1008', avatar_url: '' },
-  { id: '9', full_name: 'حسین جعفری', student_code: '1009', avatar_url: '' },
-  { id: '10', full_name: 'نرگس اکبری', student_code: '1010', avatar_url: '' },
-  { id: '11', full_name: 'مهدی قاسمی', student_code: '1011', avatar_url: '' },
-  { id: '12', full_name: 'لیلا موسوی', student_code: '1012', avatar_url: '' },
-  { id: '13', full_name: 'امین رحیمی', student_code: '1013', avatar_url: '' },
-  { id: '14', full_name: 'سمیه کاظمی', student_code: '1014', avatar_url: '' },
-  { id: '15', full_name: 'پویا شریفی', student_code: '1015', avatar_url: '' },
-  { id: '16', full_name: 'آیدا نجفی', student_code: '1016', avatar_url: '' },
-  { id: '17', full_name: 'سینا حیدری', student_code: '1017', avatar_url: '' },
-  { id: '18', full_name: 'نازنین طاهری', student_code: '1018', avatar_url: '' },
-  { id: '19', full_name: 'ارشیا صالحی', student_code: '1019', avatar_url: '' },
-  { id: '20', full_name: 'هانیه زارعی', student_code: '1020', avatar_url: '' },
-  { id: '21', full_name: 'کیان ملکی', student_code: '1021', avatar_url: '' },
-  { id: '22', full_name: 'یاسمن خسروی', student_code: '1022', avatar_url: '' },
-  { id: '23', full_name: 'پارسا امیری', student_code: '1023', avatar_url: '' },
-  { id: '24', full_name: 'درسا فرهادی', student_code: '1024', avatar_url: '' },
-  { id: '25', full_name: 'آرش کمالی', student_code: '1025', avatar_url: '' },
-]
-
 // علل غیبت
 const absenceReasons = [
   { value: 'sickness', label: 'مریضی' },
@@ -146,6 +109,8 @@ const statusIcons = {
 }
 
 export default function TeacherAttendancePage() {
+  const [classes, setClasses] = useState<ClassInfo[]>([])
+  const [allStudents, setAllStudents] = useState<Array<Student & { classId: string }>>([])
   const [selectedClass, setSelectedClass] = useState<string>('')
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [students, setStudents] = useState<Student[]>([])
@@ -153,6 +118,37 @@ export default function TeacherAttendancePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isListLoaded, setIsListLoaded] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/teacher/class-students')
+      .then((r) => r.json())
+      .then((data) => {
+        const cls: ClassInfo[] = (data.classes || []).map(
+          (c: { id: string; name: string; grade: number }) => ({
+            id: c.id,
+            name: c.name,
+            grade: c.grade,
+            student_count: (data.students || []).filter(
+              (s: { classId: string }) => s.classId === c.id,
+            ).length,
+          }),
+        )
+        setClasses(cls)
+        setAllStudents(
+          (data.students || []).map(
+            (s: { id: string; name: string; classId: string }) => ({
+              id: s.id,
+              full_name: s.name,
+              student_code: '',
+              avatar_url: '',
+              classId: s.classId,
+            }),
+          ),
+        )
+        if (cls.length === 1) setSelectedClass(cls[0].id)
+      })
+      .catch(() => toast.error('خطا در دریافت کلاس‌ها'))
+  }, [])
   
   // Dialog state
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
@@ -170,25 +166,30 @@ export default function TeacherAttendancePage() {
     }
     setIsLoading(true)
     try {
-      const grade = sampleClasses.find(c => c.id === selectedClass)?.grade
-      const res = await fetch(`/api/admin/users?role=student&limit=200${grade ? `&grade=${grade}` : ''}`)
-      const data = await res.json()
-      const fetched: Student[] = (data.users || []).map((u: { id: string; full_name: string; username?: string }) => ({
-        id: u.id, full_name: u.full_name, student_code: u.username || '', avatar_url: '',
-      }))
-      const list = fetched.length > 0 ? fetched : sampleStudents
+      const list: Student[] = allStudents
+        .filter((s) => s.classId === selectedClass)
+        .map((s) => ({
+          id: s.id,
+          full_name: s.full_name,
+          student_code: s.student_code,
+          avatar_url: s.avatar_url,
+        }))
       setStudents(list)
-    const initialAttendance = new Map<string, AttendanceRecord>()
-      list.forEach(student => {
+      const initialAttendance = new Map<string, AttendanceRecord>()
+      list.forEach((student) => {
         initialAttendance.set(student.id, { student_id: student.id, status: 'present' })
-    })
-    setAttendance(initialAttendance)
-    setIsListLoaded(true)
-      toast.success(`${list.length} دانش‌آموز بارگذاری شد`)
+      })
+      setAttendance(initialAttendance)
+      setIsListLoaded(true)
+      if (list.length === 0) {
+        toast.error('دانش‌آموزی در این کلاس ثبت نشده است')
+      } else {
+        toast.success(`${list.length} دانش‌آموز بارگذاری شد`)
+      }
     } catch {
       toast.error('خطا در بارگذاری دانش‌آموزان')
     } finally {
-    setIsLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -366,11 +367,17 @@ export default function TeacherAttendancePage() {
                       <SelectValue placeholder="انتخاب کلاس..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {sampleClasses.map(cls => (
-                        <SelectItem key={cls.id} value={cls.id}>
-                          {cls.name} ({cls.student_count} نفر)
+                      {classes.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          کلاسی اختصاص داده نشده
                         </SelectItem>
-                      ))}
+                      ) : (
+                        classes.map((cls) => (
+                          <SelectItem key={cls.id} value={cls.id}>
+                            {cls.name} ({cls.student_count} نفر)
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

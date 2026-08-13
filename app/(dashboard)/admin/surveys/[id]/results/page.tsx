@@ -290,26 +290,17 @@ export default function SurveyResultsPage() {
     );
   }
 
-  // داده‌های نمونه برای نمودارها
   const responsesByRole = results.responses_by_role || {
-    parent: 95,
-    student: 50,
+    parent: 0,
+    student: 0,
   };
 
-  const dailyResponses = results.daily_responses || [
-    { date: '1403/09/01', count: 5 },
-    { date: '1403/09/02', count: 12 },
-    { date: '1403/09/03', count: 18 },
-    { date: '1403/09/04', count: 25 },
-    { date: '1403/09/05', count: 30 },
-    { date: '1403/09/06', count: 28 },
-    { date: '1403/09/07', count: 27 },
-  ];
+  const dailyResponses = results.daily_responses || [];
 
-  const overallAverage = results.questions
-    .filter((q) => q.average_rating !== null)
-    .reduce((sum, q) => sum + (q.average_rating || 0), 0) /
-    results.questions.filter((q) => q.average_rating !== null).length || 4.2;
+  const ratedQuestions = results.questions.filter((q) => q.average_rating !== null);
+  const overallAverage = ratedQuestions.length
+    ? ratedQuestions.reduce((sum, q) => sum + (q.average_rating || 0), 0) / ratedQuestions.length
+    : 0;
 
   const radarData = results.questions
     .filter((q) => q.average_rating !== null)

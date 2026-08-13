@@ -14,44 +14,12 @@ export async function GET(request: NextRequest) {
       try {
         const { searchParams } = new URL(request.url)
         const userId = searchParams.get('userId')
-        const month = searchParams.get('month') || new Date().toISOString().slice(0, 7) + '-01'
-
-        const credits = [
-          {
-            id: 'credit-1',
-            userId: 'user-1',
-            userName: 'علی رضایی',
-            userRole: 'دانش‌آموز',
-            month,
-            totalCredits: 100,
-            usedCredits: 45,
-            bonusCredits: 20,
-            availableCredits: 75,
-            bonusHistory: [
-              { date: '1403/09/15', amount: 10, reason: 'برنده مسابقه' },
-              { date: '1403/09/20', amount: 10, reason: 'فعالیت خوب' },
-            ],
-          },
-          {
-            id: 'credit-2',
-            userId: 'user-2',
-            userName: 'سارا احمدی',
-            userRole: 'معلم',
-            month,
-            totalCredits: 500,
-            usedCredits: 234,
-            bonusCredits: 0,
-            availableCredits: 266,
-            bonusHistory: [],
-          },
-        ]
 
         if (userId) {
-          const userCredit = credits.find(c => c.userId === userId)
-          return NextResponse.json({ credit: userCredit || null })
+          return NextResponse.json({ credit: null, available: false })
         }
 
-        return NextResponse.json({ credits })
+        return NextResponse.json({ credits: [], available: false })
       } catch (error) {
         console.error('Error fetching user credits:', error)
         return NextResponse.json(
@@ -97,12 +65,10 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        console.log('[Bonus Credits Added]', { userId, amount, reason })
-
-        return NextResponse.json({
-          success: true,
-          message: `${amount} اعتبار با موفقیت اضافه شد`,
-        })
+        return NextResponse.json(
+          { error: 'افزودن اعتبار هنوز به سامانهٔ صورتحساب وصل نیست' },
+          { status: 503 }
+        )
       } catch (error) {
         console.error('Error adding bonus credits:', error)
         return NextResponse.json(
@@ -141,12 +107,10 @@ export async function PUT(request: NextRequest) {
           )
         }
 
-        console.log('[Credits Updated]', { userId, totalCredits, month })
-
-        return NextResponse.json({
-          success: true,
-          message: 'اعتبار با موفقیت تنظیم شد',
-        })
+        return NextResponse.json(
+          { error: 'تنظیم اعتبار هنوز به سامانهٔ صورتحساب وصل نیست' },
+          { status: 503 }
+        )
       } catch (error) {
         console.error('Error updating user credits:', error)
         return NextResponse.json(

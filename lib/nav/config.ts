@@ -38,7 +38,7 @@ export const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'هوش مصنوعی',
       items: [
-        { title: 'مصرف AI', href: '/admin/ai-usage-dashboard', icon: BarChart3 },
+        { title: 'مصرف AI', href: '/admin/ai-usage-dashboard', icon: BarChart3, badge: COMING_SOON_BADGE },
         { title: 'محدودیت‌ها', href: '/admin/ai-limits', icon: Sliders },
         { title: 'کنترل دسترسی', href: '/admin/ai-access-control', icon: Shield },
         { title: 'تست AI', href: '/admin/ai-test', icon: HelpCircle },

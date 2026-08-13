@@ -79,7 +79,7 @@ export default function CounselorAttendanceCard({ schoolId }: CounselorAttendanc
                 دانش‌آموز پرغیبتی ثبت نشده است.
               </p>
             ) : (
-            students.map((student, index) => (
+              students.map((student, index) => (
               <div
                 key={student.id}
                 className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -133,7 +133,7 @@ export default function CounselorAttendanceCard({ schoolId }: CounselorAttendanc
                   </div>
                 </div>
               </div>
-            ))}
+              ))
             )}
           </div>
         </ScrollArea>

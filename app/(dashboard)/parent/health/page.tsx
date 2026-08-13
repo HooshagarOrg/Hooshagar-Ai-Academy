@@ -1,89 +1,106 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import {
   Heart,
   Stethoscope,
-  Syringe,
   AlertTriangle,
   CheckCircle,
   Calendar,
-  Eye,
-  
-  Activity,
-  
-  
-  
-  MessageSquare,
-  
-  AlertCircle,
-  Pill,
-  Phone
+  Loader2,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import GrowthChart from '@/components/health/growth-chart'
-import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { DashboardPage } from '@/components/layout/dashboard-page'
 
-// داده نمونه
-const studentHealth = {
-  name: 'علی رضایی',
-  className: 'ششم الف',
-  lastCheckup: '1403/09/10',
-  overallStatus: 'good',
-  bloodType: 'A+',
-  chronicDiseases: ['آسم'],
-  allergies: ['بادام زمینی', 'پنی‌سیلین', 'گرد و غبار'],
-  medications: [{ name: 'ونتولین', dosage: '2 پاف در صورت نیاز' }],
-  sportsRestrictions: ['فعالیت سنگین در هوای سرد'],
-  vaccinations: { completed: 9, total: 10, pending: ['MMR نوبت 2'] },
-  currentHeight: 135,
-  currentWeight: 32,
-  currentBMI: 17.5,
-  currentPercentile: 50,
+type HealthRecord = {
+  blood_type: string | null
+  chronic_diseases: string[] | null
+  allergies: string[] | Record<string, unknown> | null
+  medications: Array<{ name?: string; dosage?: string } | string> | null
+  sports_restrictions: string[] | null
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
+  students?: { full_name?: string; classes?: { name?: string } | { name?: string }[] }
 }
 
-const recentCheckups = [
-  { id: '1', date: '1403/09/10', type: 'بینایی‌سنجی', result: 'نیاز به پیگیری', status: 'followup' },
-  { id: '2', date: '1403/08/15', type: 'قد و وزن', result: 'طبیعی', status: 'normal' },
-  { id: '3', date: '1403/07/20', type: 'دندان', result: 'درمان شد', status: 'completed' },
-]
+type Checkup = {
+  id: string
+  checkup_date: string
+  checkup_type: string
+  result_summary: string | null
+  needs_followup: boolean | null
+}
 
-const healthMessages = [
-  {
-    id: '1',
-    date: '1403/09/12',
-    from: 'بهیار مدرسه',
-    message: 'لطفاً برای تکمیل واکسن MMR نوبت 2 اقدام فرمایید. این واکسن از موارد ضروری است.',
-    priority: 'high'
-  },
-  {
-    id: '2',
-    date: '1403/09/10',
-    from: 'بهیار مدرسه',
-    message: 'نتایج بینایی‌سنجی نشان می‌دهد که بینایی چشم چپ کمی ضعیف شده. پیشنهاد می‌شود به چشم‌پزشک مراجعه کنید.',
-    priority: 'medium'
-  },
-]
-
-const growthData = [
-  { age: 6, height: 115, weight: 20, bmi: 15.1 },
-  { age: 7, height: 120, weight: 23, bmi: 16.0 },
-  { age: 8, height: 125, weight: 26, bmi: 16.6 },
-  { age: 9, height: 130, weight: 29, bmi: 17.2 },
-  { age: 10, height: 133, weight: 31, bmi: 17.5 },
-  { age: 11, height: 135, weight: 32, bmi: 17.5 },
-]
+function asList(value: unknown): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      if (typeof item === 'string') return item
+      if (item && typeof item === 'object' && 'name' in item) {
+        const named = item as { name?: string; dosage?: string }
+        return named.dosage ? `${named.name} (${named.dosage})` : named.name || ''
+      }
+      return String(item)
+    }).filter(Boolean)
+  }
+  if (typeof value === 'object') {
+    return Object.keys(value as Record<string, unknown>)
+  }
+  return []
+}
 
 export default function ParentHealthPage() {
-  const [activeTab, setActiveTab] = useState('overview')
-  const vaccinationProgress = Math.round((studentHealth.vaccinations.completed / studentHealth.vaccinations.total) * 100)
+  const [loading, setLoading] = useState(true)
+  const [childName, setChildName] = useState('')
+  const [className, setClassName] = useState('')
+  const [record, setRecord] = useState<HealthRecord | null>(null)
+  const [checkups, setCheckups] = useState<Checkup[]>([])
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const dashRes = await fetch('/api/parent/dashboard')
+        const dash = await dashRes.json()
+        const studentId = dash.activeChild?.id as string | undefined
+        setChildName(dash.activeChild?.name || '')
+        setClassName(dash.activeChild?.className || '')
+        if (!studentId) {
+          setError('فرزندی به حساب شما متصل نیست')
+          return
+        }
+
+        const [recordRes, checkupRes] = await Promise.all([
+          fetch(`/api/health/records?studentId=${studentId}`),
+          fetch(`/api/health/checkups?studentId=${studentId}&limit=20`),
+        ])
+        const recordJson = await recordRes.json()
+        const checkupJson = await checkupRes.json()
+        if (!recordRes.ok) {
+          setError(recordJson.error || 'دریافت پرونده سلامت ناموفق بود')
+          return
+        }
+        setRecord(recordJson.data || null)
+        setCheckups(Array.isArray(checkupJson.data) ? checkupJson.data : [])
+      } catch {
+        setError('خطای شبکه در دریافت پرونده سلامت')
+      } finally {
+        setLoading(false)
+      }
+    }
+    void load()
+  }, [])
+
+  if (loading) {
+    return (
+      <DashboardPage title="سلامت فرزند من">
+        <div className="flex justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-teal-400" />
+        </div>
+      </DashboardPage>
+    )
+  }
 
   return (
     <DashboardPage
@@ -93,434 +110,122 @@ export default function ParentHealthPage() {
           سلامت فرزند من
         </span>
       }
-      description={`پرونده سلامت ${studentHealth.name} — ${studentHealth.className}`}
+      description={childName ? `پرونده سلامت ${childName}${className ? ` — ${className}` : ''}` : 'پرونده سلامت ثبت‌شده در مدرسه'}
     >
-      {/* Alert Messages */}
-      {healthMessages.filter(m => m.priority === 'high').length > 0 && (
-        <Card className="mb-6 border-amber-500/30 bg-amber-500/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-amber-200">
-              <AlertTriangle className="w-5 h-5" />
-              پیام مهم از بهیار مدرسه
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {healthMessages.filter(m => m.priority === 'high').map(msg => (
-              <div key={msg.id} className="flex items-start gap-3">
-                <MessageSquare className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-orange-800">{msg.message}</p>
-                  <p className="text-xs text-orange-600 mt-1">{msg.date} - {msg.from}</p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      {error ? (
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[var(--lux-text-muted)]">وضعیت کلی</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="font-semibold text-green-600">خوب</span>
-                </div>
-              </div>
-              <Heart className="w-8 h-8 text-red-400" />
-            </div>
-          </CardContent>
+          <CardContent className="py-10 text-center text-muted-foreground">{error}</CardContent>
         </Card>
-
+      ) : !record ? (
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[var(--lux-text-muted)]">آخرین معاینه</p>
-                <p className="font-semibold mt-1">{studentHealth.lastCheckup}</p>
-              </div>
-              <Calendar className="w-8 h-8 text-blue-400" />
-            </div>
+          <CardContent className="py-10 text-center">
+            <Heart className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
+            <p className="text-muted-foreground">هنوز پرونده سلامت برای فرزند شما ثبت نشده است</p>
+            <p className="mt-2 text-sm text-muted-foreground/70">وقتی واحد بهداشت مدرسه پرونده را تکمیل کند، اینجا دیده می‌شود</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[var(--lux-text-muted)]">واکسیناسیون</p>
-                <p className="font-semibold mt-1">{studentHealth.vaccinations.completed}/{studentHealth.vaccinations.total}</p>
-              </div>
-              <Syringe className="w-8 h-8 text-orange-400" />
-            </div>
-            <Progress value={vaccinationProgress} className="h-1 mt-2" />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[var(--lux-text-muted)]">گروه خونی</p>
-                <p className="font-bold text-xl mt-1 text-red-600">{studentHealth.bloodType}</p>
-              </div>
-              <Activity className="w-8 h-8 text-red-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">خلاصه</TabsTrigger>
-          <TabsTrigger value="medical">اطلاعات پزشکی</TabsTrigger>
-          <TabsTrigger value="growth">نمودار رشد</TabsTrigger>
-          <TabsTrigger value="history">سوابق</TabsTrigger>
-        </TabsList>
-
-        {/* Tab 1: خلاصه */}
-        <TabsContent value="overview" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Pending Items */}
+      ) : (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-orange-500" />
-                  موارد نیازمند توجه
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {studentHealth.vaccinations.pending.length > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Syringe className="w-5 h-5 text-yellow-600" />
-                      <div>
-                        <p className="font-medium">واکسن معوقه</p>
-                        <p className="text-sm text-[var(--lux-text-muted)]">{studentHealth.vaccinations.pending.join(', ')}</p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">در انتظار</Badge>
-                  </div>
-                )}
-                
-                {recentCheckups.filter(c => c.status === 'followup').map(checkup => (
-                  <div key={checkup.id} className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Eye className="w-5 h-5 text-[var(--lux-primary)]" />
-                      <div>
-                        <p className="font-medium">{checkup.type}</p>
-                        <p className="text-sm text-[var(--lux-text-muted)]">{checkup.date}</p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="text-[var(--lux-primary)] border-blue-300">
-                      نیاز به پیگیری
-                    </Badge>
-                  </div>
-                ))}
-
-                {studentHealth.vaccinations.pending.length === 0 && recentCheckups.filter(c => c.status === 'followup').length === 0 && (
-                  <div className="text-center py-4 text-[var(--lux-text-muted)]">
-                    <CheckCircle className="w-10 h-10 mx-auto text-green-500 mb-2" />
-                    <p>همه چیز مرتب است!</p>
-                  </div>
-                )}
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">گروه خونی</p>
+                <p className="mt-1 text-lg font-semibold">{record.blood_type || 'ثبت نشده'}</p>
               </CardContent>
             </Card>
-
-            {/* Recent Checkups */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Stethoscope className="w-5 h-5 text-teal-500" />
-                  آخرین معاینات
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentCheckups.map(checkup => (
-                    <div key={checkup.id} className="flex items-center justify-between p-3 bg-[var(--lux-surface)] dark:bg-gray-800 rounded-lg">
-                      <div>
-                        <p className="font-medium">{checkup.type}</p>
-                        <p className="text-sm text-[var(--lux-text-muted)]">{checkup.date}</p>
-                      </div>
-                      <Badge variant={
-                        checkup.status === 'normal' ? 'outline' :
-                        checkup.status === 'completed' ? 'secondary' : 'secondary'
-                      } className={
-                        checkup.status === 'normal' ? 'text-green-600 border-green-300' : ''
-                      }>
-                        {checkup.result}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">بیماری مزمن</p>
+                <p className="mt-1 text-lg font-semibold">
+                  {asList(record.chronic_diseases).join('، ') || 'موردی ثبت نشده'}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">تماس اضطراری</p>
+                <p className="mt-1 font-semibold">{record.emergency_contact_name || 'ثبت نشده'}</p>
+                {record.emergency_contact_phone ? (
+                  <p className="text-sm text-muted-foreground">{record.emergency_contact_phone}</p>
+                ) : null}
               </CardContent>
             </Card>
           </div>
 
-          {/* Messages */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-[var(--lux-secondary)]" />
-                پیام‌های بهداشتی
+              <CardTitle className="flex items-center gap-2 text-base">
+                <AlertTriangle className="h-4 w-4" />
+                آلرژی و محدودیت
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              {asList(record.allergies).length === 0 && asList(record.sports_restrictions).length === 0 ? (
+                <p className="text-sm text-muted-foreground">موردی ثبت نشده است</p>
+              ) : (
+                <>
+                  {asList(record.allergies).map((item) => (
+                    <Badge key={item} variant="destructive">{item}</Badge>
+                  ))}
+                  {asList(record.sports_restrictions).map((item) => (
+                    <Badge key={item} variant="secondary">{item}</Badge>
+                  ))}
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">داروها</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {asList(record.medications).length === 0 ? (
+                <p className="text-sm text-muted-foreground">دارویی ثبت نشده است</p>
+              ) : (
+                <ul className="list-disc space-y-1 pr-5 text-sm">
+                  {asList(record.medications).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Calendar className="h-4 w-4" />
+                معاینات ثبت‌شده
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {healthMessages.map(msg => (
-                  <div 
-                    key={msg.id} 
-                    className={`p-4 rounded-lg border ${
-                      msg.priority === 'high' 
-                        ? 'border-orange-200 bg-orange-50 dark:bg-orange-900/20' 
-                        : 'border-white/[0.06] bg-[var(--lux-surface)] dark:bg-gray-800'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
+              {checkups.length === 0 ? (
+                <p className="text-sm text-muted-foreground">معاینه‌ای ثبت نشده است</p>
+              ) : (
+                <ul className="space-y-3">
+                  {checkups.map((item) => (
+                    <li key={item.id} className="flex items-start justify-between gap-3 border-b border-white/10 pb-3 last:border-0">
                       <div>
-                        <p className="font-medium">{msg.from}</p>
-                        <p className="text-sm text-[var(--lux-text-muted)] dark:text-[var(--lux-text-muted)] mt-1">{msg.message}</p>
+                        <p className="font-medium">{item.checkup_type}</p>
+                        <p className="text-sm text-muted-foreground">{item.result_summary || 'بدون توضیح'}</p>
                       </div>
-                      <span className="text-xs text-[var(--lux-text-muted)]">{msg.date}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        {item.needs_followup ? (
+                          <Badge variant="outline">نیاز به پیگیری</Badge>
+                        ) : (
+                          <CheckCircle className="h-4 w-4 text-emerald-400" />
+                        )}
+                        {item.checkup_date}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {/* Tab 2: اطلاعات پزشکی */}
-        <TabsContent value="medical" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-500" />
-                  بیماری‌ها و آلرژی‌ها
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-[var(--lux-text-muted)] mb-2">بیماری‌های خاص:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {studentHealth.chronicDiseases.map(disease => (
-                      <Badge key={disease} variant="destructive">{disease}</Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <p className="text-sm text-[var(--lux-text-muted)] mb-2">آلرژی‌ها:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {studentHealth.allergies.map(allergy => (
-                      <Badge key={allergy} variant="outline" className="text-orange-600 border-orange-300">
-                        {allergy}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <p className="text-sm text-[var(--lux-text-muted)] mb-2">محدودیت‌های ورزشی:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {studentHealth.sportsRestrictions.map(item => (
-                      <Badge key={item} variant="outline" className="text-purple-600 border-purple-300">
-                        {item}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Pill className="w-5 h-5 text-[var(--lux-secondary)]" />
-                  داروهای مصرفی
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {studentHealth.medications.length > 0 ? (
-                  <div className="space-y-3">
-                    {studentHealth.medications.map((med, index) => (
-                      <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <p className="font-medium">{med.name}</p>
-                        <p className="text-sm text-[var(--lux-text-muted)]">{med.dosage}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-[var(--lux-text-muted)] text-center py-4">داروی مصرفی ندارد</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Syringe className="w-5 h-5 text-orange-500" />
-                  وضعیت واکسیناسیون
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span>پیشرفت واکسیناسیون</span>
-                    <span className="font-bold">{vaccinationProgress}%</span>
-                  </div>
-                  <Progress value={vaccinationProgress} className="h-3" />
-                </div>
-
-                {studentHealth.vaccinations.pending.length > 0 && (
-                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200">
-                    <p className="font-medium text-yellow-700 mb-2">واکسن‌های معوقه:</p>
-                    <ul className="list-disc list-inside text-yellow-600">
-                      {studentHealth.vaccinations.pending.map(vac => (
-                        <li key={vac}>{vac}</li>
-                      ))}
-                    </ul>
-                    <p className="text-sm text-yellow-600 mt-2">
-                      لطفاً برای تکمیل واکسن‌ها به مراکز بهداشتی مراجعه فرمایید.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Tab 3: نمودار رشد */}
-        <TabsContent value="growth" className="mt-6">
-          <GrowthChart
-            studentName={studentHealth.name}
-            gender="male"
-            data={growthData}
-            currentAge={11}
-            currentHeight={studentHealth.currentHeight}
-            currentWeight={studentHealth.currentWeight}
-            currentBMI={studentHealth.currentBMI}
-            currentPercentile={studentHealth.currentPercentile}
-          />
-        </TabsContent>
-
-        {/* Tab 4: سوابق */}
-        <TabsContent value="history" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>سوابق معاینات</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>تاریخ</TableHead>
-                      <TableHead>نوع معاینه</TableHead>
-                      <TableHead>نتیجه</TableHead>
-                      <TableHead>وضعیت</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentCheckups.map(checkup => (
-                      <TableRow key={checkup.id}>
-                        <TableCell className="font-medium">{checkup.date}</TableCell>
-                        <TableCell>{checkup.type}</TableCell>
-                        <TableCell>{checkup.result}</TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            checkup.status === 'normal' ? 'outline' :
-                            checkup.status === 'completed' ? 'secondary' : 'secondary'
-                          } className={
-                            checkup.status === 'normal' ? 'text-green-600 border-green-300' : ''
-                          }>
-                            {checkup.status === 'normal' && 'طبیعی'}
-                            {checkup.status === 'completed' && 'پیگیری شده'}
-                            {checkup.status === 'followup' && 'در انتظار پیگیری'}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Contact */}
-      <Card className="mt-6">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Phone className="w-5 h-5 text-green-500" />
-              <div>
-                <p className="font-medium">تماس با بهداری مدرسه</p>
-                <p className="text-sm text-[var(--lux-text-muted)]">برای سؤالات و هماهنگی</p>
-              </div>
-            </div>
-            <Button variant="outline" className="gap-2">
-              <Phone className="w-4 h-4" />
-              تماس
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </DashboardPage>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/security/api-guard'
 import { SPECIALTY_API_ROLES } from '@/lib/security/sensitive-api-roles'
+import { parentOwnsStudent } from '@/lib/security/parent-child'
 
 // ==========================================
 // GET - Get All Assessments for Student
@@ -15,10 +16,14 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ student_id: string }> }
 ) {
-  return withAuth(req, async () => {
+  return withAuth(req, async (ctx) => {
     try {
       const supabase = await createClient()
       const { student_id } = await params
+
+      if (!(await parentOwnsStudent(ctx, student_id))) {
+        return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 403 })
+      }
       const { searchParams } = new URL(req.url)
       const semester = searchParams.get('semester')
       const academic_year = searchParams.get('academic_year')

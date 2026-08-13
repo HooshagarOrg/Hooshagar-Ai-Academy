@@ -60,56 +60,21 @@ import {
   
 } from '@/lib/types/lottery.types'
 
-// داده نمونه دانش‌آموز
-const SAMPLE_STUDENT = {
-  id: 'student-1',
-  full_name: 'علی رضایی',
-  current_grade: 1,
-  next_grade: 2,
-  school_name: 'دبستان نمونه',
+type LotteryStudent = {
+  id: string
+  full_name: string
+  current_grade: number
+  next_grade: number
 }
-
-// داده نمونه تنظیمات قرعه‌کشی
-const SAMPLE_LOTTERY_SETTING: LotterySetting & { 
-  registration_start_formatted: string;
-  registration_end_formatted: string;
-} = {
-  id: 'lottery-1',
-  school_id: 'school-1',
-  is_enabled: true,
-  registration_start: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  registration_end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-  lottery_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  target_grade: 2,
-  academic_year: '1404-1405',
-  max_choices: 4,
-  allow_edit_until_end: true,
-  notify_parents_result: true,
-  status: 'open',
-  total_registrations: 85,
-  successful_assignments: 0,
-  failed_assignments: 0,
-  executed_at: null,
-  executed_by: null,
-  created_at: '',
-  updated_at: '',
-  registration_start_formatted: '',
-  registration_end_formatted: '',
-}
-
-// داده نمونه کلاس‌ها
-const SAMPLE_CLASSES: (Class & { first_choice_count: number; effective_capacity: number })[] = [
-  { id: '1', school_id: 'school-1', name: 'دوم الف', grade: 2, section: 'الف', teacher_id: null, teacher_name: 'خانم احمدی', total_capacity: 25, admin_reserved: 2, available_capacity: 23, current_count: 0, academic_year: '1404-1405', is_active: true, description: null, room_number: '101', created_at: '', updated_at: '', first_choice_count: 28, effective_capacity: 23 },
-  { id: '2', school_id: 'school-1', name: 'دوم ب', grade: 2, section: 'ب', teacher_id: null, teacher_name: 'خانم محمدی', total_capacity: 25, admin_reserved: 2, available_capacity: 23, current_count: 0, academic_year: '1404-1405', is_active: true, description: null, room_number: '102', created_at: '', updated_at: '', first_choice_count: 22, effective_capacity: 23 },
-  { id: '3', school_id: 'school-1', name: 'دوم ج', grade: 2, section: 'ج', teacher_id: null, teacher_name: 'خانم کریمی', total_capacity: 25, admin_reserved: 2, available_capacity: 23, current_count: 0, academic_year: '1404-1405', is_active: true, description: null, room_number: '103', created_at: '', updated_at: '', first_choice_count: 20, effective_capacity: 23 },
-  { id: '4', school_id: 'school-1', name: 'دوم د', grade: 2, section: 'د', teacher_id: null, teacher_name: 'خانم رضایی', total_capacity: 25, admin_reserved: 2, available_capacity: 23, current_count: 0, academic_year: '1404-1405', is_active: true, description: null, room_number: '104', created_at: '', updated_at: '', first_choice_count: 15, effective_capacity: 23 },
-]
 
 export default function ClassRegistrationPage() {
   const [isLoading, setIsLoading] = useState(true)
-  const [student] = useState(SAMPLE_STUDENT)
-  const [lotterySetting, setLotterySetting] = useState<typeof SAMPLE_LOTTERY_SETTING | null>(null)
-  const [classes, setClasses] = useState<typeof SAMPLE_CLASSES>([])
+  const [student, setStudent] = useState<LotteryStudent | null>(null)
+  const [lotterySetting, setLotterySetting] = useState<(LotterySetting & {
+    registration_start_formatted: string
+    registration_end_formatted: string
+  }) | null>(null)
+  const [classes, setClasses] = useState<(Class & { first_choice_count: number; effective_capacity: number })[]>([])
   const [existingRegistration, setExistingRegistration] = useState<ClassRegistration | null>(null)
   
   // انتخاب‌ها
@@ -133,17 +98,65 @@ export default function ClassRegistrationPage() {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      setLotterySetting(SAMPLE_LOTTERY_SETTING)
-      setClasses(SAMPLE_CLASSES)
-      setCanRegister(true)
-      setCanEdit(false)
-      setRegistrationStatus('open')
-      
-      setIsLoading(false)
+      try {
+        const dashRes = await fetch('/api/parent/dashboard')
+        const dash = await dashRes.json()
+        const studentId = dash.activeChild?.id as string | undefined
+        if (!studentId) {
+          setStudent(null)
+          setLotterySetting(null)
+          return
+        }
+
+        const res = await fetch(`/api/lottery/available-classes?studentId=${studentId}`)
+        const json = await res.json()
+        if (!res.ok) {
+          toast.error(json.error || 'دریافت اطلاعات ثبت‌نام ناموفق بود')
+          return
+        }
+
+        if (json.student) {
+          setStudent(json.student)
+        } else {
+          setStudent({
+            id: studentId,
+            full_name: dash.activeChild.name,
+            current_grade: dash.activeChild.grade,
+            next_grade: dash.activeChild.grade + 1,
+          })
+        }
+
+        if (!json.available) {
+          setLotterySetting(null)
+          setClasses([])
+          setExistingRegistration(null)
+          setCanRegister(false)
+          setCanEdit(false)
+          return
+        }
+
+        setLotterySetting(json.lotterySetting)
+        setClasses(json.classes || [])
+        setExistingRegistration(json.existingRegistration || null)
+        setCanRegister(Boolean(json.canRegister))
+        setCanEdit(Boolean(json.canEdit))
+        setRegistrationStatus(json.registrationStatus || 'open')
+        if (json.existingRegistration) {
+          setChoices([
+            json.existingRegistration.choice_1_class_id,
+            json.existingRegistration.choice_2_class_id,
+            json.existingRegistration.choice_3_class_id,
+            json.existingRegistration.choice_4_class_id,
+          ])
+        }
+      } catch {
+        toast.error('خطای شبکه در دریافت ثبت‌نام کلاس')
+        setLotterySetting(null)
+      } finally {
+        setIsLoading(false)
+      }
     }
-    loadData()
+    void loadData()
   }, [])
 
   // تایمر شمارش معکوس
@@ -190,54 +203,66 @@ export default function ClassRegistrationPage() {
   }
 
   const confirmSubmit = async () => {
+    if (!student || !lotterySetting || !choices[0]) return
     setIsSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // شبیه‌سازی ثبت‌نام موفق
-    setExistingRegistration({
-      id: 'reg-1',
-      student_id: student.id,
-      lottery_setting_id: lotterySetting?.id || '',
-      choice_1_class_id: choices[0],
-      choice_2_class_id: choices[1],
-      choice_3_class_id: choices[2],
-      choice_4_class_id: choices[3],
-      result_class_id: null,
-      assigned_choice: null,
-      status: 'pending',
-      registered_by: 'parent-1',
-      registered_at: new Date().toISOString(),
-      last_modified_at: null,
-      assigned_at: null,
-      admin_note: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    
-    setCanRegister(false)
-    setCanEdit(true)
-    setIsSubmitting(false)
-    setShowConfirmDialog(false)
-    
-    toast.success('🎉 ثبت‌نام با موفقیت انجام شد!', {
-      description: 'نتیجه بعد از قرعه‌کشی اعلام می‌شود',
-    })
+    try {
+      const method = existingRegistration ? 'PUT' : 'POST'
+      const body = existingRegistration
+        ? {
+            registrationId: existingRegistration.id,
+            choice1: choices[0],
+            choice2: choices[1],
+            choice3: choices[2],
+            choice4: choices[3],
+          }
+        : {
+            studentId: student.id,
+            lotterySettingId: lotterySetting.id,
+            choice1: choices[0],
+            choice2: choices[1],
+            choice3: choices[2],
+            choice4: choices[3],
+          }
+      const res = await fetch('/api/lottery/register', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const json = await res.json()
+      if (!res.ok || json.success === false) {
+        toast.error(json.error || 'ثبت‌نام ناموفق بود')
+        return
+      }
+      toast.success('ثبت‌نام ذخیره شد. نتیجه بعد از قرعه‌کشی اعلام می‌شود')
+      setShowConfirmDialog(false)
+      window.location.reload()
+    } catch {
+      toast.error('خطای شبکه در ثبت‌نام')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  // حذف ثبت‌نام
   const handleDelete = async () => {
+    if (!existingRegistration) return
     setIsSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    setExistingRegistration(null)
-    setCanRegister(true)
-    setCanEdit(false)
-    setChoices([null, null, null, null])
-    
-    setIsSubmitting(false)
-    setShowDeleteDialog(false)
-    
-    toast.success('ثبت‌نام حذف شد')
+    try {
+      const res = await fetch(`/api/lottery/register?registrationId=${existingRegistration.id}`, {
+        method: 'DELETE',
+      })
+      const json = await res.json()
+      if (!res.ok || json.success === false) {
+        toast.error(json.error || 'حذف ثبت‌نام ناموفق بود')
+        return
+      }
+      toast.success('ثبت‌نام حذف شد')
+      setShowDeleteDialog(false)
+      window.location.reload()
+    } catch {
+      toast.error('خطای شبکه در حذف ثبت‌نام')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // دریافت اسم کلاس
@@ -261,6 +286,24 @@ export default function ClassRegistrationPage() {
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-40 w-full rounded-xl" />
           <Skeleton className="h-64 w-full rounded-xl" />
+        </DashboardSectionBlock>
+      </DashboardPage>
+    )
+  }
+
+  if (!student) {
+    return (
+      <DashboardPage title={pageTitle} description="ثبت‌نام کلاس درسی">
+        <DashboardSectionBlock>
+          <Card className="py-12">
+            <CardContent className="text-center">
+              <AlertCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-xl font-bold mb-2">فرزندی متصل نیست</h2>
+              <p className="text-muted-foreground">
+                ابتدا باید فرزند شما در مدرسه ثبت شده باشد.
+              </p>
+            </CardContent>
+          </Card>
         </DashboardSectionBlock>
       </DashboardPage>
     )

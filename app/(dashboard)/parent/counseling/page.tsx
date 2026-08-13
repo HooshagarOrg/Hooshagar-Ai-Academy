@@ -61,33 +61,6 @@ interface ParentCounselingView {
 }
 
 // ==========================================
-// Mock Data
-// ==========================================
-const mockCounselingData: ParentCounselingView = {
-  id: '1',
-  student_name: 'علی رضایی',
-  status: 'active',
-  sessions_count: 8,
-  last_session_date: '۵ روز پیش',
-  next_session_date: '1403/09/25',
-  next_session_type: 'جلسه خانوادگی',
-  overall_progress: 65,
-  issue_categories: ['تحصیلی', 'رفتاری'],
-  counselor_name: 'خانم رحیمی',
-  counselor_message: 'پیشرفت خوبی در جلسات اخیر مشاهده شده است. لطفاً در پیگیری تکالیف مشاوره‌ای فرزندتان در منزل همکاری کنید. مهم‌ترین نکته این است که زمان با کیفیت بیشتری را با فرزندتان بگذرانید.',
-  goals: [
-    { id: '1', goal: 'بهبود رفتار در کلاس', progress: 70, status: 'in_progress' },
-    { id: '2', goal: 'افزایش تمرکز در درس', progress: 55, status: 'in_progress' },
-    { id: '3', goal: 'مهارت‌های اجتماعی', progress: 45, status: 'in_progress' },
-  ],
-  recent_notes: [
-    'جلسه خانوادگی با والدین برگزار شد - توافقاتی برای بهبود فضای خانه انجام شد',
-    'تکنیک‌های مدیریت استرس به دانش‌آموز آموزش داده شد',
-    'پیشرفت در همکاری با همکلاسی‌ها مشاهده شده',
-  ],
-}
-
-// ==========================================
 // Helper Components
 // ==========================================
 const ProgressCircle = ({ value, size = 120 }: { value: number; size?: number }) => {

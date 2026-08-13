@@ -2,16 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/security/api-guard'
 import { HEALTH_API_ROLES } from '@/lib/security/sensitive-api-roles'
+import { parentOwnsStudent } from '@/lib/security/parent-child'
 
 // GET: دریافت پرونده سلامت
 export async function GET(request: NextRequest) {
-  return withAuth(request, async () => {
+  return withAuth(request, async (ctx) => {
     try {
       const supabase = await createClient()
       const { searchParams } = new URL(request.url)
 
       const studentId = searchParams.get('studentId')
       const schoolId = searchParams.get('schoolId')
+
+      if (ctx.role === 'parent') {
+        if (!studentId || !(await parentOwnsStudent(ctx, studentId))) {
+          return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 403 })
+        }
+      }
 
       let data
       let error
@@ -29,7 +36,7 @@ export async function GET(request: NextRequest) {
       )
     `)
           .eq('student_id', studentId)
-          .single()
+          .maybeSingle()
         data = result.data
         error = result.error
       } else if (schoolId) {
@@ -76,7 +83,10 @@ export async function GET(request: NextRequest) {
 
 // POST: ایجاد پرونده سلامت
 export async function POST(request: NextRequest) {
-  return withAuth(request, async () => {
+  return withAuth(request, async (ctx) => {
+    if (ctx.role === 'parent') {
+      return NextResponse.json({ error: 'ثبت پرونده سلامت فقط توسط واحد بهداشت انجام می‌شود' }, { status: 403 })
+    }
     try {
       const supabase = await createClient()
       const body = await request.json()
@@ -136,7 +146,10 @@ export async function POST(request: NextRequest) {
 
 // PATCH: بروزرسانی پرونده سلامت
 export async function PATCH(request: NextRequest) {
-  return withAuth(request, async () => {
+  return withAuth(request, async (ctx) => {
+    if (ctx.role === 'parent') {
+      return NextResponse.json({ error: 'ویرایش پرونده سلامت فقط توسط واحد بهداشت انجام می‌شود' }, { status: 403 })
+    }
     try {
       const supabase = await createClient()
       const body = await request.json()

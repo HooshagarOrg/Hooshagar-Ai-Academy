@@ -60,60 +60,6 @@ interface STEMSummary extends AssessmentSummary {
 }
 
 // ==========================================
-// Mock Data
-// ==========================================
-const mockStudentName = 'علی رضایی'
-
-const mockMusicSummary: MusicSummary = {
-  latest_date: '1403/09/15',
-  final_grade: 'excellent',
-  average_score: 4.5,
-  total_assessments: 3,
-  songs_learned: ['سرود ملی', 'ای ایران', 'پرنده‌های مهاجر'],
-  instrument: 'پیانو',
-  achievements: ['اجرای موفق در کنسرت مدرسه'],
-  highlights: ['پیشرفت چشمگیر در نت‌خوانی', 'استعداد برجسته در ریتم'],
-}
-
-const mockArtSummary: ArtSummary = {
-  latest_date: '1403/09/10',
-  final_grade: 'very_good',
-  average_score: 4.2,
-  total_assessments: 3,
-  mastered_techniques: ['نقاشی', 'کاردستی', 'کولاژ'],
-  notable_projects: [
-    { title: 'نقاشی طبیعت', score: 5 },
-    { title: 'مجسمه گلی', score: 4 },
-  ],
-  achievements: ['شرکت در نمایشگاه مدرسه'],
-}
-
-const mockSportsSummary: SportsSummary = {
-  latest_date: '1403/09/12',
-  final_grade: 'excellent',
-  average_score: 4.7,
-  fitness_score: 85,
-  total_assessments: 4,
-  specialized_sports: ['فوتبال', 'شنا'],
-  competitions: ['مسابقات بین مدارس (مقام دوم)'],
-  highlights: ['دو ۵۰ متر: ۸.۲ ثانیه', 'پرش طول: ۳.۵ متر'],
-}
-
-const mockSTEMSummary: STEMSummary = {
-  latest_date: '1403/09/08',
-  final_grade: 'excellent',
-  average_score: 4.8,
-  total_assessments: 2,
-  subject: 'robotics',
-  programming_languages: ['Python', 'Scratch', 'Arduino'],
-  completed_projects: [
-    { name: 'ربات خط‌رو', score: 5 },
-    { name: 'بازی Snake با Python', score: 5 },
-  ],
-  achievements: ['مقام اول مسابقات رباتیک منطقه'],
-}
-
-// ==========================================
 // Helper Components
 // ==========================================
 const StarRating = ({ score, max = 5 }: { score: number; max?: number }) => (
@@ -192,6 +138,7 @@ const GradeBadge = ({ grade }: { grade: string }) => {
 // ==========================================
 export default function ParentSpecialtyReportsPage() {
   const [isLoading, setIsLoading] = useState(true)
+  const [studentName, setStudentName] = useState('')
   const [data, setData] = useState<{
     music: MusicSummary | null
     art: ArtSummary | null
@@ -204,9 +151,10 @@ export default function ParentSpecialtyReportsPage() {
       try {
         const dashRes = await fetch('/api/parent/dashboard')
         const dash = await dashRes.json()
-        const studentId = dash.activeChild?.id
+        const studentId = dash.activeChild?.id as string | undefined
+        setStudentName(dash.activeChild?.name || dash.activeChild?.full_name || '')
         if (!studentId) {
-          setData(null)
+          setData({ music: null, art: null, sports: null, stem: null })
           return
         }
 
@@ -214,23 +162,18 @@ export default function ParentSpecialtyReportsPage() {
         if (!res.ok) throw new Error('fetch failed')
         const json = await res.json()
         setData({
-          music: json.summary?.music,
-          art: json.summary?.art,
-          sports: json.summary?.sports,
-          stem: json.summary?.stem,
+          music: json.summary?.music ?? null,
+          art: json.summary?.art ?? null,
+          sports: json.summary?.sports ?? null,
+          stem: json.summary?.stem ?? null,
         })
       } catch {
-        setData({
-          music: mockMusicSummary,
-          art: mockArtSummary,
-          sports: mockSportsSummary,
-          stem: mockSTEMSummary,
-        })
+        setData({ music: null, art: null, sports: null, stem: null })
       } finally {
         setIsLoading(false)
       }
     }
-    fetchData()
+    void fetchData()
   }, [])
 
   if (isLoading) {
@@ -250,6 +193,8 @@ export default function ParentSpecialtyReportsPage() {
 
   if (!data) return null
 
+  const hasAny = Boolean(data.music || data.art || data.sports || data.stem)
+
   return (
     <DashboardPage
       className="max-w-4xl mx-auto"
@@ -261,9 +206,17 @@ export default function ParentSpecialtyReportsPage() {
           گزارشات تخصصی
         </span>
       }
-      description={mockStudentName}
+      description={studentName || 'ارزیابی هنر، ورزش، موسیقی و STEM فرزند شما'}
       animatedSections={false}
     >
+        {!hasAny && (
+          <div className="text-center py-16">
+            <Star className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <p className="text-muted-foreground">هنوز ارزیابی تخصصی برای فرزند شما ثبت نشده است</p>
+            <p className="text-muted-foreground/70 text-sm mt-2">وقتی معلم هنر یا ورزش ارزیابی ثبت کند، اینجا دیده می‌شود</p>
+          </div>
+        )}
+
         <div className="grid md:grid-cols-2 gap-6">
           
           {/* Music Card */}

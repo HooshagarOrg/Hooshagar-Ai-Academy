@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/security/api-guard'
 import { HEALTH_API_ROLES } from '@/lib/security/sensitive-api-roles'
+import { parentOwnsStudent } from '@/lib/security/parent-child'
 
 // GET: دریافت معاینات
 export async function GET(request: NextRequest) {
-  return withAuth(request, async () => {
+  return withAuth(request, async (ctx) => {
     try {
       const supabase = await createClient()
       const { searchParams } = new URL(request.url)
@@ -17,6 +18,12 @@ export async function GET(request: NextRequest) {
       const startDate = searchParams.get('startDate')
       const endDate = searchParams.get('endDate')
       const limit = parseInt(searchParams.get('limit') || '50')
+
+      if (ctx.role === 'parent') {
+        if (!studentId || !(await parentOwnsStudent(ctx, studentId))) {
+          return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 403 })
+        }
+      }
 
       let query = supabase
         .from('health_checkups')
@@ -73,7 +80,10 @@ export async function GET(request: NextRequest) {
 
 // POST: ثبت معاینه جدید
 export async function POST(request: NextRequest) {
-  return withAuth(request, async () => {
+  return withAuth(request, async (ctx) => {
+    if (ctx.role === 'parent') {
+      return NextResponse.json({ error: 'ثبت معاینه فقط توسط واحد بهداشت انجام می‌شود' }, { status: 403 })
+    }
     try {
       const supabase = await createClient()
       const body = await request.json()

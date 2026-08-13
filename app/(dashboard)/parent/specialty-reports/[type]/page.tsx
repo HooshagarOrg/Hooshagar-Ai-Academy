@@ -41,82 +41,6 @@ import {
 } from '@/lib/types/specialty-assessment.types'
 
 // ==========================================
-// Mock Data
-// ==========================================
-const mockMusicAssessment: MusicAssessment = {
-  id: '1',
-  student_id: 's1',
-  teacher_id: 't1',
-  school_id: 'sch1',
-  assessment_date: '2024-01-15',
-  semester: 'نیمسال اول',
-  academic_year: '1403-1404',
-  rhythm_sense: 5,
-  pitch_accuracy: 4,
-  music_reading: 4,
-  listening_skills: 5,
-  vocal_performance: 4,
-  instrument: 'پیانو',
-  instrument_proficiency: 3,
-  creativity: 5,
-  expression: 4,
-  participation_score: 5,
-  behavior_score: 5,
-  teacher_notes: 'دانش‌آموز بسیار با استعداد و علاقه‌مند به موسیقی است. پیشرفت چشمگیری در نت‌خوانی داشته و در کنسرت مدرسه اجرای فوق‌العاده‌ای داشت.',
-  achievements: 'اجرای موفق در کنسرت مدرسه، شرکت در مسابقات منطقه',
-  areas_for_improvement: 'تمرین بیشتر روی تکنیک پیانو، تقویت حافظه موسیقایی',
-  songs_learned: ['سرود ملی', 'ای ایران', 'پرنده‌های مهاجر', 'مرغ سحر'],
-  final_grade: 'excellent',
-  created_at: '2024-01-15',
-  updated_at: '2024-01-15',
-  teacher: { id: 't1', full_name: 'استاد محمدی' },
-}
-
-const mockSportsAssessment: SportsAssessment = {
-  id: '2',
-  student_id: 's1',
-  teacher_id: 't2',
-  school_id: 'sch1',
-  assessment_date: '2024-01-12',
-  semester: 'نیمسال اول',
-  academic_year: '1403-1404',
-  cardiovascular_endurance: 5,
-  muscular_strength: 4,
-  muscular_endurance: 4,
-  flexibility: 4,
-  body_composition: 5,
-  coordination: 5,
-  agility: 5,
-  balance: 4,
-  team_sports_skills: 5,
-  individual_sports_skills: 4,
-  game_understanding: 5,
-  sportsmanship: 5,
-  teamwork: 5,
-  leadership: 4,
-  effort: 5,
-  following_rules: 5,
-  specialized_sports: ['فوتبال', 'شنا'],
-  sport_achievements: 'کاپیتان تیم فوتبال مدرسه',
-  fitness_test_results: {
-    sprint_50m: '8.2',
-    long_jump: '3.5',
-    sit_and_reach: '28',
-    push_ups: '20',
-    sit_ups: '35',
-  },
-  teacher_notes: 'ورزشکار برجسته با روحیه تیمی عالی. در همه فعالیت‌ها با انگیزه شرکت می‌کند.',
-  strengths: 'سرعت، هماهنگی، روحیه رهبری',
-  areas_for_improvement: 'انعطاف‌پذیری، تمرکز در ورزش‌های فردی',
-  competitions_participated: ['مسابقات فوتبال بین مدارس', 'المپیاد ورزشی منطقه'],
-  medals_awards: 'مقام دوم مسابقات فوتبال بین مدارس',
-  final_grade: 'excellent',
-  created_at: '2024-01-12',
-  updated_at: '2024-01-12',
-  teacher: { id: 't2', full_name: 'مربی احمدی' },
-}
-
-// ==========================================
 // Helper Components
 // ==========================================
 const SkillBar = ({ label, value, max = 5 }: { label: string; value: number | null; max?: number }) => {
@@ -208,8 +132,7 @@ export default function SpecialtyReportDetailPage() {
         const list = json.assessments?.[tableMap[type]] || []
         setAssessment(list[0] || null)
       } catch {
-        if (type === 'music') setAssessment(mockMusicAssessment)
-        else if (type === 'sports') setAssessment(mockSportsAssessment)
+        setAssessment(null)
       } finally {
         setIsLoading(false)
       }

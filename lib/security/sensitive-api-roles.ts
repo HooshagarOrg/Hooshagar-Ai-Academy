@@ -6,6 +6,7 @@ export const HEALTH_API_ROLES: AllowedRole[] = [
   'principal',
   'admin',
   'platform_admin',
+  'parent',
 ]
 
 /** APIهای مشاوره (staff) */
@@ -25,6 +26,7 @@ export const SPECIALTY_API_ROLES: AllowedRole[] = [
   'principal',
   'admin',
   'platform_admin',
+  'parent',
 ]
 
 /** مشاهده/ویرایش دانش‌آموز */

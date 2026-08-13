@@ -497,6 +497,16 @@ export default function QuestionBankPage() {
 
         const res = await fetch(`/api/question-bank?${params}`);
         const data = await res.json();
+        if (!res.ok) {
+          toast({
+            title: 'خطا',
+            description: data.error || 'دریافت سوالات با مشکل مواجه شد',
+            variant: 'destructive',
+          });
+          setQuestions([]);
+          setTotal(0);
+          return;
+        }
 
         setQuestions(data.questions || []);
         setTotal(data.total || 0);

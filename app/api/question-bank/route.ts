@@ -45,7 +45,7 @@ const createQuestionSchema = z.object({
 export async function GET(request: NextRequest) {
   return withAuth(
     request,
-    async () => {
+    async (ctx) => {
       try {
         const supabase = await createClient();
         const { searchParams } = new URL(request.url);
@@ -64,7 +64,9 @@ export async function GET(request: NextRequest) {
           .select('*', { count: 'exact' })
           .eq('is_active', true)
           .order('created_at', { ascending: false })
-          .range(offset, offset + limit - 1);
+          .range(offset, offset + Math.min(limit, 100) - 1);
+
+        if (ctx.schoolId) query = query.eq('school_id', ctx.schoolId);
 
         if (subject) query = query.eq('subject', subject);
         if (gradeLevel) query = query.eq('grade_level', parseInt(gradeLevel));

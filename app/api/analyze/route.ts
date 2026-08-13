@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { asOne } from '@/lib/supabase/relation'
 import { z } from 'zod'
 import { secureErrorResponse } from '@/lib/security/error-handler'
 import { withAuth } from '@/lib/security/api-guard'
@@ -33,38 +32,66 @@ export async function POST(request: NextRequest) {
 
         const { data: student, error: studentError } = await supabase
           .from('students')
-          .select('id, grade, profiles!inner(full_name)')
+          .select('id, full_name, grade')
           .eq('id', studentId)
-          .single()
+          .maybeSingle()
 
         if (studentError || !student) {
           return NextResponse.json({ error: 'دانش‌آموز یافت نشد' }, { status: 404 })
         }
 
-        const studentProfile = asOne(student.profiles)
-        const studentName = studentProfile?.full_name ?? 'دانش‌آموز'
+        const studentName = student.full_name || 'دانش‌آموز'
 
-        const prompt = `
-شما یک مشاور تحصیلی و روانشناس تربیتی حرفه‌ای هستید.
+        const { data: gradeRows } = await supabase
+          .from('grades')
+          .select('subject, score, exam_type, exam_date')
+          .eq('student_id', studentId)
+          .order('exam_date', { ascending: false })
+          .limit(12)
 
-**اطلاعات دانش‌آموز:**
-- نام: ${studentName}
-- پایه تحصیلی: ${student.grade}
+        const { data: behaviorRows } = await supabase
+          .from('behavior_reports')
+          .select('report_date, positive_behaviors, negative_behaviors, notes')
+          .eq('student_id', studentId)
+          .order('report_date', { ascending: false })
+          .limit(8)
 
-**وظیفه شما:**
-لطفاً یک تحلیل جامع از این دانش‌آموز ارائه دهید.
+        const gradeLines = (gradeRows || [])
+          .map((g) => `${g.exam_date ?? ''} ${g.subject}: ${g.score} (${g.exam_type})`)
+          .join('\n')
+        const behaviorLines = (behaviorRows || [])
+          .map((b) => {
+            const pos = Array.isArray(b.positive_behaviors) ? b.positive_behaviors.join('، ') : ''
+            const neg = Array.isArray(b.negative_behaviors) ? b.negative_behaviors.join('، ') : ''
+            return `${b.report_date}: مثبت [${pos || '—'}] | بهبود [${neg || '—'}]`
+          })
+          .join('\n')
 
-**خروجی باید دقیقاً به این فرمت JSON باشد:**
+        const typeFa =
+          analysisType === 'academic'
+            ? 'تحصیلی'
+            : analysisType === 'behavioral'
+              ? 'رفتاری'
+              : 'جامع (تحصیلی و رفتاری)'
+
+        const prompt = `شما مشاور تحصیلی مدرسه در ایران هستید. تحلیل ${typeFa} کوتاه و محترمانه به فارسی بنویسید.
+حدس پزشکی یا تشخیص روان‌پزشکی نزنید. اگر داده کم است، صریح بگویید.
+
+دانش‌آموز: ${studentName}
+پایه: ${student.grade ?? 'نامشخص'}
+نمرات اخیر:
+${gradeLines || 'نمره‌ای ثبت نشده'}
+گزارش رفتار اخیر:
+${behaviorLines || 'گزارش رفتاری ثبت نشده'}
+
+فقط JSON:
 {
-  "analysis": "تحلیل کلی",
-  "strengths": ["نقطه قوت 1"],
-  "weaknesses": ["نقطه ضعف 1"],
-  "recommendations": ["توصیه 1"],
+  "analysis": "۳ تا ۶ جمله",
+  "strengths": ["نقطه قوت"],
+  "weaknesses": ["نکته قابل بهبود"],
+  "recommendations": ["پیشنهاد عملی"],
   "risk_level": "low"
-}
-
-فقط JSON برگردانید.
-`
+}`
 
         const { data: analysis, response } = await gatewayCallAIJson<AnalysisResult>(
           ctx.userId,

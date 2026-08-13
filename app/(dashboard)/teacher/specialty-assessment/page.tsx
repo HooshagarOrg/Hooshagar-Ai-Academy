@@ -159,10 +159,10 @@ const TagInput = ({
           placeholder={placeholder}
           className="bg-white/5 border-white/20 text-white placeholder:text-white/40"
           onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAdd())}
-          list={suggestions ? 'suggestions' : undefined}
+          list={suggestions ? `tag-sug-${placeholder}` : undefined}
         />
         {suggestions && (
-          <datalist id="suggestions">
+          <datalist id={`tag-sug-${placeholder}`}>
             {suggestions.map(s => <option key={s} value={s} />)}
           </datalist>
         )}
@@ -335,6 +335,383 @@ const MusicAssessmentForm = ({
   </div>
 )
 
+interface ArtFormData {
+  creativity: number
+  originality: number
+  technical_skills: number
+  use_of_color: number
+  composition: number
+  attention_to_detail: number
+  mastered_techniques: string[]
+  participation_score: number
+  cleanup_responsibility: number
+  respect_for_materials: number
+  teacher_notes: string
+  strengths: string
+  areas_for_growth: string
+  final_grade: string
+}
+
+const defaultArtData = (): ArtFormData => ({
+  creativity: 3,
+  originality: 3,
+  technical_skills: 3,
+  use_of_color: 3,
+  composition: 3,
+  attention_to_detail: 3,
+  mastered_techniques: [],
+  participation_score: 3,
+  cleanup_responsibility: 3,
+  respect_for_materials: 3,
+  teacher_notes: '',
+  strengths: '',
+  areas_for_growth: '',
+  final_grade: '',
+})
+
+const ArtAssessmentForm = ({
+  data,
+  onChange,
+}: {
+  data: ArtFormData
+  onChange: (data: ArtFormData) => void
+}) => (
+  <div className="space-y-6">
+    <div className="space-y-4">
+      {Object.entries(ART_SKILL_LABELS).map(([key, label]) => (
+        <SkillSlider
+          key={key}
+          label={label}
+          value={Number(data[key as keyof ArtFormData] ?? 3)}
+          onChange={(v) => onChange({ ...data, [key]: v })}
+        />
+      ))}
+    </div>
+    <div>
+      <Label className="text-white/70 mb-2 block">تکنیک‌های مسلط</Label>
+      <TagInput
+        tags={data.mastered_techniques}
+        onAdd={(tag) => onChange({ ...data, mastered_techniques: [...data.mastered_techniques, tag] })}
+        onRemove={(tag) =>
+          onChange({ ...data, mastered_techniques: data.mastered_techniques.filter((t) => t !== tag) })
+        }
+        placeholder="تکنیک..."
+        suggestions={ART_TECHNIQUES}
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">یادداشت معلم</Label>
+      <Textarea
+        value={data.teacher_notes}
+        onChange={(e) => onChange({ ...data, teacher_notes: e.target.value })}
+        className="mt-1 bg-white/5 border-white/20 text-white min-h-20"
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">نقاط قوت</Label>
+      <Textarea
+        value={data.strengths}
+        onChange={(e) => onChange({ ...data, strengths: e.target.value })}
+        className="mt-1 bg-white/5 border-white/20 text-white"
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">نقاط رشد</Label>
+      <Textarea
+        value={data.areas_for_growth}
+        onChange={(e) => onChange({ ...data, areas_for_growth: e.target.value })}
+        className="mt-1 bg-white/5 border-white/20 text-white"
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">نمره نهایی</Label>
+      <Select value={data.final_grade} onValueChange={(v) => onChange({ ...data, final_grade: v })}>
+        <SelectTrigger className="mt-1 bg-white/5 border-white/20 text-white">
+          <SelectValue placeholder="انتخاب کنید" />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.entries(FINAL_GRADE_LABELS).map(([key, label]) => (
+            <SelectItem key={key} value={key}>{label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  </div>
+)
+
+interface SportsFormData {
+  cardiovascular_endurance: number
+  muscular_strength: number
+  muscular_endurance: number
+  flexibility: number
+  coordination: number
+  agility: number
+  balance: number
+  team_sports_skills: number
+  individual_sports_skills: number
+  game_understanding: number
+  sportsmanship: number
+  teamwork: number
+  leadership: number
+  effort: number
+  following_rules: number
+  specialized_sports: string[]
+  teacher_notes: string
+  strengths: string
+  areas_for_improvement: string
+  final_grade: string
+}
+
+const defaultSportsData = (): SportsFormData => ({
+  cardiovascular_endurance: 3,
+  muscular_strength: 3,
+  muscular_endurance: 3,
+  flexibility: 3,
+  coordination: 3,
+  agility: 3,
+  balance: 3,
+  team_sports_skills: 3,
+  individual_sports_skills: 3,
+  game_understanding: 3,
+  sportsmanship: 3,
+  teamwork: 3,
+  leadership: 3,
+  effort: 3,
+  following_rules: 3,
+  specialized_sports: [],
+  teacher_notes: '',
+  strengths: '',
+  areas_for_improvement: '',
+  final_grade: '',
+})
+
+const SportsAssessmentForm = ({
+  data,
+  onChange,
+}: {
+  data: SportsFormData
+  onChange: (data: SportsFormData) => void
+}) => (
+  <div className="space-y-6">
+    <div>
+      <h4 className="text-white font-medium mb-4">آمادگی جسمانی</h4>
+      <div className="space-y-4">
+        {Object.entries(SPORTS_FITNESS_LABELS)
+          .filter(([key]) => key !== 'body_composition')
+          .map(([key, label]) => (
+            <SkillSlider
+              key={key}
+              label={label}
+              value={Number(data[key as keyof SportsFormData] ?? 3)}
+              onChange={(v) => onChange({ ...data, [key]: v })}
+            />
+          ))}
+      </div>
+    </div>
+    <div>
+      <h4 className="text-white font-medium mb-4">مهارت و روحیه</h4>
+      <div className="space-y-4">
+        {Object.entries(SPORTS_SKILL_LABELS).map(([key, label]) => (
+          <SkillSlider
+            key={key}
+            label={label}
+            value={Number(data[key as keyof SportsFormData] ?? 3)}
+            onChange={(v) => onChange({ ...data, [key]: v })}
+          />
+        ))}
+      </div>
+    </div>
+    <div>
+      <Label className="text-white/70 mb-2 block">رشته‌های تخصصی</Label>
+      <TagInput
+        tags={data.specialized_sports}
+        onAdd={(tag) => onChange({ ...data, specialized_sports: [...data.specialized_sports, tag] })}
+        onRemove={(tag) =>
+          onChange({ ...data, specialized_sports: data.specialized_sports.filter((t) => t !== tag) })
+        }
+        placeholder="رشته..."
+        suggestions={SPECIALIZED_SPORTS}
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">یادداشت معلم</Label>
+      <Textarea
+        value={data.teacher_notes}
+        onChange={(e) => onChange({ ...data, teacher_notes: e.target.value })}
+        className="mt-1 bg-white/5 border-white/20 text-white min-h-20"
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">نقاط قوت</Label>
+      <Textarea
+        value={data.strengths}
+        onChange={(e) => onChange({ ...data, strengths: e.target.value })}
+        className="mt-1 bg-white/5 border-white/20 text-white"
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">نقاط قابل بهبود</Label>
+      <Textarea
+        value={data.areas_for_improvement}
+        onChange={(e) => onChange({ ...data, areas_for_improvement: e.target.value })}
+        className="mt-1 bg-white/5 border-white/20 text-white"
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">نمره نهایی</Label>
+      <Select value={data.final_grade} onValueChange={(v) => onChange({ ...data, final_grade: v })}>
+        <SelectTrigger className="mt-1 bg-white/5 border-white/20 text-white">
+          <SelectValue placeholder="انتخاب کنید" />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.entries(FINAL_GRADE_LABELS).map(([key, label]) => (
+            <SelectItem key={key} value={key}>{label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  </div>
+)
+
+interface StemFormData {
+  subject: STEMSubject
+  problem_solving: number
+  logical_thinking: number
+  computational_thinking: number
+  debugging_skills: number
+  technical_skills: number
+  creativity: number
+  innovation: number
+  collaboration: number
+  communication: number
+  programming_languages: string[]
+  concepts_mastered: string[]
+  teacher_notes: string
+  strengths: string
+  next_steps: string
+  final_grade: string
+}
+
+const defaultStemData = (): StemFormData => ({
+  subject: 'coding',
+  problem_solving: 3,
+  logical_thinking: 3,
+  computational_thinking: 3,
+  debugging_skills: 3,
+  technical_skills: 3,
+  creativity: 3,
+  innovation: 3,
+  collaboration: 3,
+  communication: 3,
+  programming_languages: [],
+  concepts_mastered: [],
+  teacher_notes: '',
+  strengths: '',
+  next_steps: '',
+  final_grade: '',
+})
+
+const StemAssessmentForm = ({
+  data,
+  onChange,
+}: {
+  data: StemFormData
+  onChange: (data: StemFormData) => void
+}) => (
+  <div className="space-y-6">
+    <div>
+      <Label className="text-white/70">موضوع STEM</Label>
+      <Select
+        value={data.subject}
+        onValueChange={(v) => onChange({ ...data, subject: v as STEMSubject })}
+      >
+        <SelectTrigger className="mt-1 bg-white/5 border-white/20 text-white">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.entries(STEM_SUBJECT_LABELS).map(([key, label]) => (
+            <SelectItem key={key} value={key}>{label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+    <div className="space-y-4">
+      {Object.entries(STEM_SKILL_LABELS).map(([key, label]) => (
+        <SkillSlider
+          key={key}
+          label={label}
+          value={Number(data[key as keyof StemFormData] ?? 3)}
+          onChange={(v) => onChange({ ...data, [key]: v })}
+        />
+      ))}
+    </div>
+    <div>
+      <Label className="text-white/70 mb-2 block">زبان‌های برنامه‌نویسی</Label>
+      <TagInput
+        tags={data.programming_languages}
+        onAdd={(tag) => onChange({ ...data, programming_languages: [...data.programming_languages, tag] })}
+        onRemove={(tag) =>
+          onChange({
+            ...data,
+            programming_languages: data.programming_languages.filter((t) => t !== tag),
+          })
+        }
+        placeholder="زبان..."
+        suggestions={PROGRAMMING_LANGUAGES}
+      />
+    </div>
+    <div>
+      <Label className="text-white/70 mb-2 block">مفاهیم مسلط</Label>
+      <TagInput
+        tags={data.concepts_mastered}
+        onAdd={(tag) => onChange({ ...data, concepts_mastered: [...data.concepts_mastered, tag] })}
+        onRemove={(tag) =>
+          onChange({ ...data, concepts_mastered: data.concepts_mastered.filter((t) => t !== tag) })
+        }
+        placeholder="مفهوم..."
+        suggestions={STEM_CONCEPTS}
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">یادداشت معلم</Label>
+      <Textarea
+        value={data.teacher_notes}
+        onChange={(e) => onChange({ ...data, teacher_notes: e.target.value })}
+        className="mt-1 bg-white/5 border-white/20 text-white min-h-20"
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">نقاط قوت</Label>
+      <Textarea
+        value={data.strengths}
+        onChange={(e) => onChange({ ...data, strengths: e.target.value })}
+        className="mt-1 bg-white/5 border-white/20 text-white"
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">قدم بعدی</Label>
+      <Textarea
+        value={data.next_steps}
+        onChange={(e) => onChange({ ...data, next_steps: e.target.value })}
+        className="mt-1 bg-white/5 border-white/20 text-white"
+      />
+    </div>
+    <div>
+      <Label className="text-white/70">نمره نهایی</Label>
+      <Select value={data.final_grade} onValueChange={(v) => onChange({ ...data, final_grade: v })}>
+        <SelectTrigger className="mt-1 bg-white/5 border-white/20 text-white">
+          <SelectValue placeholder="انتخاب کنید" />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.entries(FINAL_GRADE_LABELS).map(([key, label]) => (
+            <SelectItem key={key} value={key}>{label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  </div>
+)
+
 // ==========================================
 // Main Component
 // ==========================================
@@ -370,8 +747,9 @@ export default function SpecialtyAssessmentPage() {
     songs_learned: [],
     final_grade: '',
   })
-  
-  // Similar state for art, sports, stem would go here
+  const [artData, setArtData] = useState<ArtFormData>(defaultArtData)
+  const [sportsData, setSportsData] = useState<SportsFormData>(defaultSportsData)
+  const [stemData, setStemData] = useState<StemFormData>(defaultStemData)
   
   useEffect(() => {
     let cancelled = false
@@ -461,22 +839,31 @@ export default function SpecialtyAssessmentPage() {
       songs_learned: [],
       final_grade: '',
     })
+    setArtData(defaultArtData())
+    setSportsData(defaultSportsData())
+    setStemData(defaultStemData())
   }
   
   const handleSaveAssessment = async () => {
     if (!selectedStudent) return
-    if (activeTab !== 'music') {
-      toast.error('فعلاً فقط ارزیابی موسیقی قابل ذخیره است')
-      return
-    }
 
     setIsSubmitting(true)
     
     try {
+      const common = {
+        student_id: selectedStudent.id,
+        assessment_date: assessmentDate,
+        semester: selectedSemester,
+        academic_year: '1403-1404',
+      }
       const payload =
         activeTab === 'music'
-          ? { ...musicData, student_id: selectedStudent.id, assessment_date: assessmentDate, semester: selectedSemester, academic_year: '1403-1404' }
-          : { student_id: selectedStudent.id, assessment_date: assessmentDate, semester: selectedSemester, academic_year: '1403-1404' }
+          ? { ...musicData, ...common }
+          : activeTab === 'art'
+            ? { ...artData, ...common }
+            : activeTab === 'sports'
+              ? { ...sportsData, ...common }
+              : { ...stemData, ...common }
 
       const res = await fetch(`/api/specialty-assessments?type=${activeTab}`, {
         method: 'POST',
@@ -695,29 +1082,20 @@ export default function SpecialtyAssessmentPage() {
               {activeTab === 'music' && (
                 <MusicAssessmentForm data={musicData} onChange={setMusicData} />
               )}
-              
               {activeTab === 'art' && (
-                <div className="text-center py-8 text-white/40">
-                  فرم هنر هنوز آماده نیست — ذخیره نمی‌شود.
-                </div>
+                <ArtAssessmentForm data={artData} onChange={setArtData} />
               )}
-              
               {activeTab === 'sports' && (
-                <div className="text-center py-8 text-white/40">
-                  فرم ورزش هنوز آماده نیست — ذخیره نمی‌شود.
-                </div>
+                <SportsAssessmentForm data={sportsData} onChange={setSportsData} />
               )}
-              
               {activeTab === 'stem' && (
-                <div className="text-center py-8 text-white/40">
-                  فرم STEM هنوز آماده نیست — ذخیره نمی‌شود.
-                </div>
+                <StemAssessmentForm data={stemData} onChange={setStemData} />
               )}
               
               <div className="flex gap-3 mt-6 pt-4 border-t border-white/10">
                 <Button
                   onClick={handleSaveAssessment}
-                  disabled={isSubmitting || activeTab !== 'music'}
+                  disabled={isSubmitting}
                   className="flex-1 bg-purple-500 hover:bg-purple-600 text-white gap-2"
                 >
                   <Save className="w-4 h-4" />

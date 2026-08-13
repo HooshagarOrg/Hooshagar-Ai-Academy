@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
 // POST - Create New Assessment
 // ==========================================
 export async function POST(req: NextRequest) {
-  return withAuth(req, async () => {
+  return withAuth(req, async (ctx) => {
     try {
       const supabase = await createClient()
       const { searchParams } = new URL(req.url)
@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
         .insert({
           ...body,
           school_id: student.school_id,
+          teacher_id: ctx.userId,
         })
         .select()
         .single()

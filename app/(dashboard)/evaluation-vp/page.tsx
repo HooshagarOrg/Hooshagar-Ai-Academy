@@ -1,12 +1,5 @@
-﻿import { UnderConstruction } from '@/components/ui/under-construction'
+import { RoleInactivePage } from '@/components/ui/role-inactive-page'
 
 export default function Page() {
-  return (
-    <UnderConstruction
-      title="داشبورد معاون ارزیابی"
-      description="ارزیابی عملکرد مدرسه"
-      backHref="/dashboard"
-    />
-  )
+  return <RoleInactivePage title="داشبورد معاون ارزیابی" backHref="/dashboard" />
 }
-

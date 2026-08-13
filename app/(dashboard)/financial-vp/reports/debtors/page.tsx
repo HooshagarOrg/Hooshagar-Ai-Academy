@@ -1,12 +1,5 @@
-﻿import { UnderConstruction } from '@/components/ui/under-construction'
+import { RoleInactivePage } from '@/components/ui/role-inactive-page'
 
 export default function Page() {
-  return (
-    <UnderConstruction
-      title="لیست بدهکاران"
-      description="گزارش بدهی‌های معوق"
-      backHref="/financial-vp"
-    />
-  )
+  return <RoleInactivePage title="لیست بدهکاران" backHref="/financial-vp" />
 }
-

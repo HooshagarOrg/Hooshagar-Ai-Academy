@@ -1,12 +1,5 @@
-﻿import { UnderConstruction } from '@/components/ui/under-construction'
+import { RoleInactivePage } from '@/components/ui/role-inactive-page'
 
 export default function Page() {
-  return (
-    <UnderConstruction
-      title="ارسال SMS مالی"
-      description="این مسیر برای کنترل هزینه پیامک در پایلوت غیرفعال است. یادآوری شهریه فعلاً از اعلان داخل برنامه انجام می‌شود."
-      backHref="/financial-vp"
-      features={['یادآوری بدهی', 'تشکر از پرداخت', 'سقف روزانه مدرسه']}
-    />
-  )
+  return <RoleInactivePage title="ارسال SMS مالی" backHref="/financial-vp" />
 }

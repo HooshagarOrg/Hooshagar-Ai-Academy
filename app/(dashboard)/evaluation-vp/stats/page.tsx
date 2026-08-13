@@ -1,12 +1,5 @@
-﻿import { UnderConstruction } from '@/components/ui/under-construction'
+import { RoleInactivePage } from '@/components/ui/role-inactive-page'
 
 export default function Page() {
-  return (
-    <UnderConstruction
-      title="آمار ارزیابی"
-      description="نمودارها و آمار کلی"
-      backHref="/evaluation-vp"
-    />
-  )
+  return <RoleInactivePage title="آمار ارزیابی" backHref="/evaluation-vp" />
 }
-

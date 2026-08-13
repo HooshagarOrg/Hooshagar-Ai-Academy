@@ -1,12 +1,5 @@
-﻿import { UnderConstruction } from '@/components/ui/under-construction'
+import { RoleInactivePage } from '@/components/ui/role-inactive-page'
 
 export default function Page() {
-  return (
-    <UnderConstruction
-      title="مدیریت پرداخت‌ها"
-      description="ثبت و پیگیری پرداخت شهریه"
-      backHref="/financial-vp"
-    />
-  )
+  return <RoleInactivePage title="مدیریت پرداخت‌ها" backHref="/financial-vp" />
 }
-

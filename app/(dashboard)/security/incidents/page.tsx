@@ -1,12 +1,5 @@
-﻿import { UnderConstruction } from '@/components/ui/under-construction'
+import { RoleInactivePage } from '@/components/ui/role-inactive-page'
 
 export default function Page() {
-  return (
-    <UnderConstruction
-      title="رخدادها"
-      description="گزارش حوادث امنیتی"
-      backHref="/security"
-    />
-  )
+  return <RoleInactivePage title="رخدادها" backHref="/security" />
 }
-

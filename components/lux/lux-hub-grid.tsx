@@ -12,6 +12,7 @@ export type LuxHubCard = {
   color?: string
   bg?: string
   featured?: boolean
+  badge?: string
 }
 
 export type LuxHubGroup = {
@@ -52,8 +53,13 @@ export function LuxHubGrid({ groups, className }: LuxHubGridProps) {
                         <Icon className={cn('h-5 w-5', card.color ?? 'text-[var(--lux-primary)]')} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="mb-1 text-sm font-bold text-[var(--lux-text)] transition-colors group-hover:text-[var(--lux-secondary)]">
-                          {card.title}
+                        <h3 className="mb-1 flex items-center gap-2 text-sm font-bold text-[var(--lux-text)] transition-colors group-hover:text-[var(--lux-secondary)]">
+                          <span>{card.title}</span>
+                          {card.badge ? (
+                            <span className="rounded-full bg-amber-500/90 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                              {card.badge}
+                            </span>
+                          ) : null}
                         </h3>
                         <p className="text-xs leading-relaxed text-[var(--lux-text-muted)]">
                           {card.description}

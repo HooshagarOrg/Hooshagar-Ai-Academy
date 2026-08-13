@@ -6,3 +6,6 @@ export const COMING_SOON_LICENSE_VIRTUAL_CLASS =
   'به‌زودی — نیاز به خرید لایسنس کلاس مجازی'
 
 export const COMING_SOON_PILOT_NOTE = 'پایلوت — به‌زودی'
+
+export const COMING_SOON_ACCOUNTING =
+  'به‌زودی — نیاز به اتصال حسابداری'

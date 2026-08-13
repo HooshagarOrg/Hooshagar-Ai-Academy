@@ -1,19 +1,17 @@
-'use client'
-
 import { UnderConstruction } from '@/components/ui/under-construction'
+import {
+  COMING_SOON_ACCOUNTING,
+  COMING_SOON_PILOT_NOTE,
+} from '@/lib/copy/coming-soon'
 
-/**
- * امور مالی والدین — تا اتصال سامانهٔ واقعی از منو مخفی است.
- * مسیر مستقیم فقط صفحهٔ «به‌زودی» نشان می‌دهد (بدون مبالغ نمونه).
- */
 export default function ParentFinancialsPage() {
   return (
     <UnderConstruction
       title="امور مالی"
-      description="سامانهٔ مالی واقعی هنوز متصل نشده است. مبالغ شهریه و پرداخت را از واحد مالی مدرسه پیگیری کنید."
+      description={`${COMING_SOON_ACCOUNTING}. مبالغ شهریه و پرداخت را از واحد مالی مدرسه پیگیری کنید.`}
       backHref="/parent"
       backLabel="بازگشت به داشبورد والد"
-      pilotNote="پایلوت — به‌زودی"
+      pilotNote={COMING_SOON_PILOT_NOTE}
       features={[
         'مشاهدهٔ شهریه و مانده',
         'تاریخچهٔ پرداخت‌ها',

@@ -64,7 +64,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'کاربران', href: '/admin/users', icon: Users },
         { title: 'واردسازی گروهی', href: '/admin/bulk-import', icon: FileText },
         { title: 'انتقال دانش‌آموزان', href: '/admin/progression', icon: ArrowUpCircle },
-        { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video },
+        { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
@@ -77,8 +77,8 @@ const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'هوش مصنوعی',
       items: [
-        { title: 'مدل‌های AI', href: '/admin/ai-models', icon: Brain },
-        { title: 'اعتبار AI', href: '/admin/ai-credits', icon: Zap },
+        { title: 'مدل‌های AI', href: '/admin/ai-models', icon: Brain, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'اعتبار AI', href: '/admin/ai-credits', icon: Zap, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'محدودیت‌ها', href: '/admin/ai-limits', icon: Sliders },
         { title: 'کنترل دسترسی', href: '/admin/ai-access-control', icon: Shield },
         { title: 'مصرف AI', href: '/admin/ai-usage-dashboard', icon: BarChart3 },
@@ -91,7 +91,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'گزارشات', href: '/admin/reports', icon: BarChart3 },
         { title: 'ارسال پیام گروهی', href: '/admin/broadcast', icon: Send },
         { title: 'نظرسنجی‌ها', href: '/admin/surveys', icon: MessageSquare },
-        { title: 'هشدار زودهنگام', href: '/admin/early-warning', icon: AlertCircle },
+        { title: 'هشدار زودهنگام', href: '/admin/early-warning', icon: AlertCircle, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
@@ -105,9 +105,9 @@ const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'تنظیمات',
       items: [
-        { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders },
+        { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'سال تحصیلی', href: '/admin/academic-years', icon: Calendar },
-        { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign },
+        { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'پلن‌های اشتراک', href: '/admin/subscriptions', icon: CreditCard },
         { title: 'ظرفیت و سهمیه', href: '/admin/quota-settings', icon: Sliders },
         { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
@@ -134,9 +134,11 @@ const navConfig: Record<string, NavGroup[]> = {
       items: [
         { title: 'آزمون‌ها', href: '/teacher/exams', icon: ClipboardCheck },
         { title: 'آزمون‌ساز', href: '/teacher/exam-generator', icon: PenTool },
-        { title: 'بانک سوال', href: '/teacher/question-bank', icon: BookOpen },
+        { title: 'بانک سوال', href: '/teacher/question-bank-v2', icon: BookOpen },
         { title: 'تولید محتوا (AI)', href: '/teacher/content-creator', icon: Sparkles },
         { title: 'سوالات شفاهی', href: '/teacher/oral-questions', icon: MessageSquare },
+        { title: 'ارزیابی مهارت پایه', href: '/teacher/academic-foundation', icon: Target, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'اعطای نشان', href: '/teacher/award-badges', icon: Award, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
@@ -158,13 +160,13 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'گزارشات', href: '/parent/reports', icon: BarChart3 },
         { title: 'حضور و غیاب', href: '/parent/attendance', icon: ClipboardCheck },
         { title: 'بهداشت', href: '/parent/health', icon: Heart },
-        // /parent/financials تا اتصال سامانهٔ واقعی از منو مخفی است (GAP C3)
+        { title: 'امور مالی', href: '/parent/financials', icon: DollarSign, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
       ]
     },
     {
       title: 'خدمات',
       items: [
-        { title: 'کلاس مجازی', href: '/parent#virtual-class', icon: Video },
+        { title: 'کلاس مجازی', href: '/parent/virtual-class', icon: Video, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'مشاوره', href: '/parent/counseling', icon: HelpCircle },
         { title: 'ثبت‌نام کلاس', href: '/parent/class-registration', icon: GraduationCap },
         { title: 'نظرسنجی', href: '/parent/survey', icon: MessageSquare },
@@ -182,7 +184,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'نمراتم', href: '/student/grades', icon: GraduationCap },
         { title: 'مسیر یادگیری', href: '/student/learning-journey', icon: Compass },
         { title: 'آزمون‌هایم', href: '/student/exams', icon: ClipboardCheck },
-        { title: 'کلاس مجازی', href: '/student#virtual-class', icon: Video },
+        { title: 'کلاس مجازی', href: '/student/virtual-class', icon: Video, badge: 'به‌زودی', badgeColor: 'bg-amber-500/90 text-white' },
         { title: 'دستیار مطالعه', href: '/student/study-buddy', icon: BookOpen },
         { title: 'حل مسئله (OCR)', href: '/student/problem-solver', icon: Lightbulb },
       ]

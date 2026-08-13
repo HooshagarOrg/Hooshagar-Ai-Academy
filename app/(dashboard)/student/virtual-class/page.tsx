@@ -4,17 +4,17 @@ import {
   COMING_SOON_PILOT_NOTE,
 } from '@/lib/copy/coming-soon'
 
-export default function AdminVirtualClassesPage() {
+export default function StudentVirtualClassPage() {
   return (
     <UnderConstruction
       title="کلاس مجازی"
       description={COMING_SOON_LICENSE_VIRTUAL_CLASS}
-      backHref="/admin"
-      backLabel="بازگشت به داشبورد ادمین"
+      backHref="/student"
+      backLabel="بازگشت به داشبورد دانش‌آموز"
       pilotNote={COMING_SOON_PILOT_NOTE}
       features={[
-        'تعریف جلسه و اتصال به کلاس',
-        'لینک حضور برای معلم و دانش‌آموز',
+        'ورود به جلسهٔ آنلاین کلاس',
+        'برنامهٔ جلسات',
         'پس از خرید لایسنس کلاس مجازی فعال می‌شود',
       ]}
     />

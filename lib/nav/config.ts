@@ -32,7 +32,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'واردسازی گروهی', href: '/admin/bulk-import', icon: FileText },
         { title: 'ارتقاء پایه', href: '/admin/progression', icon: ArrowUpCircle },
         { title: 'انتقال بین‌مدرسه‌ای', href: '/admin/transfers', icon: ArrowLeftRight },
-        { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video },
+        { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video, badge: COMING_SOON_BADGE },
       ],
     },
     {
@@ -42,6 +42,8 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'محدودیت‌ها', href: '/admin/ai-limits', icon: Sliders },
         { title: 'کنترل دسترسی', href: '/admin/ai-access-control', icon: Shield },
         { title: 'تست AI', href: '/admin/ai-test', icon: HelpCircle },
+        { title: 'مدل‌های AI', href: '/admin/ai-models', icon: Brain, badge: COMING_SOON_BADGE },
+        { title: 'اعتبار AI', href: '/admin/ai-credits', icon: Zap, badge: COMING_SOON_BADGE },
       ],
     },
     {
@@ -49,6 +51,8 @@ export const navConfig: Record<string, NavGroup[]> = {
       items: [
         { title: 'گزارشات', href: '/admin/reports', icon: BarChart3 },
         { title: 'نظرسنجی‌ها', href: '/admin/surveys', icon: MessageSquare },
+        { title: 'ارسال پیام گروهی', href: '/admin/broadcast', icon: Send },
+        { title: 'هشدار زودهنگام', href: '/admin/early-warning', icon: AlertCircle, badge: COMING_SOON_BADGE },
       ],
     },
     {
@@ -73,6 +77,8 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'پلن‌های اشتراک', href: '/admin/subscriptions', icon: CreditCard },
         { title: 'ظرفیت و سهمیه', href: '/admin/quota-settings', icon: Sliders },
         { title: 'برندینگ مدرسه', href: '/admin/school-settings', icon: Palette },
+        { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders, badge: COMING_SOON_BADGE },
+        { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign, badge: COMING_SOON_BADGE },
         { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
       ],
     },
@@ -95,9 +101,11 @@ export const navConfig: Record<string, NavGroup[]> = {
       items: [
         { title: 'آزمون‌ها', href: '/teacher/exams', icon: ClipboardCheck },
         { title: 'آزمون‌ساز', href: '/teacher/exam-generator', icon: PenTool },
-        { title: 'بانک سوال', href: '/teacher/question-bank', icon: BookOpen },
+        { title: 'بانک سوال', href: '/teacher/question-bank-v2', icon: BookOpen },
         { title: 'تولید محتوا (AI)', href: '/teacher/content-creator', icon: Sparkles },
         { title: 'سوالات شفاهی', href: '/teacher/oral-questions', icon: MessageSquare },
+        { title: 'ارزیابی مهارت پایه', href: '/teacher/academic-foundation', icon: Target, badge: COMING_SOON_BADGE },
+        { title: 'اعطای نشان', href: '/teacher/award-badges', icon: Award, badge: COMING_SOON_BADGE },
       ],
     },
     {
@@ -117,12 +125,13 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'گزارشات', href: '/parent/reports', icon: BarChart3 },
         { title: 'حضور و غیاب', href: '/parent/attendance', icon: ClipboardCheck },
         { title: 'بهداشت', href: '/parent/health', icon: Heart },
+        { title: 'امور مالی', href: '/parent/financials', icon: DollarSign, badge: COMING_SOON_BADGE },
       ],
     },
     {
       title: 'خدمات',
       items: [
-        { title: 'کلاس مجازی', href: '/parent#virtual-class', icon: Video },
+        { title: 'کلاس مجازی', href: '/parent/virtual-class', icon: Video, badge: COMING_SOON_BADGE },
         { title: 'مشاوره', href: '/parent/counseling', icon: HelpCircle },
         { title: 'ثبت‌نام کلاس', href: '/parent/class-registration', icon: GraduationCap },
         { title: 'نظرسنجی', href: '/parent/survey', icon: MessageSquare },
@@ -138,7 +147,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'نمراتم', href: '/student/grades', icon: GraduationCap },
         { title: 'مسیر یادگیری', href: '/student/learning-journey', icon: Compass },
         { title: 'آزمون‌هایم', href: '/student/exams', icon: ClipboardCheck },
-        { title: 'کلاس مجازی', href: '/student#virtual-class', icon: Video },
+        { title: 'کلاس مجازی', href: '/student/virtual-class', icon: Video, badge: COMING_SOON_BADGE },
         { title: 'دستیار مطالعه', href: '/student/study-buddy', icon: BookOpen },
         { title: 'حل مسئله (OCR)', href: '/student/problem-solver', icon: Lightbulb },
       ],
@@ -207,10 +216,10 @@ export const simpleNavs: Record<string, NavItem[]> = {
   ],
   financial_vp: [
     { title: 'داشبورد', href: '/financial-vp', icon: Home },
-    { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: CreditCard },
-    { title: 'پیامک', href: '/financial-vp/sms', icon: MessageSquare },
-    { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: DollarSign },
-    { title: 'درآمد', href: '/financial-vp/reports/income', icon: TrendingUp },
+    { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: CreditCard, badge: COMING_SOON_BADGE },
+    { title: 'پیامک', href: '/financial-vp/sms', icon: MessageSquare, badge: COMING_SOON_BADGE },
+    { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: DollarSign, badge: COMING_SOON_BADGE },
+    { title: 'درآمد', href: '/financial-vp/reports/income', icon: TrendingUp, badge: COMING_SOON_BADGE },
   ],
   art_teacher: [
     { title: 'داشبورد', href: '/art-teacher', icon: Home },

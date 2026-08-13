@@ -308,8 +308,6 @@ const simpleNavs: Record<string, NavItem[]> = {
     { title: 'برنامه', href: '/maintenance/schedule', icon: Calendar, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
 }
-  ],
-}
 
 // مسیرهای مشترک برای همه
 const commonItems: NavItem[] = [

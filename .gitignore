@@ -86,6 +86,9 @@ cost-tracking.json
 secrets/
 private/
 
+# Session briefing — architecture, costs, quotas (never commit)
+**/INTRO_SESSION_BRIEF.md
+
 # Logs (extended)
 pnpm-debug.log*
 lerna-debug.log*

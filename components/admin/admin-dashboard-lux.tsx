@@ -65,7 +65,6 @@ const ADMIN_HUB: LuxHubGroup[] = [
         href: '/admin/virtual-classes',
         color: 'text-brand-cyan',
         bg: 'bg-brand-cyan/15 border border-brand-cyan/20',
-        badge: COMING_SOON_BADGE,
       },
     ],
   },

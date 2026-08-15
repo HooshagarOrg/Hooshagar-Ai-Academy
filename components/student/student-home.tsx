@@ -18,6 +18,7 @@ import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { LuxErrorState, LuxSkeletonCards } from '@/components/lux/lux-page-states'
 import { HooshiarCharacter } from '@/components/avatar/hooshiar-character'
+import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 
 type DashboardPayload = {
   student?: { name: string; grade: number }
@@ -170,6 +171,7 @@ export function StudentHome() {
   return (
     <div dir="rtl">
     <LuxStagger className="space-y-5" stagger={0.1}>
+      <VirtualClassCard />
       <div className="grid gap-5 lg:grid-cols-12">
         <LuxStaggerItem className="lg:col-span-7">
           <LuxCard>

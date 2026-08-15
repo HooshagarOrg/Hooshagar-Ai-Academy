@@ -11,12 +11,14 @@ import {
   Loader2,
   Sparkles,
   Users,
+  Video,
 } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxCard } from '@/components/lux/lux-card'
 import { LuxStatGrid } from '@/components/lux/lux-stat-grid'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
+import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 
 type DashboardData = {
   teacher: { name: string; class: { name: string; grade: number } | null }
@@ -61,6 +63,7 @@ export function TeacherDashboardLux() {
     { label: 'آزمون‌ساز', href: '/teacher/exam-generator', icon: ClipboardCheck },
     { label: 'محتوای AI', href: '/teacher/content-creator', icon: Sparkles },
     { label: 'دفتر کلاسی', href: '/teacher/grades', icon: BookOpen },
+    { label: 'کلاس مجازی', href: '/teacher/virtual-class', icon: Video },
   ]
 
   return (
@@ -75,6 +78,10 @@ export function TeacherDashboardLux() {
 
       <LuxStagger className="space-y-6" stagger={0.1}>
         <LuxStaggerItem>
+          <VirtualClassCard />
+        </LuxStaggerItem>
+
+        <LuxStaggerItem>
           <LuxStatGrid
             items={[
               { label: 'دانش‌آموزان', value: data.stats.totalStudents, icon: <Users className="h-5 w-5" />, accent: 'var(--arc-teacher)' },
@@ -86,7 +93,7 @@ export function TeacherDashboardLux() {
         </LuxStaggerItem>
 
         <LuxStaggerItem>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {tools.map(({ label, href, icon: Icon }) => (
               <Link key={href} href={href} className="lux-dash-tool">
                 <Icon className="h-5 w-5 text-[var(--arc-teacher)]" />

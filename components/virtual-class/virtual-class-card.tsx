@@ -5,9 +5,15 @@ import { Video, Loader2, ExternalLink, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Badge } from '@/components/ui/badge'
+import { EmptyState } from '@/components/ui/empty-state'
 import type { VirtualClassMineItem } from '@/lib/types/virtual-class.types'
 
-export function VirtualClassCard() {
+type VirtualClassCardProps = {
+  /** روی صفحات اختصاصی، نبود کلاس را نشان بده؛ روی داشبورد مخفی بماند */
+  showEmpty?: boolean
+}
+
+export function VirtualClassCard({ showEmpty = false }: VirtualClassCardProps) {
   const [items, setItems] = useState<VirtualClassMineItem[]>([])
   const [loading, setLoading] = useState(true)
   const [joiningId, setJoiningId] = useState<string | null>(null)
@@ -72,7 +78,16 @@ export function VirtualClassCard() {
   }
 
   if (items.length === 0 && !error) {
-    return null
+    if (!showEmpty) return null
+    return (
+      <section id="virtual-class" className="scroll-mt-24">
+        <EmptyState
+          icon={Video}
+          title="کلاس مجازی تعریف نشده"
+          description="وقتی ادمین کل کلاس درسی را به اتاق اسکای‌روم وصل کند، دکمهٔ ورود اینجا دیده می‌شود."
+        />
+      </section>
+    )
   }
 
   return (

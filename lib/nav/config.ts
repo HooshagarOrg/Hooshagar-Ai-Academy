@@ -32,7 +32,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'واردسازی گروهی', href: '/admin/bulk-import', icon: FileText },
         { title: 'ارتقاء پایه', href: '/admin/progression', icon: ArrowUpCircle },
         { title: 'انتقال بین‌مدرسه‌ای', href: '/admin/transfers', icon: ArrowLeftRight },
-        { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video, badge: COMING_SOON_BADGE },
+        { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video },
       ],
     },
     {
@@ -95,7 +95,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'نمرات', href: '/teacher/grades', icon: GraduationCap },
         { title: 'رفتار دانش‌آموزان', href: '/teacher/behavior', icon: Heart },
         { title: 'گزارش هفتگی', href: '/teacher/weekly-report', icon: FileText },
-        { title: 'کلاس مجازی', href: '/teacher/virtual-class', icon: Video, badge: COMING_SOON_BADGE },
+        { title: 'کلاس مجازی', href: '/teacher/virtual-class', icon: Video },
       ],
     },
     {
@@ -134,7 +134,7 @@ export const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'خدمات',
       items: [
-        { title: 'کلاس مجازی', href: '/parent/virtual-class', icon: Video, badge: COMING_SOON_BADGE },
+        { title: 'کلاس مجازی', href: '/parent/virtual-class', icon: Video },
         { title: 'مشاوره', href: '/parent/counseling', icon: HelpCircle },
         { title: 'ثبت‌نام کلاس', href: '/parent/class-registration', icon: GraduationCap },
         { title: 'نظرسنجی', href: '/parent/survey', icon: MessageSquare },
@@ -150,7 +150,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'نمراتم', href: '/student/grades', icon: GraduationCap },
         { title: 'مسیر یادگیری', href: '/student/learning-journey', icon: Compass },
         { title: 'آزمون‌هایم', href: '/student/exams', icon: ClipboardCheck },
-        { title: 'کلاس مجازی', href: '/student/virtual-class', icon: Video, badge: COMING_SOON_BADGE },
+        { title: 'کلاس مجازی', href: '/student/virtual-class', icon: Video },
         { title: 'دستیار مطالعه', href: '/student/study-buddy', icon: BookOpen },
         { title: 'حل مسئله (OCR)', href: '/student/problem-solver', icon: Lightbulb },
         { title: 'استریک یادگیری', href: '/student/streak', icon: Flame },

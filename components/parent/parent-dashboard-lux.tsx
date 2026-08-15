@@ -10,6 +10,7 @@ import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { LuxHubGrid, type LuxHubGroup } from '@/components/lux/lux-hub-grid'
 import { TalentRadarPanel } from '@/components/talent/talent-radar'
+import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
 
 type DashboardData = {
@@ -29,7 +30,7 @@ const PARENT_HUB: LuxHubGroup[] = [
       { title: 'بهداشت', description: 'پرونده و معاینات', icon: Heart, href: '/parent/health', color: 'text-brand-pink', bg: 'bg-brand-pink/15 border border-brand-pink/20' },
       { title: 'امور مالی', description: 'شهریه و پرداخت‌ها', icon: DollarSign, href: '/parent/financials', color: 'text-emerald-400', bg: 'bg-emerald-500/15 border border-emerald-500/20', badge: COMING_SOON_BADGE },
       { title: 'مشاوره', description: 'جلسات و پیگیری', icon: HelpCircle, href: '/parent/counseling', color: 'text-brand-yellow', bg: 'bg-brand-yellow/15 border border-brand-yellow/20' },
-      { title: 'کلاس مجازی', description: 'ورود به جلسات آنلاین', icon: Video, href: '/parent/virtual-class', color: 'text-brand-cyan', bg: 'bg-brand-cyan/15 border border-brand-cyan/20', badge: COMING_SOON_BADGE },
+      { title: 'کلاس مجازی', description: 'ورود به جلسات آنلاین', icon: Video, href: '/parent/virtual-class', color: 'text-brand-cyan', bg: 'bg-brand-cyan/15 border border-brand-cyan/20' },
       { title: 'گزارش تخصصی', description: 'هنر، ورزش و مهارت‌ها', icon: BarChart3, href: '/parent/specialty-reports', color: 'text-brand-orange', bg: 'bg-brand-orange/15 border border-brand-orange/20' },
       { title: 'پیام‌ها', description: 'ارتباط با مدرسه', icon: MessageSquare, href: '/messages', color: 'text-[var(--lux-primary)]', bg: 'bg-white/5 border border-white/10' },
     ],
@@ -96,6 +97,10 @@ export function ParentDashboardLux() {
       </LuxFadeUp>
 
       <LuxStagger className="space-y-6" stagger={0.1}>
+        <LuxStaggerItem>
+          <VirtualClassCard />
+        </LuxStaggerItem>
+
         <LuxStaggerItem>
           <LuxStatGrid
             items={[

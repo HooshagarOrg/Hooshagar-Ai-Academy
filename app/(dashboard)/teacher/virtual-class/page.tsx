@@ -1,22 +1,13 @@
-import { UnderConstruction } from '@/components/ui/under-construction'
-import {
-  COMING_SOON_LICENSE_VIRTUAL_CLASS,
-  COMING_SOON_PILOT_NOTE,
-} from '@/lib/copy/coming-soon'
+import { DashboardPage } from '@/components/layout/dashboard-page'
+import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 
 export default function TeacherVirtualClassPage() {
   return (
-    <UnderConstruction
+    <DashboardPage
       title="کلاس مجازی"
-      description={COMING_SOON_LICENSE_VIRTUAL_CLASS}
-      backHref="/teacher"
-      backLabel="بازگشت به داشبورد معلم"
-      pilotNote={COMING_SOON_PILOT_NOTE}
-      features={[
-        'ورود به جلسهٔ آنلاین کلاس',
-        'برنامهٔ جلسات و لینک حضور',
-        'پس از خرید لایسنس کلاس مجازی فعال می‌شود',
-      ]}
-    />
+      description="ورود به جلسهٔ آنلاین کلاس — بدون نام کاربری و رمز اسکای‌روم"
+    >
+      <VirtualClassCard showEmpty />
+    </DashboardPage>
   )
 }

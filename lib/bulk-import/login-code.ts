@@ -36,9 +36,35 @@ export function generatePin(length = 4): string {
 
 export { hashPin, verifyPin } from '@/lib/security/pin-hash'
 
-export function buildAuthPassword(userId: string, secret: string, prefix: 'student' | 'user'): string {
+/**
+ * رمز داخلی Auth (به کاربر نشان داده نمی‌شود).
+ * باید سیاست Supabase Pro را رعایت کند: حرف کوچک/بزرگ + رقم + نماد.
+ * قطعی از userId + secret ساخته می‌شود تا ورود با PIN همان را بازسازی کند.
+ */
+export function buildAuthPassword(
+  userId: string,
+  secret: string,
+  prefix: 'student' | 'user'
+): string {
+  const uid = userId.replace(/-/g, '').slice(0, 12)
+  // پسوند !9 تضمین می‌کند حتی اگر uid/secret فقط حرف باشند، رقم و نماد وجود دارد
+  return `Hg_${prefix}_${uid}_${secret}!9`
+}
+
+/** فرمت قبل از Pro — فقط برای مهاجرت یک‌باره هنگام ورود */
+export function buildAuthPasswordLegacy(
+  userId: string,
+  secret: string,
+  prefix: 'student' | 'user'
+): string {
   const uid = userId.replace(/-/g, '').slice(0, 12)
   return `hg_${prefix}_${uid}_${secret}`
+}
+
+/** رمز موقت جلسه OTP — یک‌بارمصرف برای signIn بعد از تأیید کد */
+export function buildOtpSessionPassword(userId: string, randomHex: string): string {
+  const uid = userId.replace(/-/g, '').slice(0, 12)
+  return `Hg_otp_${uid}_${randomHex}!9`
 }
 
 export function buildInternalEmail(loginCode: string, role: string): string {

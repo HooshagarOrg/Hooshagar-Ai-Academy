@@ -51,13 +51,17 @@ describe('login-code helpers', () => {
       expect(defaultPasswordFromCode('1234567890')).toBe('7890')
     })
 
-    it('builds auth password with role prefix', () => {
+    it('builds auth password with role prefix and Pro complexity', () => {
       const password = buildAuthPassword(
         'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
         'secret',
         'student'
       )
-      expect(password).toMatch(/^hg_student_aaaaaaaabbbb_secret$/)
+      expect(password).toBe('Hg_student_aaaaaaaabbbb_secret!9')
+      expect(password).toMatch(/[A-Z]/)
+      expect(password).toMatch(/[a-z]/)
+      expect(password).toMatch(/[0-9]/)
+      expect(password).toMatch(/[!]/)
     })
   })
 })

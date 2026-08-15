@@ -23,6 +23,10 @@ import { getSupabaseServerUrl } from '@/lib/supabase/resolve-url'
 import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
 import { supabaseGlobalOptions } from '@/lib/supabase/fetch'
 import { verifyPin, isScryptPinHash } from '@/lib/security/pin-hash'
+import {
+  buildAuthPassword,
+  buildOtpSessionPassword,
+} from '@/lib/bulk-import/login-code'
 import { randomBytes } from 'crypto'
 
 type SessionCookie = { name: string; value: string; options: CookieOptions }
@@ -360,8 +364,7 @@ async function handleLoginCode(loginCode: string, password: string) {
     return { success: false as const, error: 'خطا در احراز هویت', userId: profile.id }
   }
 
-  const uidClean = profile.id.replace(/-/g, '').slice(0, 12)
-  const authPassword = `hg_user_${uidClean}_${password.trim()}`
+  const authPassword = buildAuthPassword(profile.id, password.trim(), 'user')
 
   // فقط برای signIn سمت سرور — هرگز در JSON پاسخ HTTP برنگردانید
   return {
@@ -430,7 +433,6 @@ async function handleOtpLogin(phone: string, otp: string) {
     }
   }
 
-  const uidClean = profile.id.replace(/-/g, '').slice(0, 12)
   let authPassword: string
 
   if (profile.role === 'student') {
@@ -446,7 +448,7 @@ async function handleOtpLogin(phone: string, otp: string) {
 
     // هش یک‌طرفه قابل بازیابی نیست — برای OTP یک رمز موقت می‌سازیم
     if (isScryptPinHash(student.pin_hash)) {
-      authPassword = `hg_otp_${uidClean}_${randomBytes(16).toString('hex')}`
+      authPassword = buildOtpSessionPassword(profile.id, randomBytes(16).toString('hex'))
       const { error: updErr } = await admin.auth.admin.updateUserById(profile.id, {
         password: authPassword,
       })
@@ -456,7 +458,7 @@ async function handleOtpLogin(phone: string, otp: string) {
       }
     } else {
       const pinPlain = Buffer.from(student.pin_hash, 'base64').toString('utf8')
-      authPassword = `hg_student_${uidClean}_${pinPlain}`
+      authPassword = buildAuthPassword(profile.id, pinPlain, 'student')
     }
   } else {
     if (!profile.pin_hash) {
@@ -464,7 +466,7 @@ async function handleOtpLogin(phone: string, otp: string) {
     }
 
     if (isScryptPinHash(profile.pin_hash)) {
-      authPassword = `hg_otp_${uidClean}_${randomBytes(16).toString('hex')}`
+      authPassword = buildOtpSessionPassword(profile.id, randomBytes(16).toString('hex'))
       const { error: updErr } = await admin.auth.admin.updateUserById(profile.id, {
         password: authPassword,
       })
@@ -474,7 +476,7 @@ async function handleOtpLogin(phone: string, otp: string) {
       }
     } else {
       const passPlain = Buffer.from(profile.pin_hash, 'base64').toString('utf8')
-      authPassword = `hg_user_${uidClean}_${passPlain}`
+      authPassword = buildAuthPassword(profile.id, passPlain, 'user')
     }
   }
 
@@ -624,7 +626,7 @@ async function handleStudentPinLogin(student_number: string, pin: string) {
     }
   }
 
-  const internalPassword = `hg_student_${student.user_id.replace(/-/g, '').slice(0, 12)}_${pin}`
+  const internalPassword = buildAuthPassword(student.user_id, pin, 'student')
 
   return {
     success: true as const,
@@ -729,20 +731,51 @@ export async function POST(request: NextRequest) {
 
         const creds = codeResult.credentials
         const serverSigninClient = createLoginClient(request, sessionCookies)
-        const { error: serverSignInError } = await new Promise<{ error: unknown }>((resolve) => {
-          const p = serverSigninClient.auth.signInWithPassword({
-            email: creds.email,
+        const attemptCodeSignIn = async () =>
+          new Promise<{ error: unknown }>((resolve) => {
+            const p = serverSigninClient.auth.signInWithPassword({
+              email: creds.email,
+              password: creds.password,
+            })
+            const timer = setTimeout(() => resolve({ error: new Error('server_signin_timeout') }), 30000)
+            p.then(({ error }) => {
+              clearTimeout(timer)
+              resolve({ error })
+            }).catch((err) => {
+              clearTimeout(timer)
+              resolve({ error: err })
+            })
+          })
+
+        let { error: serverSignInError } = await attemptCodeSignIn()
+
+        // مهاجرت رمز داخلی قدیمی → فرمت سازگار با سیاست Pro
+        if (serverSignInError && codeResult.userId) {
+          console.warn('Login-code signIn mismatch — syncing auth password and retrying')
+          const admin = getAdminClient()
+          const { error: syncErr } = await admin.auth.admin.updateUserById(codeResult.userId, {
             password: creds.password,
           })
-          const timer = setTimeout(() => resolve({ error: new Error('server_signin_timeout') }), 30000)
-          p.then(({ error }) => {
-            clearTimeout(timer)
-            resolve({ error })
-          }).catch((err) => {
-            clearTimeout(timer)
-            resolve({ error: err })
-          })
-        })
+          if (!syncErr) {
+            sessionCookies.length = 0
+            const retryClient = createLoginClient(request, sessionCookies)
+            const retry = await new Promise<{ error: unknown }>((resolve) => {
+              const p = retryClient.auth.signInWithPassword({
+                email: creds.email,
+                password: creds.password,
+              })
+              const timer = setTimeout(() => resolve({ error: new Error('server_signin_timeout') }), 30000)
+              p.then(({ error }) => {
+                clearTimeout(timer)
+                resolve({ error })
+              }).catch((err) => {
+                clearTimeout(timer)
+                resolve({ error: err })
+              })
+            })
+            serverSignInError = retry.error
+          }
+        }
 
         if (serverSignInError) {
           return onLoginFailure({

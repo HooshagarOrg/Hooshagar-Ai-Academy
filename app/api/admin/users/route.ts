@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
           : null
       const initialAuthPassword =
         role === 'student'
-          ? `temp_student_${Date.now()}`
+          ? `Hg_temp_student_${Date.now()}!9`
           : (password || '').trim()
 
       // 1. ساخت auth.user

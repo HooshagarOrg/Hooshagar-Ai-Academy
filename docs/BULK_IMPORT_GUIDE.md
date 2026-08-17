@@ -48,7 +48,9 @@
 
 | لاتین (پیشنهادی در اکسل) | فارسی |
 |--------------------------|--------|
-| teacher | معلم |
+| teacher | معلم / معلم قرآن |
+| art_teacher | معلم هنر |
+| sports_teacher | معلم ورزش |
 | counselor | مشاور |
 | principal | مدیر |
 | secretary | منشی |
@@ -58,8 +60,6 @@
 | financial_vp | معاون مالی |
 | disciplinary_vp | معاون انضباطی / پرورشی |
 | evaluation_vp | معاون ارزشیابی |
-| art_teacher | معلم هنر |
-| sports_teacher | معلم ورزش |
 | security | نگهبان |
 | maintenance | خدمات |
 | admin | ادمین |

@@ -214,7 +214,9 @@ export default function BulkImportPage() {
                       educational_vp (معاون آموزشی)، financial_vp (معاون مالی)،
                       disciplinary_vp (معاون انضباطی)، health_vp (معاون بهداشت)،
                       evaluation_vp (معاون ارزشیابی)، secretary، librarian،
-                      art_teacher، sports_teacher، security، maintenance، admin
+                      art_teacher (معلم هنر)، sports_teacher (معلم ورزش)،
+                      معلم قرآن → teacher،
+                      secretary، librarian، security، maintenance، admin
                     </p>
                   </div>
                 </div>

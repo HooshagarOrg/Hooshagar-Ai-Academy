@@ -83,7 +83,9 @@ export function buildOtpSessionPassword(userId: string, randomHex: string): stri
 }
 
 export function buildInternalEmail(loginCode: string, role: string): string {
-  return `${loginCode}@${role}.hooshagar.ir`
+  // دامنه ایمیل نباید underscore داشته باشد (art_teacher → art-teacher)
+  const domainRole = role.trim().toLowerCase().replace(/_/g, '-')
+  return `${loginCode}@${domainRole}.hooshagar.ir`
 }
 
 export function defaultPasswordFromCode(loginCode: string): string {

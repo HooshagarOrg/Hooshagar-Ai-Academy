@@ -49,6 +49,9 @@ describe('login-code helpers', () => {
       expect(buildInternalEmail('1234567890', 'parent')).toBe(
         '1234567890@parent.hooshagar.ir'
       )
+      expect(buildInternalEmail('1234567890', 'art_teacher')).toBe(
+        '1234567890@art-teacher.hooshagar.ir'
+      )
       expect(defaultPasswordFromCode('1234567890')).toBe('7890')
     })
 

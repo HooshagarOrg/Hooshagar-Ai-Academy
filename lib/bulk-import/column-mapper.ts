@@ -35,6 +35,12 @@ export const STAFF_ROLE_MAP: Record<string, string> = {
   'معلم هنر': 'art_teacher',
   sports_teacher: 'sports_teacher',
   'معلم ورزش': 'sports_teacher',
+  // معلم قرآن نقش جدا ندارد — مثل معلم پایه با داشبورد teacher
+  'معلم قرآن': 'teacher',
+  'معلم‌قرآن': 'teacher',
+  quran_teacher: 'teacher',
+  quran: 'teacher',
+  قرآن: 'teacher',
   security: 'security',
   نگهبان: 'security',
   حراست: 'security',

@@ -73,64 +73,139 @@
     --ease-lux: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  /* ── Light (soft) — فقط داشبورد با toggle ── */
+  /* ── Light (soft fog) — سفید خالص نیست؛ خاکستری خیلی روشن ── */
   .light {
-    --lux-void: #dde4ee;
-    --lux-hero: #e2e8f0;
-    --lux-elevated: #eef2f7;
-    --lux-glass: rgba(255, 255, 255, 0.55);
-    --lux-body: #e2e8f0;
-    --lux-surface: rgba(15, 23, 42, 0.06);
-    --lux-surface-strong: rgba(255, 255, 255, 0.45);
-    --lux-card: rgba(255, 255, 255, 0.65);
-    --lux-card-solid: rgba(255, 255, 255, 0.82);
-    --lux-text: #0f172a;
-    --lux-text-muted: #64748b;
-    --lux-border: rgba(15, 23, 42, 0.1);
-    --lux-header-bg: rgba(226, 232, 240, 0.88);
-    --lux-nav-bg: #dde4ee;
+    --lux-void: #e4e8ee;
+    --lux-hero: #eaedf2;
+    --lux-elevated: #f0f3f7;
+    --lux-glass: rgba(246, 248, 251, 0.68);
+    --lux-body: #eaedf2;
+    --lux-surface: rgba(40, 50, 68, 0.05);
+    --lux-surface-strong: rgba(246, 248, 251, 0.62);
+    --lux-card: rgba(246, 248, 251, 0.86);
+    --lux-card-solid: rgba(244, 246, 250, 0.96);
+    --lux-text: #2a3140;
+    --lux-text-muted: #5e6a7a;
+    --lux-border: rgba(40, 50, 68, 0.09);
+    --lux-header-bg: rgba(228, 232, 238, 0.92);
+    --lux-nav-bg: #e4e8ee;
     --lux-blur: 12px;
 
-    --lux-glow-primary: rgba(139, 124, 255, 0.35);
-    --lux-glow-secondary: rgba(84, 210, 255, 0.28);
-    --lux-glow-accent: rgba(255, 77, 166, 0.32);
-    --lux-glow-gold: rgba(201, 169, 98, 0.28);
-    --lux-void-warm: #e2e8f0;
-    --lux-depth-1: #eef2f7;
-    --lux-depth-2: #e8edf4;
-    --lux-depth-3: #e2e8f0;
+    --lux-glow-primary: rgba(139, 124, 255, 0.22);
+    --lux-glow-secondary: rgba(84, 210, 255, 0.16);
+    --lux-glow-accent: rgba(255, 77, 166, 0.18);
+    --lux-glow-gold: rgba(201, 169, 98, 0.2);
+    --lux-void-warm: #eaedf2;
+    --lux-depth-1: #f0f3f7;
+    --lux-depth-2: #eceff4;
+    --lux-depth-3: #eaedf2;
 
-    --lux-base: #e2e8f0;
-    --lux-parent: #d97706;
+    --lux-base: #eaedf2;
+    --lux-parent: #c2410c;
 
-    --arc-parent: #d97706;
-    --arc-teacher: #059669;
-    --arc-admin: #db2777;
-    --arc-counselor: #dc2626;
+    --arc-parent: #c2410c;
+    --arc-teacher: #047857;
+    --arc-admin: #be185d;
+    --arc-counselor: #b91c1c;
 
-    --background: 214 32% 91%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --border: 214 20% 82%;
-    --input: 214 20% 82%;
+    --background: 216 16% 91%;
+    --foreground: 220 16% 20%;
+    --card: 220 20% 96%;
+    --card-foreground: 220 16% 20%;
+    --popover: 220 20% 96%;
+    --popover-foreground: 220 16% 20%;
+    --border: 214 12% 82%;
+    --input: 214 12% 82%;
     --ring: 246 80% 60%;
-    --secondary: 214 24% 93%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 214 24% 93%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 214 28% 92%;
-    --accent-foreground: 222 47% 11%;
+    --secondary: 216 14% 93%;
+    --secondary-foreground: 220 16% 20%;
+    --muted: 216 14% 93%;
+    --muted-foreground: 218 10% 42%;
+    --accent: 216 16% 92%;
+    --accent-foreground: 220 16% 20%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --success: 152 60% 36%;
+    --success: 152 60% 32%;
     --success-foreground: 0 0% 100%;
+  }
+
+  /* ── Warm (cream / parchment) ── */
+  .warm {
+    --lux-primary: #9a7b4f;
+    --lux-secondary: #5b8f86;
+    --lux-accent: #c45c4a;
+    --lux-gold: #c9a962;
+    --lux-success: #3d8f6e;
+    --lux-void: #f0e6d4;
+    --lux-hero: #f4ead8;
+    --lux-elevated: #f7f0e2;
+    --lux-glass: rgba(255, 249, 238, 0.7);
+    --lux-body: #f4ead8;
+    --lux-surface: rgba(92, 64, 32, 0.07);
+    --lux-surface-strong: rgba(255, 249, 238, 0.55);
+    --lux-card: rgba(255, 249, 238, 0.82);
+    --lux-card-solid: rgba(255, 248, 236, 0.96);
+    --lux-text: #3b2f22;
+    --lux-text-muted: #7a6a56;
+    --lux-border: rgba(92, 64, 32, 0.12);
+    --lux-header-bg: rgba(240, 230, 212, 0.92);
+    --lux-nav-bg: #f0e6d4;
+    --lux-blur: 12px;
+
+    --lux-glow-primary: rgba(154, 123, 79, 0.32);
+    --lux-glow-secondary: rgba(91, 143, 134, 0.24);
+    --lux-glow-accent: rgba(196, 92, 74, 0.26);
+    --lux-glow-gold: rgba(201, 169, 98, 0.3);
+    --lux-void-warm: #f4ead8;
+    --lux-depth-1: #f7f0e2;
+    --lux-depth-2: #f3e8d4;
+    --lux-depth-3: #f0e6d4;
+
+    --lux-base: #f4ead8;
+    --lux-muted: var(--lux-text-muted);
+    --lux-parent: #b45309;
+
+    --arc-parent: #b45309;
+    --arc-teacher: #047857;
+    --arc-admin: #be185d;
+    --arc-counselor: #b91c1c;
+    --arc-student: var(--lux-primary);
+
+    --background: 38 42% 90%;
+    --foreground: 30 22% 18%;
+    --card: 40 48% 95%;
+    --card-foreground: 30 22% 18%;
+    --popover: 40 48% 95%;
+    --popover-foreground: 30 22% 18%;
+    --border: 34 24% 78%;
+    --input: 34 24% 78%;
+    --ring: 32 32% 42%;
+    --primary: 32 32% 46%;
+    --primary-foreground: 40 40% 97%;
+    --secondary: 38 28% 90%;
+    --secondary-foreground: 30 22% 18%;
+    --muted: 38 28% 90%;
+    --muted-foreground: 30 14% 40%;
+    --accent: 38 32% 89%;
+    --accent-foreground: 30 22% 18%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 44% 32%;
+    --success-foreground: 0 0% 100%;
+    --radius: 0.875rem;
   }
 
   html {
     scroll-behavior: smooth;
+  }
+
+  .light,
+  .warm {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
   }
 
   body {
@@ -321,10 +396,11 @@
     padding: clamp(1.25rem, 3vw, 1.75rem);
   }
 
-  .light .lux-dash-hero {
+  .light .lux-dash-hero,
+  .warm .lux-dash-hero {
     background:
-      radial-gradient(ellipse 80% 70% at 100% 0%, rgba(139, 124, 255, 0.12), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 0% 100%, rgba(84, 210, 255, 0.08), transparent 52%),
+      radial-gradient(ellipse 80% 70% at 100% 0%, rgba(139, 124, 255, 0.1), transparent 55%),
+      radial-gradient(ellipse 60% 50% at 0% 100%, rgba(84, 210, 255, 0.07), transparent 52%),
       var(--lux-card);
     backdrop-filter: blur(var(--lux-blur));
     -webkit-backdrop-filter: blur(var(--lux-blur));
@@ -832,9 +908,15 @@
   }
 
   .light .premium-content .bg-white {
-    background: rgba(255, 255, 255, 0.65) !important;
+    background: rgba(246, 248, 251, 0.9) !important;
     backdrop-filter: blur(12px);
-    border-color: rgba(15, 23, 42, 0.1);
+    border-color: rgba(40, 50, 68, 0.09);
+  }
+
+  .warm .premium-content .bg-white {
+    background: rgba(255, 249, 238, 0.86) !important;
+    backdrop-filter: blur(12px);
+    border-color: rgba(92, 64, 32, 0.12);
   }
 
   .premium-content .border-gray-100,
@@ -866,17 +948,26 @@
   .premium-content .border-green-200 { border-color: rgba(34, 197, 94, 0.25) !important; }
 
   .light .premium-content .border-gray-100,
-  .light .premium-content .border-gray-200 {
-    border-color: rgba(15, 23, 42, 0.1) !important;
+  .light .premium-content .border-gray-200,
+  .warm .premium-content .border-gray-100,
+  .warm .premium-content .border-gray-200 {
+    border-color: rgba(62, 50, 38, 0.1) !important;
   }
 
   .light .premium-content .text-green-700,
   .light .premium-content .text-emerald-700,
-  .light .premium-content .text-emerald-800 { color: #047857 !important; }
+  .light .premium-content .text-emerald-800,
+  .warm .premium-content .text-green-700,
+  .warm .premium-content .text-emerald-700,
+  .warm .premium-content .text-emerald-800 { color: #047857 !important; }
   .light .premium-content .text-red-600,
-  .light .premium-content .text-red-700 { color: #b91c1c !important; }
-  .light .premium-content .text-orange-600 { color: #c2410c !important; }
-  .light .premium-content .text-purple-600 { color: #7e22ce !important; }
+  .light .premium-content .text-red-700,
+  .warm .premium-content .text-red-600,
+  .warm .premium-content .text-red-700 { color: #b91c1c !important; }
+  .light .premium-content .text-orange-600,
+  .warm .premium-content .text-orange-600 { color: #c2410c !important; }
+  .light .premium-content .text-purple-600,
+  .warm .premium-content .text-purple-600 { color: #7e22ce !important; }
 
   /* ── App viewport height (dashboard shell) ── */
   .h-app {

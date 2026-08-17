@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 }
 
 const patchSchema = z.object({
-  ui_theme: z.enum(['light', 'dark']),
+  ui_theme: z.enum(['light', 'warm', 'dark']),
 })
 
 export async function PATCH(request: NextRequest) {

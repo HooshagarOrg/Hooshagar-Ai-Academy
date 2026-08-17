@@ -94,7 +94,7 @@ export default function ProfilePage() {
                   <Palette className="h-5 w-5 text-[var(--lux-primary)]" aria-hidden />
                   <div>
                     <p className="font-bold text-[var(--lux-text)]">تم رابط کاربری</p>
-                    <p className="text-xs text-[var(--lux-text-muted)]">روشن یا تیره نرم — روی همه دستگاه‌های شما ذخیره می‌شود</p>
+                    <p className="text-xs text-[var(--lux-text-muted)]">روشن نرم، گرم کاغذی یا تیره — روی همه دستگاه‌های شما ذخیره می‌شود</p>
                   </div>
                 </div>
                 <ThemeToggle />

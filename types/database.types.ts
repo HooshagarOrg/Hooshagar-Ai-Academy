@@ -19,7 +19,7 @@ export interface ProfileRow {
   role: string
   school_id: string | null
   must_change_password?: boolean | null
-  ui_theme?: 'light' | 'dark' | null
+  ui_theme?: 'light' | 'warm' | 'dark' | null
   [key: string]: unknown
 }
 

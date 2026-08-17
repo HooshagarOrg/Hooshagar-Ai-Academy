@@ -2,13 +2,17 @@
 
 import { useCallback, useState } from 'react'
 import { useTheme } from 'next-themes'
-import type { UiTheme } from '@/lib/theme/constants'
+import { DEFAULT_UI_THEME, isUiTheme, type UiTheme } from '@/lib/theme/constants'
 
 export function useThemePreference() {
-  const { resolvedTheme, setTheme } = useTheme()
+  const { theme: activeTheme, resolvedTheme, setTheme } = useTheme()
   const [saving, setSaving] = useState(false)
 
-  const theme = (resolvedTheme === 'light' ? 'light' : 'dark') as UiTheme
+  const theme: UiTheme = isUiTheme(activeTheme)
+    ? activeTheme
+    : isUiTheme(resolvedTheme)
+      ? resolvedTheme
+      : DEFAULT_UI_THEME
 
   const updateTheme = useCallback(
     async (next: UiTheme) => {

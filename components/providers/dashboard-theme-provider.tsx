@@ -1,7 +1,7 @@
 'use client'
 
 import { ThemeProvider } from 'next-themes'
-import type { UiTheme } from '@/lib/theme/constants'
+import { UI_THEMES, type UiTheme } from '@/lib/theme/constants'
 
 interface DashboardThemeProviderProps {
   children: React.ReactNode
@@ -16,7 +16,7 @@ export function DashboardThemeProvider({ children, initialTheme }: DashboardThem
       defaultTheme={initialTheme}
       enableSystem={false}
       storageKey="hooshagar-ui-theme-cache"
-      themes={['light', 'dark']}
+      themes={[...UI_THEMES]}
     >
       {children}
     </ThemeProvider>

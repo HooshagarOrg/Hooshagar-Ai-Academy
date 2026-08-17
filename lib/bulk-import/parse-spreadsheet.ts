@@ -23,18 +23,33 @@ export function detectSheetType(headers: string[]): ImportSheetType {
   return 'students'
 }
 
+function cellToString(value: unknown): string {
+  if (value == null || value === '') return ''
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    // جلوگیری از scientific notation برای کد ملی/موبایل
+    if (Number.isInteger(value) || Math.abs(value) >= 1e6) {
+      return String(Math.trunc(value))
+    }
+    return String(value)
+  }
+  return String(value).trim().replace(/\.0+$/, '')
+}
+
 export async function parseSpreadsheetFile(file: File): Promise<ParsedSheet[]> {
   const sheets: ParsedSheet[] = []
 
   if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
     const { read, utils } = await import('xlsx')
     const buffer = await file.arrayBuffer()
-    const wb = read(buffer)
+    const wb = read(buffer, { type: 'array', cellText: true, cellDates: false })
 
     for (const sheetName of wb.SheetNames) {
       const ws = wb.Sheets[sheetName]
       if (!ws) continue
-      const json = utils.sheet_to_json<Record<string, string>>(ws, { defval: '' })
+      const json = utils.sheet_to_json<Record<string, unknown>>(ws, {
+        defval: '',
+        raw: true,
+      })
       if (json.length === 0) continue
       const first = json[0]
       if (!first) continue
@@ -42,7 +57,7 @@ export async function parseSpreadsheetFile(file: File): Promise<ParsedSheet[]> {
       const rows = json
         .map((row) => {
           const r: Record<string, string> = {}
-          headers.forEach((h) => { r[h] = String(row[h] ?? '').trim() })
+          headers.forEach((h) => { r[h] = cellToString(row[h]) })
           return r
         })
         .filter((r) => Object.values(r).some((v) => v))

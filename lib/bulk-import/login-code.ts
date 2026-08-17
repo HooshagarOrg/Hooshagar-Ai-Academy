@@ -16,9 +16,24 @@ export function normalizeDigits(value: string): string {
     .replace(/\D/g, '')
 }
 
+/**
+ * کد ملی / کد ورود ۱۰ رقمی.
+ * اکسل اغلب صفر اول را حذف می‌کند (مثلاً ۰۹۸۷... → ۹۸۷...)؛ با pad ترمیم می‌شود.
+ */
+export function normalizeTenDigitId(value: string): string {
+  const cleaned = String(value ?? '')
+    .trim()
+    .replace(/\.0+$/, '') // عدد اعشاری اکسل مثل 1234567890.0
+  const digits = normalizeDigits(cleaned)
+  if (!digits) return ''
+  if (digits.length < 10) return digits.padStart(10, '0')
+  if (digits.length > 10) return digits
+  return digits
+}
+
 /** تبدیل کد ملی یا موبایل به کد ورود ۱۰ رقمی */
 export function toLoginCode(nationalCode?: string, mobile?: string): string | null {
-  const nc = normalizeDigits(nationalCode || '')
+  const nc = normalizeTenDigitId(nationalCode || '')
   if (/^\d{10}$/.test(nc)) return nc
 
   let mob = normalizeDigits(mobile || '')

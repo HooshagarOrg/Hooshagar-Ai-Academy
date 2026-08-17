@@ -4,6 +4,7 @@ import {
   defaultPasswordFromCode,
   hashPin,
   normalizeDigits,
+  normalizeTenDigitId,
   toIranPhone,
   toLoginCode,
 } from '@/lib/bulk-import/login-code'
@@ -62,6 +63,12 @@ describe('login-code helpers', () => {
       expect(password).toMatch(/[a-z]/)
       expect(password).toMatch(/[0-9]/)
       expect(password).toMatch(/[!]/)
+    })
+
+    it('pads leading zeros dropped by Excel on national codes', () => {
+      expect(normalizeTenDigitId('987654321')).toBe('0987654321')
+      expect(normalizeTenDigitId('0987654321')).toBe('0987654321')
+      expect(normalizeTenDigitId('1234567890.0')).toBe('1234567890')
     })
   })
 })

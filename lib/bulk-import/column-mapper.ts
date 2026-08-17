@@ -6,25 +6,71 @@ const GRADE_MAP: Record<string, number> = {
 }
 
 export const STAFF_ROLE_MAP: Record<string, string> = {
-  teacher: 'teacher', معلم: 'teacher',
-  counselor: 'counselor', مشاور: 'counselor',
-  principal: 'principal', مدیر: 'principal',
-  secretary: 'secretary', منشی: 'secretary',
-  librarian: 'librarian', کتابدار: 'librarian',
-  health_vp: 'health_vp', 'معاون بهداشت': 'health_vp',
-  educational_vp: 'educational_vp', 'معاون آموزشی': 'educational_vp',
-  financial_vp: 'financial_vp', 'معاون مالی': 'financial_vp',
-  disciplinary_vp: 'disciplinary_vp', 'معاون انضباطی': 'disciplinary_vp',
-  evaluation_vp: 'evaluation_vp', 'معاون ارزشیابی': 'evaluation_vp',
-  art_teacher: 'art_teacher', 'معلم هنر': 'art_teacher',
-  sports_teacher: 'sports_teacher', 'معلم ورزش': 'sports_teacher',
-  security: 'security', 'نگهبان': 'security',
-  maintenance: 'maintenance', 'خدمات': 'maintenance',
-  admin: 'admin', ادمین: 'admin',
+  teacher: 'teacher',
+  معلم: 'teacher',
+  دبیر: 'teacher',
+  آموزگار: 'teacher',
+  counselor: 'counselor',
+  مشاور: 'counselor',
+  principal: 'principal',
+  مدیر: 'principal',
+  'مدیر مدرسه': 'principal',
+  secretary: 'secretary',
+  منشی: 'secretary',
+  librarian: 'librarian',
+  کتابدار: 'librarian',
+  health_vp: 'health_vp',
+  'معاون بهداشت': 'health_vp',
+  'معاون بهداشتی': 'health_vp',
+  educational_vp: 'educational_vp',
+  'معاون آموزشی': 'educational_vp',
+  financial_vp: 'financial_vp',
+  'معاون مالی': 'financial_vp',
+  disciplinary_vp: 'disciplinary_vp',
+  'معاون انضباطی': 'disciplinary_vp',
+  'معاون پرورشی': 'disciplinary_vp',
+  evaluation_vp: 'evaluation_vp',
+  'معاون ارزشیابی': 'evaluation_vp',
+  art_teacher: 'art_teacher',
+  'معلم هنر': 'art_teacher',
+  sports_teacher: 'sports_teacher',
+  'معلم ورزش': 'sports_teacher',
+  security: 'security',
+  نگهبان: 'security',
+  حراست: 'security',
+  maintenance: 'maintenance',
+  خدمات: 'maintenance',
+  admin: 'admin',
+  ادمین: 'admin',
 }
 
+/** نقش‌های مجاز برای راهنمای UI / پیام خطا (لاتین = فارسی) */
+export const STAFF_ROLE_LABELS: Array<{ value: string; fa: string }> = [
+  { value: 'teacher', fa: 'معلم' },
+  { value: 'counselor', fa: 'مشاور' },
+  { value: 'principal', fa: 'مدیر' },
+  { value: 'secretary', fa: 'منشی' },
+  { value: 'librarian', fa: 'کتابدار' },
+  { value: 'health_vp', fa: 'معاون بهداشت' },
+  { value: 'educational_vp', fa: 'معاون آموزشی' },
+  { value: 'financial_vp', fa: 'معاون مالی' },
+  { value: 'disciplinary_vp', fa: 'معاون انضباطی' },
+  { value: 'evaluation_vp', fa: 'معاون ارزشیابی' },
+  { value: 'art_teacher', fa: 'معلم هنر' },
+  { value: 'sports_teacher', fa: 'معلم ورزش' },
+  { value: 'security', fa: 'نگهبان' },
+  { value: 'maintenance', fa: 'خدمات' },
+  { value: 'admin', fa: 'ادمین' },
+]
+
 function norm(s: string): string {
-  return s.trim().toLowerCase().replace(/\s+/g, ' ')
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/\u200c/g, ' ') // نیم‌فاصله
+    .replace(/ي/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/\s+/g, ' ')
 }
 
 function pick(row: Record<string, string>, aliases: string[]): string {
@@ -52,7 +98,19 @@ export function parseParentRelation(raw: string): 'father' | 'mother' | 'guardia
 
 export function mapStaffRole(raw: string): string {
   const key = norm(raw)
-  return STAFF_ROLE_MAP[key] ?? STAFF_ROLE_MAP[raw.trim()] ?? raw.trim()
+  if (!key) return ''
+  if (STAFF_ROLE_MAP[key]) return STAFF_ROLE_MAP[key]
+
+  // تطبیق دقیق برچسب‌ها؛ طولانی‌تر اول تا «معلم هنر» به teacher نخورد
+  const labels = [...STAFF_ROLE_LABELS].sort((a, b) => b.fa.length - a.fa.length)
+  for (const { value, fa } of labels) {
+    if (key === value || key === norm(fa)) return value
+  }
+  for (const { value, fa } of labels) {
+    const faN = norm(fa)
+    if (faN.length >= 4 && (key.includes(faN) || key.includes(value))) return value
+  }
+  return raw.trim()
 }
 
 export function mapStudentRow(row: Record<string, string>, rowNumber: number) {

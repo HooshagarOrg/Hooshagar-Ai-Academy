@@ -189,7 +189,11 @@ export default function BulkImportPage() {
                   <div>
                     <p className="font-semibold text-blue-800">شیت دانش‌آموزان</p>
                     <p className="text-sm text-blue-700 mt-1">
-                      نام، کد ملی، پایه، کلاس (+ ساخت/اتصال کلاس) و مشخصات والد در همان سطر — نام والد اختیاری
+                      نام، کد ملی، پایه، کلاس و مشخصات والد — نام والد اختیاری.
+                      ستون کد ملی را در اکسل Text کنید تا صفر اول حذف نشود.
+                    </p>
+                    <p className="text-xs text-blue-600 mt-2">
+                      موبایل والد: یک شماره کافی است — همان والد اصلی که OTP و اعلان می‌گیرد (معمولاً مادر یا پدر مسئول ارتباط با مدرسه).
                     </p>
                   </div>
                 </div>
@@ -202,7 +206,15 @@ export default function BulkImportPage() {
                   <div>
                     <p className="font-semibold text-purple-800">شیت کارکنان</p>
                     <p className="text-sm text-purple-700 mt-1">
-                      نام، کد ملی، نقش، موبایل، کد ورود — برای معلم: پایه و کلاس مسئول (مثلاً چهارم الف)
+                      نام، کد ملی، نقش، موبایل، کد ورود — برای معلم: پایه و کلاس مسئول
+                    </p>
+                    <p className="text-xs text-purple-600 mt-2 leading-relaxed">
+                      نقش را با نام لاتین وارد کنید (یا فارسی معادل):
+                      {' '}teacher (معلم)، counselor (مشاور)، principal (مدیر)،
+                      educational_vp (معاون آموزشی)، financial_vp (معاون مالی)،
+                      disciplinary_vp (معاون انضباطی)، health_vp (معاون بهداشت)،
+                      evaluation_vp (معاون ارزشیابی)، secretary، librarian،
+                      art_teacher، sports_teacher، security، maintenance، admin
                     </p>
                   </div>
                 </div>

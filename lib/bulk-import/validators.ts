@@ -1,5 +1,5 @@
-import { toLoginCode } from './login-code'
-import { mapStaffRole } from './column-mapper'
+import { normalizeTenDigitId, toLoginCode } from './login-code'
+import { mapStaffRole, STAFF_ROLE_LABELS } from './column-mapper'
 import { CLASS_TEACHER_ROLES } from './resolve-class'
 import type { StaffImportRow, StudentImportRow } from './types'
 
@@ -21,14 +21,17 @@ export function validateStudentRow(
   if (!raw.firstName) errors.push('نام دانش‌آموز الزامی است')
   if (!raw.lastName) errors.push('نام خانوادگی دانش‌آموز الزامی است')
 
-  const nationalCode = raw.nationalCode.replace(/\D/g, '')
+  const nationalCode = normalizeTenDigitId(raw.nationalCode)
   if (!/^\d{10}$/.test(nationalCode)) {
-    errors.push('کد ملی دانش‌آموز باید ۱۰ رقم باشد')
+    errors.push('کد ملی دانش‌آموز باید ۱۰ رقم باشد (اگر صفر اول در اکسل حذف شده، ستون را Text کنید)')
   } else if (!validateNationalCode(nationalCode)) {
     warnings.push('کد ملی دانش‌آموز نامعتبر است (چک‌سام)')
   }
 
-  const parentCode = toLoginCode(raw.parentLoginCode, raw.parentMobile)
+  const parentCode = toLoginCode(
+    normalizeTenDigitId(raw.parentLoginCode || '') || raw.parentLoginCode,
+    raw.parentMobile
+  )
   const hasParentName = Boolean(
     (raw.parentFirstName && raw.parentFirstName.trim()) ||
     (raw.parentLastName && raw.parentLastName.trim())
@@ -63,26 +66,24 @@ export function validateStaffRow(
   if (!raw.firstName) errors.push('نام الزامی است')
   if (!raw.lastName) errors.push('نام خانوادگی الزامی است')
 
-  const nationalCode = raw.nationalCode.replace(/\D/g, '')
+  const nationalCode = normalizeTenDigitId(raw.nationalCode)
   if (!/^\d{10}$/.test(nationalCode)) {
-    errors.push('کد ملی باید ۱۰ رقم باشد')
+    errors.push('کد ملی باید ۱۰ رقم باشد (اگر صفر اول در اکسل حذف شده، ستون را Text کنید)')
   } else if (!validateNationalCode(nationalCode)) {
     warnings.push('کد ملی نامعتبر است (چک‌سام)')
   }
 
-  const loginCode = toLoginCode(raw.loginCode || nationalCode, raw.mobile) ?? ''
+  const loginRaw = normalizeTenDigitId(raw.loginCode || '') || raw.loginCode || nationalCode
+  const loginCode = toLoginCode(loginRaw, raw.mobile) ?? ''
   if (!/^\d{10}$/.test(loginCode)) {
     errors.push('کد ورود (کد ملی یا موبایل ۱۰ رقمی) الزامی است')
   }
 
   const role = mapStaffRole(raw.role)
-  const validRoles = new Set([
-    'teacher', 'counselor', 'principal', 'secretary', 'librarian',
-    'health_vp', 'educational_vp', 'financial_vp', 'disciplinary_vp',
-    'evaluation_vp', 'art_teacher', 'sports_teacher', 'security', 'maintenance', 'admin',
-  ])
+  const validRoles = new Set(STAFF_ROLE_LABELS.map((r) => r.value))
   if (!validRoles.has(role)) {
-    errors.push(`نقش «${raw.role}» نامعتبر است`)
+    const hint = STAFF_ROLE_LABELS.map((r) => `${r.value} (${r.fa})`).join('، ')
+    errors.push(`نقش «${raw.role}» نامعتبر است. مجاز: ${hint}`)
   }
 
   const className = raw.className?.trim() || undefined

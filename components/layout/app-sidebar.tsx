@@ -11,6 +11,7 @@ import {
   Wrench, Bell, Send, GraduationCap, Building, ChevronLeft, ChevronRight,
   Sparkles, Trophy, Compass, Gamepad2, Lightbulb, LogOut, User,
   Heart, PenTool, HelpCircle, Clock, TrendingUp, X, CreditCard, Video, Palette, Flame, ArrowLeftRight,
+  Presentation,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
@@ -132,6 +133,8 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'رفتار دانش‌آموزان', href: '/teacher/behavior', icon: Heart },
         { title: 'گزارش هفتگی', href: '/teacher/weekly-report', icon: FileText },
         { title: 'کلاس مجازی', href: '/teacher/virtual-class', icon: Video },
+        { title: 'کتاب‌های درسی', href: '/teacher/textbooks', icon: BookOpen },
+        { title: 'تخته تدریس', href: '/teacher/whiteboard', icon: Presentation },
       ]
     },
     {

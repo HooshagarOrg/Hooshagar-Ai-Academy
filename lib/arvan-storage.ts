@@ -492,6 +492,32 @@ export async function getSignedDownloadUrl(
   }
 }
 
+/**
+ * URL امضا شده برای آپلود مستقیم از مرورگر (PUT)
+ * برای فایل‌های بزرگ (مثل کتاب درسی) — نیاز به CORS روی باکت آروان
+ */
+export async function getSignedUploadUrl(
+  path: string,
+  contentType: string,
+  expiresIn: number = 900
+): Promise<string | null> {
+  try {
+    const client = getClient()
+
+    const command = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: path,
+      ContentType: contentType,
+      CacheControl: 'max-age=31536000',
+    })
+
+    return await getSignedUrl(client, command, { expiresIn })
+  } catch (error) {
+    console.error('❌ Arvan signed upload URL error:', error)
+    return null
+  }
+}
+
 // ============================================
 // Path Generation Functions
 // ============================================
@@ -545,6 +571,23 @@ export function generateFilePath(
     default:
       return `uploads/misc/${timestamp}_${random}_${sanitizedFilename}.${ext}`
   }
+}
+
+/**
+ * مسیر کتاب درسی: textbooks/{schoolId}/grade-{n}/...
+ */
+export function generateTextbookPath(
+  schoolId: string,
+  grade: number,
+  filename: string
+): string {
+  const timestamp = Date.now()
+  const random = Math.random().toString(36).substring(2, 9)
+  const sanitized = filename
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-zA-Z0-9\u0600-\u06FF.-]/g, '_')
+    .substring(0, 50)
+  return `textbooks/${schoolId}/grade-${grade}/${timestamp}_${random}_${sanitized}.pdf`
 }
 
 /**
@@ -753,7 +796,9 @@ export default {
   copyFile,
   moveFile,
   getSignedDownloadUrl,
+  getSignedUploadUrl,
   generateFilePath,
+  generateTextbookPath,
   generateAvatarPath,
   generateSchoolLogoPath,
   getArvanURL,

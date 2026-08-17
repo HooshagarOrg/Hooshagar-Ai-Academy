@@ -4,7 +4,7 @@ import {
   Activity, ClipboardCheck, DollarSign, Mail, Search, AlertCircle,
   Wrench, Bell, Send, GraduationCap, Building, Sparkles, Trophy, Compass,
   Gamepad2, Lightbulb, Heart, PenTool, HelpCircle, TrendingUp, CreditCard, Video,
-  ArrowLeftRight, Palette, Flame,
+  ArrowLeftRight, Palette, Flame, Presentation,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
@@ -96,6 +96,8 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'رفتار دانش‌آموزان', href: '/teacher/behavior', icon: Heart },
         { title: 'گزارش هفتگی', href: '/teacher/weekly-report', icon: FileText },
         { title: 'کلاس مجازی', href: '/teacher/virtual-class', icon: Video },
+        { title: 'کتاب‌های درسی', href: '/teacher/textbooks', icon: BookOpen },
+        { title: 'تخته تدریس', href: '/teacher/whiteboard', icon: Presentation },
       ],
     },
     {

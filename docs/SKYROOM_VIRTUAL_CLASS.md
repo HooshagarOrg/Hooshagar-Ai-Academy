@@ -14,11 +14,11 @@
 
 1. با کاربری که نقش `platform_admin` دارد وارد شوید.
 2. بروید به **ادمین → کلاس مجازی** (`/admin/virtual-classes`) یا از **تنظیمات → کلاس مجازی (اسکای‌روم)**.
-3. «کلاس مجازی جدید»:
-   - مدرسه و **کلاس درسی** (همان کلاسی که دانش‌آموزان در آن ثبت‌نام شده‌اند)
-   - عنوان نمایشی (مثلاً «ریاضی دهم الف»)
-   - `room_id` و نام لاتین اتاق از اسکای‌روم
-4. ذخیره کنید. اگر `room_id` اشتباه باشد، خطای تأیید اتاق می‌گیرید.
+3. «کلاس مجازی جدید» تکی، یا **دانلود نمونه اکسل → تکمیل → آپلود**:
+   - مدرسه و **کلاس درسی** (نام کلاس باید با هوشاگر یکی باشد)
+   - عنوان نمایشی (مثلاً «کلاس اول خانم کرد»)
+   - `room_id` از نوار آدرس پنل (`/channel/182457/edit`) و/یا نام لاتین اتاق (`kord`)
+4. ذخیره کنید. اگر اتاق تأیید نشود، خطای اسکای‌روم می‌گیرید.
 
 ### ۳. زمان‌بندی جلسه
 
@@ -88,5 +88,7 @@ SKYROOM_API_BASE_URL=https://www.skyroom.online/skyroom/api
 - `GET/POST/PATCH/DELETE /api/platform-admin/virtual-classes`
 - `GET/POST/PATCH/DELETE /api/platform-admin/virtual-class-sessions`
 - `GET /api/platform-admin/virtual-classes/lookup?school_id=`
+- `GET /api/platform-admin/virtual-classes/import` — دانلود قالب اکسل
+- `POST /api/platform-admin/virtual-classes/import` — آپلود Excel/CSV (multipart: `file`, `schoolId`)
 - `GET /api/virtual-classes/mine`
 - `POST /api/virtual-classes/[id]/join`

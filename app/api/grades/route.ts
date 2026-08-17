@@ -20,7 +20,9 @@ export async function GET(request: NextRequest) {
 
       let query = supabase
         .from('grades')
-        .select('*, students(id, full_name, grade), profiles!grades_teacher_id_fkey(full_name)')
+        .select(
+          'id, student_id, subject, score, max_score, exam_type, comments, exam_date, created_at, teacher_id, students(id, full_name, grade)'
+        )
         .order('created_at', { ascending: false })
         .limit(100)
 
@@ -51,7 +53,11 @@ export async function GET(request: NextRequest) {
       const { data, error } = await query
 
       if (error) {
-        return NextResponse.json({ grades: [], error: error.message })
+        console.error('grades GET error:', error)
+        return NextResponse.json(
+          { grades: [], error: 'دریافت نمرات ناموفق بود' },
+          { status: 500 }
+        )
       }
 
       return NextResponse.json({ grades: data || [] })

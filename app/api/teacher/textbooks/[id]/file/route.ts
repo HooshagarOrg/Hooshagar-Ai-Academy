@@ -5,7 +5,6 @@ import { withAuth } from '@/lib/security/api-guard'
 import { getArvanObjectStream } from '@/lib/arvan-storage'
 import {
   TEXTBOOK_ROLES,
-  TEXTBOOK_SELECT,
   type TextbookRow,
 } from '@/lib/teacher/textbooks'
 
@@ -74,6 +73,6 @@ export async function GET(
         headers,
       })
     },
-    { roles: TEXTBOOK_ROLES, rateLimit: 'api_default' }
+    { roles: TEXTBOOK_ROLES, rateLimit: 'api_default', skipRateLimit: true }
   )
 }

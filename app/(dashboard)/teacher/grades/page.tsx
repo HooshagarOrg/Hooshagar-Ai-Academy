@@ -58,15 +58,35 @@ export default function TeacherGradesPage() {
     try {
       const [gRes, sRes] = await Promise.all([
         fetch('/api/grades'),
-        fetch('/api/admin/users?role=student&limit=200'),
+        fetch('/api/teacher/class-students'),
       ])
-      if (!gRes.ok || !sRes.ok) throw new Error('fetch failed')
-      const gData = await gRes.json()
-      const sData = await sRes.json()
+
+      if (!gRes.ok) {
+        throw new Error('grades')
+      }
+
+      const gData = (await gRes.json()) as { grades?: Grade[]; error?: string }
+      // خطای join در API گاهی با status 200 و error در بدنه برمی‌گردد
+      if (gData.error && !gData.grades) {
+        throw new Error(gData.error)
+      }
+
       setGrades(gData.grades || [])
-      setStudents((sData.users || []).map((u: { id: string; full_name: string; username?: string }) => ({
-        id: u.id, full_name: u.full_name, student_number: u.username,
-      })))
+
+      if (sRes.ok) {
+        const sData = (await sRes.json()) as {
+          students?: Array<{ id: string; name: string; grade?: number }>
+        }
+        setStudents(
+          (sData.students || []).map((u) => ({
+            id: u.id,
+            full_name: u.name,
+            grade: u.grade,
+          }))
+        )
+      } else {
+        setStudents([])
+      }
     } catch {
       setError('دریافت نمرات ناموفق بود. لطفاً دوباره تلاش کنید.')
     } finally {

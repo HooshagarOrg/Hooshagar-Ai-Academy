@@ -22,6 +22,8 @@ type WhiteboardCanvasProps = {
   className?: string
   /** نمایش دکمه حالت مرور (برای PDF) */
   showBrowseMode?: boolean
+  /** حالت اولیه — برای PDF بهتر است browse باشد تا کتاب دیده شود */
+  defaultMode?: InteractionMode
   onModeChange?: (mode: InteractionMode) => void
 }
 
@@ -31,6 +33,7 @@ export function WhiteboardCanvas({
   transparent = false,
   className,
   showBrowseMode = false,
+  defaultMode = 'draw',
   onModeChange,
 }: WhiteboardCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -39,7 +42,7 @@ export function WhiteboardCanvas({
   const [tool, setTool] = useState<DrawTool>('pen')
   const [color, setColor] = useState<string>(COLORS[0].value)
   const [lineWidth, setLineWidth] = useState(3)
-  const [mode, setMode] = useState<InteractionMode>('draw')
+  const [mode, setMode] = useState<InteractionMode>(defaultMode)
 
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current
@@ -271,9 +274,10 @@ export function WhiteboardCanvas({
         <canvas
           ref={canvasRef}
           className={cn(
-            'absolute inset-0 h-full w-full touch-none',
+            'absolute inset-0 h-full w-full touch-none bg-transparent',
             browsing ? 'pointer-events-none' : 'cursor-crosshair'
           )}
+          style={{ background: 'transparent' }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}

@@ -29,8 +29,11 @@
 | GET | `/api/teacher/textbooks` | فهرست + پایه‌های مجاز |
 | POST | `/api/teacher/textbooks/presign` | لینک PUT امضا‌شده به آروان |
 | POST | `/api/teacher/textbooks` | تأیید آپلود و ثبت ردیف |
-| GET | `/api/teacher/textbooks/[id]` | metadata + signed download (۴ ساعت) |
+| GET | `/api/teacher/textbooks/[id]` | metadata (+ signed URL اختیاری) |
+| GET | `/api/teacher/textbooks/[id]/file` | پروکسی PDF same-origin برای iframe |
 | DELETE | `/api/teacher/textbooks/[id]` | حذف DB + فایل آروان |
+
+نمایش داخل iframe با لینک مستقیم آروان معمولاً بلاک می‌شود؛ به همین دلیل viewer از مسیر `/file` روی دامنهٔ اپ استفاده می‌کند.
 
 آپلود مستقیم از مرورگر به آروان است (حداکثر ۵۰MB) تا محدودیت body سایز Vercel دور زده شود.
 

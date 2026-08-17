@@ -15,7 +15,6 @@ export default function TeacherTextbookTeachPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [textbook, setTextbook] = useState<TextbookRow | null>(null)
-  const [signedUrl, setSignedUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -28,13 +27,11 @@ export default function TeacherTextbookTeachPage() {
         const res = await fetch(`/api/teacher/textbooks/${id}`)
         const data = (await res.json()) as {
           textbook?: TextbookRow
-          signedUrl?: string
           error?: string
         }
         if (!res.ok) throw new Error(data.error || 'بارگذاری کتاب ناموفق بود')
         if (cancelled) return
         setTextbook(data.textbook || null)
-        setSignedUrl(data.signedUrl || null)
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'خطای ناشناخته')
@@ -78,8 +75,11 @@ export default function TeacherTextbookTeachPage() {
           {error}
         </p>
       )}
-      {!loading && !error && textbook && signedUrl && (
-        <PdfTeachViewer signedUrl={signedUrl} title={textbook.title} />
+      {!loading && !error && textbook && id && (
+        <PdfTeachViewer
+          fileUrl={`/api/teacher/textbooks/${id}/file`}
+          title={textbook.title}
+        />
       )}
     </DashboardPage>
   )

@@ -4,7 +4,8 @@ import { WhiteboardCanvas } from '@/components/teacher/whiteboard-canvas'
 import { cn } from '@/lib/utils'
 
 type PdfTeachViewerProps = {
-  signedUrl: string
+  /** آدرس same-origin (مثلاً پروکسی API) — نه لینک مستقیم آروان */
+  fileUrl: string
   title: string
   className?: string
 }
@@ -13,7 +14,7 @@ type PdfTeachViewerProps = {
  * نمایش PDF با لایه نقاشی موقت روی آن.
  * «ورق زدن» رویدادها را به PDF می‌دهد؛ «قلم» روی canvas می‌کشد.
  */
-export function PdfTeachViewer({ signedUrl, title, className }: PdfTeachViewerProps) {
+export function PdfTeachViewer({ fileUrl, title, className }: PdfTeachViewerProps) {
   return (
     <div
       className={cn(
@@ -23,7 +24,7 @@ export function PdfTeachViewer({ signedUrl, title, className }: PdfTeachViewerPr
     >
       <iframe
         title={title}
-        src={signedUrl}
+        src={fileUrl}
         className="absolute inset-0 h-full w-full border-0 bg-white"
       />
       <WhiteboardCanvas

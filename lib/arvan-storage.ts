@@ -492,6 +492,44 @@ export async function getSignedDownloadUrl(
   }
 }
 
+export type ArvanObjectStream = {
+  body: ReadableStream<Uint8Array>
+  contentType: string
+  contentLength?: number
+}
+
+/**
+ * خواندن مستقیم آبجکت از آروان (برای پروکسی same-origin مثل نمایش PDF در iframe)
+ */
+export async function getArvanObjectStream(
+  path: string
+): Promise<ArvanObjectStream | null> {
+  try {
+    const client = getClient()
+    const result = await client.send(
+      new GetObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: path,
+      })
+    )
+
+    if (!result.Body) {
+      return null
+    }
+
+    const body = result.Body.transformToWebStream() as ReadableStream<Uint8Array>
+    return {
+      body,
+      contentType: result.ContentType || 'application/octet-stream',
+      contentLength:
+        typeof result.ContentLength === 'number' ? result.ContentLength : undefined,
+    }
+  } catch (error) {
+    console.error('❌ Arvan get object stream error:', error)
+    return null
+  }
+}
+
 /**
  * URL امضا شده برای آپلود مستقیم از مرورگر (PUT)
  * برای فایل‌های بزرگ (مثل کتاب درسی) — نیاز به CORS روی باکت آروان
@@ -796,6 +834,7 @@ export default {
   copyFile,
   moveFile,
   getSignedDownloadUrl,
+  getArvanObjectStream,
   getSignedUploadUrl,
   generateFilePath,
   generateTextbookPath,

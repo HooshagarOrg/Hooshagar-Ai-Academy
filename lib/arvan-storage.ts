@@ -492,18 +492,17 @@ export async function getSignedDownloadUrl(
   }
 }
 
-export type ArvanObjectStream = {
-  body: ReadableStream<Uint8Array>
+export type ArvanObjectBytes = {
+  bytes: Uint8Array
   contentType: string
-  contentLength?: number
 }
 
 /**
- * خواندن مستقیم آبجکت از آروان (برای پروکسی same-origin مثل نمایش PDF در iframe)
+ * خواندن کامل آبجکت از آروان به‌صورت بافر (پایدارتر از stream روی Vercel)
  */
-export async function getArvanObjectStream(
+export async function getArvanObjectBytes(
   path: string
-): Promise<ArvanObjectStream | null> {
+): Promise<ArvanObjectBytes | null> {
   try {
     const client = getClient()
     const result = await client.send(
@@ -517,15 +516,13 @@ export async function getArvanObjectStream(
       return null
     }
 
-    const body = result.Body.transformToWebStream() as ReadableStream<Uint8Array>
+    const bytes = await result.Body.transformToByteArray()
     return {
-      body,
+      bytes,
       contentType: result.ContentType || 'application/octet-stream',
-      contentLength:
-        typeof result.ContentLength === 'number' ? result.ContentLength : undefined,
     }
   } catch (error) {
-    console.error('❌ Arvan get object stream error:', error)
+    console.error('❌ Arvan get object bytes error:', error)
     return null
   }
 }
@@ -834,7 +831,7 @@ export default {
   copyFile,
   moveFile,
   getSignedDownloadUrl,
-  getArvanObjectStream,
+  getArvanObjectBytes,
   getSignedUploadUrl,
   generateFilePath,
   generateTextbookPath,

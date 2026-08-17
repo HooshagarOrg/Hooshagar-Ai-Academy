@@ -66,11 +66,6 @@ export default function TeacherGradesPage() {
       }
 
       const gData = (await gRes.json()) as { grades?: Grade[]; error?: string }
-      // خطای join در API گاهی با status 200 و error در بدنه برمی‌گردد
-      if (gData.error && !gData.grades) {
-        throw new Error(gData.error)
-      }
-
       setGrades(gData.grades || [])
 
       if (sRes.ok) {

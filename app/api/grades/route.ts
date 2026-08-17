@@ -18,32 +18,34 @@ export async function GET(request: NextRequest) {
       const studentId = searchParams.get('student_id')
       const subject = searchParams.get('subject')
 
+      // بدون embed روی students — FK grades.student_id در دیتابیس وجود ندارد
       let query = supabase
         .from('grades')
         .select(
-          'id, student_id, subject, score, max_score, exam_type, comments, exam_date, created_at, teacher_id, students(id, full_name, grade)'
+          'id, student_id, subject, score, max_score, exam_type, comments, exam_date, created_at, teacher_id'
         )
         .order('created_at', { ascending: false })
         .limit(100)
 
       // فیلتر بر اساس نقش
       if (ctx.role === 'student') {
-        // دانش‌آموز فقط نمرات خود
         const { data: student } = await supabase
           .from('students')
           .select('id')
           .eq('user_id', ctx.userId)
-          .single()
+          .maybeSingle()
         if (!student) return NextResponse.json({ grades: [] })
         query = query.eq('student_id', student.id)
       } else if (ctx.role === 'parent') {
-        // والد: نمرات فرزندان
         const { data: children } = await supabase
           .from('students')
           .select('id')
           .eq('parent_id', ctx.userId)
         if (!children?.length) return NextResponse.json({ grades: [] })
-        query = query.in('student_id', children.map(c => c.id))
+        query = query.in(
+          'student_id',
+          children.map((c) => c.id)
+        )
       } else if (studentId) {
         query = query.eq('student_id', studentId)
       }
@@ -60,7 +62,29 @@ export async function GET(request: NextRequest) {
         )
       }
 
-      return NextResponse.json({ grades: data || [] })
+      const rows = data || []
+      const studentIds = [...new Set(rows.map((r) => r.student_id).filter(Boolean))]
+      const nameById = new Map<string, { full_name: string; grade: number }>()
+
+      if (studentIds.length > 0) {
+        const { data: studentRows } = await supabase
+          .from('students')
+          .select('id, full_name, grade')
+          .in('id', studentIds)
+        for (const s of studentRows || []) {
+          nameById.set(s.id, {
+            full_name: s.full_name || 'دانش‌آموز',
+            grade: typeof s.grade === 'number' ? s.grade : 0,
+          })
+        }
+      }
+
+      return NextResponse.json({
+        grades: rows.map((g) => ({
+          ...g,
+          students: nameById.get(g.student_id) || null,
+        })),
+      })
     },
     {}
   )

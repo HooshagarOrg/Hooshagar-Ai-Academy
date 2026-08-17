@@ -32,16 +32,35 @@ export async function GET(request: NextRequest) {
       }
 
       const classIds = (classes || []).map((c) => c.id)
-      if (classIds.length === 0) {
+      const teacherGrades = [
+        ...new Set((classes || []).map((c) => c.grade).filter((g) => typeof g === 'number')),
+      ]
+
+      if (classIds.length === 0 && teacherGrades.length === 0) {
         return NextResponse.json({ students: [], classes: [] })
       }
 
-      const { data: students, error } = await supabase
+      let studentsQuery = supabase
         .from('students')
-        .select('id, full_name, grade, class_id, parent_id')
-        .in('class_id', classIds)
+        .select('id, full_name, grade, class_id, parent_id, school_id')
         .order('full_name', { ascending: true })
         .limit(200)
+
+      if (ctx.schoolId) {
+        studentsQuery = studentsQuery.eq('school_id', ctx.schoolId)
+      }
+
+      if (classIds.length > 0 && teacherGrades.length > 0) {
+        studentsQuery = studentsQuery.or(
+          `class_id.in.(${classIds.join(',')}),grade.in.(${teacherGrades.join(',')})`
+        )
+      } else if (classIds.length > 0) {
+        studentsQuery = studentsQuery.in('class_id', classIds)
+      } else {
+        studentsQuery = studentsQuery.in('grade', teacherGrades)
+      }
+
+      const { data: students, error } = await studentsQuery
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })

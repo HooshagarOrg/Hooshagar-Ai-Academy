@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { WhiteboardCanvas } from '@/components/teacher/whiteboard-canvas'
 import { cn } from '@/lib/utils'
 
@@ -15,10 +16,15 @@ type PdfTeachViewerProps = {
  * لایه نقاشی شفاف است؛ پیش‌فرض: ورق زدن تا کتاب دیده شود.
  */
 export function PdfTeachViewer({ fileUrl, title, className }: PdfTeachViewerProps) {
+  const fullscreenRootRef = useRef<HTMLDivElement>(null)
+
   return (
     <div
+      ref={fullscreenRootRef}
       className={cn(
         'relative h-[min(78vh,820px)] min-h-[420px] overflow-hidden rounded-xl border border-border/70 bg-white',
+        '[&:fullscreen]:h-screen [&:fullscreen]:w-screen [&:fullscreen]:rounded-none [&:fullscreen]:border-0',
+        '[&:-webkit-full-screen]:h-screen [&:-webkit-full-screen]:w-screen [&:-webkit-full-screen]:rounded-none [&:-webkit-full-screen]:border-0',
         className
       )}
     >
@@ -31,6 +37,7 @@ export function PdfTeachViewer({ fileUrl, title, className }: PdfTeachViewerProp
         transparent
         showBrowseMode
         defaultMode="browse"
+        fullscreenTargetRef={fullscreenRootRef}
         className="absolute inset-0 z-10"
       />
     </div>

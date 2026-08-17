@@ -3,21 +3,73 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Eraser, Pen, Trash2, Hand } from 'lucide-react'
+import { Eraser, Maximize2, Minimize2, Pen, Trash2, Hand } from 'lucide-react'
 
 export type DrawTool = 'pen' | 'eraser'
 export type InteractionMode = 'draw' | 'browse'
+export type BoardSurface = 'white' | 'black'
+
+const BOARD_FILL: Record<BoardSurface, string> = {
+  white: '#ffffff',
+  black: '#111318',
+}
+
+const INK_BLACK = '#0f172a'
+const INK_WHITE = '#f8fafc'
 
 const COLORS = [
-  { id: 'ink', value: '#0f172a', label: 'مشکی' },
+  { id: 'ink', value: INK_BLACK, label: 'مشکی' },
+  { id: 'white', value: INK_WHITE, label: 'سفید' },
   { id: 'red', value: '#dc2626', label: 'قرمز' },
   { id: 'blue', value: '#2563eb', label: 'آبی' },
   { id: 'green', value: '#16a34a', label: 'سبز' },
   { id: 'amber', value: '#d97706', label: 'نارنجی' },
 ] as const
 
+type FsElement = HTMLElement & {
+  webkitRequestFullscreen?: () => Promise<void> | void
+}
+
+type FsDocument = Document & {
+  webkitFullscreenElement?: Element | null
+  webkitExitFullscreen?: () => Promise<void> | void
+  webkitFullscreenEnabled?: boolean
+}
+
+function getFullscreenElement(): Element | null {
+  const doc = document as FsDocument
+  return document.fullscreenElement ?? doc.webkitFullscreenElement ?? null
+}
+
+function isFullscreenEnabled(): boolean {
+  const doc = document as FsDocument
+  return Boolean(document.fullscreenEnabled || doc.webkitFullscreenEnabled)
+}
+
+async function enterFullscreen(el: HTMLElement): Promise<void> {
+  const node = el as FsElement
+  if (node.requestFullscreen) {
+    await node.requestFullscreen()
+    return
+  }
+  if (node.webkitRequestFullscreen) {
+    await node.webkitRequestFullscreen()
+  }
+}
+
+async function exitFullscreen(): Promise<void> {
+  const doc = document as FsDocument
+  if (document.exitFullscreen) {
+    await document.exitFullscreen()
+    return
+  }
+  if (doc.webkitExitFullscreen) {
+    await doc.webkitExitFullscreen()
+  }
+}
+
 type WhiteboardCanvasProps = {
-  /** پس‌زمینه سفید برای تخته خالی؛ شفاف برای روی PDF */
+  /** پس‌زمینه سفید/مشکی برای تخته خالی؛ شفاف برای روی PDF */
   transparent?: boolean
   className?: string
   /** نمایش دکمه حالت مرور (برای PDF) */
@@ -25,6 +77,8 @@ type WhiteboardCanvasProps = {
   /** حالت اولیه — برای PDF بهتر است browse باشد تا کتاب دیده شود */
   defaultMode?: InteractionMode
   onModeChange?: (mode: InteractionMode) => void
+  /** عنصر والد برای تمام‌صفحه (مثلاً PDF + لایه نقاشی) */
+  fullscreenTargetRef?: React.RefObject<HTMLElement | null>
 }
 
 type Point = { x: number; y: number }
@@ -35,14 +89,40 @@ export function WhiteboardCanvas({
   showBrowseMode = false,
   defaultMode = 'draw',
   onModeChange,
+  fullscreenTargetRef,
 }: WhiteboardCanvasProps) {
+  const rootRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawing = useRef(false)
   const lastPoint = useRef<Point | null>(null)
   const [tool, setTool] = useState<DrawTool>('pen')
-  const [color, setColor] = useState<string>(COLORS[0].value)
+  const [color, setColor] = useState<string>(INK_BLACK)
   const [lineWidth, setLineWidth] = useState(3)
   const [mode, setMode] = useState<InteractionMode>(defaultMode)
+  const [boardSurface, setBoardSurface] = useState<BoardSurface>('white')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [canFullscreen, setCanFullscreen] = useState(false)
+
+  const boardFill = BOARD_FILL[boardSurface]
+  const boardFillRef = useRef(boardFill)
+  boardFillRef.current = boardFill
+
+  const fillBoard = useCallback(() => {
+    const canvas = canvasRef.current
+    const ctx = canvas?.getContext('2d')
+    if (!canvas || !ctx) return
+    const w = canvas.clientWidth
+    const h = canvas.clientHeight
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    if (transparent) {
+      ctx.clearRect(0, 0, w, h)
+      return
+    }
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.fillStyle = boardFillRef.current
+    ctx.fillRect(0, 0, w, h)
+  }, [transparent])
 
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current
@@ -73,7 +153,7 @@ export function WhiteboardCanvas({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
     if (!transparent) {
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = boardFillRef.current
       ctx.fillRect(0, 0, w, h)
     }
 
@@ -87,6 +167,20 @@ export function WhiteboardCanvas({
     const onResize = () => resizeCanvas()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
+  }, [resizeCanvas])
+
+  useEffect(() => {
+    setCanFullscreen(isFullscreenEnabled())
+    const onFs = () => {
+      setIsFullscreen(Boolean(getFullscreenElement()))
+      requestAnimationFrame(() => resizeCanvas())
+    }
+    document.addEventListener('fullscreenchange', onFs)
+    document.addEventListener('webkitfullscreenchange', onFs)
+    return () => {
+      document.removeEventListener('fullscreenchange', onFs)
+      document.removeEventListener('webkitfullscreenchange', onFs)
+    }
   }, [resizeCanvas])
 
   useEffect(() => {
@@ -115,7 +209,7 @@ export function WhiteboardCanvas({
         ctx.strokeStyle = 'rgba(0,0,0,1)'
       } else {
         ctx.globalCompositeOperation = 'source-over'
-        ctx.strokeStyle = '#ffffff'
+        ctx.strokeStyle = boardFill
       }
     } else {
       ctx.globalCompositeOperation = 'source-over'
@@ -148,19 +242,39 @@ export function WhiteboardCanvas({
   }
 
   const clearCanvas = () => {
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
-    if (!canvas || !ctx) return
-    const w = canvas.clientWidth
-    const h = canvas.clientHeight
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    if (transparent) {
-      ctx.clearRect(0, 0, w, h)
-    } else {
+    fillBoard()
+  }
+
+  const applyBoardSurface = (next: BoardSurface) => {
+    if (next === boardSurface) return
+    setBoardSurface(next)
+    if (next === 'black' && color === INK_BLACK) setColor(INK_WHITE)
+    if (next === 'white' && color === INK_WHITE) setColor(INK_BLACK)
+    requestAnimationFrame(() => {
+      const canvas = canvasRef.current
+      const ctx = canvas?.getContext('2d')
+      if (!canvas || !ctx) return
+      const w = canvas.clientWidth
+      const h = canvas.clientHeight
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.globalCompositeOperation = 'source-over'
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = BOARD_FILL[next]
       ctx.fillRect(0, 0, w, h)
+    })
+  }
+
+  const toggleFullscreen = async () => {
+    const target = fullscreenTargetRef?.current ?? rootRef.current
+    if (!target) return
+    try {
+      if (getFullscreenElement()) {
+        await exitFullscreen()
+      } else {
+        await enterFullscreen(target)
+      }
+    } catch {
+      // مرورگر ممکن است تمام‌صفحه را رد کند
     }
   }
 
@@ -168,9 +282,11 @@ export function WhiteboardCanvas({
 
   return (
     <div
+      ref={rootRef}
       className={cn(
         'relative flex h-full min-h-0 flex-col',
-        // اجازه عبور کلیک به PDF وقتی در حالت ورق زدن هستیم
+        '[&:fullscreen]:h-screen [&:fullscreen]:w-screen [&:fullscreen]:rounded-none',
+        '[&:-webkit-full-screen]:h-screen [&:-webkit-full-screen]:w-screen [&:-webkit-full-screen]:rounded-none',
         browsing && 'pointer-events-none',
         className
       )}
@@ -232,6 +348,7 @@ export function WhiteboardCanvas({
               }}
               className={cn(
                 'size-7 rounded-full border-2 transition',
+                c.id === 'white' && 'shadow-[inset_0_0_0_1px_rgba(15,23,42,0.25)]',
                 color === c.value && tool === 'pen'
                   ? 'scale-110 border-primary'
                   : 'border-transparent'
@@ -240,6 +357,34 @@ export function WhiteboardCanvas({
             />
           ))}
         </div>
+
+        {!transparent && (
+          <div className="flex items-center gap-1.5" role="group" aria-label="رنگ تخته">
+            <span className="text-xs text-muted-foreground">تخته</span>
+            <button
+              type="button"
+              title="تخته سفید"
+              aria-label="تخته سفید"
+              aria-pressed={boardSurface === 'white'}
+              onClick={() => applyBoardSurface('white')}
+              className={cn(
+                'size-7 rounded-md border-2 bg-white transition',
+                boardSurface === 'white' ? 'scale-110 border-primary' : 'border-border'
+              )}
+            />
+            <button
+              type="button"
+              title="تخته مشکی"
+              aria-label="تخته مشکی"
+              aria-pressed={boardSurface === 'black'}
+              onClick={() => applyBoardSurface('black')}
+              className={cn(
+                'size-7 rounded-md border-2 bg-[#111318] transition',
+                boardSurface === 'black' ? 'scale-110 border-primary' : 'border-border'
+              )}
+            />
+          </div>
+        )}
 
         <label className="flex items-center gap-2 text-xs text-muted-foreground">
           ضخامت
@@ -259,6 +404,19 @@ export function WhiteboardCanvas({
           پاک کردن همه
         </Button>
 
+        {canFullscreen && (
+          <Button
+            type="button"
+            size="sm"
+            variant={isFullscreen ? 'default' : 'outline'}
+            onClick={() => void toggleFullscreen()}
+            aria-pressed={isFullscreen}
+          >
+            {isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+            {isFullscreen ? 'خروج از تمام‌صفحه' : 'تمام‌صفحه'}
+          </Button>
+        )}
+
         <p className="mr-auto text-xs text-muted-foreground">
           یادداشت‌ها ذخیره نمی‌شوند
         </p>
@@ -267,7 +425,7 @@ export function WhiteboardCanvas({
       <div
         className={cn(
           'relative min-h-0 flex-1 overflow-hidden',
-          transparent ? 'bg-transparent' : 'bg-white',
+          transparent ? 'bg-transparent' : boardSurface === 'black' ? 'bg-[#111318]' : 'bg-white',
           !browsing && 'pointer-events-auto'
         )}
       >

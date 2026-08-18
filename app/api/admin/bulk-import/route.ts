@@ -7,7 +7,10 @@ import { parseSpreadsheetFile } from '@/lib/bulk-import/parse-spreadsheet'
 import { validateStaffRow, validateStudentRow } from '@/lib/bulk-import/validators'
 import type { ImportSheetType } from '@/lib/bulk-import/types'
 
+export const maxDuration = 60
+
 const BULK_IMPORT_ROLES: AllowedRole[] = [...ADMIN_ROLES, 'principal']
+const IMPORT_BATCH_MAX = 40
 
 const optionsSchema = z.object({
   schoolId: z.string().uuid('شناسه مدرسه نامعتبر است'),
@@ -27,7 +30,7 @@ const importBodySchema = z.object({
   action: z.literal('import'),
   importType: z.enum(['students', 'staff']),
   options: optionsSchema,
-  rows: z.array(z.record(z.string())).min(1).max(500),
+  rows: z.array(z.record(z.string())).min(1).max(IMPORT_BATCH_MAX),
 })
 
 // ============================================

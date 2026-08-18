@@ -27,6 +27,16 @@ type SheetPreview = {
 
 type School = { id: string; name: string }
 
+const IMPORT_CLIENT_BATCH = 40
+
+function chunkItems<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size))
+  }
+  return chunks
+}
+
 export default function BulkImportPage() {
   const [step, setStep] = useState<Step>('upload')
   const [schools, setSchools] = useState<School[]>([])
@@ -95,37 +105,74 @@ export default function BulkImportPage() {
     setImporting(true)
     setProgress(0)
     const allResults: typeof results = []
-    let done = 0
-    const totalSheets = sheets.length
-
-    for (const sheet of sheets) {
+    const payloadRows = sheets.flatMap((sheet) => {
       const validRows = sheet.rows.filter((r) => r.status !== 'error')
-      if (validRows.length === 0) continue
+      return validRows.map((r) => ({
+        type: sheet.type,
+        row: rawFromRow(r, sheet.type),
+      }))
+    })
 
-      const res = await fetch('/api/admin/bulk-import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'import',
-          importType: sheet.type,
-          options: {
-            schoolId,
-            createParentAccounts: createParents,
-            skipDuplicates,
-          },
-          rows: validRows.map((r) => rawFromRow(r, sheet.type)),
-        }),
-      })
-      const data = await res.json()
-      if (data.details) allResults.push(...data.details)
-      done++
-      setProgress(Math.round((done / totalSheets) * 100))
+    if (payloadRows.length === 0) {
+      setImporting(false)
+      toast.error('ردیفی برای واردسازی وجود ندارد')
+      return
+    }
+
+    const batches = chunkItems(payloadRows, IMPORT_CLIENT_BATCH)
+    let failed = false
+
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i]
+      if (!batch || batch.length === 0) continue
+
+      const byType = {
+        students: batch.filter((b) => b.type === 'students').map((b) => b.row),
+        staff: batch.filter((b) => b.type === 'staff').map((b) => b.row),
+      }
+
+      for (const importType of ['students', 'staff'] as const) {
+        const rows = byType[importType]
+        if (rows.length === 0) continue
+        try {
+          const res = await fetch('/api/admin/bulk-import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'import',
+              importType,
+              options: {
+                schoolId,
+                createParentAccounts: createParents,
+                skipDuplicates,
+              },
+              rows,
+            }),
+          })
+          const data = (await res.json()) as { details?: typeof results; error?: string }
+          if (!res.ok) {
+            failed = true
+            toast.error(data.error || `خطا در دسته ${i + 1} از ${batches.length}`)
+            continue
+          }
+          if (data.details) allResults.push(...data.details)
+        } catch {
+          failed = true
+          toast.error(`خطای اتصال در دسته ${i + 1} از ${batches.length}`)
+        }
+      }
+
+      setProgress(Math.round(((i + 1) / batches.length) * 100))
     }
 
     setResults(allResults)
     setImporting(false)
     setStep('done')
     const ok = allResults.filter((r) => r.status === 'success' || r.status === 'warning').length
+    if (allResults.length === 0 && failed) {
+      toast.error('واردسازی انجام نشد. فایل را دوباره بارگذاری کنید و مجدداً تلاش کنید.')
+      return
+    }
     toast.success(`واردسازی تمام شد — موفق: ${ok} | کل: ${allResults.length}`)
   }
 

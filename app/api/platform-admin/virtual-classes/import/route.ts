@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { withAuth } from '@/lib/security/api-guard'
 import { PLATFORM_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
 import { createServiceClient } from '@/lib/supabase/service'
 import { parseSpreadsheetFile } from '@/lib/bulk-import/parse-spreadsheet'
-import { importVirtualClassRows } from '@/lib/virtual-class/import-spreadsheet'
+import {
+  collectVirtualClassRawRows,
+  importVirtualClassRows,
+  validateVirtualClassRows,
+} from '@/lib/virtual-class/import-spreadsheet'
 import { buildVirtualClassTemplateXlsx } from '@/lib/virtual-class/excel-template'
+
+const importBodySchema = z.object({
+  action: z.literal('import'),
+  schoolId: z.string().uuid('شناسه مدرسه نامعتبر است'),
+  rows: z.array(z.record(z.string())).min(1, 'ردیفی برای واردسازی نیست').max(200),
+})
 
 export async function GET(request: NextRequest) {
   return withAuth(
@@ -29,35 +40,54 @@ export async function POST(request: NextRequest) {
   return withAuth(
     request,
     async (ctx) => {
-      const form = await request.formData()
-      const file = form.get('file')
-      const schoolId = String(form.get('schoolId') || '')
-
-      if (!(file instanceof File)) {
-        return NextResponse.json({ error: 'فایل الزامی است' }, { status: 400 })
-      }
-      if (!schoolId) {
-        return NextResponse.json({ error: 'مدرسه را انتخاب کنید' }, { status: 400 })
-      }
-
-      const sheets = await parseSpreadsheetFile(file)
-      const dataSheets = sheets.filter((s) => {
-        const joined = s.headers.join('|')
-        return (
-          joined.includes('نام_لاتین_اتاق') ||
-          joined.includes('شناسه_اتاق') ||
-          joined.includes('skyroom_room_name') ||
-          s.sheetName.includes('مجازی')
-        )
-      })
-      const rows = (dataSheets.length > 0 ? dataSheets : sheets)
-        .flatMap((s) => s.rows)
-        .slice(0, 200)
-      if (rows.length === 0) {
-        return NextResponse.json({ error: 'ردیف معتبری در فایل نیست' }, { status: 400 })
-      }
-
+      const contentType = request.headers.get('content-type') || ''
       const service = createServiceClient()
+
+      if (contentType.includes('multipart/form-data')) {
+        const form = await request.formData()
+        const file = form.get('file')
+        const schoolId = String(form.get('schoolId') || '')
+
+        if (!(file instanceof File)) {
+          return NextResponse.json({ error: 'فایل الزامی است' }, { status: 400 })
+        }
+        if (!z.string().uuid().safeParse(schoolId).success) {
+          return NextResponse.json({ error: 'مدرسه را انتخاب کنید' }, { status: 400 })
+        }
+
+        const { data: school } = await service
+          .from('schools')
+          .select('id')
+          .eq('id', schoolId)
+          .maybeSingle()
+
+        if (!school) {
+          return NextResponse.json({ error: 'مدرسه یافت نشد' }, { status: 400 })
+        }
+
+        const sheets = await parseSpreadsheetFile(file)
+        const rows = collectVirtualClassRawRows(sheets)
+        if (rows.length === 0) {
+          return NextResponse.json(
+            { error: 'شیت کلاس‌های مجازی با ستون‌های شناسه_اتاق یا نام_لاتین_اتاق یافت نشد' },
+            { status: 400 }
+          )
+        }
+
+        const preview = await validateVirtualClassRows({ service, schoolId, rows })
+        return NextResponse.json({ success: true, schoolId, rows: preview })
+      }
+
+      const body: unknown = await request.json()
+      const parsed = importBodySchema.safeParse(body)
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: parsed.error.issues[0]?.message || 'داده نامعتبر' },
+          { status: 400 }
+        )
+      }
+
+      const { schoolId, rows } = parsed.data
       const { data: school } = await service
         .from('schools')
         .select('id')

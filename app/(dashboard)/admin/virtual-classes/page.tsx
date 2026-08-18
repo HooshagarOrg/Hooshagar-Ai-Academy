@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Video, Plus, Edit, Trash2, Loader2, RefreshCw, Calendar,
-  Play, MoreVertical, Download, Upload,
+  Play, MoreVertical,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,6 +28,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/hooks/use-toast'
+import { VirtualClassImportPanel } from '@/components/admin/virtual-class-import-panel'
 import type {
   VirtualClassSession,
   VirtualClassWithRelations,
@@ -67,10 +68,8 @@ export default function AdminVirtualClassesPage() {
   const [editing, setEditing] = useState<VirtualClassWithRelations | null>(null)
   const [sessionTarget, setSessionTarget] = useState<VirtualClassWithRelations | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<VirtualClassWithRelations | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [importSchoolId, setImportSchoolId] = useState('')
-  const [isImporting, setIsImporting] = useState(false)
-  const importFileRef = useRef<HTMLInputElement>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [form, setForm] = useState({
     school_id: '',
@@ -273,55 +272,6 @@ export default function AdminVirtualClassesPage() {
     }
   }
 
-  const downloadTemplate = async () => {
-    try {
-      const res = await fetch('/api/platform-admin/virtual-classes/import')
-      if (!res.ok) throw new Error('دانلود قالب ناموفق بود')
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'skyroom-virtual-classes.xlsx'
-      a.click()
-      URL.revokeObjectURL(url)
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'خطا در دانلود قالب')
-    }
-  }
-
-  const handleImportFile = async (file: File) => {
-    if (!importSchoolId) {
-      toast.error('ابتدا مدرسه را انتخاب کنید')
-      return
-    }
-    setIsImporting(true)
-    try {
-      const form = new FormData()
-      form.append('file', file)
-      form.append('schoolId', importSchoolId)
-      const res = await fetch('/api/platform-admin/virtual-classes/import', {
-        method: 'POST',
-        body: form,
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'آپلود ناموفق بود')
-      const failed = (data.results || []).filter((r: { status: string }) => r.status === 'error')
-      if (failed.length > 0) {
-        toast.error(
-          `${data.inserted_count || 0} وصل شد — ${failed.length} خطا: ${failed[0].message}`
-        )
-      } else {
-        toast.success(`${data.inserted_count || 0} کلاس مجازی از فایل وصل شد`)
-      }
-      fetchItems()
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'خطا در واردسازی')
-    } finally {
-      setIsImporting(false)
-      if (importFileRef.current) importFileRef.current.value = ''
-    }
-  }
-
   const pageActions = (
     <div className="flex gap-2">
       <Button variant="outline" size="sm" onClick={fetchItems}>
@@ -356,57 +306,12 @@ export default function AdminVirtualClassesPage() {
       description="اتصال کلاس درسی به اتاق اسکای‌روم و زمان‌بندی جلسات"
       actions={pageActions}
     >
-      <GlassCard className="p-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[200px] flex-1">
-            <Label>مدرسه برای واردسازی اکسل</Label>
-            <Select value={importSchoolId} onValueChange={setImportSchoolId}>
-              <SelectTrigger>
-                <SelectValue placeholder="انتخاب مدرسه" />
-              </SelectTrigger>
-              <SelectContent>
-                {schools.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button variant="outline" size="sm" onClick={downloadTemplate}>
-            <Download className="h-4 w-4 ml-1" />
-            دانلود نمونه اکسل
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isImporting || !importSchoolId}
-            onClick={() => importFileRef.current?.click()}
-          >
-            {isImporting ? (
-              <Loader2 className="h-4 w-4 animate-spin ml-1" />
-            ) : (
-              <Upload className="h-4 w-4 ml-1" />
-            )}
-            آپلود اکسل
-          </Button>
-          <input
-            ref={importFileRef}
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) void handleImportFile(file)
-            }}
-          />
-        </div>
-        <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
-          ستون «کلاس» باید با نام کلاس در هوشاگر یکی باشد. شناسه اتاق را از نوار آدرس پنل اسکای‌روم
-          (مثلاً <span dir="ltr" className="font-mono">/channel/182457/edit</span>) وارد کنید؛
-          اگر خالی بماند از نام لاتین لینک استفاده می‌شود.
-        </p>
-      </GlassCard>
+      <VirtualClassImportPanel
+        schools={schools}
+        schoolId={importSchoolId}
+        onSchoolChange={setImportSchoolId}
+        onImported={fetchItems}
+      />
 
       {isLoading ? (
         <PageLoading label="در حال بارگذاری کلاس‌های مجازی..." compact />

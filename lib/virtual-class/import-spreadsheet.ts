@@ -1,103 +1,70 @@
-import { parseGrade } from '@/lib/bulk-import/column-mapper'
-import { normalizeClassName } from '@/lib/bulk-import/resolve-class'
 import { getRoom } from '@/lib/skyroom'
 import { createServiceClient } from '@/lib/supabase/service'
+import {
+  evaluateVirtualClassRow,
+  mapVirtualClassImportRow,
+  type VirtualClassImportResult,
+  type VirtualClassImportRow,
+  type VirtualClassPreviewRow,
+  type VirtualClassSchoolClass,
+} from '@/lib/virtual-class/import-map'
 
-export const VIRTUAL_CLASS_IMPORT_HEADERS = [
-  'پایه',
-  'کلاس',
-  'عنوان',
-  'شناسه_اتاق',
-  'نام_لاتین_اتاق',
-  'لینک_اتاق',
-] as const
+export {
+  VIRTUAL_CLASS_IMPORT_HEADERS,
+  collectVirtualClassRawRows,
+  evaluateVirtualClassRow,
+  extractSkyroomSlug,
+  findClass,
+  isImportablePreviewRow,
+  isVirtualClassDataSheet,
+  mapVirtualClassImportRow,
+  parseVirtualClassGrade,
+  previewRowToRaw,
+} from '@/lib/virtual-class/import-map'
 
-export type VirtualClassImportRow = {
-  rowNumber: number
-  grade: number
-  className: string
-  title: string
-  roomIdRaw: string
-  latinName: string
-  link: string
-}
+export type {
+  VirtualClassImportResult,
+  VirtualClassImportRow,
+  VirtualClassPreviewRow,
+  VirtualClassRowStatus,
+  VirtualClassSchoolClass,
+} from '@/lib/virtual-class/import-map'
 
-function normHeader(s: string): string {
-  return s
-    .trim()
-    .replace(/^\uFEFF/, '')
-    .replace(/\u200c/g, ' ')
-    .replace(/ي/g, 'ی')
-    .replace(/ك/g, 'ک')
-    .replace(/\s+/g, '_')
-    .toLowerCase()
-}
+async function loadSchoolClasses(
+  service: ReturnType<typeof createServiceClient>,
+  schoolId: string
+): Promise<{ classes: VirtualClassSchoolClass[]; used: Set<string> }> {
+  const { data: classes, error: classError } = await service
+    .from('classes')
+    .select('id, name, grade, teacher_id')
+    .eq('school_id', schoolId)
+    .limit(500)
 
-function pick(row: Record<string, string>, aliases: string[]): string {
-  const wanted = aliases.map(normHeader)
-  for (const [key, val] of Object.entries(row)) {
-    const k = normHeader(key)
-    if (wanted.includes(k)) return String(val ?? '').trim()
+  if (classError) {
+    throw new Error(`خطا در دریافت کلاس‌ها: ${classError.message}`)
   }
-  return ''
-}
 
-export function extractSkyroomSlug(link: string): string {
-  const trimmed = link.trim()
-  if (!trimmed) return ''
-  try {
-    const url = trimmed.includes('://') ? new URL(trimmed) : new URL(`https://${trimmed}`)
-    const parts = url.pathname.split('/').filter(Boolean)
-    return (parts[parts.length - 1] ?? '').toLowerCase()
-  } catch {
-    const parts = trimmed.split('/').filter(Boolean)
-    return (parts[parts.length - 1] ?? '').toLowerCase()
-  }
-}
-
-export function mapVirtualClassImportRow(
-  row: Record<string, string>,
-  rowNumber: number
-): VirtualClassImportRow {
-  const latinName =
-    pick(row, ['نام_لاتین_اتاق', 'skyroom_room_name', 'name', 'slug']) ||
-    extractSkyroomSlug(pick(row, ['لینک_اتاق', 'link', 'url', 'لینک']))
+  const { data: existing } = await service
+    .from('virtual_classes')
+    .select('class_id')
+    .eq('school_id', schoolId)
 
   return {
-    rowNumber,
-    grade: parseGrade(pick(row, ['پایه', 'grade'])),
-    className: pick(row, ['کلاس', 'class', 'class_name', 'نام_کلاس']),
-    title: pick(row, ['عنوان', 'title']),
-    roomIdRaw: pick(row, ['شناسه_اتاق', 'room_id', 'skyroom_room_id']),
-    latinName,
-    link: pick(row, ['لینک_اتاق', 'link', 'url', 'لینک']),
+    classes: (classes || []) as VirtualClassSchoolClass[],
+    used: new Set((existing || []).map((e) => e.class_id)),
   }
 }
 
-export type VirtualClassImportResult = {
-  rowNumber: number
-  title: string
-  status: 'success' | 'error' | 'skipped'
-  message: string
-}
-
-type SchoolClass = {
-  id: string
-  name: string
-  grade: number
-  teacher_id: string | null
-}
-
-function findClass(
-  classes: SchoolClass[],
-  mapped: VirtualClassImportRow
-): SchoolClass | undefined {
-  const wanted = normalizeClassName(mapped.className)
-  const sameName = classes.filter((c) => normalizeClassName(c.name) === wanted)
-  if (sameName.length === 1) return sameName[0]
-  const sameGrade = sameName.filter((c) => c.grade === mapped.grade)
-  if (sameGrade.length === 1) return sameGrade[0]
-  return sameName[0] ?? classes.find((c) => c.grade === mapped.grade && normalizeClassName(c.name).includes(wanted))
+export async function validateVirtualClassRows(options: {
+  service: ReturnType<typeof createServiceClient>
+  schoolId: string
+  rows: Record<string, string>[]
+}): Promise<VirtualClassPreviewRow[]> {
+  const { classes, used } = await loadSchoolClasses(options.service, options.schoolId)
+  const claimed = new Set<string>()
+  return options.rows.map((row, i) =>
+    evaluateVirtualClassRow(mapVirtualClassImportRow(row, i + 2), classes, used, claimed)
+  )
 }
 
 async function resolveSkyroomRoom(
@@ -122,50 +89,37 @@ export async function importVirtualClassRows(options: {
   rows: Record<string, string>[]
 }): Promise<VirtualClassImportResult[]> {
   const { service, schoolId, adminId, rows } = options
-  const mappedRows = rows.map((row, i) => mapVirtualClassImportRow(row, i + 2))
-
-  const { data: classes, error: classError } = await service
-    .from('classes')
-    .select('id, name, grade, teacher_id')
-    .eq('school_id', schoolId)
-    .limit(500)
-
-  if (classError) {
-    throw new Error(`خطا در دریافت کلاس‌ها: ${classError.message}`)
-  }
-
-  const schoolClasses = (classes || []) as SchoolClass[]
-  const { data: existing } = await service
-    .from('virtual_classes')
-    .select('class_id')
-    .eq('school_id', schoolId)
-
-  const used = new Set((existing || []).map((e) => e.class_id))
+  const { classes, used } = await loadSchoolClasses(service, schoolId)
+  const claimed = new Set<string>()
+  const preview = rows.map((row, i) =>
+    evaluateVirtualClassRow(mapVirtualClassImportRow(row, i + 2), classes, used, claimed)
+  )
   const results: VirtualClassImportResult[] = []
 
-  for (const mapped of mappedRows) {
+  for (const mapped of preview) {
     const label = mapped.title || mapped.className || `ردیف ${mapped.rowNumber}`
-    if (!mapped.className && !mapped.latinName && !mapped.roomIdRaw) {
+
+    if (mapped.status === 'skipped') {
       results.push({
         rowNumber: mapped.rowNumber,
         title: label,
         status: 'skipped',
-        message: 'ردیف خالی',
+        message: mapped.warnings[0] || 'ردیف رد شد',
       })
       continue
     }
 
-    if (!mapped.className) {
+    if (mapped.status === 'error' || !mapped.resolvedClassId) {
       results.push({
         rowNumber: mapped.rowNumber,
         title: label,
         status: 'error',
-        message: 'ستون کلاس خالی است — باید با نام کلاس در هوشاگر یکی باشد',
+        message: mapped.errors.join(' | ') || 'ردیف نامعتبر',
       })
       continue
     }
 
-    const cls = findClass(schoolClasses, mapped)
+    const cls = classes.find((c) => c.id === mapped.resolvedClassId)
     if (!cls) {
       results.push({
         rowNumber: mapped.rowNumber,

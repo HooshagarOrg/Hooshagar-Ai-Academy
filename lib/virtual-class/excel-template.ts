@@ -1,4 +1,4 @@
-import { VIRTUAL_CLASS_IMPORT_HEADERS } from '@/lib/virtual-class/import-spreadsheet'
+import { VIRTUAL_CLASS_IMPORT_HEADERS } from '@/lib/virtual-class/import-map'
 
 /** نمونهٔ دبستان تالش — شناسهٔ اتاق را از نوار آدرس پنل اسکای‌روم کامل کنید */
 export const VIRTUAL_CLASS_SAMPLE_ROWS: string[][] = [

@@ -70,6 +70,8 @@ const ROLES = [
   { value: 'maintenance', label: 'تأسیسات', color: 'bg-zinc-500/15 text-zinc-300', icon: Briefcase },
 ]
 
+const USERS_PAGE_SIZE = 100
+
 const getRoleConfig = (role: string) =>
   ROLES.find(r => r.value === role) || { label: role, color: 'bg-white/10 text-muted-foreground', icon: Users }
 
@@ -80,6 +82,8 @@ export default function AdminUsersPage() {
   const { toast } = useToast()
   const [users, setUsers] = useState<UserData[]>([])
   const [stats, setStats] = useState<Record<string, number>>({})
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [listOffset, setListOffset] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
@@ -126,9 +130,13 @@ export default function AdminUsersPage() {
   const [isBulkDeleting, setIsBulkDeleting] = useState(false)
 
   useEffect(() => {
+    setListOffset(0)
+  }, [roleFilter, search])
+
+  useEffect(() => {
     fetchUsers()
     setSelectedIds([])
-  }, [roleFilter])
+  }, [roleFilter, listOffset])
 
   useEffect(() => {
     void loadSchools()
@@ -145,7 +153,10 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     setIsLoading(true)
     try {
-      const params = new URLSearchParams({ limit: '200' })
+      const params = new URLSearchParams({
+        limit: String(USERS_PAGE_SIZE),
+        offset: String(listOffset),
+      })
       if (roleFilter !== 'all') params.append('role', roleFilter)
       if (search) params.append('search', search)
 
@@ -154,6 +165,7 @@ export default function AdminUsersPage() {
       if (!res.ok) throw new Error(data.error)
       setUsers(data.users || [])
       setStats(data.stats || {})
+      setTotalUsers(typeof data.total === 'number' ? data.total : (data.users || []).length)
     } catch (e: unknown) {
       toast.error('خطا: ' + (e instanceof Error ? e.message : 'خطای نامشخص'))
     } finally {
@@ -164,7 +176,7 @@ export default function AdminUsersPage() {
   // بارگذاری لیست دانش‌آموزان برای والد
   const loadStudents = async () => {
     try {
-      const res = await fetch('/api/admin/users?role=student&limit=200')
+      const res = await fetch(`/api/admin/users?role=student&limit=500`)
       const data = await res.json()
       setStudentsList((data.users || []).map((u: { id: string; full_name: string; username?: string }) => ({
         id: u.id,
@@ -473,7 +485,7 @@ export default function AdminUsersPage() {
           مدیریت کاربران
         </span>
       }
-      description={`${users.length} کاربر در سیستم`}
+      description={`${totalUsers.toLocaleString('fa-IR')} کاربر در سیستم — نمایش ${users.length.toLocaleString('fa-IR')} نفر`}
       actions={
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button variant="outline" onClick={fetchUsers} className="touch-target">
@@ -679,6 +691,29 @@ export default function AdminUsersPage() {
               )
             })}
           </div>
+          {totalUsers > USERS_PAGE_SIZE && (
+            <div className="flex items-center justify-between gap-3 p-3 border-t border-white/[0.06]">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={listOffset <= 0 || isLoading}
+                onClick={() => setListOffset((n) => Math.max(0, n - USERS_PAGE_SIZE))}
+              >
+                قبلی
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                {`${(listOffset + 1).toLocaleString('fa-IR')} تا ${Math.min(listOffset + users.length, totalUsers).toLocaleString('fa-IR')} از ${totalUsers.toLocaleString('fa-IR')}`}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={listOffset + users.length >= totalUsers || isLoading}
+                onClick={() => setListOffset((n) => n + USERS_PAGE_SIZE)}
+              >
+                بعدی
+              </Button>
+            </div>
+          )}
         </GlassCard>
       )}
       </DashboardSectionBlock>

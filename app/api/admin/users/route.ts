@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
       const role = searchParams.get('role')
       const search = searchParams.get('search')
-      const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 200)
+      const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10) || 50, 500)
       const offset = parseInt(searchParams.get('offset') || '0')
 
       let query = admin
@@ -45,14 +45,23 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 })
       }
 
-      const { data: roleStats } = await admin
-        .from('profiles')
-        .select('role')
-
-      const stats = (roleStats || []).reduce((acc: Record<string, number>, p) => {
-        acc[p.role] = (acc[p.role] || 0) + 1
-        return acc
-      }, {})
+      // PostgREST پیش‌فرض حداکثر ۱۰۰۰ ردیف برمی‌گرداند؛ بدون صفحه‌بندی آمار نقش‌ها ناقص می‌شود
+      const stats: Record<string, number> = {}
+      const pageSize = 1000
+      for (let from = 0; ; from += pageSize) {
+        const { data: rolePage, error: statsError } = await admin
+          .from('profiles')
+          .select('role')
+          .range(from, from + pageSize - 1)
+        if (statsError) {
+          return NextResponse.json({ error: statsError.message }, { status: 500 })
+        }
+        if (!rolePage?.length) break
+        for (const row of rolePage) {
+          stats[row.role] = (stats[row.role] || 0) + 1
+        }
+        if (rolePage.length < pageSize) break
+      }
 
       return NextResponse.json({
         users: data || [],

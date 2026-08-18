@@ -40,6 +40,8 @@ Sentry.init({
     'Non-Error promise rejection captured',
     'Network request failed',
     'Failed to fetch',
+    'Multiple Sentry Session Replay instances are not supported',
+    "Cannot read properties of null (reading 'get')",
   ],
   
   // Release tracking

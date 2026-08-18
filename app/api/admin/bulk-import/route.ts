@@ -10,7 +10,7 @@ import type { ImportSheetType } from '@/lib/bulk-import/types'
 export const maxDuration = 60
 
 const BULK_IMPORT_ROLES: AllowedRole[] = [...ADMIN_ROLES, 'principal']
-const IMPORT_BATCH_MAX = 40
+const IMPORT_BATCH_MAX = 15
 
 const optionsSchema = z.object({
   schoolId: z.string().uuid('شناسه مدرسه نامعتبر است'),
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ error: 'عملیات نامعتبر' }, { status: 400 })
     },
-    { roles: BULK_IMPORT_ROLES, rateLimit: 'admin_action' }
+    { roles: BULK_IMPORT_ROLES, skipRateLimit: true }
   )
 }
 

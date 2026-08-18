@@ -670,7 +670,7 @@ export async function DELETE(request: NextRequest) {
           const body: unknown = await request.json()
           const parsed = z
             .object({
-              ids: z.array(z.string().uuid()).min(1, 'حداقل یک کاربر انتخاب کنید').max(100),
+              ids: z.array(z.string().uuid()).min(1, 'حداقل یک کاربر انتخاب کنید').max(100, 'حداکثر ۱۰۰ کاربر در هر درخواست'),
             })
             .safeParse(body)
           if (!parsed.success) {

@@ -393,14 +393,37 @@ export default function AdminUsersPage() {
     if (selectedIds.length === 0) return
     setIsBulkDeleting(true)
     try {
-      const res = await fetch('/api/admin/users', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: selectedIds }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'حذف گروهی ناموفق بود')
-      toast.success(typeof data.message === 'string' ? data.message : `${selectedIds.length} کاربر حذف شد`)
+      const chunks: string[][] = []
+      for (let i = 0; i < selectedIds.length; i += 50) {
+        chunks.push(selectedIds.slice(i, i + 50))
+      }
+      let deleted = 0
+      const errors: string[] = []
+      for (const ids of chunks) {
+        const res = await fetch('/api/admin/users', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids }),
+        })
+        const data = await res.json().catch(() => ({})) as {
+          error?: string
+          deleted?: number
+          message?: string
+        }
+        if (!res.ok) {
+          errors.push(typeof data.error === 'string' ? data.error : 'حذف گروهی ناموفق بود')
+          continue
+        }
+        deleted += typeof data.deleted === 'number' ? data.deleted : ids.length
+      }
+      if (deleted === 0) {
+        throw new Error(errors[0] || 'حذف هیچ کاربری انجام نشد')
+      }
+      toast.success(
+        errors.length > 0
+          ? `${deleted} کاربر حذف شد؛ بخشی ناموفق بود`
+          : `${deleted} کاربر حذف شد`
+      )
       setShowBulkDelete(false)
       setSelectedIds([])
       fetchUsers()

@@ -27,7 +27,7 @@ type SheetPreview = {
 
 type School = { id: string; name: string }
 
-const IMPORT_CLIENT_BATCH = 40
+const IMPORT_CLIENT_BATCH = 10
 
 function chunkItems<T>(items: T[], size: number): T[][] {
   const chunks: T[][] = []
@@ -149,7 +149,19 @@ export default function BulkImportPage() {
               rows,
             }),
           })
-          const data = (await res.json()) as { details?: typeof results; error?: string }
+          const raw = await res.text()
+          let data: { details?: typeof results; error?: string } = {}
+          try {
+            data = raw ? (JSON.parse(raw) as { details?: typeof results; error?: string }) : {}
+          } catch {
+            failed = true
+            toast.error(
+              res.status === 504 || res.status === 502
+                ? `زمان سرور در دسته ${i + 1} تمام شد — موارد ثبت‌شده تکراری رد می‌شوند؛ دوباره تلاش کنید`
+                : `پاسخ نامعتبر از سرور در دسته ${i + 1} از ${batches.length}`
+            )
+            continue
+          }
           if (!res.ok) {
             failed = true
             toast.error(data.error || `خطا در دسته ${i + 1} از ${batches.length}`)

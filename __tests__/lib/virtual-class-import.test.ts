@@ -5,7 +5,7 @@ import {
 } from '@/lib/virtual-class/import-map'
 
 const classes = [
-  { id: 'c1', name: 'اول خانم کرد', grade: 1, teacher_id: 't1' },
+  { id: 'c1', name: 'خانم کرد', grade: 1, teacher_id: 't1' },
   { id: 'c2', name: 'دوم خانم ناصری', grade: 2, teacher_id: null },
 ]
 
@@ -19,7 +19,7 @@ describe('virtual class spreadsheet import', () => {
     const mapped = mapVirtualClassImportRow(
       {
         پایه: '1',
-        کلاس: 'اول خانم کرد',
+        کلاس: 'خانم کرد',
         عنوان: 'کلاس اول خانم کرد',
         شناسه_اتاق: '182457',
         نام_لاتین_اتاق: '',
@@ -28,14 +28,14 @@ describe('virtual class spreadsheet import', () => {
       2
     )
     expect(mapped.grade).toBe(1)
-    expect(mapped.className).toBe('اول خانم کرد')
+    expect(mapped.className).toBe('خانم کرد')
     expect(mapped.roomIdRaw).toBe('182457')
     expect(mapped.latinName).toBe('kord')
   })
 
   it('keeps original Excel row number when ردیف is sent back for import', () => {
     const mapped = mapVirtualClassImportRow(
-      { ردیف: '9', کلاس: 'اول خانم کرد', شناسه_اتاق: '182457' },
+      { ردیف: '9', کلاس: 'خانم کرد', شناسه_اتاق: '182457' },
       2
     )
     expect(mapped.rowNumber).toBe(9)
@@ -67,7 +67,7 @@ describe('virtual class spreadsheet import', () => {
     expect(unknown.errors[0]).toContain('پیدا نشد')
 
     const noRoom = evaluateVirtualClassRow(
-      mapVirtualClassImportRow({ کلاس: 'اول خانم کرد' }, 4),
+      mapVirtualClassImportRow({ کلاس: 'خانم کرد' }, 4),
       classes,
       linked,
       claimed
@@ -81,7 +81,7 @@ describe('virtual class spreadsheet import', () => {
     const linked = new Set<string>()
     const first = evaluateVirtualClassRow(
       mapVirtualClassImportRow(
-        { پایه: '1', کلاس: 'اول خانم کرد', شناسه_اتاق: '182457' },
+        { پایه: '1', کلاس: 'خانم کرد', شناسه_اتاق: '182457' },
         2
       ),
       classes,
@@ -92,7 +92,7 @@ describe('virtual class spreadsheet import', () => {
 
     const dup = evaluateVirtualClassRow(
       mapVirtualClassImportRow(
-        { پایه: '1', کلاس: 'اول خانم کرد', شناسه_اتاق: '182458' },
+        { پایه: '1', کلاس: 'خانم کرد', شناسه_اتاق: '182458' },
         3
       ),
       classes,
@@ -107,7 +107,7 @@ describe('virtual class spreadsheet import', () => {
     const claimed = new Set<string>()
     const linked = new Set(['c1'])
     const row = evaluateVirtualClassRow(
-      mapVirtualClassImportRow({ کلاس: 'اول خانم کرد' }, 2),
+      mapVirtualClassImportRow({ کلاس: 'خانم کرد' }, 2),
       classes,
       linked,
       claimed

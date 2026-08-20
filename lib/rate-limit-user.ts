@@ -50,12 +50,12 @@ export async function checkUserRateLimit(
         feature: config.feature
       });
       
-      // در صورت خطا، اجازه می‌دهیم (fail-open)
+      // در صورت خطا، درخواست رد می‌شود (fail-closed)
       return { 
-        allowed: true, 
-        remaining: config.maxRequests, 
+        allowed: false, 
+        remaining: 0, 
         resetAt: new Date(now.getTime() + config.windowMs),
-        current: 0
+        current: config.maxRequests
       };
     }
     
@@ -84,10 +84,10 @@ export async function checkUserRateLimit(
     
     // در صورت خطای غیرمنتظره، اجازه می‌دهیم
     return { 
-      allowed: true, 
-      remaining: config.maxRequests, 
+      allowed: false, 
+      remaining: 0, 
       resetAt: new Date(now.getTime() + config.windowMs),
-      current: 0
+      current: config.maxRequests
     };
   }
 }

@@ -162,69 +162,6 @@ async function callOpenRouter(
 }
 
 /**
- * بررسی cache
- */
-async function checkCache(
-  capability: string,
-  prompt: string
-): Promise<AIResponse | null> {
-  try {
-    const supabase = await createClient()
-
-    const { data, error } = await supabase.rpc('check_ai_cache', {
-      p_capability: capability,
-      p_prompt: prompt,
-    })
-
-    if (error || !data || data.length === 0 || !data[0].from_cache) {
-      return null
-    }
-
-    console.log(`[AI Cache] ✅ Hit for ${capability}`)
-
-    return {
-      success: true,
-      content: data[0].response,
-      model_used: data[0].model_used || 'cache',
-      tier_used: data[0].tier_used || 0,
-      from_cache: true,
-    }
-  } catch (error) {
-    console.error('[AI Cache] Error:', error)
-    return null
-  }
-}
-
-/**
- * ذخیره در cache
- */
-async function saveToCache(
-  capability: string,
-  prompt: string,
-  response: string,
-  model: string,
-  tier: number,
-  tokens: number
-): Promise<void> {
-  try {
-    const supabase = await createClient()
-
-    await supabase.rpc('save_to_cache', {
-      p_capability: capability,
-      p_prompt: prompt,
-      p_response: response,
-      p_model: model,
-      p_tier: tier,
-      p_tokens: tokens,
-    })
-
-    console.log(`[AI Cache] 💾 Saved for ${capability}`)
-  } catch (error) {
-    console.error('[AI Cache] Save error:', error)
-  }
-}
-
-/**
  * دریافت Gemini key
  */
 async function getGeminiKey(): Promise<string> {
@@ -254,13 +191,13 @@ async function checkUserLimit(userId: string): Promise<boolean> {
 
     if (error) {
       console.error('[User Limit] Check error:', error)
-      return true // در صورت خطا، اجازه بده
+      return false
     }
 
     return data === true
   } catch (error) {
     console.error('[User Limit] Error:', error)
-    return true
+    return false
   }
 }
 
@@ -273,18 +210,6 @@ async function incrementUserCount(userId: string): Promise<void> {
     await supabase.rpc('increment_user_ai_count', { p_user_id: userId })
   } catch (error) {
     console.error('[User Count] Error:', error)
-  }
-}
-
-/**
- * افزایش cache hit کاربر
- */
-async function incrementCacheHit(userId: string): Promise<void> {
-  try {
-    const supabase = await createClient()
-    await supabase.rpc('increment_user_cache_hit', { p_user_id: userId })
-  } catch (error) {
-    console.error('[Cache Hit] Error:', error)
   }
 }
 
@@ -344,19 +269,11 @@ async function logAIRequest(
 // ========================================
 
 /**
- * فراخوانی AI با 6-Tier Fallback + Caching
+ * فراخوانی AI با 6-Tier Fallback
  */
 export async function callAI(request: AIRequest): Promise<AIResponse> {
   const { capability, prompt, userId } = request
 
-  // 🔍 Step 1: بررسی Cache
-  const cached = await checkCache(capability, prompt)
-  if (cached && cached.from_cache) {
-    if (userId) await incrementCacheHit(userId)
-    return cached
-  }
-
-  // 🚦 Step 2: بررسی User Limit
   if (userId) {
     const allowed = await checkUserLimit(userId)
     if (!allowed) {
@@ -396,7 +313,6 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
       config.max_tokens
     )
 
-    await saveToCache(capability, prompt, result.content, config.tier1_gemini_model, 1, result.tokens)
     await logAIRequest(capability, userId, config.tier1_gemini_model, 1, 'success', result.responseTime, result.tokens)
     if (userId) await incrementUserCount(userId)
 
@@ -432,7 +348,6 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
       config.max_tokens
     )
 
-    await saveToCache(capability, prompt, result.content, config.tier2_gemini_model, 2, result.tokens)
     await logAIRequest(capability, userId, config.tier2_gemini_model, 2, 'success', result.responseTime, result.tokens)
     if (userId) await incrementUserCount(userId)
 
@@ -461,7 +376,6 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
       config.max_tokens
     )
 
-    await saveToCache(capability, prompt, result.content, config.tier3_free_model, 3, result.tokens)
     await logAIRequest(capability, userId, config.tier3_free_model, 3, 'success', result.responseTime, result.tokens)
     if (userId) await incrementUserCount(userId)
 
@@ -490,7 +404,6 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
       config.max_tokens
     )
 
-    await saveToCache(capability, prompt, result.content, config.tier4_free_model, 4, result.tokens)
     await logAIRequest(capability, userId, config.tier4_free_model, 4, 'success', result.responseTime, result.tokens)
     if (userId) await incrementUserCount(userId)
 
@@ -520,7 +433,6 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
         config.max_tokens
       )
 
-      await saveToCache(capability, prompt, result.content, config.tier5_cheap_model, 5, result.tokens)
       await logAIRequest(capability, userId, config.tier5_cheap_model, 5, 'success', result.responseTime, result.tokens)
       if (userId) await incrementUserCount(userId)
 
@@ -551,7 +463,6 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
         config.max_tokens
       )
 
-      await saveToCache(capability, prompt, result.content, config.tier6_premium_model, 6, result.tokens)
       await logAIRequest(capability, userId, config.tier6_premium_model, 6, 'success', result.responseTime, result.tokens)
       if (userId) await incrementUserCount(userId)
 

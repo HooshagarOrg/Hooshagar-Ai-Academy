@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/service'
+import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
 
 // ============================================
 // تایپ‌ها و اینترفیس‌ها
@@ -111,7 +112,7 @@ async function checkRateLimit(
 
   if (error) {
     console.error('Rate limit check error:', error)
-    return { allowed: true, attemptsLeft: RATE_LIMIT_MAX_ATTEMPTS }
+    return { allowed: false, attemptsLeft: 0 }
   }
 
   const attempts = data?.length || 0
@@ -178,6 +179,18 @@ async function saveOTP(
 // ============================================
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
+    const otpRateLimited = await applyRateLimitAsync(request, 'otp_send')
+    if (otpRateLimited) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'بیش از حد مجاز درخواست کرده‌اید. لطفاً ۱۰ دقیقه صبر کنید.',
+          code: 'RATE_LIMIT_EXCEEDED',
+        },
+        { status: 429 }
+      )
+    }
+
     let body: unknown
     try {
       body = await request.json()

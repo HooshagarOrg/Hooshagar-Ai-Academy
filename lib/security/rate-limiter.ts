@@ -3,9 +3,9 @@
  */
 
 import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
 import { LRUCache } from 'lru-cache'
 import { NextRequest, NextResponse } from 'next/server'
+import { getUpstashRedis } from '@/lib/cache/upstash'
 
 export const RATE_LIMIT_CONFIGS = {
   login:          { limit: 5,   window: 60_000 },
@@ -34,9 +34,20 @@ const memoryStore = new LRUCache<string, WindowEntry>({
   ttl: 3_600_000,
 })
 
-let redisClient: Redis | null | undefined
 const distributedLimiters = new Map<string, Ratelimit>()
 let warnedMemoryFallback = false
+
+/** AI / OTP / login: if Redis is configured but the check fails, deny (fail-closed). */
+const FAIL_CLOSED_SCOPES = new Set<string>([
+  'login',
+  'otp_send',
+  'otp_verify',
+  'change_password',
+  'ai_ocr',
+  'ai_general',
+  'ai_heavy',
+  'ai_generate',
+])
 
 function warnMemoryFallbackOnce(): void {
   if (warnedMemoryFallback) return
@@ -48,23 +59,8 @@ function warnMemoryFallbackOnce(): void {
   }
 }
 
-function getRedisClient(): Redis | null {
-  if (redisClient !== undefined) return redisClient
-
-  const url =
-    process.env.UPSTASH_REDIS_REST_URL ||
-    process.env.KV_REST_API_URL
-  const token =
-    process.env.UPSTASH_REDIS_REST_TOKEN ||
-    process.env.KV_REST_API_TOKEN
-
-  if (!url || !token) {
-    redisClient = null
-    return null
-  }
-
-  redisClient = new Redis({ url, token })
-  return redisClient
+function getRedisClient() {
+  return getUpstashRedis()
 }
 
 function windowMsToUpstashDuration(windowMs: number): `${number} ms` | `${number} s` | `${number} m` | `${number} h` {
@@ -171,7 +167,7 @@ async function checkDistributedRateLimit(
   key: string,
   scope: string,
   config: { limit: number; window: number }
-): Promise<RateLimitResult | null> {
+): Promise<RateLimitResult | 'error' | null> {
   const limiter = getDistributedLimiter(scope, config)
   if (!limiter) return null
 
@@ -184,7 +180,7 @@ async function checkDistributedRateLimit(
       limit: config.limit,
     }
   } catch {
-    return null
+    return 'error'
   }
 }
 
@@ -200,7 +196,16 @@ export async function checkRateLimitForRequest(
 
   const key = getClientKey(request, scope)
   const distributed = await checkDistributedRateLimit(key, scope, config)
-  if (distributed) return distributed
+  if (distributed && distributed !== 'error') return distributed
+
+  if (distributed === 'error' && FAIL_CLOSED_SCOPES.has(scope)) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt: Date.now() + 60_000,
+      limit: config.limit,
+    }
+  }
 
   warnMemoryFallbackOnce()
   return checkMemoryRateLimit(key, config)

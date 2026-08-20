@@ -4,6 +4,10 @@ import { z } from 'zod'
 import { secureErrorResponse } from '@/lib/security/error-handler'
 import { withAuth } from '@/lib/security/api-guard'
 import { STUDENT_DATA_ROLES } from '@/lib/security/sensitive-api-roles'
+import {
+  canViewSchoolWideStudents,
+  listStudentsForTeacher,
+} from '@/lib/teacher/class-scope'
 
 const studentSchema = z.object({
   full_name: z.string().min(2).max(100),
@@ -21,9 +25,32 @@ export async function GET(request: NextRequest) {
         const grade = searchParams.get('grade')
         const schoolId = searchParams.get('school_id')
 
+        if (!canViewSchoolWideStudents(ctx.role)) {
+          const { students } = await listStudentsForTeacher(supabase, {
+            teacherId: ctx.userId,
+            role: ctx.role,
+            schoolId: ctx.schoolId,
+          })
+          const scoped = grade
+            ? students.filter((s) => s.grade === parseInt(grade, 10))
+            : students
+          return NextResponse.json({
+            students: scoped.map((s) => ({
+              id: s.id,
+              student_number: s.student_number,
+              grade: s.grade,
+              school_id: s.school_id,
+              status: s.status,
+              full_name: s.full_name,
+              class_id: s.class_id,
+              profiles: { full_name: s.full_name },
+            })),
+          })
+        }
+
         let query = supabase
           .from('students')
-          .select('id, student_number, grade, school_id, status, profiles!inner(full_name)')
+          .select('id, student_number, grade, school_id, status, full_name, class_id, profiles!inner(full_name)')
           .order('created_at', { ascending: false })
           .limit(200)
 

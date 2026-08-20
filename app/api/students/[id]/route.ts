@@ -5,6 +5,10 @@ import {
   STUDENT_DATA_ROLES,
   STUDENT_DELETE_ROLES,
 } from '@/lib/security/sensitive-api-roles'
+import {
+  canViewSchoolWideStudents,
+  studentBelongsToTeacher,
+} from '@/lib/teacher/class-scope'
 
 const STUDENT_COLUMNS =
   'id, full_name, grade, class_id, school_id, student_number, user_id, parent_id, education_stage, can_login, created_at'
@@ -15,9 +19,21 @@ export async function GET(
 ) {
   return withAuth(
     request,
-    async () => {
+    async (ctx) => {
       try {
         const supabase = await createClient()
+        if (!canViewSchoolWideStudents(ctx.role)) {
+          const allowed = await studentBelongsToTeacher(supabase, {
+            teacherId: ctx.userId,
+            role: ctx.role,
+            schoolId: ctx.schoolId,
+            studentId: params.id,
+          })
+          if (!allowed) {
+            return NextResponse.json({ error: 'دانش‌آموز یافت نشد' }, { status: 404 })
+          }
+        }
+
         const { data, error } = await supabase
           .from('students')
           .select(STUDENT_COLUMNS)

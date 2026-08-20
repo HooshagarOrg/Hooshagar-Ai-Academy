@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth, TEACHER_AND_ABOVE } from '@/lib/security/api-guard'
-import { filterStudentIdsForTeacher, studentBelongsToTeacher, getTeacherClassIds } from '@/lib/teacher/class-scope'
+import { filterStudentIdsForTeacher, studentBelongsToTeacher, listStudentIdsForTeacher } from '@/lib/teacher/class-scope'
 
 // ============================================
 // GET: دریافت حضور و غیاب
@@ -41,13 +41,11 @@ export async function GET(request: NextRequest) {
       if (!allowed) return NextResponse.json({ attendance: [] })
       query = query.eq('student_id', studentId)
     } else if (!['principal', 'admin', 'platform_admin'].includes(ctx.role)) {
-      const classIds = await getTeacherClassIds(supabase, ctx.userId)
-      if (classIds.length === 0) return NextResponse.json({ attendance: [] })
-      const { data: classStudents } = await supabase
-        .from('students')
-        .select('id')
-        .in('class_id', classIds)
-      const ids = (classStudents || []).map((s) => s.id)
+      const ids = await listStudentIdsForTeacher(supabase, {
+        teacherId: ctx.userId,
+        role: ctx.role,
+        schoolId: ctx.schoolId,
+      })
       if (ids.length === 0) return NextResponse.json({ attendance: [] })
       query = query.in('student_id', ids)
     }

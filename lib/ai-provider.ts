@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { callZai, isZaiConfigured } from '@/lib/ai/zai-provider'
 import { callGroq, isGroqConfigured } from '@/lib/ai/groq-provider'
 import { createHash } from 'crypto'
+import { getUpstashRedis, isUpstashRedisConfigured } from '@/lib/cache/upstash'
 
 // ═══════════════════════════════════════════════════════════════
 // هوشاگر - سرویس AI با معماری چندلایه رایگان
@@ -58,15 +59,8 @@ export interface AICallOptions {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// ── Cache — In-Memory با TTL ─────────────────────────────────
+// ── Cache — Upstash Redis (همان کلاینت rate-limit) ───────────
 // ═══════════════════════════════════════════════════════════════
-
-interface CacheEntry {
-  response: AIResponse
-  expiresAt: number
-}
-
-const responseCache = new Map<string, CacheEntry>()
 
 // مدت نگهداری Cache بر اساس نوع قابلیت (ثانیه)
 const CACHE_TTL_SECONDS: Record<AICapability, number> = {
@@ -108,92 +102,46 @@ function getCacheKey(
     .update(`${capability}::g${grade}::s${schoolKey}::${prompt}`)
     .digest('hex')
     .slice(0, 16)
-  return `ai:${capability}:g${grade}:s${schoolKey}:${hash}`
+  return `hooshagar:ai-cache:${capability}:g${grade}:s${schoolKey}:${hash}`
 }
 
-function getFromCache(key: string): AIResponse | null {
-  const entry = responseCache.get(key)
-  if (!entry) return null
-  if (Date.now() > entry.expiresAt) {
-    responseCache.delete(key)
+function isCachedAIResponse(value: unknown): value is AIResponse {
+  if (!value || typeof value !== 'object') return false
+  const row = value as Record<string, unknown>
+  return typeof row.content === 'string' && typeof row.model === 'string'
+}
+
+async function getFromCache(key: string): Promise<AIResponse | null> {
+  const redis = getUpstashRedis()
+  if (!redis) return null
+  try {
+    const entry = await redis.get<AIResponse>(key)
+    if (!isCachedAIResponse(entry)) return null
+    return { ...entry, cached: true }
+  } catch (err) {
+    console.warn('[ai-cache] get failed', err)
     return null
   }
-  return { ...entry.response, cached: true }
 }
 
-function setCache(key: string, response: AIResponse, ttlSeconds: number): void {
+async function setCache(key: string, response: AIResponse, ttlSeconds: number): Promise<void> {
   if (ttlSeconds <= 0) return
-  responseCache.set(key, {
-    response,
-    expiresAt: Date.now() + ttlSeconds * 1000,
-  })
-  // پاکسازی خودکار cache‌های منقضی (هر 100 درخواست یک‌بار)
-  if (responseCache.size % 100 === 0) {
-    const now = Date.now()
-    for (const [k, v] of responseCache) {
-      if (now > v.expiresAt) responseCache.delete(k)
+  const redis = getUpstashRedis()
+  if (!redis) return
+  try {
+    const toStore: AIResponse = {
+      content: response.content,
+      provider: response.provider,
+      model: response.model,
+      tier: response.tier,
+      is_fallback: response.is_fallback,
+      cost: response.cost,
     }
+    await redis.set(key, toStore, { ex: ttlSeconds })
+  } catch (err) {
+    console.warn('[ai-cache] set failed', err)
   }
 }
-
-// ═══════════════════════════════════════════════════════════════
-// ── Rate Limiter — Sliding Window per User ───────────────────
-// ═══════════════════════════════════════════════════════════════
-
-interface RateLimitEntry {
-  timestamps: number[]
-}
-
-const rateLimitStore = new Map<string, RateLimitEntry>()
-
-// محدودیت بر اساس نقش کاربر (درخواست در ساعت)
-const RATE_LIMIT_PER_HOUR = {
-  default:        20,   // کاربر عادی
-  student:        30,
-  teacher:        60,
-  admin:         200,
-  platform_admin: 999,
-} as const
-
-export class RateLimitError extends Error {
-  constructor(public retryAfterSeconds: number) {
-    super(`سقف درخواست AI تجاوز شد. ${retryAfterSeconds} ثانیه دیگر تلاش کنید.`)
-    this.name = 'RateLimitError'
-  }
-}
-
-function checkRateLimit(userId: string, role: keyof typeof RATE_LIMIT_PER_HOUR = 'default'): void {
-  const limit = RATE_LIMIT_PER_HOUR[role] ?? RATE_LIMIT_PER_HOUR.default
-  const windowMs = 60 * 60 * 1000 // 1 ساعت
-  const now = Date.now()
-
-  let entry = rateLimitStore.get(userId)
-  if (!entry) {
-    entry = { timestamps: [] }
-    rateLimitStore.set(userId, entry)
-  }
-
-  // حذف timestamp‌های خارج از پنجره زمانی
-  entry.timestamps = entry.timestamps.filter(t => now - t < windowMs)
-
-  if (entry.timestamps.length >= limit) {
-    const oldest = entry.timestamps[0]
-    const retryAfter = Math.ceil((oldest + windowMs - now) / 1000)
-    throw new RateLimitError(retryAfter)
-  }
-
-  entry.timestamps.push(now)
-}
-
-// پاکسازی دوره‌ای rate limit store (حافظه)
-setInterval(() => {
-  const now = Date.now()
-  const windowMs = 60 * 60 * 1000
-  for (const [userId, entry] of rateLimitStore) {
-    entry.timestamps = entry.timestamps.filter(t => now - t < windowMs)
-    if (entry.timestamps.length === 0) rateLimitStore.delete(userId)
-  }
-}, 10 * 60 * 1000) // هر 10 دقیقه
 
 // ═══════════════════════════════════════════════════════════════
 // ── نگاشت مدل‌ها ─────────────────────────────────────────────
@@ -356,14 +304,15 @@ async function callGroqTier3(
  * فراخوانی AI با قابلیت مشخص
  *
  * ترتیب اجرا:
- *   1. Cache Check    — اگر جواب کش شده موجود بود، فوری برگردان
- *   2. Rate Limit     — بررسی محدودیت کاربر (پرتاب RateLimitError در صورت تجاوز)
- *   3. Tier 1 Google  — Round-Robin روی 10 کلید
- *   4. Tier 2 Z.ai    — GLM (رایگان)
- *   5. Tier 3 Groq    — Llama سریع (رایگان — GROQ_API_KEY)
- *   6. Tier 4 OR-A    — مدل‌های 200B+
- *   7. Tier 5 OR-B    — مدل‌های 32-70B
- *   8. Tier 6 OR-C    — مدل‌های سریع 7-24B
+ *   1. Cache Check    — Upstash Redis (فقط قابلیت‌های غیرشخصی با پایه)
+ *   2. Tier 1 Google  — Round-Robin روی 10 کلید
+ *   3. Tier 2 Z.ai    — GLM (رایگان)
+ *   4. Tier 3 Groq    — Llama سریع (رایگان — GROQ_API_KEY)
+ *   5. Tier 4 OR-A    — مدل‌های 200B+
+ *   6. Tier 5 OR-B    — مدل‌های 32-70B
+ *   7. Tier 6 OR-C    — مدل‌های سریع 7-24B
+ *
+ * محدودیت نرخ فقط از applyRateLimitAsync در API (یک مسیر).
  */
 export async function callAI(
   prompt: string,
@@ -381,16 +330,11 @@ export async function callAI(
     : null
 
   if (cacheKey) {
-    const cached = getFromCache(cacheKey)
+    const cached = await getFromCache(cacheKey)
     if (cached) return cached
   }
 
-  // ── مرحله 2: Rate Limit Check ────────────────────────────────
-  if (options.userId) {
-    checkRateLimit(options.userId)
-  }
-
-  // ── مرحله 3+: Fallback Chain ─────────────────────────────────
+  // ── مرحله 2+: Fallback Chain ─────────────────────────────────
   const orModels = OPENROUTER_MODEL_MAP[capability]
   const keyA = process.env.OPENROUTER_API_KEY
   const keyB = process.env.OPENROUTER_API_KEY_B
@@ -417,7 +361,7 @@ export async function callAI(
       const result = await tiers[i]()
       // ذخیره در Cache فقط در صورت موفقیت
       if (cacheKey && ttl > 0) {
-        setCache(cacheKey, result, ttl)
+        await setCache(cacheKey, result, ttl)
       }
       return result
     } catch (err) {
@@ -476,11 +420,10 @@ export async function callGeminiVision(
   }
 }
 
-/** اطلاعات وضعیت Cache و Rate Limit برای Admin Dashboard */
+/** اطلاعات وضعیت Cache برای Admin Dashboard */
 export function getAIStats() {
-    return {
-    cacheSize:       responseCache.size,
-    rateLimitUsers:  rateLimitStore.size,
+  return {
+    cacheBackend: isUpstashRedisConfigured() ? 'upstash' : 'disabled',
     googleKeysLoaded: loadGoogleKeys().length,
     zaiConfigured: isZaiConfigured(),
     groqConfigured: isGroqConfigured(),

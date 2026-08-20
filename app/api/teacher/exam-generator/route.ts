@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
           ctx.userId,
           'exam_generator',
           buildPrompt(input),
-          { temperature: 0.6, maxTokens: 4000 }
+          { temperature: 0.6, maxTokens: 4000, grade: input.grade, schoolId: ctx.schoolId }
         )
 
         const validated = aiResultSchema.safeParse(raw)

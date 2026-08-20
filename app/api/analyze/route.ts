@@ -5,6 +5,7 @@ import { secureErrorResponse } from '@/lib/security/error-handler'
 import { withAuth } from '@/lib/security/api-guard'
 import { REPORT_API_ROLES } from '@/lib/security/sensitive-api-roles'
 import { gatewayCallAIJson, AIQuotaExceededError } from '@/lib/ai/gateway'
+import { studentBelongsToTeacher } from '@/lib/teacher/class-scope'
 
 export const maxDuration = 60
 
@@ -38,6 +39,16 @@ export async function POST(request: NextRequest) {
 
         if (studentError || !student) {
           return NextResponse.json({ error: 'دانش‌آموز یافت نشد' }, { status: 404 })
+        }
+
+        const allowed = await studentBelongsToTeacher(supabase, {
+          teacherId: ctx.userId,
+          role: ctx.role,
+          schoolId: ctx.schoolId,
+          studentId,
+        })
+        if (!allowed) {
+          return NextResponse.json({ error: 'این دانش‌آموز در کلاس شما نیست' }, { status: 403 })
         }
 
         const studentName = student.full_name || 'دانش‌آموز'
@@ -97,7 +108,7 @@ ${behaviorLines || 'گزارش رفتاری ثبت نشده'}
           ctx.userId,
           'student_analyzer',
           prompt,
-          { temperature: 0.4, maxTokens: 800 }
+          { temperature: 0.4, maxTokens: 800, skipCache: true, grade: student.grade }
         )
 
         const { error: saveError } = await supabase.from('ai_analyses').insert([

@@ -4,18 +4,25 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth } from '@/lib/security/api-guard'
 import { PLATFORM_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
 
+const isoDateTime = z
+  .string()
+  .min(10)
+  .refine((value) => !Number.isNaN(Date.parse(value)), {
+    message: 'زمان نامعتبر است',
+  })
+
 const createSchema = z.object({
   virtual_class_id: z.string().uuid(),
-  starts_at: z.string().datetime(),
-  ends_at: z.string().datetime(),
+  starts_at: isoDateTime,
+  ends_at: isoDateTime,
   status: z.enum(['scheduled', 'live', 'ended', 'cancelled']).optional(),
   join_buffer_minutes: z.number().int().min(0).max(60).optional(),
 })
 
 const updateSchema = z.object({
   id: z.string().uuid(),
-  starts_at: z.string().datetime().optional(),
-  ends_at: z.string().datetime().optional(),
+  starts_at: isoDateTime.optional(),
+  ends_at: isoDateTime.optional(),
   status: z.enum(['scheduled', 'live', 'ended', 'cancelled']).optional(),
   join_buffer_minutes: z.number().int().min(0).max(60).optional(),
 })
@@ -59,6 +66,15 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      if (
+        new Date(parsed.data.starts_at).getTime() >= new Date(parsed.data.ends_at).getTime()
+      ) {
+        return NextResponse.json(
+          { error: 'زمان پایان باید بعد از زمان شروع باشد' },
+          { status: 400 }
+        )
+      }
+
       const service = createServiceClient()
       const { data, error } = await service
         .from('virtual_class_sessions')
@@ -96,6 +112,22 @@ export async function PATCH(request: NextRequest) {
 
       const { id, ...updates } = parsed.data
       const service = createServiceClient()
+
+      if (updates.starts_at || updates.ends_at) {
+        const { data: existing } = await service
+          .from('virtual_class_sessions')
+          .select('starts_at, ends_at')
+          .eq('id', id)
+          .maybeSingle()
+        const starts = updates.starts_at ?? existing?.starts_at
+        const ends = updates.ends_at ?? existing?.ends_at
+        if (starts && ends && new Date(starts).getTime() >= new Date(ends).getTime()) {
+          return NextResponse.json(
+            { error: 'زمان پایان باید بعد از زمان شروع باشد' },
+            { status: 400 }
+          )
+        }
+      }
 
       const { data, error } = await service
         .from('virtual_class_sessions')

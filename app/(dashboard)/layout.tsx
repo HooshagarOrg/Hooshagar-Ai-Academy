@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { DashboardShell } from '@/components/layout/dashboard-shell'
 import { DashboardThemeProvider } from '@/components/providers/dashboard-theme-provider'
-import { redirect } from 'next/navigation'
+import { DashboardSessionPending } from '@/components/layout/dashboard-session-pending'
 import { DEFAULT_UI_THEME, isUiTheme, type UiTheme } from '@/lib/theme/constants'
 
 export default async function DashboardLayout({
@@ -10,18 +10,17 @@ export default async function DashboardLayout({
   children: React.ReactNode
 }) {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  const user = session?.user ?? null
+  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    return <DashboardSessionPending />
   }
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name, role, school_id, ui_theme')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
   let schoolName: string | undefined
   if (profile?.school_id) {
@@ -29,7 +28,7 @@ export default async function DashboardLayout({
       .from('schools')
       .select('name')
       .eq('id', profile.school_id)
-      .single()
+      .maybeSingle()
     schoolName = school?.name
   }
 

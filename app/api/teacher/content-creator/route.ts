@@ -147,6 +147,8 @@ export async function POST(request: NextRequest) {
         const response = await gatewayCallAI(ctx.userId, 'content_creator', prompt, {
           temperature: 0.7,
           maxTokens: 3500,
+          grade: input.grade,
+          schoolId: ctx.schoolId,
         })
 
         const content = response.content?.trim()

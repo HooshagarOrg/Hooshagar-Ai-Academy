@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/supabase/server';
 import { asOne } from '@/lib/supabase/relation';
 
 /**
@@ -25,7 +25,7 @@ export async function GET() {
       .from('profiles')
       .select('full_name, role')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileError || profile?.role !== 'student') {
       return NextResponse.json(
@@ -49,7 +49,7 @@ export async function GET() {
         )
       `)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (studentError || !student) {
       return NextResponse.json(
@@ -59,11 +59,11 @@ export async function GET() {
     }
 
     // 4. دریافت XP data از talent_garden
-    const { data: xpData, error: xpError } = await supabase
+    const { data: xpData } = await supabase
       .from('talent_garden')
       .select('total_xp, level, coins, current_streak, longest_streak')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     const xp = {
       ...(xpData || {
@@ -87,12 +87,12 @@ export async function GET() {
 
     // 6. دریافت حضور امروز
     const today = new Date().toISOString().split('T')[0];
-    const { data: todayAttendance, error: attendanceError } = await supabase
+    const { data: todayAttendance } = await supabase
       .from('attendance')
       .select('status')
       .eq('student_id', student.id)
       .eq('date', today)
-      .single();
+      .maybeSingle();
 
     // تکالیف در انتظار
     const { data: homeworkRows } = await supabase
@@ -178,10 +178,11 @@ export async function GET() {
       schedule: [],
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Student dashboard error:', error);
+    const message = error instanceof Error ? error.message : 'خطای سرور'
     return NextResponse.json(
-      { error: 'خطای سرور', details: error.message },
+      { error: 'خطای سرور', details: message },
       { status: 500 }
     );
   }

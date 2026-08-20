@@ -19,6 +19,12 @@ import {
 import { HooshiarCharacter, type HooshiarMood } from '@/components/avatar/hooshiar-character'
 import { LuxCard } from '@/components/lux/lux-card'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
+import {
+  clearUserScopedItem,
+  readUserScopedJson,
+  writeUserScopedJson,
+} from '@/lib/client-user-storage'
 
 interface Message {
   id: string
@@ -29,7 +35,7 @@ interface Message {
   timestamp: Date
 }
 
-const STORAGE_KEY = 'study-buddy-history'
+const STORAGE_BASE = 'study-buddy-history'
 
 const QUICK_ACTIONS = [
   { label: 'حل مسئله', icon: Lightbulb, prompt: 'این مسئله را مرحله‌به‌مرحله حل کن: ' },
@@ -72,29 +78,58 @@ export function StudyBuddyClient() {
   const reduce = useReducedMotion()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
-  const [grade, setGrade] = useState(8)
+  const [grade, setGrade] = useState(1)
   const [subject, setSubject] = useState('math')
   const [isLoading, setIsLoading] = useState(false)
   const [mood, setMood] = useState<HooshiarMood>('idle')
   const [xpFlash, setXpFlash] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (!saved) return
-    try {
-      const parsed = JSON.parse(saved) as Array<Omit<Message, 'timestamp'> & { timestamp: string }>
-      setMessages(parsed.map((m) => ({ ...m, timestamp: new Date(m.timestamp) })))
-    } catch {
-      localStorage.removeItem(STORAGE_KEY)
+    let cancelled = false
+    const supabase = createClient()
+    void supabase.auth.getUser().then(({ data }) => {
+      if (cancelled) return
+      const id = data.user?.id ?? null
+      setUserId(id)
+      if (!id) {
+        setMessages([])
+        return
+      }
+      try {
+        localStorage.removeItem(STORAGE_BASE)
+      } catch {
+        // ignore
+      }
+      const saved = readUserScopedJson<Array<Omit<Message, 'timestamp'> & { timestamp: string }>>(
+        STORAGE_BASE,
+        id
+      )
+      if (!saved || !Array.isArray(saved)) return
+      setMessages(saved.map((m) => ({ ...m, timestamp: new Date(m.timestamp) })))
+    })
+    void fetch('/api/auth/me', { cache: 'no-store', credentials: 'same-origin' })
+      .then((r) => r.json() as Promise<{ student?: { grade?: number } }>)
+      .then((payload) => {
+        if (cancelled) return
+        const g = payload.student?.grade
+        if (typeof g === 'number' && g >= 1 && g <= 12) setGrade(g)
+      })
+      .catch(() => {
+        // پایه پیش‌فرض ۱ می‌ماند
+      })
+    return () => {
+      cancelled = true
     }
   }, [])
 
   useEffect(() => {
-    if (messages.length > 0) localStorage.setItem(STORAGE_KEY, JSON.stringify(messages))
-  }, [messages])
+    if (!userId || messages.length === 0) return
+    writeUserScopedJson(STORAGE_BASE, userId, messages)
+  }, [messages, userId])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -250,7 +285,7 @@ export function StudyBuddyClient() {
                   onClick={() => {
                     if (!confirm('تاریخچه پاک شود؟')) return
                     setMessages([])
-                    localStorage.removeItem(STORAGE_KEY)
+                    if (userId) clearUserScopedItem(STORAGE_BASE, userId)
                   }}
                   className="rounded-lg p-2 text-[var(--lux-text-muted)] hover:bg-[var(--lux-surface)]"
                   aria-label="پاک کردن"

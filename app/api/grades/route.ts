@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth, TEACHER_AND_ABOVE } from '@/lib/security/api-guard'
+import { studentBelongsToTeacher, getTeacherClassIds } from '@/lib/teacher/class-scope'
 
 // ============================================
 // GET: دریافت نمرات
@@ -47,7 +48,24 @@ export async function GET(request: NextRequest) {
           children.map((c) => c.id)
         )
       } else if (studentId) {
+        const allowed = await studentBelongsToTeacher(supabase, {
+          teacherId: ctx.userId,
+          role: ctx.role,
+          schoolId: ctx.schoolId,
+          studentId,
+        })
+        if (!allowed) return NextResponse.json({ grades: [] })
         query = query.eq('student_id', studentId)
+      } else if (!['principal', 'admin', 'platform_admin'].includes(ctx.role)) {
+        const classIds = await getTeacherClassIds(supabase, ctx.userId)
+        if (classIds.length === 0) return NextResponse.json({ grades: [] })
+        const { data: classStudents } = await supabase
+          .from('students')
+          .select('id')
+          .in('class_id', classIds)
+        const ids = (classStudents || []).map((s) => s.id)
+        if (ids.length === 0) return NextResponse.json({ grades: [] })
+        query = query.in('student_id', ids)
       }
 
       if (subject) query = query.eq('subject', subject)
@@ -105,6 +123,16 @@ export async function POST(request: NextRequest) {
       }
 
       const supabase = await createClient()
+      const allowed = await studentBelongsToTeacher(supabase, {
+        teacherId: ctx.userId,
+        role: ctx.role,
+        schoolId: ctx.schoolId,
+        studentId: student_id,
+      })
+      if (!allowed) {
+        return NextResponse.json({ error: 'این دانش‌آموز در کلاس شما نیست' }, { status: 403 })
+      }
+
       const { data, error } = await supabase
         .from('grades')
         .insert({

@@ -30,6 +30,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DashboardPage } from '@/components/layout/dashboard-page'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/client'
+import {
+  clearUserScopedItem,
+  readUserScopedJson,
+  writeUserScopedJson,
+} from '@/lib/client-user-storage'
 
 // ============================================
 // تایپ‌ها
@@ -55,7 +61,7 @@ interface GeneratedContent {
   }
 }
 
-const HISTORY_KEY = 'hooshagar:teacher-content-history'
+const HISTORY_BASE = 'hooshagar:teacher-content-history'
 
 const gradeOptions = [
   { value: '1', label: 'پایه اول' },
@@ -64,6 +70,12 @@ const gradeOptions = [
   { value: '4', label: 'پایه چهارم' },
   { value: '5', label: 'پایه پنجم' },
   { value: '6', label: 'پایه ششم' },
+  { value: '7', label: 'پایه هفتم' },
+  { value: '8', label: 'پایه هشتم' },
+  { value: '9', label: 'پایه نهم' },
+  { value: '10', label: 'پایه دهم' },
+  { value: '11', label: 'پایه یازدهم' },
+  { value: '12', label: 'پایه دوازدهم' },
 ]
 
 const questionTypeOptions = [
@@ -93,24 +105,20 @@ function todayFa(): string {
   }
 }
 
-function loadHistory(): ContentHistory[] {
-  if (typeof window === 'undefined') return []
+function loadHistory(userId: string): ContentHistory[] {
+  if (!userId) return []
   try {
-    const raw = localStorage.getItem(HISTORY_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as ContentHistory[]
-    return Array.isArray(parsed) ? parsed.slice(0, 30) : []
+    localStorage.removeItem(HISTORY_BASE)
   } catch {
-    return []
+    // ignore
   }
+  const parsed = readUserScopedJson<ContentHistory[]>(HISTORY_BASE, userId)
+  return Array.isArray(parsed) ? parsed.slice(0, 30) : []
 }
 
-function persistHistory(items: ContentHistory[]): void {
-  try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 30)))
-  } catch {
-    // ignore quota
-  }
+function persistHistory(userId: string, items: ContentHistory[]): void {
+  if (!userId) return
+  writeUserScopedJson(HISTORY_BASE, userId, items.slice(0, 30))
 }
 
 // ============================================
@@ -314,9 +322,21 @@ export default function ContentCreatorPage() {
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null)
   const [copied, setCopied] = useState(false)
   const [history, setHistory] = useState<ContentHistory[]>([])
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    setHistory(loadHistory())
+    let cancelled = false
+    void createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (cancelled) return
+        const id = data.user?.id ?? null
+        setUserId(id)
+        setHistory(id ? loadHistory(id) : [])
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   // فرم طرح درس
@@ -430,7 +450,7 @@ export default function ContentCreatorPage() {
       }
       const updated = [entry, ...history].slice(0, 30)
       setHistory(updated)
-      persistHistory(updated)
+      if (userId) persistHistory(userId, updated)
       toast.success('محتوا با هوش مصنوعی تولید شد')
     } catch {
       toast.error('خطای شبکه. دوباره تلاش کنید.')

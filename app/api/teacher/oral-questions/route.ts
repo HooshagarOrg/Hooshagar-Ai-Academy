@@ -127,7 +127,12 @@ export async function POST(request: NextRequest) {
           ctx.userId,
           'oral_questions',
           buildPrompt(input),
-          { temperature: 0.6, maxTokens: 3000 }
+          {
+            temperature: 0.6,
+            maxTokens: 3000,
+            grade: input.grade ?? null,
+            schoolId: ctx.schoolId,
+          }
         )
 
         const validated = aiResultSchema.safeParse(raw)

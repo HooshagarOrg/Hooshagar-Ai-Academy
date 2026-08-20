@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth, TEACHER_AND_ABOVE } from '@/lib/security/api-guard'
+import { filterStudentIdsForTeacher, studentBelongsToTeacher, getTeacherClassIds } from '@/lib/teacher/class-scope'
 
 // ============================================
 // GET: دریافت حضور و غیاب
@@ -31,7 +32,24 @@ export async function GET(request: NextRequest) {
       if (!children?.length) return NextResponse.json({ attendance: [] })
       query = query.in('student_id', children.map(c => c.id))
     } else if (studentId) {
+      const allowed = await studentBelongsToTeacher(supabase, {
+        teacherId: ctx.userId,
+        role: ctx.role,
+        schoolId: ctx.schoolId,
+        studentId,
+      })
+      if (!allowed) return NextResponse.json({ attendance: [] })
       query = query.eq('student_id', studentId)
+    } else if (!['principal', 'admin', 'platform_admin'].includes(ctx.role)) {
+      const classIds = await getTeacherClassIds(supabase, ctx.userId)
+      if (classIds.length === 0) return NextResponse.json({ attendance: [] })
+      const { data: classStudents } = await supabase
+        .from('students')
+        .select('id')
+        .in('class_id', classIds)
+      const ids = (classStudents || []).map((s) => s.id)
+      if (ids.length === 0) return NextResponse.json({ attendance: [] })
+      query = query.in('student_id', ids)
     }
     
     if (dateFrom) query = query.gte('date', dateFrom)
@@ -57,7 +75,24 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient()
-    const rows = records.map((r: {
+    const requestedIds = records.map((r: { student_id: string }) => r.student_id)
+    const allowedIds = await filterStudentIdsForTeacher(supabase, {
+      teacherId: ctx.userId,
+      role: ctx.role,
+      schoolId: ctx.schoolId,
+      studentIds: requestedIds,
+    })
+    const allowedSet = new Set(allowedIds)
+    const scopedRecords = records.filter((r: { student_id: string }) => allowedSet.has(r.student_id))
+
+    if (scopedRecords.length === 0) {
+      return NextResponse.json(
+        { error: 'هیچ دانش‌آموزی از کلاس شما در این لیست نیست' },
+        { status: 403 }
+      )
+    }
+
+    const rows = scopedRecords.map((r: {
       student_id: string; date: string; status: string
       absence_reason?: string; notes?: string; notify_parent?: boolean
     }) => ({
@@ -75,7 +110,7 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
     // ارسال پیام به والدین دانش‌آموزان غایب
-    const absentRecords = records.filter(r => r.status !== 'present' && r.notify_parent !== false)
+    const absentRecords = scopedRecords.filter(r => r.status !== 'present' && r.notify_parent !== false)
     if (absentRecords.length > 0) {
       for (const rec of absentRecords) {
         const { data: student } = await supabase

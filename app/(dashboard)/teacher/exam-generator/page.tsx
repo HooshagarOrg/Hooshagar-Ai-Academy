@@ -49,6 +49,9 @@ const gradeOptions = [
   { value: '7', label: 'پایه هفتم' },
   { value: '8', label: 'پایه هشتم' },
   { value: '9', label: 'پایه نهم' },
+  { value: '10', label: 'پایه دهم' },
+  { value: '11', label: 'پایه یازدهم' },
+  { value: '12', label: 'پایه دوازدهم' },
 ]
 
 const questionTypeOptions = [

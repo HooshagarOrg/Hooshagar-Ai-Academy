@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth, type AllowedRole } from '@/lib/security/api-guard'
 import { gatewayCallAIJson, AIQuotaExceededError } from '@/lib/ai/gateway'
+import { filterStudentIdsForTeacher } from '@/lib/teacher/class-scope'
 
 export const maxDuration = 60
 
@@ -104,10 +105,23 @@ export async function POST(request: NextRequest) {
         const { student_ids, week_start, week_end, extra_notes } = parsed.data
         const supabase = await createClient()
 
+        const allowedIds = await filterStudentIdsForTeacher(supabase, {
+          teacherId: ctx.userId,
+          role: ctx.role,
+          schoolId: ctx.schoolId,
+          studentIds: student_ids,
+        })
+        if (allowedIds.length === 0) {
+          return NextResponse.json(
+            { error: 'هیچ دانش‌آموزی از کلاس شما انتخاب نشده است' },
+            { status: 403 }
+          )
+        }
+
         const { data: students, error: stErr } = await supabase
           .from('students')
           .select('id, full_name, school_id, grade')
-          .in('id', student_ids)
+          .in('id', allowedIds)
 
         if (stErr) {
           return NextResponse.json({ error: stErr.message }, { status: 500 })
@@ -163,7 +177,7 @@ ${extra_notes ? `یادداشت معلم: ${extra_notes}` : ''}
             ctx.userId,
             'weekly_report',
             prompt,
-            { temperature: 0.5, maxTokens: 1200 }
+            { temperature: 0.5, maxTokens: 1200, skipCache: true, grade: student.grade ?? null }
           )
 
           const { data: row, error } = await supabase

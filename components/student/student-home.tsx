@@ -126,17 +126,38 @@ export function StudentHome() {
   const loadDashboard = () => {
     setLoading(true)
     setError('')
-    fetch('/api/student/dashboard')
-      .then(async (r) => {
-        if (!r.ok) throw new Error('fetch failed')
-        return r.json()
-      })
-      .then((d) => {
-        if (d.success) setData(d)
-        else setError('دریافت داشبورد ناموفق بود.')
-      })
-      .catch(() => setError('اتصال برقرار نشد. لطفاً دوباره تلاش کنید.'))
-      .finally(() => setLoading(false))
+
+    const run = async (): Promise<void> => {
+      const maxAttempts = 3
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          const res = await fetch('/api/student/dashboard', {
+            credentials: 'same-origin',
+            cache: 'no-store',
+          })
+          if (res.status === 401 && attempt < maxAttempts - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)))
+            continue
+          }
+          if (!res.ok) throw new Error('fetch failed')
+          const payload = (await res.json()) as DashboardPayload & { success?: boolean }
+          if (payload.success) {
+            setData(payload)
+            return
+          }
+          setError('دریافت داشبورد ناموفق بود.')
+          return
+        } catch {
+          if (attempt < maxAttempts - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)))
+            continue
+          }
+          setError('اتصال برقرار نشد. لطفاً دوباره تلاش کنید.')
+        }
+      }
+    }
+
+    void run().finally(() => setLoading(false))
   }
 
   useEffect(() => {

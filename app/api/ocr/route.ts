@@ -101,6 +101,7 @@ JSON format:
         const aiResp = await gatewayCallVision(ctx.userId, 'ocr_solver', imageBase64, prompt, {
           temperature: 0.3,
           maxTokens: 2000,
+          skipCache: true,
         })
 
         let result: Record<string, unknown>

@@ -11,9 +11,13 @@ const TEACHER_ROLES: AllowedRole[] = [
   'platform_admin',
 ]
 
+const SPECIALTY_ROLES: AllowedRole[] = ['art_teacher', 'sports_teacher']
+
 /**
  * GET /api/teacher/class-students
- * دانش‌آموزان کلاس(های) معلم جاری
+ * معلم کلاس: فقط دانش‌آموزان class_id کلاس(های) خودش.
+ * هنر/ورزش: فهرست پایه‌محور داخل مدرسه (اگر کلاسی با teacher_id داشته باشند).
+ * هرگز OR روی کل پایه برای معلم کلاس — دانش‌آموزان بدون کلاس («—») نباید دیده شوند.
  */
 export async function GET(request: NextRequest) {
   return withAuth(
@@ -33,10 +37,10 @@ export async function GET(request: NextRequest) {
 
       const classIds = (classes || []).map((c) => c.id)
       const teacherGrades = [
-        ...new Set((classes || []).map((c) => c.grade).filter((g) => typeof g === 'number')),
+        ...new Set((classes || []).map((c) => c.grade).filter((g): g is number => typeof g === 'number')),
       ]
 
-      if (classIds.length === 0 && teacherGrades.length === 0) {
+      if (classIds.length === 0) {
         return NextResponse.json({ students: [], classes: [] })
       }
 
@@ -50,14 +54,11 @@ export async function GET(request: NextRequest) {
         studentsQuery = studentsQuery.eq('school_id', ctx.schoolId)
       }
 
-      if (classIds.length > 0 && teacherGrades.length > 0) {
-        studentsQuery = studentsQuery.or(
-          `class_id.in.(${classIds.join(',')}),grade.in.(${teacherGrades.join(',')})`
-        )
-      } else if (classIds.length > 0) {
-        studentsQuery = studentsQuery.in('class_id', classIds)
-      } else {
+      const isSpecialty = SPECIALTY_ROLES.includes(ctx.role)
+      if (isSpecialty && teacherGrades.length > 0) {
         studentsQuery = studentsQuery.in('grade', teacherGrades)
+      } else {
+        studentsQuery = studentsQuery.in('class_id', classIds)
       }
 
       const { data: students, error } = await studentsQuery
@@ -79,6 +80,22 @@ export async function GET(request: NextRequest) {
       }
 
       const classNameById = new Map((classes || []).map((c) => [c.id, c.name]))
+      const missingClassIds = [
+        ...new Set(
+          (students || [])
+            .map((s) => s.class_id)
+            .filter((id): id is string => typeof id === 'string' && id.length > 0 && !classNameById.has(id))
+        ),
+      ]
+      if (missingClassIds.length > 0) {
+        const { data: extraClasses } = await supabase
+          .from('classes')
+          .select('id, name')
+          .in('id', missingClassIds)
+        for (const c of extraClasses || []) {
+          classNameById.set(c.id, c.name)
+        }
+      }
 
       return NextResponse.json({
         classes: classes || [],

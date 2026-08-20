@@ -74,6 +74,7 @@ ${extra_notes ? `یادداشت معلم: ${extra_notes}` : ''}
         const response = await gatewayCallAI(ctx.userId, 'parent_message', prompt, {
           temperature: 0.5,
           maxTokens: 900,
+          skipCache: true,
         })
 
         const content = response.content?.trim()

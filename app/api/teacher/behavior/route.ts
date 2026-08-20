@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth, type AllowedRole } from '@/lib/security/api-guard'
+import { studentBelongsToTeacher } from '@/lib/teacher/class-scope'
 
 const TEACHER_ROLES: AllowedRole[] = [
   'teacher',
@@ -80,6 +81,16 @@ export async function POST(request: NextRequest) {
       }
 
       const supabase = await createClient()
+      const allowed = await studentBelongsToTeacher(supabase, {
+        teacherId: ctx.userId,
+        role: ctx.role,
+        schoolId: ctx.schoolId,
+        studentId: student_id,
+      })
+      if (!allowed) {
+        return NextResponse.json({ error: 'این دانش‌آموز در کلاس شما نیست' }, { status: 403 })
+      }
+
       const { data: student, error: stErr } = await supabase
         .from('students')
         .select('id, school_id')

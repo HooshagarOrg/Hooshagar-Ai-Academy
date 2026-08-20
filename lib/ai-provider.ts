@@ -51,6 +51,10 @@ export interface AICallOptions {
   forceOpenRouter?: boolean
   userId?: string      // برای Rate Limit
   skipCache?: boolean  // اجبار به عدم استفاده از Cache
+  /** کش مشترک فقط داخل همین پایه؛ بدون پایه کش نمی‌شود */
+  grade?: number | null
+  /** اگر موجود باشد، کش مشترک بین مدارس قاطی نمی‌شود */
+  schoolId?: string | null
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -66,26 +70,45 @@ const responseCache = new Map<string, CacheEntry>()
 
 // مدت نگهداری Cache بر اساس نوع قابلیت (ثانیه)
 const CACHE_TTL_SECONDS: Record<AICapability, number> = {
-  student_analyzer:   300,   //  5 دقیقه — داده‌های پویا
-  problem_solver_ocr: 3600,  //  1 ساعت — جواب یک مسئله ثابت است
+  student_analyzer:   0,     // شخصی — هرگز با کاربر دیگر به اشتراک گذاشته نشود
+  problem_solver_ocr: 0,     // تصویرمحور — کش متنی پاسخ کاربر دیگر را لو می‌دهد
   study_buddy:        0,     //  بدون cache — چت interactive
-  story_wizard:       1800,  // 30 دقیقه
-  field_selector:     3600,  //  1 ساعت
-  konkur_predictor:   600,   // 10 دقیقه
-  konkur_roadmap:     3600,  //  1 ساعت
-  content_creator:    7200,  //  2 ساعت — محتوا ثابت می‌ماند
-  exam_generator:     1800,  // 30 دقیقه
+  story_wizard:       0,     // شخصی
+  field_selector:     0,     // شخصی
+  konkur_predictor:   0,     // شخصی
+  konkur_roadmap:     0,     // شخصی
+  content_creator:    7200,  //  2 ساعت — فقط با کلید پایه+مدرسه
+  exam_generator:     1800,  // 30 دقیقه — فقط با کلید پایه+مدرسه
   homework_evaluator: 0,     //  بدون cache — هر تکلیف منحصربه‌فرد
-  talent_analyzer:    600,   // 10 دقیقه
-  summarizer:         3600,  //  1 ساعت — خلاصه یک متن ثابت است
+  talent_analyzer:    0,     // شخصی
+  summarizer:         0,     // گزارش هفتگی شخصی است
 }
 
-function getCacheKey(capability: AICapability, prompt: string): string {
+function normalizeCacheGrade(grade: number | null | undefined): number | null {
+  if (typeof grade !== 'number' || !Number.isInteger(grade) || grade < 1 || grade > 12) {
+    return null
+  }
+  return grade
+}
+
+function normalizeCacheSchool(schoolId: string | null | undefined): string {
+  if (typeof schoolId === 'string' && schoolId.trim().length > 0) {
+    return schoolId.trim()
+  }
+  return 'noschool'
+}
+
+function getCacheKey(
+  capability: AICapability,
+  prompt: string,
+  grade: number,
+  schoolKey: string
+): string {
   const hash = createHash('sha256')
-    .update(`${capability}::${prompt}`)
+    .update(`${capability}::g${grade}::s${schoolKey}::${prompt}`)
     .digest('hex')
     .slice(0, 16)
-  return `ai:${capability}:${hash}`
+  return `ai:${capability}:g${grade}:s${schoolKey}:${hash}`
 }
 
 function getFromCache(key: string): AIResponse | null {
@@ -350,9 +373,14 @@ export async function callAI(
 
   // ── مرحله 1: Cache Check ──────────────────────────────────────
   const ttl = CACHE_TTL_SECONDS[capability]
-  const cacheKey = getCacheKey(capability, prompt)
+  const cacheGrade = normalizeCacheGrade(options.grade)
+  const cacheSchool = normalizeCacheSchool(options.schoolId)
+  const canUseSharedCache = !options.skipCache && ttl > 0 && cacheGrade !== null
+  const cacheKey = canUseSharedCache
+    ? getCacheKey(capability, prompt, cacheGrade, cacheSchool)
+    : null
 
-  if (!options.skipCache && ttl > 0) {
+  if (cacheKey) {
     const cached = getFromCache(cacheKey)
     if (cached) return cached
   }
@@ -388,7 +416,7 @@ export async function callAI(
     try {
       const result = await tiers[i]()
       // ذخیره در Cache فقط در صورت موفقیت
-      if (!options.skipCache && ttl > 0) {
+      if (cacheKey && ttl > 0) {
         setCache(cacheKey, result, ttl)
       }
       return result

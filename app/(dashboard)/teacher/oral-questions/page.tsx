@@ -61,9 +61,18 @@ const SUBJECTS = [
 ]
 
 const GRADES_LIST = [
+  { id: '1', name: 'اول' },
+  { id: '2', name: 'دوم' },
+  { id: '3', name: 'سوم' },
   { id: '4', name: 'چهارم' },
   { id: '5', name: 'پنجم' },
   { id: '6', name: 'ششم' },
+  { id: '7', name: 'هفتم' },
+  { id: '8', name: 'هشتم' },
+  { id: '9', name: 'نهم' },
+  { id: '10', name: 'دهم' },
+  { id: '11', name: 'یازدهم' },
+  { id: '12', name: 'دوازدهم' },
 ]
 
 const QUESTION_TYPES: { id: QuestionType; name: string; description: string }[] = [

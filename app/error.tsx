@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import * as Sentry from '@sentry/nextjs'
 import {
   AlertTriangle,
   RefreshCw,
@@ -13,7 +14,6 @@ import {
   Copy,
   CheckCircle2,
 } from 'lucide-react'
-import { useState } from 'react'
 
 // ============================================
 // تایپ‌ها
@@ -26,13 +26,24 @@ interface ErrorProps {
 // ============================================
 // کامپوننت Error Boundary
 // ============================================
+function isNextNavigationError(error: Error & { digest?: string }): boolean {
+  const digest = error.digest ?? ''
+  return digest.startsWith('NEXT_REDIRECT') || digest.startsWith('NEXT_NOT_FOUND')
+}
+
 export default function Error({ error, reset }: ErrorProps) {
   const [showDetails, setShowDetails] = useState(false)
   const [copied, setCopied] = useState(false)
   const isDevelopment = process.env.NODE_ENV === 'development'
 
-  // لاگ خطا در development
+  if (isNextNavigationError(error)) {
+    throw error
+  }
+
   useEffect(() => {
+    // Next.js catches error.tsx before Sentry's global handler — report manually
+    Sentry.captureException(error)
+
     if (isDevelopment) {
       console.error('🔴 Error caught by Error Boundary:', error)
       console.error('Error name:', error.name)
@@ -42,9 +53,6 @@ export default function Error({ error, reset }: ErrorProps) {
         console.error('Error digest:', error.digest)
       }
     }
-
-    // در production می‌توانید به سرویس مانیتورینگ ارسال کنید
-    // مثال: Sentry.captureException(error)
   }, [error, isDevelopment])
 
   // کپی جزئیات خطا

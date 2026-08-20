@@ -61,7 +61,8 @@ async function searchMaterials(
 async function generateAnswer(
   userId: string,
   question: string,
-  context: string
+  context: string,
+  grade?: number
 ): Promise<string> {
   const prompt = `
 شما یک دستیار درسی هوشمند و صبور هستید که به دانش‌آموزان ایرانی کمک می‌کنید.
@@ -83,6 +84,8 @@ ${context || 'منبع خاصی یافت نشد. اگر مطمئن نیستید 
   const response = await gatewayCallAI(userId, 'study_buddy', prompt, {
     maxTokens: 1500,
     temperature: 0.7,
+    grade: grade ?? null,
+    skipCache: true,
   })
 
   return response.content
@@ -163,7 +166,7 @@ export async function POST(request: NextRequest) {
             'منبع خاصی در پایگاه دانش مدرسه یافت نشد. لطفاً پاسخ کلی و کوتاه بدهید و پیشنهاد کنید از معلم یا جزوه کمک بگیرند.'
         }
 
-        const answer = await generateAnswer(ctx.userId, question, context)
+        const answer = await generateAnswer(ctx.userId, question, context, grade)
 
         try {
           await supabase.from('chat_history').insert({

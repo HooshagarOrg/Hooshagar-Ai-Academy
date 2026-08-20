@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Video, Plus, Edit, Trash2, Loader2, RefreshCw, Calendar,
-  Play, MoreVertical,
+  Play, MoreVertical, XCircle, Ban,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -67,6 +67,8 @@ export default function AdminVirtualClassesPage() {
   const [showSessionForm, setShowSessionForm] = useState(false)
   const [editing, setEditing] = useState<VirtualClassWithRelations | null>(null)
   const [sessionTarget, setSessionTarget] = useState<VirtualClassWithRelations | null>(null)
+  const [editingSession, setEditingSession] = useState<VirtualClassSession | null>(null)
+  const [cancelSessionTarget, setCancelSessionTarget] = useState<VirtualClassSession | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<VirtualClassWithRelations | null>(null)
   const [importSchoolId, setImportSchoolId] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -210,9 +212,7 @@ export default function AdminVirtualClassesPage() {
     }
   }
 
-  const openSessions = async (item: VirtualClassWithRelations) => {
-    setSessionTarget(item)
-    setShowSessions(true)
+  const reloadSessions = async (item: VirtualClassWithRelations) => {
     const res = await fetch(
       `/api/platform-admin/virtual-class-sessions?virtual_class_id=${item.id}`
     )
@@ -220,9 +220,16 @@ export default function AdminVirtualClassesPage() {
     setSessions(data.sessions || [])
   }
 
+  const openSessions = async (item: VirtualClassWithRelations) => {
+    setSessionTarget(item)
+    setShowSessions(true)
+    await reloadSessions(item)
+  }
+
   const openSessionCreate = () => {
     const now = new Date()
     const end = new Date(now.getTime() + 2 * 60 * 60 * 1000)
+    setEditingSession(null)
     setSessionForm({
       starts_at: toLocalDatetimeValue(now.toISOString()),
       ends_at: toLocalDatetimeValue(end.toISOString()),
@@ -231,29 +238,84 @@ export default function AdminVirtualClassesPage() {
     setShowSessionForm(true)
   }
 
+  const openSessionEdit = (session: VirtualClassSession) => {
+    setEditingSession(session)
+    setSessionForm({
+      starts_at: toLocalDatetimeValue(session.starts_at),
+      ends_at: toLocalDatetimeValue(session.ends_at),
+      join_buffer_minutes: String(session.join_buffer_minutes),
+    })
+    setShowSessionForm(true)
+  }
+
   const handleSessionSubmit = async () => {
     if (!sessionTarget || !sessionForm.starts_at || !sessionForm.ends_at) return
     setIsSubmitting(true)
     try {
-      const res = await fetch('/api/platform-admin/virtual-class-sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          virtual_class_id: sessionTarget.id,
-          starts_at: new Date(sessionForm.starts_at).toISOString(),
-          ends_at: new Date(sessionForm.ends_at).toISOString(),
-          join_buffer_minutes: Number(sessionForm.join_buffer_minutes),
-        }),
-      })
+      const payload = {
+        starts_at: new Date(sessionForm.starts_at).toISOString(),
+        ends_at: new Date(sessionForm.ends_at).toISOString(),
+        join_buffer_minutes: Number(sessionForm.join_buffer_minutes),
+      }
+      const res = editingSession
+        ? await fetch('/api/platform-admin/virtual-class-sessions', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: editingSession.id, ...payload }),
+          })
+        : await fetch('/api/platform-admin/virtual-class-sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              virtual_class_id: sessionTarget.id,
+              ...payload,
+            }),
+          })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      toast.success('جلسه ثبت شد')
+      toast.success(editingSession ? 'جلسه به‌روزرسانی شد' : 'جلسه ثبت شد')
       setShowSessionForm(false)
-      openSessions(sessionTarget)
+      setEditingSession(null)
+      await reloadSessions(sessionTarget)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'خطا')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleSessionCancel = async () => {
+    if (!cancelSessionTarget || !sessionTarget) return
+    try {
+      const res = await fetch('/api/platform-admin/virtual-class-sessions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: cancelSessionTarget.id, status: 'cancelled' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success('جلسه لغو شد')
+      setCancelSessionTarget(null)
+      await reloadSessions(sessionTarget)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'خطا در لغو جلسه')
+    }
+  }
+
+  const handleDeactivate = async (item: VirtualClassWithRelations) => {
+    try {
+      const nextStatus = item.status === 'active' ? 'inactive' : 'active'
+      const res = await fetch('/api/platform-admin/virtual-classes', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id, status: nextStatus }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success(nextStatus === 'inactive' ? 'کلاس لغو/غیرفعال شد' : 'کلاس دوباره فعال شد')
+      fetchItems()
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'خطا در تغییر وضعیت')
     }
   }
 
@@ -365,6 +427,10 @@ export default function AdminVirtualClassesPage() {
                     <DropdownMenuItem onClick={() => openEdit(item)}>
                       <Edit className="h-4 w-4 ml-2" />
                       ویرایش
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => void handleDeactivate(item)}>
+                      <Ban className="h-4 w-4 ml-2" />
+                      {item.status === 'active' ? 'لغو / غیرفعال' : 'فعال‌سازی دوباره'}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive"
@@ -518,8 +584,37 @@ export default function AdminVirtualClassesPage() {
                     تا {new Date(s.ends_at).toLocaleString('fa-IR')}
                   </div>
                   <Badge variant="outline" className="mt-1">
-                    {s.status}
+                    {s.status === 'cancelled'
+                      ? 'لغو شده'
+                      : s.status === 'live'
+                        ? 'در حال برگزاری'
+                        : s.status === 'ended'
+                          ? 'پایان‌یافته'
+                          : 'زمان‌بندی‌شده'}
                   </Badge>
+                  {s.status !== 'cancelled' && s.status !== 'ended' && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openSessionEdit(s)}
+                      >
+                        <Edit className="h-3.5 w-3.5 ml-1" />
+                        ویرایش زمان
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive"
+                        onClick={() => setCancelSessionTarget(s)}
+                      >
+                        <XCircle className="h-3.5 w-3.5 ml-1" />
+                        لغو جلسه
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))
             )}
@@ -536,7 +631,7 @@ export default function AdminVirtualClassesPage() {
       <Dialog open={showSessionForm} onOpenChange={setShowSessionForm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>جلسه جدید</DialogTitle>
+            <DialogTitle>{editingSession ? 'ویرایش جلسه' : 'جلسه جدید'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -575,7 +670,8 @@ export default function AdminVirtualClassesPage() {
           </div>
           <DialogFooter>
             <Button onClick={handleSessionSubmit} disabled={isSubmitting}>
-              ثبت جلسه
+              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin ml-1" />}
+              {editingSession ? 'ذخیره تغییرات' : 'ثبت جلسه'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -592,6 +688,26 @@ export default function AdminVirtualClassesPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>انصراف</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>حذف</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!cancelSessionTarget}
+        onOpenChange={() => setCancelSessionTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>لغو این جلسه؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              جلسه لغو می‌شود و دانش‌آموزان نمی‌توانند وارد شوند. اتاق اسکای‌روم باقی می‌ماند.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void handleSessionCancel()}>
+              لغو جلسه
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

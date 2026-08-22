@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Menu, Flame } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { ReportProblemDialog } from '@/components/support/report-problem-dialog'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { PersianDateDisplay } from '@/components/ui/persian-date-display'
 import { LUX_EASE } from '@/components/lux/lux-motion'
@@ -83,6 +84,7 @@ export function LuxStudentHeader({ userName, onMenuToggle }: LuxStudentHeaderPro
         <div className="flex items-center gap-2 sm:gap-3">
           <PersianDateDisplay variant="compact" className="hidden sm:inline-flex" />
           <ThemeToggle compact />
+          <ReportProblemDialog compact />
           <div className="flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/12 px-2.5 py-1.5">
             <Flame className="h-4 w-4 text-[#FF6B35]" />
             <span className="text-sm font-black tabular-nums text-[var(--lux-text)]">

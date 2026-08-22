@@ -4,6 +4,7 @@ import React, { Component, ReactNode } from 'react';
 import * as Sentry from '@sentry/nextjs';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from './button';
+import { ReportProblemDialog } from '@/components/support/report-problem-dialog';
 
 interface Props {
   children: ReactNode;
@@ -101,9 +102,12 @@ export class ErrorBoundary extends Component<Props, State> {
               </Button>
             </div>
 
-            <p className="mt-4 text-xs text-gray-500">
-              اگر مشکل ادامه دارد، لطفاً با پشتیبانی تماس بگیرید.
-            </p>
+            <div className="mt-4 flex justify-center">
+              <ReportProblemDialog
+                errorName={this.state.error?.name ?? null}
+                digest={null}
+              />
+            </div>
           </div>
         </div>
       );

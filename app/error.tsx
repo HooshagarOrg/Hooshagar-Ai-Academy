@@ -14,6 +14,7 @@ import {
   Copy,
   CheckCircle2,
 } from 'lucide-react'
+import { ReportProblemDialog } from '@/components/support/report-problem-dialog'
 
 // ============================================
 // تایپ‌ها
@@ -99,7 +100,7 @@ URL: ${typeof window !== 'undefined' ? window.location.href : 'N/A'}
           </div>
 
           {/* دکمه‌های اصلی */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <button
               onClick={reset}
               className="flex-1 flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50"
@@ -114,6 +115,9 @@ URL: ${typeof window !== 'undefined' ? window.location.href : 'N/A'}
               <Home className="w-5 h-5" />
               بازگشت به خانه
             </Link>
+          </div>
+          <div className="mb-6 flex justify-center">
+            <ReportProblemDialog errorName={error.name} digest={error.digest ?? null} />
           </div>
 
           {/* جزئیات خطا (فقط در development یا با کلیک) */}

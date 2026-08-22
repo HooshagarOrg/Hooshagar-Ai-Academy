@@ -8,6 +8,7 @@ import {
   canViewSchoolWideStudents,
   listStudentsForTeacher,
 } from '@/lib/teacher/class-scope'
+import { fetchAllPaged, parseListPage, POSTGREST_PAGE_SIZE } from '@/lib/supabase/paginate'
 
 const studentSchema = z.object({
   full_name: z.string().min(2).max(100),
@@ -48,24 +49,55 @@ export async function GET(request: NextRequest) {
           })
         }
 
-        let query = supabase
-          .from('students')
-          .select('id, student_number, grade, school_id, status, full_name, class_id, profiles!inner(full_name)')
-          .order('created_at', { ascending: false })
-          .limit(200)
+        const hasPageParams =
+          searchParams.has('limit') || searchParams.has('offset')
+        const { limit, offset } = parseListPage(searchParams, {
+          limit: 100,
+          max: POSTGREST_PAGE_SIZE,
+        })
 
-        if (!['admin', 'platform_admin'].includes(ctx.role) && ctx.schoolId) {
-          query = query.eq('school_id', ctx.schoolId)
-        } else if (schoolId) {
-          query = query.eq('school_id', schoolId)
+        const buildBase = () => {
+          let query = supabase
+            .from('students')
+            .select(
+              'id, student_number, grade, school_id, status, full_name, class_id, profiles!inner(full_name)',
+              { count: hasPageParams ? 'exact' : undefined }
+            )
+            .order('created_at', { ascending: false })
+
+          if (!['admin', 'platform_admin'].includes(ctx.role) && ctx.schoolId) {
+            query = query.eq('school_id', ctx.schoolId)
+          } else if (schoolId) {
+            query = query.eq('school_id', schoolId)
+          }
+
+          if (grade) query = query.eq('grade', parseInt(grade, 10))
+          return query
         }
 
-        if (grade) query = query.eq('grade', parseInt(grade))
+        if (!hasPageParams) {
+          const { data, error } = await fetchAllPaged((from, to) =>
+            buildBase().range(from, to)
+          )
+          if (error) throw new Error(error)
+          return NextResponse.json({
+            students: data,
+            total: data.length,
+          })
+        }
 
-        const { data, error } = await query
+        const { data, error, count } = await buildBase().range(
+          offset,
+          offset + limit - 1
+        )
         if (error) throw error
 
-        return NextResponse.json({ students: data || [] })
+        return NextResponse.json({
+          students: data || [],
+          total: count ?? 0,
+          limit,
+          offset,
+        })
       } catch (error) {
         return secureErrorResponse(error, { context: 'GET /api/students' })
       }

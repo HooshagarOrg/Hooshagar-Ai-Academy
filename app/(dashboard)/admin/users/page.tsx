@@ -103,6 +103,7 @@ export default function AdminUsersPage() {
   })
   // لیست دانش‌آموزان برای انتخاب توسط والد
   const [studentsList, setStudentsList] = useState<{id: string; full_name: string; student_number: string}[]>([])
+  const [studentPickSearch, setStudentPickSearch] = useState('')
   const [schools, setSchools] = useState<{ id: string; name: string }[]>([])
   const [classes, setClasses] = useState<{ id: string; name: string; grade: number | null }[]>([])
   const [credentialsInfo, setCredentialsInfo] = useState<{
@@ -136,7 +137,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     fetchUsers()
     setSelectedIds([])
-  }, [roleFilter, listOffset])
+  }, [roleFilter, listOffset, search])
 
   useEffect(() => {
     void loadSchools()
@@ -176,14 +177,31 @@ export default function AdminUsersPage() {
   // بارگذاری لیست دانش‌آموزان برای والد
   const loadStudents = async () => {
     try {
-      const res = await fetch(`/api/admin/users?role=student&limit=500`)
-      const data = await res.json()
-      setStudentsList((data.users || []).map((u: { id: string; full_name: string; username?: string }) => ({
-        id: u.id,
-        full_name: u.full_name,
-        student_number: u.username || '',
-      })))
-    } catch {}
+      const pageSize = 1000
+      const all: { id: string; full_name: string; student_number: string }[] = []
+      for (let offset = 0; ; offset += pageSize) {
+        const res = await fetch(`/api/admin/users?role=student&limit=${pageSize}&offset=${offset}`)
+        const data = await res.json() as {
+          users?: Array<{ id: string; full_name: string; username?: string }>
+          total?: number
+          error?: string
+        }
+        if (!res.ok) throw new Error(data.error)
+        const batch = data.users || []
+        all.push(
+          ...batch.map((u) => ({
+            id: u.id,
+            full_name: u.full_name,
+            student_number: u.username || '',
+          }))
+        )
+        const total = typeof data.total === 'number' ? data.total : all.length
+        if (batch.length < pageSize || all.length >= total) break
+      }
+      setStudentsList(all)
+    } catch {
+      setStudentsList([])
+    }
   }
 
   const loadSchools = async () => {
@@ -919,11 +937,23 @@ export default function AdminUsersPage() {
             {newUser.role === 'parent' && (
               <div className="border-t pt-3 space-y-3">
                 <p className="text-xs font-bold text-green-700">اتصال به فرزندان</p>
+                <Input
+                  value={studentPickSearch}
+                  onChange={(e) => setStudentPickSearch(e.target.value)}
+                  placeholder="جستجوی نام یا کد دانش‌آموز"
+                />
                 <div className="max-h-40 overflow-y-auto border border-white/[0.06] rounded-lg p-2 space-y-1">
                   {studentsList.length === 0 ? (
                     <p className="text-xs text-[var(--lux-text-muted)] text-center py-2">دانش‌آموزی یافت نشد</p>
                   ) : (
-                    studentsList.map(s => (
+                    studentsList
+                      .filter((s) => {
+                        const q = studentPickSearch.trim()
+                        if (!q) return true
+                        return s.full_name.includes(q) || s.student_number.includes(q)
+                      })
+                      .slice(0, 100)
+                      .map(s => (
                       <label key={s.id} className="flex items-center gap-2 px-2 py-1.5 hover:bg-[var(--lux-surface)] rounded cursor-pointer">
                         <input
                           type="checkbox"

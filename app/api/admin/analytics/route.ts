@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/security/api-guard'
-import { NextRequest } from 'next/server'
+import { fetchAllPaged } from '@/lib/supabase/paginate'
 
 export async function GET(request: NextRequest) {
   return withAuth(
@@ -9,30 +9,48 @@ export async function GET(request: NextRequest) {
     async () => {
       const supabase = await createClient()
 
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const thirtyDaysIso = thirtyDaysAgo.toISOString()
+
       const [
         studentsRes,
         teachersRes,
         parentsRes,
         schoolsRes,
-        gradesRes,
-        attendanceRes,
-        gamificationRes,
         badgesRes,
-        examsRes,
+        examsCountRes,
+        recentExamsRes,
+        attendanceTotalRes,
+        absentRes,
+        gradesPage,
+        gamPage,
       ] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'teacher'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'parent'),
         supabase.from('schools').select('id', { count: 'exact', head: true }),
-        supabase.from('grades').select('score, max_score, subject'),
-        supabase.from('attendance').select('status', { count: 'exact' }),
-        supabase.from('talent_garden').select('xp, level'),
         supabase.from('user_badges').select('id', { count: 'exact', head: true }),
-        supabase.from('exams').select('id, created_at', { count: 'exact' }),
+        supabase.from('exams').select('id', { count: 'exact', head: true }),
+        supabase.from('exams').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysIso),
+        supabase.from('attendance').select('id', { count: 'exact', head: true }),
+        supabase.from('attendance').select('id', { count: 'exact', head: true }).eq('status', 'absent'),
+        fetchAllPaged<{ score: number; max_score: number | null; subject: string }>((from, to) =>
+          supabase.from('grades').select('score, max_score, subject').range(from, to)
+        ),
+        fetchAllPaged<{ xp: number | null; level: number | null }>((from, to) =>
+          supabase.from('talent_garden').select('xp, level').range(from, to)
+        ),
       ])
 
-      // محاسبه آمار نمرات
-      const gradesData = gradesRes.data || []
+      if (gradesPage.error) {
+        return NextResponse.json({ error: gradesPage.error }, { status: 500 })
+      }
+      if (gamPage.error) {
+        return NextResponse.json({ error: gamPage.error }, { status: 500 })
+      }
+
+      const gradesData = gradesPage.data
       const avgScore = gradesData.length > 0
         ? gradesData.reduce((sum, g) => sum + ((g.score / (g.max_score || 20)) * 20), 0) / gradesData.length
         : 0
@@ -40,7 +58,6 @@ export async function GET(request: NextRequest) {
         ? (gradesData.filter(g => (g.score / (g.max_score || 20)) >= 0.6).length / gradesData.length) * 100
         : 0
 
-      // میانگین هر درس
       const subjectMap: Record<string, { total: number; count: number }> = {}
       for (const g of gradesData) {
         if (!subjectMap[g.subject]) subjectMap[g.subject] = { total: 0, count: 0 }
@@ -52,27 +69,17 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => b.avg - a.avg)
         .slice(0, 10)
 
-      // آمار حضور
-      const attendanceData = attendanceRes.data || []
-      const totalAttendance = attendanceData.length
-      const absentCount = attendanceData.filter(a => a.status === 'absent').length
+      const totalAttendance = attendanceTotalRes.count ?? 0
+      const absentCount = absentRes.count ?? 0
       const attendanceRate = totalAttendance > 0
         ? ((totalAttendance - absentCount) / totalAttendance) * 100
         : 0
 
-      // گیمیفیکیشن
-      const gamData = gamificationRes.data || []
+      const gamData = gamPage.data
       const totalXP = gamData.reduce((sum, g) => sum + (g.xp || 0), 0)
       const avgLevel = gamData.length > 0
         ? gamData.reduce((sum, g) => sum + (g.level || 1), 0) / gamData.length
         : 0
-
-      // آزمون‌های ۳۰ روز اخیر
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-      const recentExams = (examsRes.data || []).filter(
-        e => new Date(e.created_at) > thirtyDaysAgo
-      ).length
 
       return NextResponse.json({
         overview: {
@@ -94,17 +101,18 @@ export async function GET(request: NextRequest) {
         },
         gamification: {
           total_xp_awarded: totalXP,
-          active_users: gamData.filter(g => g.xp > 0).length,
+          active_users: gamData.filter(g => (g.xp || 0) > 0).length,
           badges_awarded: badgesRes.count ?? 0,
           avg_level: Math.round(avgLevel * 10) / 10,
         },
         exams: {
-          total_exams: examsRes.count ?? 0,
+          total_exams: examsCountRes.count ?? 0,
           avg_pass_rate: 0,
-          recent_count: recentExams,
+          recent_count: recentExamsRes.count ?? 0,
         },
       })
     },
     { roles: ['platform_admin', 'admin', 'principal'] }
   )
 }
+

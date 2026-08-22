@@ -3,6 +3,7 @@ import { asOne } from '@/lib/supabase/relation'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard'
+import { fetchAllPaged } from '@/lib/supabase/paginate'
 
 export async function GET(request: NextRequest) {
   return withAuth(
@@ -34,9 +35,10 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ history: history || [] })
         }
 
-        let query = supabase
-          .from('students')
-          .select(`
+        const { data: students, error } = await fetchAllPaged((from, to) => {
+          let query = supabase
+            .from('students')
+            .select(`
             id,
             student_number,
             grade,
@@ -45,13 +47,14 @@ export async function GET(request: NextRequest) {
             profiles!inner(full_name, phone),
             classes(name)
           `)
-          .eq('status', 'active')
-          .lt('grade', 12)
+            .eq('status', 'active')
+            .lt('grade', 12)
+            .range(from, to)
 
-        if (grade) query = query.eq('grade', parseInt(grade))
-        if (schoolId) query = query.eq('school_id', schoolId)
-
-        const { data: students, error } = await query
+          if (grade) query = query.eq('grade', parseInt(grade))
+          if (schoolId) query = query.eq('school_id', schoolId)
+          return query
+        })
 
         if (error) throw error
 
@@ -59,13 +62,18 @@ export async function GET(request: NextRequest) {
 
         let gradesData: Record<string, number> = {}
         if (studentIds.length > 0) {
-          const { data: grades } = await supabase
-            .from('grades')
-            .select('student_id, score')
-            .in('student_id', studentIds)
+          const { data: grades, error: gradesError } = await fetchAllPaged<{
+            student_id: string
+            score: number
+          }>((from, to) =>
+            supabase.from('grades').select('student_id, score').range(from, to)
+          )
+          if (gradesError) throw new Error(gradesError)
 
-          if (grades) {
+          if (grades.length > 0) {
+            const idSet = new Set(studentIds)
             const groupedGrades = grades.reduce((acc: Record<string, number[]>, g) => {
+              if (!idSet.has(g.student_id)) return acc
               if (!acc[g.student_id]) acc[g.student_id] = []
               acc[g.student_id].push(g.score)
               return acc
@@ -124,22 +132,32 @@ export async function POST(request: NextRequest) {
         let targetStudentIds: string[] = student_ids || []
 
         if (mode === 'all_eligible' || mode === 'all') {
-          const { data: students } = await supabase
-            .from('students')
-            .select('id, grade')
-            .eq('status', 'active')
-            .lt('grade', 12)
+          const { data: students, error: studentsError } = await fetchAllPaged<{
+            id: string
+            grade: number
+          }>((from, to) =>
+            supabase
+              .from('students')
+              .select('id, grade')
+              .eq('status', 'active')
+              .lt('grade', 12)
+              .range(from, to)
+          )
+          if (studentsError) throw new Error(studentsError)
 
-          if (students) {
+          if (students.length > 0) {
             if (mode === 'all') {
-              targetStudentIds = students.map(s => s.id)
+              targetStudentIds = students.map((s) => s.id)
             } else {
-              const { data: grades } = await supabase
-                .from('grades')
-                .select('student_id, score')
-                .in('student_id', students.map(s => s.id))
+              const { data: grades, error: gradesError } = await fetchAllPaged<{
+                student_id: string
+                score: number
+              }>((from, to) =>
+                supabase.from('grades').select('student_id, score').range(from, to)
+              )
+              if (gradesError) throw new Error(gradesError)
 
-              if (grades) {
+              if (grades.length > 0) {
                 const avgGrades = grades.reduce((acc: Record<string, number[]>, g) => {
                   if (!acc[g.student_id]) acc[g.student_id] = []
                   acc[g.student_id].push(g.score)

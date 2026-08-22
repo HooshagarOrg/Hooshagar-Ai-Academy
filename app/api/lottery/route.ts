@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth, type AllowedRole } from '@/lib/security/api-guard'
 import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
+import { fetchAllPaged } from '@/lib/supabase/paginate'
 
 const ADMIN_PLUS_PRINCIPAL: AllowedRole[] = [...LOTTERY_ADMIN_ROLES]
 
@@ -54,16 +55,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === 'results' && periodId) {
-      const { data, error } = await supabase
-        .from('lottery_results')
-        .select(`
+      const { data, error } = await fetchAllPaged((from, to) =>
+        supabase
+          .from('lottery_results')
+          .select(`
           id, period_id, student_id, class_id, status, lottery_run_at,
           students(full_name, student_number),
           lottery_classes(class_name, teacher_name)
         `)
-        .eq('period_id', periodId)
-        .order('status')
-      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+          .eq('period_id', periodId)
+          .order('status')
+          .range(from, to)
+      )
+      if (error) return NextResponse.json({ error }, { status: 400 })
       return NextResponse.json({ results: data })
     }
 

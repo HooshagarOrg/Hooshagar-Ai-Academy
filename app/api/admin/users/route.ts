@@ -10,6 +10,7 @@ import { buildAuthPassword } from '@/lib/bulk-import/login-code'
 import { resolveParentDisplayName } from '@/lib/bulk-import/parent-name'
 import { validatePassword } from '@/lib/security/sanitize'
 import { PASSWORD_GUIDE_FA } from '@/lib/security/password-policy'
+import { fetchAllPaged, parseListPage, POSTGREST_PAGE_SIZE } from '@/lib/supabase/paginate'
 
 // ============================================
 // GET: لیست کاربران
@@ -24,8 +25,10 @@ export async function GET(request: NextRequest) {
 
       const role = searchParams.get('role')
       const search = searchParams.get('search')
-      const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10) || 50, 500)
-      const offset = parseInt(searchParams.get('offset') || '0')
+      const { limit, offset } = parseListPage(searchParams, {
+        limit: 50,
+        max: POSTGREST_PAGE_SIZE,
+      })
 
       let query = admin
         .from('profiles')
@@ -45,22 +48,15 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 })
       }
 
-      // PostgREST پیش‌فرض حداکثر ۱۰۰۰ ردیف برمی‌گرداند؛ بدون صفحه‌بندی آمار نقش‌ها ناقص می‌شود
+      const { data: roleRows, error: statsError } = await fetchAllPaged<{ role: string }>(
+        (from, to) => admin.from('profiles').select('role').range(from, to)
+      )
+      if (statsError) {
+        return NextResponse.json({ error: statsError }, { status: 500 })
+      }
       const stats: Record<string, number> = {}
-      const pageSize = 1000
-      for (let from = 0; ; from += pageSize) {
-        const { data: rolePage, error: statsError } = await admin
-          .from('profiles')
-          .select('role')
-          .range(from, from + pageSize - 1)
-        if (statsError) {
-          return NextResponse.json({ error: statsError.message }, { status: 500 })
-        }
-        if (!rolePage?.length) break
-        for (const row of rolePage) {
-          stats[row.role] = (stats[row.role] || 0) + 1
-        }
-        if (rolePage.length < pageSize) break
+      for (const row of roleRows) {
+        stats[row.role] = (stats[row.role] || 0) + 1
       }
 
       return NextResponse.json({

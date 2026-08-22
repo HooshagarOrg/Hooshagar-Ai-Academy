@@ -57,9 +57,7 @@ interface ProgressionResult {
   failed: number
 }
 
-// ============================================
-// صفحه اصلی
-// ============================================
+const PROGRESSION_PAGE_SIZE = 100
 export default function ProgressionPage() {
   const { toast: toastFn } = useToast()
   const [activeTab, setActiveTab] = useState<'manage' | 'history'>('manage')
@@ -69,6 +67,7 @@ export default function ProgressionPage() {
   const [search, setSearch] = useState('')
   const [gradeFilter, setGradeFilter] = useState('all')
   const [eligibleFilter, setEligibleFilter] = useState<'all' | 'eligible' | 'not_eligible'>('all')
+  const [listOffset, setListOffset] = useState(0)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [academicYear, setAcademicYear] = useState('1403-1404')
   const [progressionMode, setProgressionMode] = useState<'selected' | 'all_eligible' | 'all'>('all_eligible')
@@ -79,6 +78,10 @@ export default function ProgressionPage() {
   useEffect(() => {
     fetchStudents()
   }, [gradeFilter])
+
+  useEffect(() => {
+    setListOffset(0)
+  }, [gradeFilter, search, eligibleFilter])
 
   const fetchStudents = async () => {
     setIsLoading(true)
@@ -138,6 +141,7 @@ export default function ProgressionPage() {
       eligibleFilter === 'eligible' ? s.eligible : !s.eligible
     return matchSearch && matchEligible
   })
+  const paged = filtered.slice(listOffset, listOffset + PROGRESSION_PAGE_SIZE)
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
@@ -351,7 +355,7 @@ export default function ProgressionPage() {
                     </div>
 
               <div className="divide-y divide-gray-50">
-                {filtered.map(student => (
+                {paged.map(student => (
                   <div
                     key={student.id}
                     className={cn(
@@ -411,6 +415,29 @@ export default function ProgressionPage() {
                   </div>
                 ))}
                   </div>
+                  {filtered.length > PROGRESSION_PAGE_SIZE && (
+                    <div className="flex items-center justify-between gap-3 p-3 border-t border-white/[0.06]">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={listOffset <= 0}
+                        onClick={() => setListOffset((n) => Math.max(0, n - PROGRESSION_PAGE_SIZE))}
+                      >
+                        قبلی
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        {`${(listOffset + 1).toLocaleString('fa-IR')} تا ${Math.min(listOffset + paged.length, filtered.length).toLocaleString('fa-IR')} از ${filtered.length.toLocaleString('fa-IR')}`}
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={listOffset + paged.length >= filtered.length}
+                        onClick={() => setListOffset((n) => n + PROGRESSION_PAGE_SIZE)}
+                      >
+                        بعدی
+                      </Button>
+                    </div>
+                  )}
                 </div>
           )}
               </div>

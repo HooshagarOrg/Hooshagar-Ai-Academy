@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Activity, AlertCircle, BarChart3, Brain, Building, Calendar, CreditCard,
-  DollarSign, FileText, GraduationCap, Key, Loader2, Send, Settings, Shield,
+  DollarSign, FileText, GraduationCap, HeartPulse, Key, Loader2, Send, Settings, Shield,
   Sliders, Sparkles, Trophy, Users, Video, Zap,
 } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
@@ -143,6 +143,14 @@ const ADMIN_HUB: LuxHubGroup[] = [
   {
     title: 'گزارش، ارتباط و نظارت',
     cards: [
+      {
+        title: 'سلامت سیستم',
+        description: 'وضعیت سبز/قرمز سرویس‌ها و ورود به Sentry',
+        icon: HeartPulse,
+        href: '/admin/system-health',
+        color: 'text-emerald-400',
+        bg: 'bg-emerald-500/15 border border-emerald-500/20',
+      },
       {
         title: 'گزارشات',
         description: 'گزارش‌های تحلیلی و عملکرد',

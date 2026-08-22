@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   Settings, Shield, Brain, Bell, Database, Mail, Lock,
   ChevronLeft, Globe, Key, Activity, DollarSign, Calendar,
-  Sliders, Users, Building, GraduationCap, Sparkles, Video,
+  Sliders, Users, Building, GraduationCap, Sparkles, Video, HeartPulse,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
@@ -120,6 +120,14 @@ const SETTINGS_GROUPS: { title: string; cards: SettingsCard[] }[] = [
   {
     title: 'امنیت و نظارت',
     cards: [
+      {
+        title: 'سلامت سیستم',
+        description: 'وضعیت سبز/قرمز سرویس‌ها و لینک Sentry',
+        icon: HeartPulse,
+        href: '/admin/system-health',
+        color: 'text-emerald-400',
+        bg: 'bg-emerald-500/15 border border-emerald-500/20',
+      },
       {
         title: 'حریم خصوصی حساب',
         description: 'صادرات یا حذف داده شخصی (GDPR)',

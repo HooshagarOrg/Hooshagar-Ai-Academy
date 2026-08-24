@@ -4,6 +4,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { AllowedRole } from '@/lib/security/api-guard'
+import { isSpecialtyTeacherRole } from '@/lib/teacher/class-scope'
 
 export const TEXTBOOK_ROLES: AllowedRole[] = [
   'teacher',
@@ -38,8 +39,13 @@ export const TEXTBOOK_SELECT =
 /** پایه‌هایی که معلم از طریق classes.teacher_id تدریس می‌کند */
 export async function getTeacherGrades(
   supabase: SupabaseClient,
-  teacherId: string
+  teacherId: string,
+  role?: AllowedRole
 ): Promise<number[]> {
+  if (role && (isSpecialtyTeacherRole(role) || canManageAllSchoolGrades(role))) {
+    return Array.from({ length: 12 }, (_, i) => i + 1)
+  }
+
   const { data, error } = await supabase
     .from('classes')
     .select('grade')
@@ -75,7 +81,7 @@ export async function canUploadGrade(
   grade: number
 ): Promise<boolean> {
   if (canManageAllSchoolGrades(role)) return true
-  const grades = await getTeacherGrades(supabase, userId)
+  const grades = await getTeacherGrades(supabase, userId, role)
   return grades.includes(grade)
 }
 

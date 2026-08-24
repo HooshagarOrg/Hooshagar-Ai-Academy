@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { AllowedRole } from '@/lib/security/api-guard'
+import { fetchAllPaged } from '@/lib/supabase/paginate'
 
 const SPECIALTY_ROLES: AllowedRole[] = ['art_teacher', 'sports_teacher']
 const SCHOOL_WIDE_ROLES: AllowedRole[] = [
@@ -63,11 +64,77 @@ export async function getTeacherClassIds(
   return classes.map((row) => row.id)
 }
 
+export type HomeroomClassInfo = {
+  id: string
+  name: string | null
+  grade: number | null
+}
+
+/**
+ * اتصال معلم کلاس به یک کلاس (و جدا کردن از کلاس قبلی).
+ * هنر/ورزش برای دیدن دانش‌آموز به این نیاز ندارند.
+ */
+export async function assignHomeroomClass(
+  admin: SupabaseClient,
+  params: {
+    teacherId: string
+    classId: string | null
+    teacherName?: string | null
+  }
+): Promise<void> {
+  const { error: clearError } = await admin
+    .from('classes')
+    .update({ teacher_id: null })
+    .eq('teacher_id', params.teacherId)
+  if (clearError) {
+    throw new Error(clearError.message)
+  }
+  if (!params.classId) return
+
+  const patch: { teacher_id: string; teacher_name?: string } = {
+    teacher_id: params.teacherId,
+  }
+  const name = params.teacherName?.trim()
+  if (name) patch.teacher_name = name
+
+  const { error: setError } = await admin
+    .from('classes')
+    .update(patch)
+    .eq('id', params.classId)
+  if (setError) {
+    throw new Error(setError.message)
+  }
+}
+
 /**
  * تنها منبع فهرست دانش‌آموز برای معلم کلاس / هنر / ورزش.
  * معلم کلاس: class_id کلاس(های) teacher_id — بدون OR روی پایه.
- * هنر/ورزش: پایه‌های همان کلاس‌ها داخل مدرسه.
+ * هنر/ورزش: همهٔ دانش‌آموزان همان مدرسه (ورود گروهی معمولاً کلاس هوم‌روم ندارد).
  */
+function mapStudentRows(
+  rows: Array<{
+    id: string
+    full_name: string | null
+    grade: number | null
+    class_id: string | null
+    parent_id: string | null
+    school_id: string | null
+    student_number: string | null
+    status: string | null
+  }>
+): TeacherStudentRow[] {
+  return rows.map((row) => ({
+    id: row.id,
+    full_name: row.full_name ?? null,
+    grade: typeof row.grade === 'number' ? row.grade : null,
+    class_id: row.class_id ?? null,
+    parent_id: row.parent_id ?? null,
+    school_id: row.school_id ?? null,
+    student_number: row.student_number ?? null,
+    status: row.status ?? null,
+  }))
+}
+
 export async function listStudentsForTeacher(
   supabase: SupabaseClient,
   params: {
@@ -78,11 +145,24 @@ export async function listStudentsForTeacher(
   }
 ): Promise<{ classes: TeacherClassRow[]; students: TeacherStudentRow[] }> {
   const classes = await getTeacherClasses(supabase, params.teacherId)
-  const classIds = classes.map((c) => c.id)
-  const teacherGrades = [
-    ...new Set(classes.map((c) => c.grade).filter((g): g is number => typeof g === 'number')),
-  ]
 
+  if (isSpecialtyTeacherRole(params.role)) {
+    if (!params.schoolId) {
+      return { classes, students: [] }
+    }
+    const { data, error } = await fetchAllPaged<TeacherStudentRow>((from, to) =>
+      supabase
+        .from('students')
+        .select(STUDENT_LIST_COLUMNS)
+        .eq('school_id', params.schoolId as string)
+        .order('full_name', { ascending: true })
+        .range(from, to)
+    )
+    if (error) throw new Error(error)
+    return { classes, students: mapStudentRows(data) }
+  }
+
+  const classIds = classes.map((c) => c.id)
   if (classIds.length === 0) {
     return { classes: [], students: [] }
   }
@@ -90,17 +170,12 @@ export async function listStudentsForTeacher(
   let query = supabase
     .from('students')
     .select(STUDENT_LIST_COLUMNS)
+    .in('class_id', classIds)
     .order('full_name', { ascending: true })
     .limit(params.limit ?? 200)
 
   if (params.schoolId) {
     query = query.eq('school_id', params.schoolId)
-  }
-
-  if (isSpecialtyTeacherRole(params.role) && teacherGrades.length > 0) {
-    query = query.in('grade', teacherGrades)
-  } else {
-    query = query.in('class_id', classIds)
   }
 
   const { data, error } = await query
@@ -110,16 +185,7 @@ export async function listStudentsForTeacher(
 
   return {
     classes,
-    students: (data || []).map((row) => ({
-      id: row.id,
-      full_name: row.full_name ?? null,
-      grade: typeof row.grade === 'number' ? row.grade : null,
-      class_id: row.class_id ?? null,
-      parent_id: row.parent_id ?? null,
-      school_id: row.school_id ?? null,
-      student_number: row.student_number ?? null,
-      status: row.status ?? null,
-    })),
+    students: mapStudentRows(data || []),
   }
 }
 
@@ -137,7 +203,7 @@ export async function listStudentIdsForTeacher(
 
 /**
  * معلم کلاس: فقط دانش‌آموزان class_id کلاس(های) خودش.
- * هنر/ورزش: دانش‌آموزان همان پایه‌های کلاس‌های teacher_id داخل مدرسه.
+ * هنر/ورزش: دانش‌آموزان همان مدرسه.
  * مدیر: داخل مدرسه (یا همه برای platform_admin).
  */
 export async function studentBelongsToTeacher(
@@ -167,6 +233,10 @@ export async function studentBelongsToTeacher(
     return true
   }
 
+  if (SPECIALTY_ROLES.includes(params.role)) {
+    return Boolean(params.schoolId && student.school_id === params.schoolId)
+  }
+
   const { data: classes } = await supabase
     .from('classes')
     .select('id, grade')
@@ -175,17 +245,6 @@ export async function studentBelongsToTeacher(
 
   const classIds = (classes || []).map((c) => c.id)
   if (classIds.length === 0) return false
-
-  if (SPECIALTY_ROLES.includes(params.role)) {
-    const grades = [
-      ...new Set(
-        (classes || [])
-          .map((c) => c.grade)
-          .filter((g): g is number => typeof g === 'number')
-      ),
-    ]
-    return typeof student.grade === 'number' && grades.includes(student.grade)
-  }
 
   return typeof student.class_id === 'string' && classIds.includes(student.class_id)
 }

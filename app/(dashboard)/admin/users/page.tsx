@@ -47,6 +47,7 @@ interface UserData {
   created_at: string
   last_login_at: string | null
   must_change_password: boolean
+  homeroom_class?: { id: string; name: string; grade: number | null } | null
 }
 
 const ROLES = [
@@ -121,6 +122,7 @@ export default function AdminUsersPage() {
     role: 'teacher',
     must_change_password: false,
     new_password: '',
+    class_id: '',
   })
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -145,11 +147,16 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     if (!newUser.school_id) {
-      setClasses([])
+      if (!editUser) setClasses([])
       return
     }
     void loadClasses(newUser.school_id)
   }, [newUser.school_id])
+
+  useEffect(() => {
+    if (!editUser?.school_id) return
+    void loadClasses(editUser.school_id)
+  }, [editUser?.school_id])
 
   const fetchUsers = async () => {
     setIsLoading(true)
@@ -339,6 +346,7 @@ export default function AdminUsersPage() {
       role: user.role || 'teacher',
       must_change_password: !!user.must_change_password,
       new_password: '',
+      class_id: user.homeroom_class?.id || '',
     })
     setShowNewPassword(false)
   }
@@ -374,6 +382,9 @@ export default function AdminUsersPage() {
           role: editForm.role,
           must_change_password: editForm.must_change_password,
           new_password: newPass || undefined,
+          class_id: needsClassField(editForm.role)
+            ? (editForm.class_id || null)
+            : undefined,
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -1097,6 +1108,30 @@ export default function AdminUsersPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {needsClassField(editForm.role) && editUser?.school_id && (
+              <div>
+                <Label>کلاس هوم‌روم (برای دیدن دانش‌آموزان و کتاب درسی)</Label>
+                <Select
+                  value={editForm.class_id || '__none'}
+                  onValueChange={(v) =>
+                    setEditForm({ ...editForm, class_id: v === '__none' ? '' : v })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="انتخاب کلاس" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none">بدون کلاس</SelectItem>
+                    {classes.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}{c.grade != null ? ` — پایه ${c.grade}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-2">
               <p className="text-xs text-[var(--lux-text-muted)] leading-6">

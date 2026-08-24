@@ -260,7 +260,7 @@ export default function TeacherTextbooksPage() {
 
       {!canUpload && !loading && (
         <p className="mb-6 text-sm text-muted-foreground">
-          برای آپلود، باید حداقل یک کلاس با نقش معلم به شما وصل باشد.
+          برای آپلود، مدیر باید در مدیریت کاربران یک کلاس هوم‌روم به حساب معلم وصل کند. معلمان هنر و ورزش بدون کلاس هم می‌توانند آپلود کنند.
         </p>
       )}
 

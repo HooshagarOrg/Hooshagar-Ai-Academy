@@ -11,6 +11,7 @@ import { resolveParentDisplayName } from '@/lib/bulk-import/parent-name'
 import { validatePassword } from '@/lib/security/sanitize'
 import { PASSWORD_GUIDE_FA } from '@/lib/security/password-policy'
 import { fetchAllPaged, parseListPage, POSTGREST_PAGE_SIZE } from '@/lib/supabase/paginate'
+import { assignHomeroomClass } from '@/lib/teacher/class-scope'
 
 // ============================================
 // GET: لیست کاربران
@@ -48,6 +49,23 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 })
       }
 
+      const teacherIds = [...new Set((data || []).map((u) => u.id))]
+      const classByTeacher = new Map<string, { id: string; name: string; grade: number | null }>()
+      if (teacherIds.length > 0) {
+        const { data: classRows } = await admin
+          .from('classes')
+          .select('id, name, grade, teacher_id')
+          .in('teacher_id', teacherIds)
+        for (const row of classRows || []) {
+          if (!row.teacher_id) continue
+          classByTeacher.set(row.teacher_id, {
+            id: row.id,
+            name: row.name,
+            grade: typeof row.grade === 'number' ? row.grade : null,
+          })
+        }
+      }
+
       const { data: roleRows, error: statsError } = await fetchAllPaged<{ role: string }>(
         (from, to) => admin.from('profiles').select('role').range(from, to)
       )
@@ -60,7 +78,10 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.json({
-        users: data || [],
+        users: (data || []).map((u) => ({
+          ...u,
+          homeroom_class: classByTeacher.get(u.id) ?? null,
+        })),
         total: count || 0,
         stats,
       })
@@ -347,15 +368,16 @@ export async function POST(request: NextRequest) {
 
       // معلم/معلم هنر/ورزش: اتصال اختیاری به کلاس
       if (
-        class_id &&
         ['teacher', 'art_teacher', 'sports_teacher'].includes(role)
       ) {
-        const { error: classErr } = await admin
-          .from('classes')
-          .update({ teacher_id: userId })
-          .eq('id', class_id)
-        if (classErr) {
-          console.error('خطا در اتصال معلم به کلاس:', classErr.message)
+        try {
+          await assignHomeroomClass(admin, {
+            teacherId: userId,
+            classId: class_id || null,
+            teacherName: full_name,
+          })
+        } catch (linkErr) {
+          console.error('خطا در اتصال معلم به کلاس:', linkErr)
         }
       }
 
@@ -425,6 +447,10 @@ export async function PATCH(request: NextRequest) {
           (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
           z.string().trim().min(4).max(100).optional()
         ),
+        class_id: z.preprocess(
+          (v) => (typeof v === 'string' && v.trim() === '' ? null : v),
+          z.string().uuid().nullable().optional()
+        ),
       })
       const parsed = schema.safeParse(body)
       if (!parsed.success) {
@@ -434,7 +460,7 @@ export async function PATCH(request: NextRequest) {
         )
       }
 
-      const { id, new_password, ...rawUpdates } = parsed.data
+      const { id, new_password, class_id: homeroomClassId, ...rawUpdates } = parsed.data
       const updates: Record<string, unknown> = { ...rawUpdates }
 
       if (typeof updates.role === 'string') {
@@ -451,7 +477,7 @@ export async function PATCH(request: NextRequest) {
 
       const { data: existing, error: existingError } = await admin
         .from('profiles')
-        .select('id, role, email, username, is_staff, phone, school_id')
+        .select('id, role, email, username, is_staff, phone, school_id, full_name')
         .eq('id', id)
         .single()
 
@@ -530,13 +556,37 @@ export async function PATCH(request: NextRequest) {
         }
       }
 
-      if (Object.keys(updates).length === 0 && !new_password) {
+      if (Object.keys(updates).length === 0 && !new_password && homeroomClassId === undefined) {
         return NextResponse.json({ error: 'هیچ فیلدی برای بروزرسانی ارسال نشده' }, { status: 400 })
       }
 
       if (Object.keys(updates).length > 0) {
         const { error } = await admin.from('profiles').update(updates).eq('id', id)
         if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+
+      if (
+        homeroomClassId !== undefined &&
+        ['teacher', 'art_teacher', 'sports_teacher'].includes(effectiveRole)
+      ) {
+        try {
+          const teacherName =
+            typeof updates.full_name === 'string' ? updates.full_name : existing.full_name
+          await assignHomeroomClass(admin, {
+            teacherId: id,
+            classId: homeroomClassId,
+            teacherName,
+          })
+        } catch (linkErr) {
+          return NextResponse.json(
+            {
+              error:
+                'خطا در اتصال کلاس: ' +
+                (linkErr instanceof Error ? linkErr.message : 'نامشخص'),
+            },
+            { status: 400 }
+          )
+        }
       }
 
       // اعلان + SMS + ممیزی پس از ریست رمز (بدون ذخیره رمز قدیمی — غیرممکن)

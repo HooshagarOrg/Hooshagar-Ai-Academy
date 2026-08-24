@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
       const grades = canManageAllSchoolGrades(ctx.role)
         ? Array.from({ length: 12 }, (_, i) => i + 1)
-        : await getTeacherGrades(supabase, ctx.userId)
+        : await getTeacherGrades(supabase, ctx.userId, ctx.role)
 
       return NextResponse.json({
         textbooks: (data || []) as TextbookRow[],

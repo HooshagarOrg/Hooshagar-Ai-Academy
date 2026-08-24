@@ -30,6 +30,9 @@ const optional = [
   'KAVENEGAR_TEMPLATE_OTP',
   'KAVENEGAR_TEMPLATE_NAME',
   'ZARINPAL_MERCHANT_ID',
+  'RESEND_API_KEY',
+  'SMTP_HOST',
+  'SUPPORT_INBOX_EMAIL',
 ]
 
 console.log('🔍 Verifying environment variables...\n')

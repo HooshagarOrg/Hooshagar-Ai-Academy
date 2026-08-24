@@ -46,7 +46,7 @@ const sections = [
   {
     id: 'contact',
     title: '۸. تماس',
-    body: 'برای سوالات حریم خصوصی: support@hooshagar.ir',
+    body: 'برای سوالات حریم خصوصی: contact@hooshagar.ir',
   },
 ]
 

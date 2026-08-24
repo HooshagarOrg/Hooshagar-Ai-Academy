@@ -130,7 +130,7 @@ export default function PricingPage() {
         )}
 
         <p className="mt-12 text-center text-sm text-[var(--lux-text-muted)]">
-          پرداخت امن از طریق درگاه زرین‌پال | پشتیبانی: support@hooshagar.ir
+          پرداخت امن از طریق درگاه زرین‌پال | پشتیبانی: contact@hooshagar.ir
         </p>
       </div>
     </MarketingShell>

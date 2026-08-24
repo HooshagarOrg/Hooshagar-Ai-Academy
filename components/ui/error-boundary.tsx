@@ -106,6 +106,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <ReportProblemDialog
                 errorName={this.state.error?.name ?? null}
                 digest={null}
+                defaultCategory="bug"
               />
             </div>
           </div>

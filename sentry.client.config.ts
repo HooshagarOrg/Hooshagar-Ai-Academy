@@ -23,6 +23,9 @@ Sentry.init({
     'Non-Error promise rejection captured',
     'Multiple Sentry Session Replay instances are not supported',
     "Cannot read properties of null (reading 'get')",
+    'Invalid login credentials',
+    'Invalid login',
+    'AuthApiError',
   ],
 
   release: process.env.VERCEL_GIT_COMMIT_SHA || 'development',

@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { withAuth } from '@/lib/security/api-guard'
-import { reportProblemSchema } from '@/lib/support/report-problem'
+import { createServiceClient } from '@/lib/supabase/service'
+import { sendTransactionalEmail } from '@/lib/email/send-transactional'
+import { formatSupportEmail } from '@/lib/support/format-ticket-email'
+import {
+  SUPPORT_CONTACT_EMAIL,
+  reportProblemSchema,
+  shouldEmailSupportInbox,
+  supportSavedNotice,
+} from '@/lib/support/report-problem'
 
 export async function POST(request: NextRequest) {
   return withAuth(
@@ -22,25 +30,113 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const { message, path, errorName, digest } = parsed.data
+      const { category, message, path, errorName, digest } = parsed.data
       const reportPath = path || request.headers.get('referer') || 'unknown'
+      const createdAt = new Date().toISOString()
 
-      Sentry.withScope((scope) => {
-        scope.setLevel('warning')
-        scope.setTag('user_report', 'true')
-        scope.setTag('role', ctx.role)
-        scope.setTag('path', reportPath.slice(0, 200))
-        scope.setUser({ id: ctx.userId, email: ctx.email ?? undefined })
-        scope.setExtras({
-          schoolId: ctx.schoolId,
-          errorName: errorName || null,
+      const service = createServiceClient()
+      const { data: profile } = await service
+        .from('profiles')
+        .select('full_name, email, school_id')
+        .eq('id', ctx.userId)
+        .maybeSingle()
+
+      const schoolId = ctx.schoolId ?? profile?.school_id ?? null
+      let schoolName: string | null = null
+      if (schoolId) {
+        const { data: school } = await service
+          .from('schools')
+          .select('name')
+          .eq('id', schoolId)
+          .maybeSingle()
+        schoolName = school?.name ?? null
+      }
+
+      const reporterName = profile?.full_name ?? null
+      const reporterEmail = ctx.email ?? profile?.email ?? null
+
+      const { data: inserted, error: insertError } = await service
+        .from('support_tickets')
+        .insert({
+          user_id: ctx.userId,
+          school_id: schoolId,
+          role: ctx.role,
+          category,
+          status: 'open',
+          message,
+          path: reportPath.slice(0, 500),
+          error_name: errorName || null,
           digest: digest || null,
+          reporter_name: reporterName,
+          reporter_email: reporterEmail,
+          school_name: schoolName,
         })
-        Sentry.captureMessage(`گزارش کاربر: ${message.slice(0, 180)}`, 'warning')
-      })
+        .select('id')
+        .single()
 
-      return NextResponse.json({ ok: true })
+      if (insertError || !inserted) {
+        console.error('support ticket insert failed:', insertError)
+        return NextResponse.json(
+          { error: 'ثبت گزارش ناموفق بود. لطفاً دوباره تلاش کنید.' },
+          { status: 500 }
+        )
+      }
+
+      let emailSent = false
+      if (shouldEmailSupportInbox(category)) {
+        const email = formatSupportEmail({
+          category,
+          message,
+          path: reportPath,
+          role: ctx.role,
+          reporterName,
+          reporterEmail,
+          schoolName,
+          createdAt,
+        })
+        const sendResult = await sendTransactionalEmail({
+          to: process.env.SUPPORT_INBOX_EMAIL || SUPPORT_CONTACT_EMAIL,
+          subject: email.subject,
+          text: email.text,
+          html: email.html,
+        })
+        if (sendResult.ok) {
+          emailSent = true
+          await service
+            .from('support_tickets')
+            .update({ email_sent_at: createdAt })
+            .eq('id', inserted.id)
+        } else if (!('skipped' in sendResult && sendResult.skipped)) {
+          console.error('support ticket email failed:', sendResult)
+        }
+      }
+
+      if (category === 'bug') {
+        Sentry.withScope((scope) => {
+          scope.setLevel('warning')
+          scope.setTag('user_report', 'true')
+          scope.setTag('report_category', 'bug')
+          scope.setTag('role', ctx.role)
+          scope.setTag('path', reportPath.slice(0, 200))
+          scope.setUser({ id: ctx.userId, email: ctx.email ?? undefined })
+          scope.setExtras({
+            schoolId,
+            ticketId: inserted.id,
+            errorName: errorName || null,
+            digest: digest || null,
+          })
+          Sentry.captureMessage(`گزارش کاربر: ${message.slice(0, 180)}`, 'warning')
+        })
+      }
+
+      return NextResponse.json({
+        ok: true,
+        destination: category === 'bug' ? ('sentry' as const) : ('inbox' as const),
+        emailSent,
+        notice: supportSavedNotice(category, emailSent),
+      })
     },
     { rateLimit: 'api_default' }
   )
 }
+

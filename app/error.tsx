@@ -117,7 +117,11 @@ URL: ${typeof window !== 'undefined' ? window.location.href : 'N/A'}
             </Link>
           </div>
           <div className="mb-6 flex justify-center">
-            <ReportProblemDialog errorName={error.name} digest={error.digest ?? null} />
+            <ReportProblemDialog
+              errorName={error.name}
+              digest={error.digest ?? null}
+              defaultCategory="bug"
+            />
           </div>
 
           {/* جزئیات خطا (فقط در development یا با کلیک) */}
@@ -204,7 +208,7 @@ URL: ${typeof window !== 'undefined' ? window.location.href : 'N/A'}
             <HelpCircle className="w-4 h-4 text-blue-400" />
             <span className="text-white/50 text-sm">
               نیاز به کمک دارید؟{' '}
-              <a href="mailto:support@hooshagar.ir" className="text-blue-400 hover:underline">
+              <a href="mailto:contact@hooshagar.ir" className="text-blue-400 hover:underline">
                 پشتیبانی
               </a>
             </span>

@@ -14,15 +14,22 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+import {
+  REPORT_CATEGORIES,
+  REPORT_CATEGORY_LABELS,
+  type ReportCategory,
+} from '@/lib/support/report-problem'
 
 type ReportProblemDialogProps = {
-  /** دکمهٔ کوچک هدر */
   compact?: boolean
   className?: string
   errorName?: string | null
   digest?: string | null
+  /** صفحهٔ خطا از قبل کرش است */
+  defaultCategory?: ReportCategory
 }
 
 export function ReportProblemDialog({
@@ -30,12 +37,23 @@ export function ReportProblemDialog({
   className,
   errorName,
   digest,
+  defaultCategory,
 }: ReportProblemDialogProps) {
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
+  const [category, setCategory] = useState<ReportCategory | ''>(defaultCategory ?? '')
   const [sending, setSending] = useState(false)
 
   const submit = async () => {
+    if (!category) {
+      toast({
+        title: 'نوع گزارش را انتخاب کنید',
+        description: 'باگ برنامه به Sentry می‌رود؛ ورود و سؤال به راهنما.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     const trimmed = message.trim()
     if (trimmed.length < 10) {
       toast({
@@ -52,6 +70,7 @@ export function ReportProblemDialog({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          category,
           message: trimmed,
           path:
             typeof window !== 'undefined'
@@ -61,15 +80,16 @@ export function ReportProblemDialog({
           digest: digest || null,
         }),
       })
-      const data = (await res.json()) as { error?: string }
+      const data = (await res.json()) as { error?: string; notice?: string }
       if (!res.ok) {
         throw new Error(data.error || 'ارسال گزارش ناموفق بود')
       }
       toast({
-        title: 'گزارش ثبت شد',
-        description: 'تیم فنی آن را در Sentry می‌بیند. متشکریم.',
+        title: category === 'bug' ? 'گزارش باگ ثبت شد' : 'راهنما',
+        description: data.notice || 'ثبت شد.',
       })
       setMessage('')
+      setCategory(defaultCategory ?? '')
       setOpen(false)
     } catch (err) {
       toast({
@@ -107,20 +127,39 @@ export function ReportProblemDialog({
         <DialogHeader>
           <DialogTitle>گزارش مشکل</DialogTitle>
           <DialogDescription>
-            بگویید چه کار می‌کردید و چه دیدید. مسیر صفحه و نقش شما به‌صورت خودکار ثبت می‌شود.
+            فقط خرابی برنامه برای تیم فنی به Sentry می‌رود. ورود، رمز و سؤال در صندوق پشتیبانی مدرسه ثبت می‌شود. رمز عبور ننویسید.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="report-problem-message">توضیح</Label>
-          <Textarea
-            id="report-problem-message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            maxLength={1000}
-            rows={5}
-            placeholder="مثلاً: روی باز کردن کتاب فارسی کلیک کردم و صفحه سفید ماند."
-          />
-          <p className="text-xs text-muted-foreground">{message.trim().length} / ۱۰۰۰</p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>نوع گزارش</Label>
+            <RadioGroup
+              value={category}
+              onValueChange={(value) => setCategory(value as ReportCategory)}
+              className="gap-2"
+            >
+              {REPORT_CATEGORIES.map((id) => (
+                <div key={id} className="flex items-start gap-2">
+                  <RadioGroupItem value={id} id={`report-cat-${id}`} className="mt-1" />
+                  <Label htmlFor={`report-cat-${id}`} className="font-normal leading-6 cursor-pointer">
+                    {REPORT_CATEGORY_LABELS[id]}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="report-problem-message">توضیح</Label>
+            <Textarea
+              id="report-problem-message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              maxLength={1000}
+              rows={5}
+              placeholder="مثلاً: روی باز کردن کتاب فارسی کلیک کردم و صفحه سفید ماند."
+            />
+            <p className="text-xs text-muted-foreground">{message.trim().length} / ۱۰۰۰</p>
+          </div>
         </div>
         <DialogFooter className="gap-2 sm:justify-start">
           <Button type="button" onClick={() => void submit()} disabled={sending}>
@@ -130,7 +169,7 @@ export function ReportProblemDialog({
                 در حال ارسال…
               </>
             ) : (
-              'ارسال گزارش'
+              'ارسال'
             )}
           </Button>
         </DialogFooter>

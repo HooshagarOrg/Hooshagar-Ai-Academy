@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Activity, AlertCircle, BarChart3, Brain, Building, Calendar, CreditCard,
-  DollarSign, FileText, GraduationCap, HeartPulse, Key, Loader2, Send, Settings, Shield,
+  DollarSign, FileText, GraduationCap, HeartPulse, Inbox, Key, Loader2, Send, Settings, Shield,
   Sliders, Sparkles, Trophy, Users, Video, Zap,
 } from 'lucide-react'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
@@ -12,6 +12,7 @@ import { LuxStatGrid } from '@/components/lux/lux-stat-grid'
 import { LuxHubGrid, type LuxHubGroup } from '@/components/lux/lux-hub-grid'
 import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
+import { SUPPORT_CONTACT_EMAIL } from '@/lib/support/report-problem'
 
 const ADMIN_HUB: LuxHubGroup[] = [
   {
@@ -143,6 +144,14 @@ const ADMIN_HUB: LuxHubGroup[] = [
   {
     title: 'گزارش، ارتباط و نظارت',
     cards: [
+      {
+        title: 'صندوق پشتیبانی',
+        description: `گزارش ورود و راهنمای کاربران — اعلان به ${SUPPORT_CONTACT_EMAIL}`,
+        icon: Inbox,
+        href: '/admin/support',
+        color: 'text-brand-cyan',
+        bg: 'bg-brand-cyan/15 border border-brand-cyan/20',
+      },
       {
         title: 'سلامت سیستم',
         description: 'وضعیت سبز/قرمز سرویس‌ها و ورود به Sentry',

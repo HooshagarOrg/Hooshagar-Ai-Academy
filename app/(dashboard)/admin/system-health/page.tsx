@@ -110,7 +110,7 @@ export default function AdminSystemHealthPage() {
           <ExternalLink className="size-4" />
         </a>
         <p className="mt-2 text-xs text-muted-foreground">
-          گزارش‌های «گزارش مشکل» کاربران با برچسب user_report در همین داشبورد دیده می‌شوند.
+          گزارش‌های باگ با برچسب user_report در Sentry دیده می‌شوند. ورود و راهنما در صندوق پشتیبانی داخل برنامه است.
         </p>
       </DashboardSectionBlock>
     </DashboardPage>

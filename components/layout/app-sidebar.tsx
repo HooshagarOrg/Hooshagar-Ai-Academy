@@ -11,7 +11,7 @@ import {
   Wrench, Bell, Send, GraduationCap, Building, ChevronLeft, ChevronRight,
   Sparkles, Trophy, Compass, Gamepad2, Lightbulb, LogOut, User,
   Heart, PenTool, HelpCircle, Clock, TrendingUp, X, CreditCard, Video, Palette, Flame, ArrowLeftRight,
-  Presentation,
+  Presentation, Inbox,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
@@ -95,6 +95,7 @@ const navConfig: Record<string, NavGroup[]> = {
       items: [
         { title: 'گزارشات', href: '/admin/reports', icon: BarChart3 },
         { title: 'ارسال پیام گروهی', href: '/admin/broadcast', icon: Send },
+        { title: 'صندوق پشتیبانی', href: '/admin/support', icon: Inbox },
         { title: 'نظرسنجی‌ها', href: '/admin/surveys', icon: MessageSquare },
         { title: 'هشدار زودهنگام', href: '/admin/early-warning', icon: AlertCircle, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
       ]

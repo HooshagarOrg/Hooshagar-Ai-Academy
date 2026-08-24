@@ -6,6 +6,12 @@ Sentry.init({
   tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
   
   environment: process.env.NODE_ENV || 'development',
+
+  ignoreErrors: [
+    'Invalid login credentials',
+    'Invalid login',
+    'AuthApiError',
+  ],
   
   release: process.env.VERCEL_GIT_COMMIT_SHA || 'development',
 });

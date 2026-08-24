@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 import { CookieConsent } from '@/components/cookie-consent'
 import { ServiceWorkerRegister } from '@/components/service-worker-register'
 import { SentryClientInit } from '@/components/sentry-client-init'
+import { ChunkLoadRecovery } from '@/components/chunk-load-recovery'
 import { CANONICAL_APP_ORIGIN } from '@/lib/app-url'
 
 const vazirmatn = localFont({
@@ -63,6 +64,7 @@ export default function RootLayout({
       <body className="font-sans antialiased min-h-app bg-background text-foreground" suppressHydrationWarning>
         <div className="relative z-10 min-h-app">{children}</div>
         <SentryClientInit />
+        <ChunkLoadRecovery />
         <CookieConsent />
         <ServiceWorkerRegister />
         <Toaster position="top-center" richColors />

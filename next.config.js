@@ -84,16 +84,6 @@ const nextConfig = {
     },
   },
 
-  // PWA Configuration
-  async rewrites() {
-    return [
-      {
-        source: '/service-worker.js',
-        destination: '/_next/static/service-worker.js',
-      },
-    ];
-  },
-
   // Performance optimizations
   swcMinify: true,
   reactStrictMode: true,

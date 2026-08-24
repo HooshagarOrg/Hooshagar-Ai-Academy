@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import * as Sentry from '@sentry/nextjs'
+import { maybeHardReloadOnStaleBundle } from '@/lib/monitoring/stale-client-bundle'
 import {
   AlertOctagon,
   RefreshCw,
@@ -22,6 +23,9 @@ interface GlobalErrorProps {
 // ============================================
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
+    if (maybeHardReloadOnStaleBundle(error, window.location, window.sessionStorage)) {
+      return
+    }
     Sentry.captureException(error)
   }, [error])
 

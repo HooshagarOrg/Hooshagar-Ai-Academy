@@ -1,6 +1,6 @@
 // هوشاگر Service Worker — فقط دارایی‌های ثابت PWA
 // هرگز HTML سندها را کش نکن (باعث صفحهٔ بدون CSS بعد از deploy می‌شود)
-const CACHE_NAME = 'hooshagar-v3'
+const CACHE_NAME = 'hooshagar-v4'
 
 function shouldNeverCache(url) {
   return (

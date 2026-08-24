@@ -15,6 +15,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { ReportProblemDialog } from '@/components/support/report-problem-dialog'
+import { maybeHardReloadOnStaleBundle } from '@/lib/monitoring/stale-client-bundle'
 
 // ============================================
 // تایپ‌ها
@@ -42,6 +43,10 @@ export default function Error({ error, reset }: ErrorProps) {
   }
 
   useEffect(() => {
+    if (maybeHardReloadOnStaleBundle(error, window.location, window.sessionStorage)) {
+      return
+    }
+
     // Next.js catches error.tsx before Sentry's global handler — report manually
     Sentry.captureException(error)
 

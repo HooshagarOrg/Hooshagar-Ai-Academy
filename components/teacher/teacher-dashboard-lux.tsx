@@ -84,10 +84,10 @@ export function TeacherDashboardLux() {
         <LuxStaggerItem>
           <LuxStatGrid
             items={[
-              { label: 'دانش‌آموزان', value: data.stats.totalStudents, icon: <Users className="h-5 w-5" />, accent: 'var(--arc-teacher)' },
-              { label: 'حضور امروز', value: `${data.stats.attendanceRate}٪`, icon: <ClipboardCheck className="h-5 w-5" />, accent: 'var(--lux-success)' },
-              { label: 'میانگین نمره', value: data.stats.averageGrade.toFixed(1), icon: <BookOpen className="h-5 w-5" />, accent: 'var(--lux-primary)' },
-              { label: 'آزمون پیش‌رو', value: data.stats.upcomingExams, icon: <Sparkles className="h-5 w-5" />, accent: 'var(--lux-gold)' },
+              { label: 'دانش‌آموزان', value: data.stats.totalStudents ?? 0, icon: <Users className="h-5 w-5" />, accent: 'var(--arc-teacher)' },
+              { label: 'حضور امروز', value: `${data.stats.attendanceRate ?? 0}٪`, icon: <ClipboardCheck className="h-5 w-5" />, accent: 'var(--lux-success)' },
+              { label: 'میانگین نمره', value: (data.stats.averageGrade ?? 0).toFixed(1), icon: <BookOpen className="h-5 w-5" />, accent: 'var(--lux-primary)' },
+              { label: 'آزمون پیش‌رو', value: data.stats.upcomingExams ?? 0, icon: <Sparkles className="h-5 w-5" />, accent: 'var(--lux-gold)' },
             ]}
           />
         </LuxStaggerItem>

@@ -33,12 +33,14 @@ export async function GET() {
       );
     }
 
-    // 3. دریافت کلاس معلم
+    // 3. دریافت کلاس معلم — چند کلاسه بودن نباید داشبورد را خالی کند
     const { data: teacherClass, error: classError } = await supabase
       .from('classes')
       .select('id, name, grade, academic_year')
       .eq('teacher_id', user.id)
-      .single();
+      .order('grade', { ascending: true })
+      .limit(1)
+      .maybeSingle();
 
     if (classError || !teacherClass) {
       // معلم کلاسی ندارد
@@ -52,6 +54,7 @@ export async function GET() {
         stats: {
           totalStudents: 0,
           presentToday: 0,
+          attendanceRate: 0,
           averageGrade: 0,
           upcomingExams: 0,
         },

@@ -100,7 +100,7 @@
 
 ## پیش‌نیاز دیتابیس
 
-Migrationهای `129_login_code_bulk_import.sql` و `130_otp_login_rpc.sql` را اجرا کنید، یا محتوای `student_login_function.sql` + `130_otp_login_rpc.sql` را در Supabase SQL Editor.
+Migrationهای `129_login_code_bulk_import.sql` و `130_otp_login_rpc.sql` را اجرا کنید.
 
 ## API (اختیاری)
 

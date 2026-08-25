@@ -125,7 +125,6 @@ supabase/
 - ✅ NOTIFICATIONS_GUIDE.md
 - ✅ CLOUDFLARE_PROXY_SETUP.md
 - ✅ QUICK_TEST_PHASE2.md
-- ✅ TEST_DATA_SETUP.sql
 
 ---
 

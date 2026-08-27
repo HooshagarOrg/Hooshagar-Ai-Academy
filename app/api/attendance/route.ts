@@ -3,7 +3,6 @@ import { withAuth, TEACHER_AND_ABOVE } from '@/lib/security/api-guard'
 import {
   filterStudentIdsForTeacher,
   studentBelongsToTeacher,
-  listStudentIdsForTeacher,
 } from '@/lib/teacher/class-scope'
 
 export async function GET(request: NextRequest) {
@@ -51,15 +50,9 @@ export async function GET(request: NextRequest) {
         })
         if (!allowed) return NextResponse.json({ attendance: [] })
         query = query.eq('student_id', studentId)
-      } else if (!['principal', 'admin', 'platform_admin'].includes(ctx.role)) {
-        const ids = await listStudentIdsForTeacher(supabase, {
-          teacherId: ctx.userId,
-          role: ctx.role,
-          schoolId: ctx.schoolId,
-        })
-        if (ids.length === 0) return NextResponse.json({ attendance: [] })
-        query = query.in('student_id', ids)
       }
+      // سایر نقش‌های کارمندی: دامنه را RLS با student_visible_to_me تضمین
+      // می‌کند (migration 154) — شماره‌گذاری شناسه‌ها در کد لازم نیست.
 
       if (dateFrom) query = query.gte('date', dateFrom)
       if (dateTo) query = query.lte('date', dateTo)

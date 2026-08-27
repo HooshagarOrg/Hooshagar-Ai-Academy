@@ -28,11 +28,19 @@ export async function GET(request: NextRequest) {
         const grade = searchParams.get('grade')
         const schoolId = searchParams.get('school_id')
 
+        const hasPageParams =
+          searchParams.has('limit') || searchParams.has('offset')
+        const { limit, offset } = parseListPage(searchParams, {
+          limit: 100,
+          max: POSTGREST_PAGE_SIZE,
+        })
+
         if (!canViewSchoolWideStudents(ctx.role)) {
           const { students } = await listStudentsForTeacher(supabase, {
             teacherId: ctx.userId,
             role: ctx.role,
             schoolId: ctx.schoolId,
+            ...(hasPageParams ? { limit, offset } : {}),
           })
           const scoped = grade
             ? students.filter((s) => s.grade === parseInt(grade, 10))
@@ -50,13 +58,6 @@ export async function GET(request: NextRequest) {
             })),
           })
         }
-
-        const hasPageParams =
-          searchParams.has('limit') || searchParams.has('offset')
-        const { limit, offset } = parseListPage(searchParams, {
-          limit: 100,
-          max: POSTGREST_PAGE_SIZE,
-        })
 
         const buildBase = () => {
           let query = supabase

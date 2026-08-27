@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, TEACHER_AND_ABOVE } from '@/lib/security/api-guard'
-import { studentBelongsToTeacher, listStudentIdsForTeacher } from '@/lib/teacher/class-scope'
+import { studentBelongsToTeacher } from '@/lib/teacher/class-scope'
 
 export async function GET(request: NextRequest) {
   return withAuth(
@@ -47,15 +47,9 @@ export async function GET(request: NextRequest) {
         })
         if (!allowed) return NextResponse.json({ grades: [] })
         query = query.eq('student_id', studentId)
-      } else if (!['principal', 'admin', 'platform_admin'].includes(ctx.role)) {
-        const ids = await listStudentIdsForTeacher(supabase, {
-          teacherId: ctx.userId,
-          role: ctx.role,
-          schoolId: ctx.schoolId,
-        })
-        if (ids.length === 0) return NextResponse.json({ grades: [] })
-        query = query.in('student_id', ids)
       }
+      // سایر نقش‌های کارمندی: دامنه را RLS با student_visible_to_me تضمین
+      // می‌کند (migration 154) — شماره‌گذاری شناسه‌ها در کد لازم نیست.
 
       if (subject) query = query.eq('subject', subject)
 

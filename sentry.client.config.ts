@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs'
+import { shouldDropClientSentryEvent } from '@/lib/monitoring/sentry-event-filter'
 
 function replayIntegrations(): ReturnType<typeof Sentry.replayIntegration>[] {
   try {
@@ -30,6 +31,13 @@ try {
       integrations: replayIntegrations(),
 
       environment: process.env.NODE_ENV || 'development',
+
+      beforeSend(event) {
+        if (shouldDropClientSentryEvent(event)) {
+          return null
+        }
+        return event
+      },
 
       ignoreErrors: [
         'ResizeObserver loop limit exceeded',

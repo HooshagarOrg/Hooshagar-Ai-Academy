@@ -7,17 +7,24 @@
 import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { brandAssets } from '@/lib/brand'
+import { shouldRenderCinematicVideo } from '@/lib/landing/cinematic-video'
 import { SectionReveal } from './motion'
 
 export function CinematicVideoSection(): JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null)
   const sectionRef = useRef<HTMLElement>(null)
   const reduceMotion = useReducedMotion()
+  const [hasMounted, setHasMounted] = useState(false)
   const [videoOk, setVideoOk] = useState(false)
   const [inView, setInView] = useState(false)
+  const showVideo = shouldRenderCinematicVideo(hasMounted, reduceMotion)
 
   useEffect(() => {
-    if (reduceMotion) return
+    setHasMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!showVideo) return
     const el = sectionRef.current
     if (!el) return
     const observer = new IntersectionObserver(
@@ -26,10 +33,10 @@ export function CinematicVideoSection(): JSX.Element {
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [reduceMotion])
+  }, [showVideo])
 
   useEffect(() => {
-    if (reduceMotion) return
+    if (!showVideo) return
     const v = videoRef.current
     if (!v) return
     if (inView) {
@@ -37,7 +44,7 @@ export function CinematicVideoSection(): JSX.Element {
     } else {
       v.pause()
     }
-  }, [inView, reduceMotion])
+  }, [inView, showVideo])
 
   return (
     <section
@@ -48,7 +55,7 @@ export function CinematicVideoSection(): JSX.Element {
     >
       {/* ویدیوی تمام‌صفحه */}
       <div className="absolute inset-0">
-        {!reduceMotion && (
+        {showVideo && (
           <video
             ref={videoRef}
             className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${videoOk ? 'opacity-100' : 'opacity-0'}`}
@@ -63,7 +70,7 @@ export function CinematicVideoSection(): JSX.Element {
           </video>
         )}
 
-        {(reduceMotion || !videoOk) && (
+        {(!showVideo || !videoOk) && (
           <div
             className="absolute inset-0"
             style={{

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -129,7 +130,13 @@ export function ChromaticCanvas({
   arcColor,
 }: ChromaticCanvasProps) {
   const reduce = useReducedMotion()
+  const [hasMounted, setHasMounted] = useState(false)
   const isDark = variant === 'dark'
+  const useImmersive = mode === 'immersive' && hasMounted && !reduce
+
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
 
   return (
     <div
@@ -141,7 +148,7 @@ export function ChromaticCanvas({
         style={{ backgroundColor: 'var(--lux-body)' }}
       />
 
-      {mode === 'immersive' && !reduce ? (
+      {useImmersive ? (
         <ImmersiveLayers variant={variant} />
       ) : (
         <StaticLayers arcColor={arcColor} variant={variant} />

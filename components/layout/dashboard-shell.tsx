@@ -8,6 +8,7 @@ import { LuxStudentHeader } from '@/components/lux/lux-student-header'
 import { ChromaticCanvas } from '@/components/ui/chromatic-canvas'
 import { cn } from '@/lib/utils'
 import { AvatarFab } from '@/components/avatar/avatar-fab'
+import { DashboardRoleProvider } from '@/components/layout/dashboard-role-context'
 
 interface DashboardShellProps {
   role: string
@@ -45,6 +46,7 @@ export function DashboardShell({ role, userName, schoolName, contextLabel, child
   }, [mobileSidebarOpen])
 
   return (
+    <DashboardRoleProvider role={role}>
     <div
       className="relative flex h-app max-h-app overflow-hidden"
       dir="rtl"
@@ -131,5 +133,6 @@ export function DashboardShell({ role, userName, schoolName, contextLabel, child
         <AvatarFab defaultCorner="bl" />
       </div>
     </div>
+    </DashboardRoleProvider>
   )
 }

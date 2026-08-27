@@ -27,10 +27,12 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { PageErrorState, PageLoading } from '@/components/ui/page-states'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 import { cn } from '@/lib/utils'
+import { useDashboardRole } from '@/components/layout/dashboard-role-context'
 
 export default function NotificationsPage() {
   const [filterType, setFilterType] = useState<string>('all')
   const [filterRead, setFilterRead] = useState<string>('all')
+  const role = useDashboardRole()
 
   const {
     notifications,
@@ -43,8 +45,7 @@ export default function NotificationsPage() {
   } = useNotifications({
     limit: 50,
     unreadOnly: filterRead === 'unread',
-    realtime: true,
-    fallbackPollMs: 120_000,
+    role,
   })
 
   const filteredNotifications = notifications.filter((n) => {

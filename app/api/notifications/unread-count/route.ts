@@ -1,56 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
+import { withAuth } from '@/lib/security/api-guard'
 import {
   HotCacheKeys,
   HotCacheTTL,
   withRedisCache,
 } from '@/lib/cache/hot-cache'
 
-export async function GET(_request: NextRequest) {
-  try {
-    const supabase = await createClient()
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'لطفاً وارد شوید' },
-        { status: 401 }
+export async function GET(request: NextRequest) {
+  return withAuth(
+    request,
+    async (ctx) => {
+      const { data: count, fromCache } = await withRedisCache(
+        HotCacheKeys.unreadCount(ctx.userId),
+        HotCacheTTL.unreadCount,
+        async () => {
+          const { data, error } = await ctx.supabase.rpc('get_unread_count', {
+            p_user_id: ctx.userId,
+          })
+          if (error) throw error
+          return (data as number) || 0
+        }
       )
-    }
 
-    const { data: count, fromCache } = await withRedisCache(
-      HotCacheKeys.unreadCount(user.id),
-      HotCacheTTL.unreadCount,
-      async () => {
-        const { data, error } = await supabase.rpc('get_unread_count', {
-          p_user_id: user.id,
-        })
-        if (error) throw error
-        return (data as number) || 0
-      }
-    )
-
-    return NextResponse.json(
-      {
-        success: true,
-        count: count || 0,
-      },
-      {
-        headers: {
-          'Cache-Control': 'private, max-age=10',
-          'X-Cache': fromCache ? 'HIT' : 'MISS',
+      return NextResponse.json(
+        {
+          success: true,
+          count: count || 0,
         },
-      }
-    )
-  } catch (error) {
-    console.error('خطای غیرمنتظره در دریافت تعداد:', error)
-    return NextResponse.json(
-      { success: false, error: 'خطای سرور' },
-      { status: 500 }
-    )
-  }
+        {
+          headers: {
+            'Cache-Control': 'private, max-age=10',
+            'X-Cache': fromCache ? 'HIT' : 'MISS',
+          },
+        }
+      )
+    },
+    { skipRateLimit: false }
+  )
 }

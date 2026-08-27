@@ -101,12 +101,27 @@ function getDistributedLimiter(
   return limiter
 }
 
-function getClientKey(request: NextRequest, scope: string): string {
-  const ip =
+function getClientIp(request: NextRequest): string {
+  return (
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     request.headers.get('x-real-ip') ||
     '127.0.0.1'
-  return `${scope}:${ip}`
+  )
+}
+
+/**
+ * کلید محدودیت: برای کاربران احراز‌شده `user:{id}` تا NAT مدرسه
+ * سقف مشترک نسازد؛ برای ناشناس همچنان IP.
+ */
+function getClientKey(
+  request: NextRequest,
+  scope: string,
+  userId?: string | null
+): string {
+  if (userId) {
+    return `${scope}:user:${userId}`
+  }
+  return `${scope}:ip:${getClientIp(request)}`
 }
 
 export interface RateLimitResult {
@@ -187,14 +202,15 @@ async function checkDistributedRateLimit(
 export async function checkRateLimitForRequest(
   request: NextRequest,
   scope: RateLimitKey | string,
-  customConfig?: { limit: number; window: number }
+  customConfig?: { limit: number; window: number },
+  userId?: string | null
 ): Promise<RateLimitResult> {
   const config =
     customConfig ||
     RATE_LIMIT_CONFIGS[scope as RateLimitKey] ||
     RATE_LIMIT_CONFIGS.api_default
 
-  const key = getClientKey(request, scope)
+  const key = getClientKey(request, scope, userId)
   const distributed = await checkDistributedRateLimit(key, scope, config)
   if (distributed && distributed !== 'error') return distributed
 
@@ -222,9 +238,15 @@ export function checkRateLimit(
 export async function applyRateLimitAsync(
   request: NextRequest,
   scope: RateLimitKey | string,
-  customConfig?: { limit: number; window: number }
+  customConfig?: { limit: number; window: number },
+  userId?: string | null
 ): Promise<NextResponse | null> {
-  const result = await checkRateLimitForRequest(request, scope, customConfig)
+  const result = await checkRateLimitForRequest(
+    request,
+    scope,
+    customConfig,
+    userId
+  )
   return rateLimitResponse(result)
 }
 

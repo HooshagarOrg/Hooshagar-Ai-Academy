@@ -1,14 +1,43 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
-import { TalentGalaxy, type TalentNode } from '@/components/talent/talent-galaxy'
-import { TalentRadarPanel } from '@/components/talent/talent-radar'
+import type { TalentNode } from '@/components/talent/talent-galaxy'
 import { SkillGraphPanel, type SkillBar } from '@/components/talent/skill-graph'
-import { GrowthTimelinePanel } from '@/components/talent/growth-timeline'
 import { AiInterpretationPanel } from '@/components/talent/ai-interpretation'
 import XPCard from '@/components/XPCard'
+
+const TalentGalaxy = dynamic(
+  () => import('@/components/talent/talent-galaxy').then((m) => m.TalentGalaxy),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[60vh] min-h-[320px] animate-pulse rounded-2xl bg-[var(--lux-surface)]" />
+    ),
+  }
+)
+
+const TalentRadarPanel = dynamic(
+  () => import('@/components/talent/talent-radar').then((m) => m.TalentRadarPanel),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 animate-pulse rounded-2xl bg-[var(--lux-surface)]" />
+    ),
+  }
+)
+
+const GrowthTimelinePanel = dynamic(
+  () => import('@/components/talent/growth-timeline').then((m) => m.GrowthTimelinePanel),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 animate-pulse rounded-2xl bg-[var(--lux-surface)]" />
+    ),
+  }
+)
 
 const DEFAULT_NODES: TalentNode[] = [
   { id: 'math', label: 'ریاضی', score: 82, category: 'academic', related: ['logic'] },

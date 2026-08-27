@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { withAuth, TEACHER_AND_ABOVE } from '@/lib/security/api-guard'
-import { studentBelongsToTeacher, listStudentIdsForTeacher } from '@/lib/teacher/class-scope'
+import { studentBelongsToTeacher } from '@/lib/teacher/class-scope'
 
-// ============================================
-// GET: دریافت نمرات
-// - دانش‌آموز: فقط نمرات خود
-// - والد: نمرات فرزندان
-// - معلم: نمرات کلاس خود
-// ============================================
 export async function GET(request: NextRequest) {
   return withAuth(
     request,
     async (ctx) => {
-      const supabase = await createClient()
+      const supabase = ctx.supabase
       const { searchParams } = new URL(request.url)
 
       const studentId = searchParams.get('student_id')
       const subject = searchParams.get('subject')
 
-      // بدون embed روی students — FK grades.student_id در دیتابیس وجود ندارد
       let query = supabase
         .from('grades')
         .select(
@@ -28,7 +20,6 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: false })
         .limit(100)
 
-      // فیلتر بر اساس نقش
       if (ctx.role === 'student') {
         const { data: student } = await supabase
           .from('students')
@@ -56,15 +47,9 @@ export async function GET(request: NextRequest) {
         })
         if (!allowed) return NextResponse.json({ grades: [] })
         query = query.eq('student_id', studentId)
-      } else if (!['principal', 'admin', 'platform_admin'].includes(ctx.role)) {
-        const ids = await listStudentIdsForTeacher(supabase, {
-          teacherId: ctx.userId,
-          role: ctx.role,
-          schoolId: ctx.schoolId,
-        })
-        if (ids.length === 0) return NextResponse.json({ grades: [] })
-        query = query.in('student_id', ids)
       }
+      // سایر نقش‌های کارمندی: دامنه را RLS با student_visible_to_me تضمین
+      // می‌کند (migration 154) — شماره‌گذاری شناسه‌ها در کد لازم نیست.
 
       if (subject) query = query.eq('subject', subject)
 
@@ -106,9 +91,6 @@ export async function GET(request: NextRequest) {
   )
 }
 
-// ============================================
-// POST: ثبت نمره (معلم/مدیر)
-// ============================================
 export async function POST(request: NextRequest) {
   return withAuth(
     request,
@@ -120,7 +102,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'فیلدهای الزامی پر نشده' }, { status: 400 })
       }
 
-      const supabase = await createClient()
+      const supabase = ctx.supabase
       const allowed = await studentBelongsToTeacher(supabase, {
         teacherId: ctx.userId,
         role: ctx.role,
@@ -143,14 +125,15 @@ export async function POST(request: NextRequest) {
           exam_date: exam_date || new Date().toISOString(),
           teacher_id: ctx.userId,
         })
-        .select()
+        .select(
+          'id, student_id, subject, score, max_score, exam_type, comments, exam_date, teacher_id, created_at'
+        )
         .single()
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 400 })
       }
 
-      // اگر نمره بالاتر از 80% بود XP به دانش‌آموز بده
       const percentage = (score / (max_score || 20)) * 100
       if (percentage >= 80) {
         const { data: student } = await supabase
@@ -176,19 +159,15 @@ export async function POST(request: NextRequest) {
   )
 }
 
-// ============================================
-// PATCH: ویرایش نمره
-// ============================================
 export async function PATCH(request: NextRequest) {
   return withAuth(
     request,
-    async () => {
+    async (ctx) => {
       const body = await request.json()
       const { id, ...updates } = body
       if (!id) return NextResponse.json({ error: 'شناسه نمره الزامی' }, { status: 400 })
 
-      const supabase = await createClient()
-      const { error } = await supabase.from('grades').update(updates).eq('id', id)
+      const { error } = await ctx.supabase.from('grades').update(updates).eq('id', id)
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })
       return NextResponse.json({ success: true })
     },
@@ -196,19 +175,15 @@ export async function PATCH(request: NextRequest) {
   )
 }
 
-// ============================================
-// DELETE: حذف نمره
-// ============================================
 export async function DELETE(request: NextRequest) {
   return withAuth(
     request,
-    async () => {
+    async (ctx) => {
       const { searchParams } = new URL(request.url)
       const id = searchParams.get('id')
       if (!id) return NextResponse.json({ error: 'شناسه نمره الزامی' }, { status: 400 })
 
-      const supabase = await createClient()
-      const { error } = await supabase.from('grades').delete().eq('id', id)
+      const { error } = await ctx.supabase.from('grades').delete().eq('id', id)
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })
       return NextResponse.json({ success: true })
     },

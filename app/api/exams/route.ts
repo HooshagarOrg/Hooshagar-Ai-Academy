@@ -35,9 +35,9 @@ const createExamSchema = z.object({
 
 // دریافت لیست امتحانات
 export async function GET(request: NextRequest) {
-  return withAuth(request, async () => {
+  return withAuth(request, async (ctx) => {
   try {
-    const supabase = await createClient();
+    const supabase = ctx.supabase;
     const { searchParams } = new URL(request.url);
 
     const status = searchParams.get('status');
@@ -47,7 +47,10 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('exams')
-      .select('*', { count: 'exact' })
+      .select(
+        'id, title, description, subject, grade, exam_date, duration_minutes, status, total_questions, total_points, total_submissions, avg_score, exam_config, auto_grade, difficulty_distribution, school_id, created_by, created_at, updated_at',
+        { count: 'exact' }
+      )
       .order('exam_date', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -84,7 +87,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return withAuth(request, async (ctx) => {
   try {
-    const supabase = await createClient();
+    const supabase = ctx.supabase;
     const body = await request.json();
     const result = createExamSchema.safeParse(body);
 

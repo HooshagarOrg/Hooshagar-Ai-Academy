@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
       `)
       .eq('user_id', user.id)
       .order('purchased_at', { ascending: false })
+      .limit(200)
 
     // فیلتر فعال
     if (equipped) {

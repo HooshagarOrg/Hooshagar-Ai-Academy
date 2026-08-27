@@ -78,7 +78,15 @@ const nextConfig = {
 
   // Experimental features
   experimental: {
-    optimizePackageImports: ['lucide-react', 'date-fns', 'recharts', '@react-three/drei', '@react-three/fiber'],
+    optimizePackageImports: [
+      'lucide-react',
+      'date-fns',
+      'date-fns-jalali',
+      'recharts',
+      'framer-motion',
+      '@react-three/drei',
+      '@react-three/fiber',
+    ],
     serverActions: {
       bodySizeLimit: '5mb',
     },

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/security/api-guard'
-import { fetchAllPaged } from '@/lib/supabase/paginate'
 
 export async function GET(request: NextRequest) {
   return withAuth(
@@ -23,8 +22,9 @@ export async function GET(request: NextRequest) {
         recentExamsRes,
         attendanceTotalRes,
         absentRes,
-        gradesPage,
-        gamPage,
+        gradesOverviewRes,
+        subjectAveragesRes,
+        gardenRes,
       ] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'teacher'),
@@ -35,39 +35,33 @@ export async function GET(request: NextRequest) {
         supabase.from('exams').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysIso),
         supabase.from('attendance').select('id', { count: 'exact', head: true }),
         supabase.from('attendance').select('id', { count: 'exact', head: true }).eq('status', 'absent'),
-        fetchAllPaged<{ score: number; max_score: number | null; subject: string }>((from, to) =>
-          supabase.from('grades').select('score, max_score, subject').range(from, to)
-        ),
-        fetchAllPaged<{ xp: number | null; level: number | null }>((from, to) =>
-          supabase.from('talent_garden').select('xp, level').range(from, to)
-        ),
+        supabase.rpc('grades_overview').maybeSingle(),
+        supabase.rpc('grades_subject_averages', { p_limit: 10 }),
+        supabase.rpc('talent_garden_overview').maybeSingle(),
       ])
 
-      if (gradesPage.error) {
-        return NextResponse.json({ error: gradesPage.error }, { status: 500 })
+      if (gradesOverviewRes.error) {
+        return NextResponse.json(
+          { error: gradesOverviewRes.error.message },
+          { status: 500 }
+        )
       }
-      if (gamPage.error) {
-        return NextResponse.json({ error: gamPage.error }, { status: 500 })
+      if (gardenRes.error) {
+        return NextResponse.json({ error: gardenRes.error.message }, { status: 500 })
       }
 
-      const gradesData = gradesPage.data
-      const avgScore = gradesData.length > 0
-        ? gradesData.reduce((sum, g) => sum + ((g.score / (g.max_score || 20)) * 20), 0) / gradesData.length
-        : 0
-      const passingRate = gradesData.length > 0
-        ? (gradesData.filter(g => (g.score / (g.max_score || 20)) >= 0.6).length / gradesData.length) * 100
-        : 0
+      const gradesOverview = gradesOverviewRes.data as {
+        total_grades: number
+        average_score: number
+        passing_rate: number
+      } | null
+      const totalGrades = Number(gradesOverview?.total_grades ?? 0)
+      const avgScore = Number(gradesOverview?.average_score ?? 0)
+      const passingRate = Number(gradesOverview?.passing_rate ?? 0)
 
-      const subjectMap: Record<string, { total: number; count: number }> = {}
-      for (const g of gradesData) {
-        if (!subjectMap[g.subject]) subjectMap[g.subject] = { total: 0, count: 0 }
-        subjectMap[g.subject].total += (g.score / (g.max_score || 20)) * 20
-        subjectMap[g.subject].count++
-      }
-      const subjectAverages = Object.entries(subjectMap)
-        .map(([subject, { total, count }]) => ({ subject, avg: total / count }))
-        .sort((a, b) => b.avg - a.avg)
-        .slice(0, 10)
+      const subjectAverages = (
+        (subjectAveragesRes.data || []) as Array<{ subject: string; avg: number }>
+      ).map((row) => ({ subject: row.subject, avg: Number(row.avg) }))
 
       const totalAttendance = attendanceTotalRes.count ?? 0
       const absentCount = absentRes.count ?? 0
@@ -75,11 +69,14 @@ export async function GET(request: NextRequest) {
         ? ((totalAttendance - absentCount) / totalAttendance) * 100
         : 0
 
-      const gamData = gamPage.data
-      const totalXP = gamData.reduce((sum, g) => sum + (g.xp || 0), 0)
-      const avgLevel = gamData.length > 0
-        ? gamData.reduce((sum, g) => sum + (g.level || 1), 0) / gamData.length
-        : 0
+      const garden = gardenRes.data as {
+        total_xp: number
+        active_users: number
+        avg_level: number
+      } | null
+      const totalXP = Number(garden?.total_xp ?? 0)
+      const activeUsers = Number(garden?.active_users ?? 0)
+      const avgLevel = Number(garden?.avg_level ?? 0)
 
       return NextResponse.json({
         overview: {
@@ -90,7 +87,7 @@ export async function GET(request: NextRequest) {
         },
         grades: {
           average_score: Math.round(avgScore * 10) / 10,
-          total_grades: gradesData.length,
+          total_grades: totalGrades,
           passing_rate: Math.round(passingRate * 10) / 10,
           subject_averages: subjectAverages,
         },
@@ -101,7 +98,7 @@ export async function GET(request: NextRequest) {
         },
         gamification: {
           total_xp_awarded: totalXP,
-          active_users: gamData.filter(g => (g.xp || 0) > 0).length,
+          active_users: activeUsers,
           badges_awarded: badgesRes.count ?? 0,
           avg_level: Math.round(avgLevel * 10) / 10,
         },

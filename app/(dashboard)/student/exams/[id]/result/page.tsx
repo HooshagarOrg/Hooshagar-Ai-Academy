@@ -21,20 +21,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
-import {
-  ResponsiveContainer,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import {
   Trophy,
   CheckCircle2,
@@ -56,6 +43,13 @@ import {
 } from '@/lib/types/exam.types';
 import confetti from 'canvas-confetti';
 
+const TopicRadarChart = dynamic(
+  () => import('@/components/charts/topic-radar-chart').then((m) => m.TopicRadarChart),
+  {
+    ssr: false,
+    loading: () => <div className="h-[250px] animate-pulse rounded-lg bg-muted" aria-hidden />,
+  }
+);
 // کامپوننت گیج نمره
 function ScoreGauge({ percentage, passed }: { percentage: number; passed: boolean }) {
   const rotation = (percentage / 100) * 180 - 90;
@@ -343,21 +337,7 @@ export default function ExamResultPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <RadarChart data={topicScores}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="topic" fontSize={12} />
-                    <PolarRadiusAxis domain={[0, 100]} />
-                    <Radar
-                      name="نمره"
-                      dataKey="score"
-                      stroke="#8b5cf6"
-                      fill="#8b5cf6"
-                      fillOpacity={0.5}
-                    />
-                    <Tooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
+                <TopicRadarChart data={topicScores} />
               </CardContent>
             </Card>
           )}

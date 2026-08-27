@@ -62,7 +62,9 @@ export async function GET(request: NextRequest) {
     // دریافت تنظیمات قرعه‌کشی فعال
     const { data: lotterySetting, error: settingError } = await supabase
       .from('lottery_settings')
-      .select('*')
+      .select(
+        'id, school_id, is_enabled, registration_start, registration_end, lottery_time, target_grade, academic_year, max_choices, allow_edit_until_end, notify_parents_result, status, total_registrations, successful_assignments, failed_assignments, executed_at, created_at, updated_at'
+      )
       .eq('school_id', student.school_id)
       .eq('target_grade', nextGrade)
       .eq('is_enabled', true)
@@ -98,15 +100,37 @@ export async function GET(request: NextRequest) {
       registrationStatus = 'closed'
     }
 
-    // دریافت کلاس‌های موجود
-    const { data: classes, error: classesError } = await supabase
-      .from('classes')
-      .select('*')
-      .eq('school_id', student.school_id)
-      .eq('grade', nextGrade)
-      .eq('academic_year', lotterySetting.academic_year)
-      .eq('is_active', true)
-      .order('name')
+    // دریافت کلاس‌ها + ثبت‌نام قبلی (موازی)
+    const [
+      { data: classes, error: classesError },
+      { data: existingRegistration },
+    ] = await Promise.all([
+      supabase
+        .from('classes')
+        .select(
+          'id, school_id, name, grade, section, teacher_id, teacher_name, total_capacity, admin_reserved, available_capacity, current_count, academic_year, is_active, description, room_number, created_at, updated_at'
+        )
+        .eq('school_id', student.school_id)
+        .eq('grade', nextGrade)
+        .eq('academic_year', lotterySetting.academic_year)
+        .eq('is_active', true)
+        .order('name')
+        .limit(100),
+      supabase
+        .from('class_registrations')
+        .select(`
+          id, student_id, lottery_setting_id, choice_1_class_id, choice_2_class_id, choice_3_class_id, choice_4_class_id,
+          result_class_id, assigned_choice, status, registered_by, registered_at, last_modified_at, assigned_at, admin_note,
+          choice_1_class:choice_1_class_id(id, name, teacher_name),
+          choice_2_class:choice_2_class_id(id, name, teacher_name),
+          choice_3_class:choice_3_class_id(id, name, teacher_name),
+          choice_4_class:choice_4_class_id(id, name, teacher_name),
+          result_class:result_class_id(id, name, teacher_name)
+        `)
+        .eq('student_id', studentId)
+        .eq('lottery_setting_id', lotterySetting.id)
+        .maybeSingle(),
+    ])
 
     if (classesError) {
       return NextResponse.json(
@@ -115,44 +139,55 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // بررسی ثبت‌نام قبلی
-    const { data: existingRegistration } = await supabase
-      .from('class_registrations')
-      .select(`
-        *,
-        choice_1_class:choice_1_class_id(id, name, teacher_name),
-        choice_2_class:choice_2_class_id(id, name, teacher_name),
-        choice_3_class:choice_3_class_id(id, name, teacher_name),
-        choice_4_class:choice_4_class_id(id, name, teacher_name),
-        result_class:result_class_id(id, name, teacher_name)
-      `)
-      .eq('student_id', studentId)
-      .eq('lottery_setting_id', lotterySetting.id)
-      .single()
+    const classIds = (classes || []).map((c) => c.id)
 
-    // محاسبه آمار هر کلاس
-    const classesWithStats = await Promise.all((classes || []).map(async (cls) => {
-      // تعداد ثبت‌نام در انتخاب اول
-      const { count: firstChoiceCount } = await supabase
-        .from('class_registrations')
-        .select('id', { count: 'exact', head: true })
-        .eq('lottery_setting_id', lotterySetting.id)
-        .eq('choice_1_class_id', cls.id)
+    // دو کوئری گروهی به‌جای N+1 per-class
+    const firstChoiceCountByClass = new Map<string, number>()
+    const adminCountByClass = new Map<string, number>()
 
-      // تعداد سهمیه مدیر
-      const { count: adminCount } = await supabase
-        .from('admin_assignments')
-        .select('id', { count: 'exact', head: true })
-        .eq('class_id', cls.id)
-        .eq('status', 'approved')
+    if (classIds.length > 0) {
+      const [
+        { data: firstChoiceRows },
+        { data: adminRows },
+      ] = await Promise.all([
+        supabase
+          .from('class_registrations')
+          .select('choice_1_class_id')
+          .eq('lottery_setting_id', lotterySetting.id)
+          .in('choice_1_class_id', classIds),
+        supabase
+          .from('admin_assignments')
+          .select('class_id')
+          .in('class_id', classIds)
+          .eq('status', 'approved'),
+      ])
 
+      for (const row of firstChoiceRows || []) {
+        if (!row.choice_1_class_id) continue
+        firstChoiceCountByClass.set(
+          row.choice_1_class_id,
+          (firstChoiceCountByClass.get(row.choice_1_class_id) || 0) + 1
+        )
+      }
+
+      for (const row of adminRows || []) {
+        adminCountByClass.set(
+          row.class_id,
+          (adminCountByClass.get(row.class_id) || 0) + 1
+        )
+      }
+    }
+
+    const classesWithStats = (classes || []).map((cls) => {
+      const firstChoiceCount = firstChoiceCountByClass.get(cls.id) || 0
+      const adminCount = adminCountByClass.get(cls.id) || 0
       return {
         ...cls,
-        first_choice_count: firstChoiceCount || 0,
-        admin_assigned_count: adminCount || 0,
-        effective_capacity: cls.available_capacity - (adminCount || 0),
+        first_choice_count: firstChoiceCount,
+        admin_assigned_count: adminCount,
+        effective_capacity: cls.available_capacity - adminCount,
       }
-    }))
+    })
 
     return NextResponse.json({
       success: true,
@@ -173,7 +208,7 @@ export async function GET(request: NextRequest) {
       classes: classesWithStats,
       existingRegistration,
       canRegister: registrationStatus === 'open' && !existingRegistration,
-      canEdit: registrationStatus === 'open' && existingRegistration && lotterySetting.allow_edit_until_end,
+      canEdit: registrationStatus === 'open' && !!existingRegistration && lotterySetting.allow_edit_until_end,
     })
   } catch (error) {
     console.error('Error in available-classes API:', error)

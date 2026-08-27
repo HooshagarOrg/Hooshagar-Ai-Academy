@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import {
   AI_FEATURES,
   type AIUsageLimit,
@@ -63,6 +64,76 @@ function blockedLimit(featureName: string, reason: string): AIUsageLimit {
   }
 }
 
+function getSchoolAiDailyCap(): number {
+  const raw = process.env.SCHOOL_AI_DAILY_CAP
+  const parsed = raw ? Number.parseInt(raw, 10) : 2000
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 2000
+}
+
+/**
+ * سقف روزانه مدرسه روی ai_usage_logs — fail-open اگر شمارش خطا دهد
+ */
+async function getSchoolDailyUsage(schoolId: string): Promise<number | null> {
+  try {
+    const capStart = new Date()
+    capStart.setUTCHours(0, 0, 0, 0)
+    const service = createServiceClient()
+    const { count, error: countError } = await service
+      .from('ai_usage_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('school_id', schoolId)
+      .eq('success', true)
+      .gte('created_at', capStart.toISOString())
+
+    if (countError) {
+      console.warn('[quota] school daily count failed (fail-open):', countError.message)
+      return null
+    }
+    return count ?? 0
+  } catch (err) {
+    console.warn('[quota] school daily cap check failed (fail-open):', err)
+    return null
+  }
+}
+
+function applySchoolDailyCap(userLimit: AIUsageLimit, schoolUsed: number | null): AIUsageLimit {
+  if (!userLimit.allowed || schoolUsed === null) return userLimit
+  if (schoolUsed >= getSchoolAiDailyCap()) {
+    return {
+      ...userLimit,
+      allowed: false,
+      reason: 'سقف مصرف روزانه هوش مصنوعی این مدرسه به پایان رسیده است. فردا دوباره تلاش کنید.',
+    }
+  }
+  return userLimit
+}
+
+async function enforceSchoolDailyCap(
+  userId: string,
+  userLimit: AIUsageLimit
+): Promise<AIUsageLimit> {
+  if (!userLimit.allowed) return userLimit
+
+  try {
+    const supabase = await createClient()
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('school_id')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (profileError || !profile?.school_id) {
+      return userLimit
+    }
+
+    const schoolUsed = await getSchoolDailyUsage(profile.school_id)
+    return applySchoolDailyCap(userLimit, schoolUsed)
+  } catch (err) {
+    console.warn('[quota] school daily cap check failed (fail-open):', err)
+    return userLimit
+  }
+}
+
 /**
  * بررسی آیا کاربر مجاز به استفاده از قابلیت AI است (Supabase RPC)
  */
@@ -96,7 +167,8 @@ export async function checkAILimit(
       return blockedLimit(featureName, 'سرویس محدودیت موقتاً در دسترس نیست')
     }
 
-    return mapRpcRow(row, featureName)
+    const userLimit = mapRpcRow(row, featureName)
+    return enforceSchoolDailyCap(userId, userLimit)
   } catch (err) {
     console.error('[quota] checkAILimit error:', err)
     return blockedLimit(featureName, 'سرویس محدودیت موقتاً در دسترس نیست')
@@ -129,8 +201,62 @@ export async function checkAllLimits(userId: string): Promise<AllLimitsResult> {
   let maxCredits = 0
   let totalUsedEstimate = 0
 
-  for (const [name, feature] of Object.entries(AI_FEATURES)) {
-    const limit = await checkAILimit(userId, name)
+  const supabase = await createClient()
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    .toISOString()
+    .slice(0, 10)
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('school_id')
+    .eq('id', userId)
+    .maybeSingle()
+
+  const schoolUsedPromise = profile?.school_id
+    ? getSchoolDailyUsage(profile.school_id)
+    : Promise.resolve(null)
+
+  const creditPromise = supabase
+    .from('user_monthly_credits')
+    .select('total_credits, bonus_credits, used_credits')
+    .eq('user_id', userId)
+    .eq('month', monthStart)
+    .maybeSingle()
+
+  const rpcPromises = Object.entries(AI_FEATURES).map(async ([name, feature]) => {
+    if (!feature.isEnabled) {
+      return [name, blockedLimit(name, 'این قابلیت غیرفعال شده است')] as const
+    }
+    try {
+      const { data, error } = await supabase.rpc('check_ai_usage_allowed', {
+        p_user_id: userId,
+        p_feature_name: name,
+      })
+      if (error) {
+        console.error('[quota] check_ai_usage_allowed failed:', error.message)
+        return [name, blockedLimit(name, 'سرویس محدودیت موقتاً در دسترس نیست')] as const
+      }
+      const row = (data as QuotaRpcRow[] | null)?.[0]
+      if (!row) {
+        return [name, blockedLimit(name, 'سرویس محدودیت موقتاً در دسترس نیست')] as const
+      }
+      return [name, mapRpcRow(row, name)] as const
+    } catch (err) {
+      console.error('[quota] checkAllLimits rpc error:', err)
+      return [name, blockedLimit(name, 'سرویس محدودیت موقتاً در دسترس نیست')] as const
+    }
+  })
+
+  const [schoolUsed, rpcRows, creditRes] = await Promise.all([
+    schoolUsedPromise,
+    Promise.all(rpcPromises),
+    creditPromise,
+  ])
+
+  for (const [name, rawLimit] of rpcRows) {
+    const feature = AI_FEATURES[name]
+    if (!feature) continue
+    const limit = applySchoolDailyCap(rawLimit, schoolUsed)
     features[name] = limit
 
     if (limit.creditsAvailable < minCredits) {
@@ -192,14 +318,7 @@ export async function checkAllLimits(userId: string): Promise<AllLimitsResult> {
   }
 
   try {
-    const supabase = await createClient()
-    const { data: creditRow } = await supabase
-      .from('user_monthly_credits')
-      .select('total_credits, bonus_credits, used_credits')
-      .eq('user_id', userId)
-      .eq('month', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10))
-      .maybeSingle()
-
+    const creditRow = creditRes.data
     if (creditRow) {
       maxCredits = creditRow.total_credits + creditRow.bonus_credits
       totalUsedEstimate = creditRow.used_credits

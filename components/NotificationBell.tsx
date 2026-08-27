@@ -16,7 +16,11 @@ import { notificationIcons } from '@/types/notifications.types';
 import type { Notification } from '@/types/notifications.types';
 import Link from 'next/link';
 
-export function NotificationBell() {
+interface NotificationBellProps {
+  role?: string;
+}
+
+export function NotificationBell({ role }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   
   const {
@@ -28,8 +32,7 @@ export function NotificationBell() {
     markAllAsRead,
   } = useNotifications({
     limit: 20,
-    realtime: true,
-    fallbackPollMs: 60_000,
+    role,
   });
 
   const handleNotificationClick = async (notification: Notification) => {

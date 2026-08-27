@@ -74,7 +74,7 @@ export function LuxRoleHeader({ userName, role, contextLabel, onMenuToggle }: Lu
         <PersianDateDisplay variant="compact" className="hidden md:inline-flex" />
         <ThemeToggle compact />
         <ReportProblemDialog compact />
-        <NotificationBell />
+        <NotificationBell role={role} />
         <div
           className="hidden min-w-0 max-w-[11rem] flex-col items-end sm:flex"
           title={[userName, contextLabel].filter(Boolean).join(' — ')}

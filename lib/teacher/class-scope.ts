@@ -1,8 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { AllowedRole } from '@/lib/security/api-guard'
-import { fetchAllPaged } from '@/lib/supabase/paginate'
 
 const SPECIALTY_ROLES: AllowedRole[] = ['art_teacher', 'sports_teacher']
+
+/** سقف یک صفحهٔ PostgREST — هنر/ورزش دامنهٔ مدرسه‌گستر دارند. */
+const SPECIALTY_LIST_LIMIT = 1000
+const HOMEROOM_LIST_LIMIT = 200
 const SCHOOL_WIDE_ROLES: AllowedRole[] = [
   'principal',
   'admin',
@@ -142,40 +145,35 @@ export async function listStudentsForTeacher(
     role: AllowedRole
     schoolId: string | null
     limit?: number
+    offset?: number
   }
 ): Promise<{ classes: TeacherClassRow[]; students: TeacherStudentRow[] }> {
   const classes = await getTeacherClasses(supabase, params.teacherId)
+  const offset = params.offset ?? 0
+
+  let query = supabase
+    .from('students')
+    .select(STUDENT_LIST_COLUMNS)
+    .order('full_name', { ascending: true })
 
   if (isSpecialtyTeacherRole(params.role)) {
     if (!params.schoolId) {
       return { classes, students: [] }
     }
-    const { data, error } = await fetchAllPaged<TeacherStudentRow>((from, to) =>
-      supabase
-        .from('students')
-        .select(STUDENT_LIST_COLUMNS)
-        .eq('school_id', params.schoolId as string)
-        .order('full_name', { ascending: true })
-        .range(from, to)
-    )
-    if (error) throw new Error(error)
-    return { classes, students: mapStudentRows(data) }
-  }
-
-  const classIds = classes.map((c) => c.id)
-  if (classIds.length === 0) {
-    return { classes: [], students: [] }
-  }
-
-  let query = supabase
-    .from('students')
-    .select(STUDENT_LIST_COLUMNS)
-    .in('class_id', classIds)
-    .order('full_name', { ascending: true })
-    .limit(params.limit ?? 200)
-
-  if (params.schoolId) {
-    query = query.eq('school_id', params.schoolId)
+    const limit = params.limit ?? SPECIALTY_LIST_LIMIT
+    query = query
+      .eq('school_id', params.schoolId)
+      .range(offset, offset + limit - 1)
+  } else {
+    const classIds = classes.map((c) => c.id)
+    if (classIds.length === 0) {
+      return { classes: [], students: [] }
+    }
+    const limit = params.limit ?? HOMEROOM_LIST_LIMIT
+    query = query.in('class_id', classIds).range(offset, offset + limit - 1)
+    if (params.schoolId) {
+      query = query.eq('school_id', params.schoolId)
+    }
   }
 
   const { data, error } = await query
@@ -187,18 +185,6 @@ export async function listStudentsForTeacher(
     classes,
     students: mapStudentRows(data || []),
   }
-}
-
-export async function listStudentIdsForTeacher(
-  supabase: SupabaseClient,
-  params: {
-    teacherId: string
-    role: AllowedRole
-    schoolId: string | null
-  }
-): Promise<string[]> {
-  const { students } = await listStudentsForTeacher(supabase, params)
-  return students.map((s) => s.id)
 }
 
 /**
@@ -249,6 +235,10 @@ export async function studentBelongsToTeacher(
   return typeof student.class_id === 'string' && classIds.includes(student.class_id)
 }
 
+/**
+ * همان معنای studentBelongsToTeacher برای یک دسته شناسه، با دو کوئری ثابت
+ * به‌جای دو کوئری به‌ازای هر دانش‌آموز.
+ */
 export async function filterStudentIdsForTeacher(
   supabase: SupabaseClient,
   params: {
@@ -259,15 +249,45 @@ export async function filterStudentIdsForTeacher(
   }
 ): Promise<string[]> {
   const unique = [...new Set(params.studentIds.filter(Boolean))]
-  const allowed: string[] = []
-  for (const studentId of unique) {
-    const ok = await studentBelongsToTeacher(supabase, {
-      teacherId: params.teacherId,
-      role: params.role,
-      schoolId: params.schoolId,
-      studentId,
-    })
-    if (ok) allowed.push(studentId)
+  if (unique.length === 0) return []
+
+  const { data: students } = await supabase
+    .from('students')
+    .select('id, class_id, school_id')
+    .in('id', unique)
+
+  if (!students?.length) return []
+
+  const inSchool = (schoolId: string | null) =>
+    !params.schoolId || !schoolId || schoolId === params.schoolId
+
+  if (params.role === 'platform_admin') {
+    return students.map((s) => s.id)
   }
-  return allowed
+
+  if (SCHOOL_WIDE_ROLES.includes(params.role)) {
+    return students.filter((s) => inSchool(s.school_id)).map((s) => s.id)
+  }
+
+  if (SPECIALTY_ROLES.includes(params.role)) {
+    return students
+      .filter(
+        (s) =>
+          inSchool(s.school_id) &&
+          Boolean(params.schoolId && s.school_id === params.schoolId)
+      )
+      .map((s) => s.id)
+  }
+
+  const classIds = new Set(await getTeacherClassIds(supabase, params.teacherId))
+  if (classIds.size === 0) return []
+
+  return students
+    .filter(
+      (s) =>
+        inSchool(s.school_id) &&
+        typeof s.class_id === 'string' &&
+        classIds.has(s.class_id)
+    )
+    .map((s) => s.id)
 }

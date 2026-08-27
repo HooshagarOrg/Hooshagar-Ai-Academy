@@ -83,25 +83,43 @@ export async function GET() {
     const activeChild = children[0];
     const childId = activeChild.id;
 
-    // 5. دریافت نمرات فرزند
-    const { data: grades, error: gradesError } = await supabase
-      .from('grades')
-      .select('id, subject, score, exam_type, exam_date')
-      .eq('student_id', childId)
-      .order('exam_date', { ascending: false })
-      .limit(20);
-
-    // 6. دریافت حضور و غیاب (30 روز اخیر)
+    // 5–6. نمرات، حضور ۳۰ روزه، گزارش‌ها و پیام‌ها (موازی)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+    const reportsSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    const { data: attendance, error: attendanceError } = await supabase
-      .from('attendance')
-      .select('id, date, status')
-      .eq('student_id', childId)
-      .gte('date', thirtyDaysAgoStr)
-      .order('date', { ascending: false });
+    const [
+      { data: grades },
+      { data: attendance },
+      { count: recentReportsCount },
+      { data: recentMessages },
+    ] = await Promise.all([
+      supabase
+        .from('grades')
+        .select('id, subject, score, exam_type, exam_date')
+        .eq('student_id', childId)
+        .order('exam_date', { ascending: false })
+        .limit(20),
+      supabase
+        .from('attendance')
+        .select('id, date, status')
+        .eq('student_id', childId)
+        .gte('date', thirtyDaysAgoStr)
+        .order('date', { ascending: false })
+        .limit(31),
+      supabase
+        .from('parent_reports')
+        .select('id', { count: 'exact', head: true })
+        .eq('student_id', activeChild.id)
+        .gte('created_at', reportsSince),
+      supabase
+        .from('messages_direct')
+        .select('id, subject, body, created_at, is_read, sender:profiles!messages_direct_sender_id_fkey(full_name)')
+        .eq('receiver_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5),
+    ]);
 
     // 7. محاسبه آمار
     const totalGrades = grades?.length || 0;
@@ -138,19 +156,6 @@ export async function GET() {
       average: Math.round((data.total / data.count) * 10) / 10,
       count: data.count,
     }));
-
-    const { count: recentReportsCount } = await supabase
-      .from('parent_reports')
-      .select('id', { count: 'exact', head: true })
-      .eq('student_id', activeChild.id)
-      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-
-    const { data: recentMessages } = await supabase
-      .from('messages_direct')
-      .select('id, subject, body, created_at, is_read, sender:profiles!messages_direct_sender_id_fkey(full_name)')
-      .eq('receiver_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(5);
 
     // 10. پاسخ نهایی
     return NextResponse.json({
@@ -189,10 +194,11 @@ export async function GET() {
       })),
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Parent dashboard error:', error);
+    const message = error instanceof Error ? error.message : 'خطای سرور';
     return NextResponse.json(
-      { error: 'خطای سرور', details: error.message },
+      { error: 'خطای سرور', details: message },
       { status: 500 }
     );
   }

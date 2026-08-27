@@ -1,5 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, type AllowedRole } from '@/lib/security/api-guard'
 import { listStudentsForTeacher } from '@/lib/teacher/class-scope'
 
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
   return withAuth(
     request,
     async (ctx) => {
-      const supabase = await createClient()
+      const supabase = ctx.supabase
 
       let classes
       let students

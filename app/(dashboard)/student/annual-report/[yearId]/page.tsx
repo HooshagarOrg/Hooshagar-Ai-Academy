@@ -9,9 +9,16 @@ import { Separator } from '@/components/ui/separator'
 import { Download, Mail, Printer, BookOpen, Users, Heart, Activity, Sparkles, TrendingUp, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
-import { Bar, BarChart, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import dynamic from 'next/dynamic'
 import type { AnnualReport } from '@/lib/types/academic.types'
+
+const GradesBarChart = dynamic(
+  () => import('@/components/charts/grades-bar-chart').then((m) => m.GradesBarChart),
+  {
+    ssr: false,
+    loading: () => <div className="h-80 animate-pulse rounded-lg bg-muted" aria-hidden />,
+  }
+)
 
 function AttendanceGauge({ value }: { value: number }) {
   const pct = Math.min(100, Math.max(0, value))
@@ -264,12 +271,7 @@ export default function AnnualReportPage({ params }: { params: { yearId: string 
             </CardHeader>
             <CardContent>
               <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={gradesData}>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="score" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <GradesBarChart data={gradesData} />
               </div>
 
               <Separator className="my-4" />

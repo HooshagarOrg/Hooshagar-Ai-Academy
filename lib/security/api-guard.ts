@@ -4,8 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
+import type { Database } from '@/types/database.types'
 import { applyRateLimitAsync, RATE_LIMIT_CONFIGS } from './rate-limiter'
+import { getProfileCached, type CachedProfile } from '@/lib/cache/profile-cache'
 
 // ============================================
 // تایپ‌ها
@@ -21,6 +24,8 @@ export interface AuthContext {
   role: AllowedRole
   schoolId: string | null
   email: string | null
+  /** کلاینت SSR همین درخواست — از ایجاد مجدد در handler خودداری کنید */
+  supabase: SupabaseClient<Database>
 }
 
 export interface GuardOptions {
@@ -30,6 +35,12 @@ export interface GuardOptions {
   rateLimit?: keyof typeof RATE_LIMIT_CONFIGS | null
   /** غیرفعال کردن rate limiting */
   skipRateLimit?: boolean
+  /**
+   * شناسهٔ کاربر برای کلید rate limit (به‌جای IP).
+   * اگر ست نشود، پس از احراز هویت به‌صورت خودکار userId استفاده می‌شود
+   * مگر برای scopeهای ناشناس (login/otp).
+   */
+  rateLimitUserId?: string | null
 }
 
 // ============================================
@@ -40,9 +51,16 @@ export async function withAuth(
   handler: (ctx: AuthContext) => Promise<NextResponse>,
   options: GuardOptions = {}
 ): Promise<NextResponse> {
-  // 1. Rate Limiting
-  if (!options.skipRateLimit) {
-    const scope = options.rateLimit || 'api_default'
+  // 1. Rate Limiting — برای scopeهای ناشناس قبل از auth؛ برای بقیه بعد از شناسایی کاربر
+  const scope = options.rateLimit || 'api_default'
+  const anonymousScopes = new Set([
+    'login',
+    'otp_send',
+    'otp_verify',
+    'change_password',
+  ])
+
+  if (!options.skipRateLimit && anonymousScopes.has(scope)) {
     const rateLimitResponse = await applyRateLimitAsync(request, scope)
     if (rateLimitResponse) return rateLimitResponse
   }
@@ -58,14 +76,37 @@ export async function withAuth(
     )
   }
 
-  // 3. دریافت پروفایل
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, role, school_id, email')
-    .eq('id', user.id)
-    .single()
+  // Rate limit authenticated — کلید کاربر (فاز ۷ هم این مسیر را تکمیل می‌کند)
+  if (!options.skipRateLimit && !anonymousScopes.has(scope)) {
+    const rateLimitResponse = await applyRateLimitAsync(
+      request,
+      scope,
+      undefined,
+      user.id
+    )
+    if (rateLimitResponse) return rateLimitResponse
+  }
 
-  if (profileError || !profile) {
+  // 3. دریافت پروفایل (با کش ۶۰ ثانیه‌ای)
+  const profile = await getProfileCached(user.id, async (): Promise<CachedProfile | null> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, role, school_id, email, full_name, ui_theme')
+      .eq('id', user.id)
+      .single()
+
+    if (error || !data) return null
+    return {
+      id: data.id,
+      role: data.role,
+      school_id: data.school_id ?? null,
+      email: data.email ?? null,
+      full_name: data.full_name ?? null,
+      ui_theme: data.ui_theme ?? null,
+    }
+  })
+
+  if (!profile) {
     return NextResponse.json(
       { error: 'پروفایل کاربر یافت نشد', error_code: 'PROFILE_NOT_FOUND' },
       { status: 403 }
@@ -92,6 +133,7 @@ export async function withAuth(
     role: profile.role as AllowedRole,
     schoolId: profile.school_id ?? null,
     email: profile.email ?? user.email ?? null,
+    supabase,
   }
 
   return handler(ctx)

@@ -1,34 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { withAuth } from '@/lib/security/api-guard';
 
 export async function GET(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    
-    // بررسی احراز هویت
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'لطفاً وارد شوید' },
-        { status: 401 }
-      );
-    }
+  return withAuth(
+    request,
+    async (ctx) => {
+    const supabase = ctx.supabase;
 
     // دریافت پارامترها
     const searchParams = request.nextUrl.searchParams;
     const unread_only = searchParams.get('unread_only') === 'true';
     const type = searchParams.get('type');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
+    const safeLimit = Math.min(Math.max(Number.isFinite(limit) ? limit : 20, 1), 100);
+    const safeOffset = Math.max(Number.isFinite(offset) ? offset : 0, 0);
 
-    // ساخت query
+    // ساخت query — ستون‌های صریح (اسکیما: notification_type / action_url؛ بدون metadata)
     let query = supabase
       .from('notifications')
-      .select('*', { count: 'exact' })
-      .eq('user_id', user.id)
+      .select(
+        'id, user_id, title, message, notification_type, action_url, is_read, read_at, created_at, priority, notification_data',
+        { count: 'exact' }
+      )
+      .eq('user_id', ctx.userId)
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(safeOffset, safeOffset + safeLimit - 1);
 
     // فیلترها
     if (unread_only) {
@@ -48,9 +45,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // شمارش خوانده نشده‌ها
     const { data: unreadCount } = await supabase.rpc('get_unread_count', {
-      p_user_id: user.id,
+      p_user_id: ctx.userId,
     });
 
     return NextResponse.json({
@@ -58,14 +54,9 @@ export async function GET(request: NextRequest) {
       notifications: notifications || [],
       total: count || 0,
       unread_count: unreadCount || 0,
-      limit,
-      offset,
+      limit: safeLimit,
+      offset: safeOffset,
     });
-  } catch (error) {
-    console.error('خطای غیرمنتظره در دریافت اعلان‌ها:', error);
-    return NextResponse.json(
-      { success: false, error: 'خطای سرور' },
-      { status: 500 }
-    );
-  }
+    }
+  );
 }

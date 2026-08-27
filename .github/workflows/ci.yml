@@ -48,6 +48,19 @@ jobs:
           NEXTAUTH_SECRET: ci-placeholder-secret-minimum-32-chars
           NEXTAUTH_URL: http://localhost:3000
 
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: v0.54.0
+
+      - name: Validate k6 load scripts
+        run: |
+          k6 inspect scripts/load/smoke.js
+          k6 inspect scripts/load/teacher.js
+          k6 inspect scripts/load/parent.js
+          k6 inspect scripts/load/student.js
+        # بار واقعی روی staging: docs/CAPACITY_BASELINE.md
+
   security-audit:
     runs-on: ubuntu-latest
     continue-on-error: true

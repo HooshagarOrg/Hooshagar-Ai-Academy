@@ -9,9 +9,19 @@ import { LuxStatGrid } from '@/components/lux/lux-stat-grid'
 import { LuxEmptyState } from '@/components/lux/lux-empty-state'
 import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { LuxHubGrid, type LuxHubGroup } from '@/components/lux/lux-hub-grid'
-import { TalentRadarPanel } from '@/components/talent/talent-radar'
+import dynamic from 'next/dynamic'
 import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
+
+const TalentRadarPanel = dynamic(
+  () => import('@/components/talent/talent-radar').then((m) => m.TalentRadarPanel),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-56 animate-pulse rounded-2xl bg-[var(--lux-surface)]" />
+    ),
+  }
+)
 
 type DashboardData = {
   parent: { name: string }

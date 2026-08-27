@@ -7,6 +7,30 @@ import {
   LEGACY_SUPABASE_AUTH_COOKIES,
 } from '@/lib/supabase/auth-cookie'
 import { isPublicApiRoute } from '@/lib/security/public-api-routes'
+import { SUPABASE_AUTH_COOKIE_NAME } from '@/lib/supabase/auth-cookie'
+import { getProfileCached } from '@/lib/cache/profile-cache'
+
+/** هدرهای هویت داخلی — هرگز از کلاینت پذیرفته نمی‌شوند */
+const INTERNAL_USER_HEADERS = [
+  'x-user-role',
+  'x-user-id',
+  'x-school-id',
+] as const
+
+function stripSpoofedUserHeaders(headers: Headers): void {
+  for (const name of INTERNAL_USER_HEADERS) {
+    headers.delete(name)
+  }
+}
+
+function hasSupabaseAuthCookie(request: NextRequest): boolean {
+  const cookies = request.cookies.getAll()
+  return cookies.some(
+    (c) =>
+      c.name === SUPABASE_AUTH_COOKIE_NAME ||
+      c.name.startsWith(`${SUPABASE_AUTH_COOKIE_NAME}.`)
+  )
+}
 
 // ============================================
 // تایپ‌ها
@@ -183,51 +207,26 @@ function checkGradeRestriction(
 }
 
 // ============================================
-// محافظ API — session اجباری به‌جز مسیرهای عمومی
+// محافظ API — فقط حضور کوکی session (JWT در withAuth/handler اعتبارسنجی می‌شود)
+// صرفه‌جویی: یک round-trip Auth به‌ازای هر درخواست API
 // ============================================
-async function handleApiRoute(request: NextRequest): Promise<NextResponse> {
+function handleApiRoute(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl
 
   if (isPublicApiRoute(pathname)) {
     return NextResponse.next()
   }
 
-  let response = NextResponse.next({ request: { headers: request.headers } })
-
-  const supabase = createServerClient(
-    getSupabaseMiddlewareUrl(),
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookieOptions: supabaseAuthCookieOptions,
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value)
-          })
-          response = NextResponse.next({ request: { headers: request.headers } })
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
-          })
-        },
-      },
-    },
-  )
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  if (!hasSupabaseAuthCookie(request)) {
     return NextResponse.json(
       { success: false, error: 'احراز هویت الزامی است', error_code: 'UNAUTHORIZED' },
       { status: 401 },
     )
   }
 
-  return response
+  const requestHeaders = new Headers(request.headers)
+  stripSpoofedUserHeaders(requestHeaders)
+  return NextResponse.next({ request: { headers: requestHeaders } })
 }
 
 // ============================================
@@ -246,14 +245,18 @@ export async function middleware(request: NextRequest) {
     return handleApiRoute(request)
   }
 
-  // 3. ایجاد Response برای مدیریت کوکی‌ها
+  // 3. ایجاد headers درخواست — حذف هدرهای جعلی کلاینت
+  const requestHeaders = new Headers(request.headers)
+  stripSpoofedUserHeaders(requestHeaders)
+
+  // 4. ایجاد Response برای مدیریت کوکی‌ها
   let response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: requestHeaders,
     },
   })
 
-  // 4. ایجاد Supabase Client
+  // 5. ایجاد Supabase Client
   const supabase = createServerClient(
     getSupabaseMiddlewareUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -269,7 +272,7 @@ export async function middleware(request: NextRequest) {
           })
           response = NextResponse.next({
             request: {
-              headers: request.headers,
+              headers: requestHeaders,
             },
           })
           cookiesToSet.forEach(({ name, value, options }) => {
@@ -285,7 +288,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // 5. احراز هویت — getUser اعتبار JWT را با Auth API تأیید می‌کند
+  // 6. احراز هویت — getUser اعتبار JWT را با Auth API تأیید می‌کند
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -300,14 +303,25 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 5. مسیرهای عمومی - اگر لاگین است، redirect به داشبورد
+  // 7. مسیرهای عمومی - اگر لاگین است، redirect به داشبورد
   if (isPublicRoute(pathname)) {
     if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
+      const profile = await getProfileCached(user.id, async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, role, school_id, email, full_name, ui_theme')
+          .eq('id', user.id)
+          .single()
+        if (!data) return null
+        return {
+          id: data.id,
+          role: data.role,
+          school_id: data.school_id ?? null,
+          email: data.email ?? null,
+          full_name: data.full_name ?? null,
+          ui_theme: data.ui_theme ?? null,
+        }
+      })
       if (profile?.role) {
         const defaultRoute = getDefaultRouteForRole(profile.role as UserRole)
         return NextResponse.redirect(new URL(defaultRoute, request.url))
@@ -316,19 +330,30 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // 6. مسیرهای محافظت شده - بررسی auth
+  // 8. مسیرهای محافظت شده - بررسی auth
   if (!user) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // 7. تعیین نقش کاربر — همیشه از profiles (JWT user_metadata قابل دستکاری است)
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, role, school_id')
-    .eq('id', user.id)
-    .single()
+  // 9. تعیین نقش کاربر — از کش یا profiles
+  const profile = await getProfileCached(user.id, async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, role, school_id, email, full_name, ui_theme')
+      .eq('id', user.id)
+      .single()
+    if (!data) return null
+    return {
+      id: data.id,
+      role: data.role,
+      school_id: data.school_id ?? null,
+      email: data.email ?? null,
+      full_name: data.full_name ?? null,
+      ui_theme: data.ui_theme ?? null,
+    }
+  })
 
   if (!profile?.role) {
     return NextResponse.redirect(new URL('/login?error=profile_not_found', request.url))
@@ -338,13 +363,13 @@ export async function middleware(request: NextRequest) {
   const userId = profile.id
   const schoolId = profile.school_id ?? null
 
-  // 8. Redirect از /dashboard به role-based dashboard
+  // 10. Redirect از /dashboard به role-based dashboard
   if (pathname === '/dashboard') {
     const defaultRoute = getDefaultRouteForRole(userRole)
     return NextResponse.redirect(new URL(defaultRoute, request.url))
   }
 
-  // 9. بررسی RBAC
+  // 11. بررسی RBAC
   const allowedRoles = getAllowedRoles(pathname)
 
   if (allowedRoles !== null && !allowedRoles.includes(userRole)) {
@@ -358,7 +383,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // 10. بررسی محدودیت مقطع تحصیلی برای دانش‌آموزان
+  // 12. بررسی محدودیت مقطع تحصیلی برای دانش‌آموزان
   if (userRole === 'student' && Object.keys(GRADE_RESTRICTED_ROUTES).some(r => pathname.startsWith(r))) {
     const { data: studentData } = await supabase
       .from('students')
@@ -379,14 +404,27 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 11. افزودن headers برای استفاده در صفحات
-  response.headers.set('x-user-role', userRole)
-  response.headers.set('x-user-id', userId)
+  // 13. هدرهای هویت روی request (قابل خواندن در Server Components) + response
+  requestHeaders.set('x-user-role', userRole)
+  requestHeaders.set('x-user-id', userId)
   if (schoolId) {
-    response.headers.set('x-school-id', schoolId)
+    requestHeaders.set('x-school-id', schoolId)
   }
 
-  return response
+  const nextResponse = NextResponse.next({
+    request: { headers: requestHeaders },
+  })
+  // حفظ کوکی‌های refresh از getUser
+  response.cookies.getAll().forEach((cookie) => {
+    nextResponse.cookies.set(cookie.name, cookie.value)
+  })
+  nextResponse.headers.set('x-user-role', userRole)
+  nextResponse.headers.set('x-user-id', userId)
+  if (schoolId) {
+    nextResponse.headers.set('x-school-id', schoolId)
+  }
+
+  return nextResponse
 }
 
 // ============================================

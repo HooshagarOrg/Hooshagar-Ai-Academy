@@ -9,6 +9,20 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
+import { fetchAllPaged } from '@/lib/supabase/paginate'
+
+/** سقف ردیف در هر رفت‌و‌برگشت — برودکست مدرسه‌گستر چند هزار گیرنده دارد. */
+const INSERT_CHUNK_SIZE = 500
+/** سقف شناسه در یک .in() تا طول URL از حد PostgREST نگذرد. */
+const FILTER_CHUNK_SIZE = 300
+
+function chunked<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size))
+  }
+  return chunks
+}
 
 const BroadcastSchema = z.object({
   title: z.string().min(3).max(255),
@@ -96,72 +110,89 @@ export async function POST(req: NextRequest) {
     if (broadcastError) throw broadcastError
 
     // Get recipients based on filters
-    let query = supabase
-      .from('profiles')
-      .select('id, phone, full_name')
-      .eq('is_active', true)
-      .not('phone', 'is', null)
-
-    if (profile.school_id) {
-      query = query.eq('school_id', profile.school_id)
-    }
-
-    if (data.target_role !== 'all') {
-      query = query.eq('role', data.target_role)
-    } else {
-      query = query.in('role', ['parent', 'teacher'])
-    }
-
-    // Additional filters for parents
-    if (data.target_role === 'parent' && (data.target_grade || data.target_class_id)) {
-      // Need to join with students
-      const { data: students } = await supabase
-        .from('students')
-        .select('parent_id')
+    const buildRecipientQuery = () => {
+      let query = supabase
+        .from('profiles')
+        .select('id, phone, full_name')
         .eq('is_active', true)
-        .then(res => {
-          if (data.target_grade) {
-            return supabase
-              .from('students')
-              .select('parent_id')
-              .eq('is_active', true)
-              .eq('grade', data.target_grade)
-          }
-          if (data.target_class_id) {
-            return supabase
-              .from('students')
-              .select('parent_id')
-              .eq('is_active', true)
-              .eq('class_id', data.target_class_id)
-          }
-          return res
-        })
+        .not('phone', 'is', null)
 
-      const parentIds = [...new Set(students?.map(s => s.parent_id).filter(Boolean))]
-      query = query.in('id', parentIds)
+      if (profile.school_id) {
+        query = query.eq('school_id', profile.school_id)
+      }
+
+      if (data.target_role !== 'all') {
+        query = query.eq('role', data.target_role)
+      } else {
+        query = query.in('role', ['parent', 'teacher'])
+      }
+
+      return query
     }
 
-    const { data: recipients, error: recipientsError } = await query
+    // فیلتر پایه/کلاس فقط برای والدین — شناسه‌ها صفحه‌به‌صفحه خوانده می‌شوند
+    let parentIdFilter: string[] | null = null
+    if (data.target_role === 'parent' && (data.target_grade || data.target_class_id)) {
+      const { data: students, error: studentsError } = await fetchAllPaged<{
+        parent_id: string | null
+      }>((from, to) => {
+        let studentQuery = supabase
+          .from('students')
+          .select('parent_id')
+          .eq('is_active', true)
 
-    if (recipientsError) throw recipientsError
+        if (data.target_grade) {
+          studentQuery = studentQuery.eq('grade', data.target_grade)
+        } else if (data.target_class_id) {
+          studentQuery = studentQuery.eq('class_id', data.target_class_id)
+        }
+
+        return studentQuery.range(from, to)
+      })
+
+      if (studentsError) throw new Error(studentsError)
+      parentIdFilter = [
+        ...new Set(students.map(s => s.parent_id).filter((id): id is string => Boolean(id))),
+      ]
+    }
+
+    // خواندن گیرندگان: بدون صفحه‌بندی، سقف ۱۰۰۰ ردیفی PostgREST
+    // برودکست مدرسه‌گستر را بی‌صدا نصف می‌کرد.
+    const recipients: Array<{ id: string; phone: string | null; full_name: string | null }> = []
+    const idChunks: Array<string[] | null> =
+      parentIdFilter === null ? [null] : chunked(parentIdFilter, FILTER_CHUNK_SIZE)
+
+    for (const idChunk of idChunks) {
+      if (idChunk && idChunk.length === 0) continue
+      const { data: page, error: pageError } = await fetchAllPaged<{
+        id: string
+        phone: string | null
+        full_name: string | null
+      }>((from, to) => {
+        const query = buildRecipientQuery().range(from, to)
+        return idChunk ? query.in('id', idChunk) : query
+      })
+      if (pageError) throw new Error(pageError)
+      recipients.push(...page)
+    }
 
     logger.info('Found recipients', {
       context: 'notification-broadcast',
-      count: recipients?.length || 0
+      count: recipients.length
     })
 
     // Insert recipients (فقط برای اعلان داخلی — SMS صف نمی‌شود)
-    const recipientRecords = (recipients || []).map(recipient => ({
+    const recipientRecords = recipients.map(recipient => ({
       broadcast_id: broadcast.id,
       user_id: recipient.id,
       phone_number: recipient.phone,
       status: 'cancelled',
     }))
 
-    if (recipientRecords.length > 0) {
+    for (const chunk of chunked(recipientRecords, INSERT_CHUNK_SIZE)) {
       const { error: insertError } = await supabase
         .from('broadcast_recipients')
-        .insert(recipientRecords)
+        .insert(chunk)
 
       if (insertError) throw insertError
     }
@@ -174,15 +205,20 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', broadcast.id)
 
-    // Send in-app notifications immediately
-    for (const recipient of recipients || []) {
-      await supabase.rpc('create_in_app_notification', {
-        p_user_id: recipient.id,
-        p_title: data.title,
-        p_message: data.message,
-        p_type: 'message',
-        p_link_url: null
-      })
+    // Send in-app notifications immediately (یک RPC به‌ازای هر دسته)
+    const recipientIds = recipients.map(r => r.id)
+    for (const chunk of chunked(recipientIds, INSERT_CHUNK_SIZE)) {
+      const { error: notifyError } = await supabase.rpc(
+        'create_in_app_notifications_bulk',
+        {
+          p_user_ids: chunk,
+          p_title: data.title,
+          p_message: data.message,
+          p_type: 'message',
+          p_link_url: null,
+        }
+      )
+      if (notifyError) throw notifyError
     }
 
     logger.info('Broadcast created successfully', {

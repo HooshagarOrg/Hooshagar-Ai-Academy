@@ -3,33 +3,42 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { Notification } from '@/types/notifications.types';
 import { subscribeToNotifications } from '@/lib/notifications/realtime';
+import { shouldUseNotificationRealtime } from '@/lib/notifications/staff-roles';
 import { createClient } from '@/lib/supabase-client';
 
 interface UseNotificationsOptions {
   limit?: number;
   unreadOnly?: boolean;
-  /** Realtime فعال + polling پشتیبان کند */
+  /** نقش کاربر — Realtime فقط برای کارمندان */
+  role?: string | null;
+  /** اگر ست شود، تصمیم نقش را نادیده می‌گیرد */
   realtime?: boolean;
   /** polling پشتیبان (ms) — فقط وقتی تب visible است */
   fallbackPollMs?: number;
 }
 
-const DEFAULT_FALLBACK_POLL_MS = 60_000;
+const STAFF_FALLBACK_POLL_MS = 120_000;
+const POLL_ONLY_MS = 60_000;
 
 export function useNotifications(options: UseNotificationsOptions = {}) {
-  const {
-    limit = 20,
-    unreadOnly = false,
-    realtime = true,
-    fallbackPollMs = DEFAULT_FALLBACK_POLL_MS,
-  } = options;
+  const { limit = 20, unreadOnly = false, role = null } = options;
+
+  const useRealtime =
+    options.realtime !== undefined
+      ? options.realtime
+      : shouldUseNotificationRealtime(role);
+
+  const fallbackPollMs =
+    options.fallbackPollMs ?? (useRealtime ? STAFF_FALLBACK_POLL_MS : POLL_ONLY_MS);
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string>('');
+  const [realtimeOk, setRealtimeOk] = useState(true);
   const initialLoadDone = useRef(false);
+  const lastUnreadRef = useRef<number | null>(null);
 
   const fetchNotifications = useCallback(async (silent = false) => {
     try {
@@ -55,6 +64,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
 
       setNotifications(data.notifications);
       setUnreadCount(data.unread_count);
+      lastUnreadRef.current = data.unread_count;
       initialLoadDone.current = true;
     } catch {
       setError('خطای شبکه');
@@ -63,6 +73,23 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       setIsRefreshing(false);
     }
   }, [limit, unreadOnly]);
+
+  const fetchUnreadOnly = useCallback(async () => {
+    try {
+      const res = await fetch('/api/notifications/unread-count');
+      const data = await res.json();
+      if (!data.success) return;
+      const next = typeof data.count === 'number' ? data.count : 0;
+      if (lastUnreadRef.current !== null && next !== lastUnreadRef.current) {
+        await fetchNotifications(true);
+      } else {
+        setUnreadCount(next);
+        lastUnreadRef.current = next;
+      }
+    } catch {
+      // silent
+    }
+  }, [fetchNotifications]);
 
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
@@ -80,7 +107,11 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
             n.id === notificationId ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
           )
         );
-        setUnreadCount((prev) => Math.max(0, prev - 1));
+        setUnreadCount((prev) => {
+          const next = Math.max(0, prev - 1);
+          lastUnreadRef.current = next;
+          return next;
+        });
       }
 
       return data.success;
@@ -104,6 +135,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
           prev.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
         );
         setUnreadCount(0);
+        lastUnreadRef.current = 0;
       }
 
       return data.success;
@@ -117,59 +149,114 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   }, [fetchNotifications]);
 
   useEffect(() => {
-    if (!realtime) return;
+    if (!useRealtime) return;
 
-    const supabase = createClient();
     let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
 
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) return;
+    const start = () => {
+      if (unsubscribe || cancelled) return;
+      const supabase = createClient();
 
-      unsubscribe = subscribeToNotifications(data.user.id, {
-        onInsert: (notification) => {
-          setNotifications((prev) => [notification, ...prev].slice(0, limit));
-          if (!notification.is_read) {
-            setUnreadCount((prev) => prev + 1);
-          }
-        },
-        onUpdate: (notification) => {
-          setNotifications((prev) =>
-            prev.map((n) => (n.id === notification.id ? notification : n))
-          );
-          if (notification.is_read) {
-            setUnreadCount((prev) => Math.max(0, prev - 1));
-          }
-        },
-        onDelete: (id) => {
-          setNotifications((prev) => {
-            const removed = prev.find((n) => n.id === id);
-            if (removed && !removed.is_read) {
-              setUnreadCount((count) => Math.max(0, count - 1));
-            }
-            return prev.filter((n) => n.id !== id);
+      supabase.auth.getUser().then(({ data }) => {
+        if (cancelled || !data.user || unsubscribe) return;
+
+        try {
+          unsubscribe = subscribeToNotifications(data.user.id, {
+            onInsert: (notification) => {
+              setRealtimeOk(true);
+              setNotifications((prev) => [notification, ...prev].slice(0, limit));
+              if (!notification.is_read) {
+                setUnreadCount((prev) => {
+                  const next = prev + 1;
+                  lastUnreadRef.current = next;
+                  return next;
+                });
+              }
+            },
+            onUpdate: (notification) => {
+              setRealtimeOk(true);
+              setNotifications((prev) =>
+                prev.map((n) => (n.id === notification.id ? notification : n))
+              );
+              if (notification.is_read) {
+                setUnreadCount((prev) => {
+                  const next = Math.max(0, prev - 1);
+                  lastUnreadRef.current = next;
+                  return next;
+                });
+              }
+            },
+            onDelete: (id) => {
+              setRealtimeOk(true);
+              setNotifications((prev) => {
+                const removed = prev.find((n) => n.id === id);
+                if (removed && !removed.is_read) {
+                  setUnreadCount((count) => {
+                    const next = Math.max(0, count - 1);
+                    lastUnreadRef.current = next;
+                    return next;
+                  });
+                }
+                return prev.filter((n) => n.id !== id);
+              });
+            },
           });
-        },
+        } catch {
+          setRealtimeOk(false);
+        }
       });
-    });
+    };
+
+    const stop = () => {
+      unsubscribe?.();
+      unsubscribe = null;
+    };
+
+    const onVisibility = () => {
+      if (typeof document === 'undefined') return;
+      if (document.visibilityState === 'visible') {
+        start();
+        void fetchUnreadOnly();
+      } else {
+        stop();
+      }
+    };
+
+    if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+      start();
+    }
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisibility);
+    }
 
     return () => {
-      unsubscribe?.();
+      cancelled = true;
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisibility);
+      }
+      stop();
     };
-  }, [realtime, limit]);
+  }, [useRealtime, limit, fetchUnreadOnly]);
 
   useEffect(() => {
-    if (!realtime || fallbackPollMs <= 0) return;
+    if (fallbackPollMs <= 0) return;
+
+    const interval =
+      useRealtime && realtimeOk
+        ? fallbackPollMs
+        : Math.min(fallbackPollMs, POLL_ONLY_MS);
 
     const tick = () => {
       if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
         return;
       }
-      void fetchNotifications(true);
+      void fetchUnreadOnly();
     };
 
-    const intervalId = setInterval(tick, fallbackPollMs);
+    const intervalId = setInterval(tick, interval);
     return () => clearInterval(intervalId);
-  }, [realtime, fallbackPollMs, fetchNotifications]);
+  }, [useRealtime, fallbackPollMs, fetchUnreadOnly, realtimeOk]);
 
   return {
     notifications,

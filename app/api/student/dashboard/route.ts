@@ -1,40 +1,18 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/security/api-guard';
 import { asOne } from '@/lib/supabase/relation';
 
 /**
  * GET /api/student/dashboard
  * دریافت داده‌های داشبورد دانش‌آموز
  */
-export async function GET() {
-  try {
-    const supabase = await createClient();
+export async function GET(request: NextRequest) {
+  return withAuth(
+    request,
+    async (ctx) => {
+    const supabase = ctx.supabase;
+    const userId = ctx.userId;
 
-    // 1. دریافت اطلاعات کاربر
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      return NextResponse.json(
-        { error: 'کاربر احراز هویت نشده است' },
-        { status: 401 }
-      );
-    }
-
-    // 2. دریافت پروفایل دانش‌آموز
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('full_name, role')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    if (profileError || profile?.role !== 'student') {
-      return NextResponse.json(
-        { error: 'دسترسی فقط برای دانش‌آموزان' },
-        { status: 403 }
-      );
-    }
-
-    // 3. دریافت اطلاعات دانش‌آموز
     const { data: student, error: studentError } = await supabase
       .from('students')
       .select(`
@@ -48,7 +26,7 @@ export async function GET() {
           grade
         )
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .maybeSingle();
 
     if (studentError || !student) {
@@ -58,12 +36,48 @@ export async function GET() {
       );
     }
 
-    // 4. دریافت XP data از talent_garden
-    const { data: xpData } = await supabase
-      .from('talent_garden')
-      .select('total_xp, level, coins, current_streak, longest_streak')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    // 4–6. XP، نمرات، حضور و تکالیف (موازی پس از دانستن student.id)
+    const today = new Date().toISOString().split('T')[0];
+
+    const [
+      { data: xpData },
+      { data: grades },
+      { data: todayAttendance },
+      { data: homeworkRows },
+      { data: classStudents },
+    ] = await Promise.all([
+      supabase
+        .from('talent_garden')
+        .select('total_xp, level, coins, current_streak, longest_streak')
+        .eq('user_id', userId)
+        .maybeSingle(),
+      supabase
+        .from('grades')
+        .select('id, subject, score, exam_type, exam_date')
+        .eq('student_id', student.id)
+        .order('exam_date', { ascending: false })
+        .limit(20),
+      supabase
+        .from('attendance')
+        .select('status')
+        .eq('student_id', student.id)
+        .eq('date', today)
+        .maybeSingle(),
+      supabase
+        .from('homework_submissions')
+        .select('id, subject, title, due_date, submission_status')
+        .eq('student_id', student.id)
+        .in('submission_status', ['pending', 'late', 'not_submitted'])
+        .order('due_date', { ascending: true })
+        .limit(5),
+      student.class_id
+        ? supabase
+            .from('students')
+            .select('user_id')
+            .eq('class_id', student.class_id)
+            .limit(200)
+        : Promise.resolve({ data: null as { user_id: string | null }[] | null }),
+    ]);
 
     const xp = {
       ...(xpData || {
@@ -76,32 +90,6 @@ export async function GET() {
       rank: 0,
       total_students: 0,
     };
-
-    // 5. دریافت نمرات (20 نمره اخیر)
-    const { data: grades, error: gradesError } = await supabase
-      .from('grades')
-      .select('id, subject, score, exam_type, exam_date')
-      .eq('student_id', student.id)
-      .order('exam_date', { ascending: false })
-      .limit(20);
-
-    // 6. دریافت حضور امروز
-    const today = new Date().toISOString().split('T')[0];
-    const { data: todayAttendance } = await supabase
-      .from('attendance')
-      .select('status')
-      .eq('student_id', student.id)
-      .eq('date', today)
-      .maybeSingle();
-
-    // تکالیف در انتظار
-    const { data: homeworkRows } = await supabase
-      .from('homework_submissions')
-      .select('id, subject, title, due_date, submission_status')
-      .eq('student_id', student.id)
-      .in('submission_status', ['pending', 'late', 'not_submitted'])
-      .order('due_date', { ascending: true })
-      .limit(5);
 
     // 7. محاسبه میانگین نمرات
     const totalGrades = grades?.length || 0;
@@ -119,26 +107,26 @@ export async function GET() {
       date: g.exam_date,
     })) || [];
 
-    // 9. محاسبه رتبه در کلاس (ساده: بر اساس XP)
-    if (student.class_id) {
-      const { data: classStudents } = await supabase
-        .from('students')
-        .select('user_id')
-        .eq('class_id', student.class_id);
+    // 9. رتبه در کلاس با دو COUNT به‌جای کشیدن همهٔ ردیف‌های XP
+    if (classStudents && classStudents.length > 0) {
+      const userIds = classStudents.map((s) => s.user_id).filter(Boolean) as string[];
 
-      if (classStudents) {
-        const userIds = classStudents.map((s) => s.user_id).filter(Boolean);
-        
-        const { data: classRanks } = await supabase
-          .from('talent_garden')
-          .select('user_id, total_xp')
-          .in('user_id', userIds)
-          .order('total_xp', { ascending: false });
+      if (userIds.length > 0) {
+        const myXp = xpData?.total_xp ?? 0
+        const [{ count: totalStudents }, { count: higher }] = await Promise.all([
+          supabase
+            .from('talent_garden')
+            .select('user_id', { count: 'exact', head: true })
+            .in('user_id', userIds),
+          supabase
+            .from('talent_garden')
+            .select('user_id', { count: 'exact', head: true })
+            .in('user_id', userIds)
+            .gt('total_xp', myXp),
+        ])
 
-        const rankIndex = classRanks?.findIndex((r) => r.user_id === user.id) ?? -1;
-        const rank = rankIndex >= 0 ? rankIndex + 1 : 0;
-        xp.rank = rank;
-        xp.total_students = classRanks?.length || 0;
+        xp.total_students = totalStudents ?? 0
+        xp.rank = xp.total_students > 0 ? (higher ?? 0) + 1 : 0
       }
     }
 
@@ -177,14 +165,8 @@ export async function GET() {
       })),
       schedule: [],
     });
-
-  } catch (error: unknown) {
-    console.error('❌ Student dashboard error:', error);
-    const message = error instanceof Error ? error.message : 'خطای سرور'
-    return NextResponse.json(
-      { error: 'خطای سرور', details: message },
-      { status: 500 }
-    );
-  }
+    },
+    { roles: ['student'] }
+  );
 }
 

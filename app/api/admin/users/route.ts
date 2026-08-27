@@ -10,7 +10,7 @@ import { buildAuthPassword } from '@/lib/bulk-import/login-code'
 import { resolveParentDisplayName } from '@/lib/bulk-import/parent-name'
 import { validatePassword } from '@/lib/security/sanitize'
 import { PASSWORD_GUIDE_FA } from '@/lib/security/password-policy'
-import { fetchAllPaged, parseListPage, POSTGREST_PAGE_SIZE } from '@/lib/supabase/paginate'
+import { parseListPage, POSTGREST_PAGE_SIZE } from '@/lib/supabase/paginate'
 import { assignHomeroomClass } from '@/lib/teacher/class-scope'
 
 // ============================================
@@ -66,15 +66,15 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const { data: roleRows, error: statsError } = await fetchAllPaged<{ role: string }>(
-        (from, to) => admin.from('profiles').select('role').range(from, to)
+      const { data: roleCounts, error: statsError } = await admin.rpc(
+        'profile_role_counts'
       )
       if (statsError) {
-        return NextResponse.json({ error: statsError }, { status: 500 })
+        return NextResponse.json({ error: statsError.message }, { status: 500 })
       }
       const stats: Record<string, number> = {}
-      for (const row of roleRows) {
-        stats[row.role] = (stats[row.role] || 0) + 1
+      for (const row of (roleCounts || []) as Array<{ role: string; total: number }>) {
+        stats[row.role] = Number(row.total)
       }
 
       return NextResponse.json({
@@ -563,6 +563,8 @@ export async function PATCH(request: NextRequest) {
       if (Object.keys(updates).length > 0) {
         const { error } = await admin.from('profiles').update(updates).eq('id', id)
         if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+        const { invalidateProfileCache } = await import('@/lib/cache/profile-cache')
+        await invalidateProfileCache(id)
       }
 
       if (

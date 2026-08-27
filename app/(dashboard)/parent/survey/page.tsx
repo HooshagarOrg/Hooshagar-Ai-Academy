@@ -84,6 +84,8 @@ export default function ParentSurveyPage() {
   const [sessionId] = useState(() => crypto.randomUUID())
 
   useEffect(() => {
+    // وابستگی ترتیبی: ابتدا لیست نظرسنجی‌های فعال، سپس جزئیات همان نظرسنجی انتخاب‌شده.
+    // موازی‌سازی ممکن نیست چون detail به id حاصل از list نیاز دارد.
     const load = async () => {
       try {
         const listRes = await fetch('/api/surveys?status=active&limit=20')

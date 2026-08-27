@@ -95,7 +95,7 @@ export function AppHeader({
           <Search className="w-4 h-4" />
         </button>
 
-        <NotificationBell />
+        <NotificationBell role={role} />
 
         <div
           className={cn(

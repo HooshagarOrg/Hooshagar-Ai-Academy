@@ -127,6 +127,33 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: stErr.message }, { status: 500 })
         }
 
+        // یک کوئری برای همه رفتارها — سپس گروه‌بندی در حافظه (بدون N+1)
+        const { data: allBehaviors } = await supabase
+          .from('behavior_reports')
+          .select('student_id, report_date, positive_behaviors, negative_behaviors, notes')
+          .in('student_id', allowedIds)
+          .gte('report_date', week_start)
+          .lte('report_date', week_end)
+          .order('report_date', { ascending: false })
+          .limit(Math.min(allowedIds.length * 20, 300))
+
+        const behaviorsByStudent = new Map<
+          string,
+          Array<{
+            report_date: string
+            positive_behaviors: unknown
+            negative_behaviors: unknown
+            notes: string | null
+          }>
+        >()
+        for (const b of allBehaviors || []) {
+          const list = behaviorsByStudent.get(b.student_id) || []
+          if (list.length < 20) {
+            list.push(b)
+            behaviorsByStudent.set(b.student_id, list)
+          }
+        }
+
         const created: Array<{
           id: string
           studentId: string
@@ -143,15 +170,9 @@ export async function POST(request: NextRequest) {
           const schoolId = student.school_id || ctx.schoolId
           if (!schoolId) continue
 
-          const { data: behaviors } = await supabase
-            .from('behavior_reports')
-            .select('report_date, positive_behaviors, negative_behaviors, notes')
-            .eq('student_id', student.id)
-            .gte('report_date', week_start)
-            .lte('report_date', week_end)
-            .limit(20)
+          const behaviors = behaviorsByStudent.get(student.id) || []
 
-          const behaviorLines = (behaviors || [])
+          const behaviorLines = behaviors
             .map((b) => {
               const pos = Array.isArray(b.positive_behaviors) ? b.positive_behaviors.join('، ') : ''
               const neg = Array.isArray(b.negative_behaviors) ? b.negative_behaviors.join('، ') : ''
@@ -212,7 +233,7 @@ ${extra_notes ? `یادداشت معلم: ${extra_notes}` : ''}
             positivePoints: ai.positive_points ?? [],
             improvementPoints: ai.improvement_points ?? [],
             parentSuggestions: ai.parent_suggestions ?? [],
-            notesCount: (behaviors || []).length,
+            notesCount: behaviors.length,
             sent: false,
           })
         }

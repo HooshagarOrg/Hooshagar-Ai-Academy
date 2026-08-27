@@ -22,10 +22,13 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // ساخت query
+    // ساخت query — ستون‌های صریح (اسکیما: notification_type / action_url؛ بدون metadata)
     let query = supabase
       .from('notifications')
-      .select('*', { count: 'exact' })
+      .select(
+        'id, user_id, title, message, notification_type, action_url, is_read, read_at, created_at, priority, notification_data',
+        { count: 'exact' }
+      )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);

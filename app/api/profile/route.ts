@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { withAuth } from '@/lib/security/api-guard'
-import { createClient } from '@/lib/supabase/server'
 import { isUiTheme } from '@/lib/theme/constants'
+import { invalidateProfileCache } from '@/lib/cache/profile-cache'
 
 export async function GET(request: NextRequest) {
   return withAuth(
     request,
     async (ctx) => {
-      const supabase = await createClient()
-      const { data, error } = await supabase
+      const { data, error } = await ctx.supabase
         .from('profiles')
         .select('full_name, email, role, school_id, ui_theme')
         .eq('id', ctx.userId)
@@ -21,7 +20,7 @@ export async function GET(request: NextRequest) {
 
       let school_name: string | null = null
       if (data.school_id) {
-        const { data: school } = await supabase
+        const { data: school } = await ctx.supabase
           .from('schools')
           .select('name')
           .eq('id', data.school_id)
@@ -55,8 +54,7 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: 'داده نامعتبر', details: parsed.error.issues }, { status: 400 })
       }
 
-      const supabase = await createClient()
-      const { error } = await supabase
+      const { error } = await ctx.supabase
         .from('profiles')
         .update({ ui_theme: parsed.data.ui_theme })
         .eq('id', ctx.userId)
@@ -64,6 +62,8 @@ export async function PATCH(request: NextRequest) {
       if (error) {
         return NextResponse.json({ error: 'ذخیره تم ناموفق بود' }, { status: 500 })
       }
+
+      await invalidateProfileCache(ctx.userId)
 
       return NextResponse.json({ success: true, ui_theme: parsed.data.ui_theme })
     },

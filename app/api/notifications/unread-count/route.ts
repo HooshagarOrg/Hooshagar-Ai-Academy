@@ -1,43 +1,56 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase-server'
+import {
+  HotCacheKeys,
+  HotCacheTTL,
+  withRedisCache,
+} from '@/lib/cache/hot-cache'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const supabase = await createClient();
-    
-    // بررسی احراز هویت
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError || !user) {
       return NextResponse.json(
         { success: false, error: 'لطفاً وارد شوید' },
         { status: 401 }
-      );
+      )
     }
 
-    // دریافت تعداد خوانده نشده‌ها
-    const { data: count, error } = await supabase.rpc('get_unread_count', {
-      p_user_id: user.id,
-    });
+    const { data: count, fromCache } = await withRedisCache(
+      HotCacheKeys.unreadCount(user.id),
+      HotCacheTTL.unreadCount,
+      async () => {
+        const { data, error } = await supabase.rpc('get_unread_count', {
+          p_user_id: user.id,
+        })
+        if (error) throw error
+        return (data as number) || 0
+      }
+    )
 
-    if (error) {
-      console.error('خطای دریافت تعداد اعلان‌ها:', error);
-      return NextResponse.json(
-        { success: false, error: 'دریافت تعداد ناموفق بود' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      count: count || 0,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        count: count || 0,
+      },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=10',
+          'X-Cache': fromCache ? 'HIT' : 'MISS',
+        },
+      }
+    )
   } catch (error) {
-    console.error('خطای غیرمنتظره در دریافت تعداد:', error);
+    console.error('خطای غیرمنتظره در دریافت تعداد:', error)
     return NextResponse.json(
       { success: false, error: 'خطای سرور' },
       { status: 500 }
-    );
+    )
   }
 }
-

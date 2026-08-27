@@ -22,9 +22,12 @@ export async function GET() {
     }
     
     // دریافت اطلاعات از talent_garden
+    const TALENT_GARDEN_COLUMNS =
+      'id, user_id, xp, level, coins, current_streak, longest_streak, last_activity_date, streak_freeze_count, total_active_days, created_at, updated_at'
+
     const { data: garden, error: gardenError } = await supabase
       .from('talent_garden')
-      .select('*')
+      .select(TALENT_GARDEN_COLUMNS)
       .eq('user_id', user.id)
       .single()
     
@@ -40,7 +43,7 @@ export async function GET() {
             coins: 100,
             current_streak: 0
           })
-          .select()
+          .select(TALENT_GARDEN_COLUMNS)
           .single()
         
         if (insertError) {

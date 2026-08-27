@@ -10,11 +10,11 @@ interface UseNotificationsOptions {
   unreadOnly?: boolean;
   /** Realtime فعال + polling پشتیبان کند */
   realtime?: boolean;
-  /** polling پشتیبان (ms) — فقط وقتی تب visible است */
+  /** polling پشتیبان (ms) — فقط وقتی تب visible است؛ پیش‌فرض ۱۲۰s */
   fallbackPollMs?: number;
 }
 
-const DEFAULT_FALLBACK_POLL_MS = 60_000;
+const DEFAULT_FALLBACK_POLL_MS = 120_000;
 
 export function useNotifications(options: UseNotificationsOptions = {}) {
   const {
@@ -29,7 +29,9 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string>('');
+  const [realtimeOk, setRealtimeOk] = useState(true);
   const initialLoadDone = useRef(false);
+  const lastUnreadRef = useRef<number | null>(null);
 
   const fetchNotifications = useCallback(async (silent = false) => {
     try {
@@ -55,6 +57,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
 
       setNotifications(data.notifications);
       setUnreadCount(data.unread_count);
+      lastUnreadRef.current = data.unread_count;
       initialLoadDone.current = true;
     } catch {
       setError('خطای شبکه');
@@ -63,6 +66,23 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       setIsRefreshing(false);
     }
   }, [limit, unreadOnly]);
+
+  const fetchUnreadOnly = useCallback(async () => {
+    try {
+      const res = await fetch('/api/notifications/unread-count');
+      const data = await res.json();
+      if (!data.success) return;
+      const next = typeof data.count === 'number' ? data.count : 0;
+      if (lastUnreadRef.current !== null && next !== lastUnreadRef.current) {
+        await fetchNotifications(true);
+      } else {
+        setUnreadCount(next);
+        lastUnreadRef.current = next;
+      }
+    } catch {
+      // silent
+    }
+  }, [fetchNotifications]);
 
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
@@ -80,7 +100,11 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
             n.id === notificationId ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
           )
         );
-        setUnreadCount((prev) => Math.max(0, prev - 1));
+        setUnreadCount((prev) => {
+          const next = Math.max(0, prev - 1);
+          lastUnreadRef.current = next;
+          return next;
+        });
       }
 
       return data.success;
@@ -104,6 +128,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
           prev.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
         );
         setUnreadCount(0);
+        lastUnreadRef.current = 0;
       }
 
       return data.success;
@@ -125,31 +150,50 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
 
-      unsubscribe = subscribeToNotifications(data.user.id, {
-        onInsert: (notification) => {
-          setNotifications((prev) => [notification, ...prev].slice(0, limit));
-          if (!notification.is_read) {
-            setUnreadCount((prev) => prev + 1);
-          }
-        },
-        onUpdate: (notification) => {
-          setNotifications((prev) =>
-            prev.map((n) => (n.id === notification.id ? notification : n))
-          );
-          if (notification.is_read) {
-            setUnreadCount((prev) => Math.max(0, prev - 1));
-          }
-        },
-        onDelete: (id) => {
-          setNotifications((prev) => {
-            const removed = prev.find((n) => n.id === id);
-            if (removed && !removed.is_read) {
-              setUnreadCount((count) => Math.max(0, count - 1));
+      try {
+        unsubscribe = subscribeToNotifications(data.user.id, {
+          onInsert: (notification) => {
+            setRealtimeOk(true);
+            setNotifications((prev) => [notification, ...prev].slice(0, limit));
+            if (!notification.is_read) {
+              setUnreadCount((prev) => {
+                const next = prev + 1;
+                lastUnreadRef.current = next;
+                return next;
+              });
             }
-            return prev.filter((n) => n.id !== id);
-          });
-        },
-      });
+          },
+          onUpdate: (notification) => {
+            setRealtimeOk(true);
+            setNotifications((prev) =>
+              prev.map((n) => (n.id === notification.id ? notification : n))
+            );
+            if (notification.is_read) {
+              setUnreadCount((prev) => {
+                const next = Math.max(0, prev - 1);
+                lastUnreadRef.current = next;
+                return next;
+              });
+            }
+          },
+          onDelete: (id) => {
+            setRealtimeOk(true);
+            setNotifications((prev) => {
+              const removed = prev.find((n) => n.id === id);
+              if (removed && !removed.is_read) {
+                setUnreadCount((count) => {
+                  const next = Math.max(0, count - 1);
+                  lastUnreadRef.current = next;
+                  return next;
+                });
+              }
+              return prev.filter((n) => n.id !== id);
+            });
+          },
+        });
+      } catch {
+        setRealtimeOk(false);
+      }
     });
 
     return () => {
@@ -160,16 +204,19 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   useEffect(() => {
     if (!realtime || fallbackPollMs <= 0) return;
 
+    // اگر Realtime قطع باشد، polling را دو برابر سریع‌تر کن
+    const interval = realtimeOk ? fallbackPollMs : Math.min(fallbackPollMs, 60_000);
+
     const tick = () => {
       if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
         return;
       }
-      void fetchNotifications(true);
+      void fetchUnreadOnly();
     };
 
-    const intervalId = setInterval(tick, fallbackPollMs);
+    const intervalId = setInterval(tick, interval);
     return () => clearInterval(intervalId);
-  }, [realtime, fallbackPollMs, fetchNotifications]);
+  }, [realtime, fallbackPollMs, fetchUnreadOnly, realtimeOk]);
 
   return {
     notifications,

@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import {
   AI_FEATURES,
   type AIUsageLimit,
@@ -63,6 +64,66 @@ function blockedLimit(featureName: string, reason: string): AIUsageLimit {
   }
 }
 
+function getSchoolAiDailyCap(): number {
+  const raw = process.env.SCHOOL_AI_DAILY_CAP
+  const parsed = raw ? Number.parseInt(raw, 10) : 2000
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 2000
+}
+
+/**
+ * سقف روزانه مدرسه روی ai_usage_logs — fail-open اگر شمارش خطا دهد
+ */
+async function enforceSchoolDailyCap(
+  userId: string,
+  userLimit: AIUsageLimit
+): Promise<AIUsageLimit> {
+  if (!userLimit.allowed) return userLimit
+
+  try {
+    const supabase = await createClient()
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('school_id')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (profileError || !profile?.school_id) {
+      return userLimit
+    }
+
+    const schoolId = profile.school_id
+    const cap = getSchoolAiDailyCap()
+    const startOfDay = new Date()
+    startOfDay.setUTCHours(0, 0, 0, 0)
+
+    const service = createServiceClient()
+    const { count, error: countError } = await service
+      .from('ai_usage_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('school_id', schoolId)
+      .eq('success', true)
+      .gte('created_at', startOfDay.toISOString())
+
+    if (countError) {
+      console.warn('[quota] school daily count failed (fail-open):', countError.message)
+      return userLimit
+    }
+
+    if ((count ?? 0) >= cap) {
+      return {
+        ...userLimit,
+        allowed: false,
+        reason: 'سقف مصرف روزانه هوش مصنوعی این مدرسه به پایان رسیده است. فردا دوباره تلاش کنید.',
+      }
+    }
+
+    return userLimit
+  } catch (err) {
+    console.warn('[quota] school daily cap check failed (fail-open):', err)
+    return userLimit
+  }
+}
+
 /**
  * بررسی آیا کاربر مجاز به استفاده از قابلیت AI است (Supabase RPC)
  */
@@ -96,7 +157,8 @@ export async function checkAILimit(
       return blockedLimit(featureName, 'سرویس محدودیت موقتاً در دسترس نیست')
     }
 
-    return mapRpcRow(row, featureName)
+    const userLimit = mapRpcRow(row, featureName)
+    return enforceSchoolDailyCap(userId, userLimit)
   } catch (err) {
     console.error('[quota] checkAILimit error:', err)
     return blockedLimit(featureName, 'سرویس محدودیت موقتاً در دسترس نیست')

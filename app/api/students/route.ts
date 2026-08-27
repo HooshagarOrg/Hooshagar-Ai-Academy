@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { secureErrorResponse } from '@/lib/security/error-handler'
 import { withAuth } from '@/lib/security/api-guard'
@@ -9,6 +8,9 @@ import {
   listStudentsForTeacher,
 } from '@/lib/teacher/class-scope'
 import { fetchAllPaged, parseListPage, POSTGREST_PAGE_SIZE } from '@/lib/supabase/paginate'
+
+/** سقف سخت وقتی بدون پارامتر صفحه */
+const HARD_FETCH_CAP = 5000
 
 const studentSchema = z.object({
   full_name: z.string().min(2).max(100),
@@ -21,7 +23,7 @@ export async function GET(request: NextRequest) {
     request,
     async (ctx) => {
       try {
-        const supabase = await createClient()
+        const supabase = ctx.supabase
         const { searchParams } = new URL(request.url)
         const grade = searchParams.get('grade')
         const schoolId = searchParams.get('school_id')
@@ -80,9 +82,11 @@ export async function GET(request: NextRequest) {
             buildBase().range(from, to)
           )
           if (error) throw new Error(error)
+          const capped = data.slice(0, HARD_FETCH_CAP)
           return NextResponse.json({
-            students: data,
-            total: data.length,
+            students: capped,
+            total: capped.length,
+            has_more: data.length > HARD_FETCH_CAP,
           })
         }
 
@@ -97,6 +101,7 @@ export async function GET(request: NextRequest) {
           total: count ?? 0,
           limit,
           offset,
+          has_more: (count ?? 0) > offset + limit,
         })
       } catch (error) {
         return secureErrorResponse(error, { context: 'GET /api/students' })
@@ -111,14 +116,13 @@ export async function POST(request: NextRequest) {
     request,
     async (ctx) => {
       try {
-        const supabase = await createClient()
         const body = await request.json()
         const validated = studentSchema.parse(body)
 
-        const { data, error } = await supabase
+        const { data, error } = await ctx.supabase
           .from('students')
           .insert([{ ...validated, school_id: ctx.schoolId }])
-          .select()
+          .select('id, full_name, grade, school_id, status')
           .single()
 
         if (error) throw error

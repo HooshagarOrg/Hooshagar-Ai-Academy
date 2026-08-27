@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import {
+  HotCacheKeys,
+  HotCacheTTL,
+  withRedisCache,
+} from '@/lib/cache/hot-cache'
 
 /**
  * GET /api/xp/leaderboard?limit=10&offset=0
- * دریافت جدول رتبه‌بندی دانش‌آموزان
+ * دریافت جدول رتبه‌بندی دانش‌آموزان — کش ۶۰ ثانیه‌ای بر اساس مدرسه
  */
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +18,6 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // احراز هویت
     const {
       data: { user },
       error: authError,
@@ -23,34 +27,38 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'لطفاً ابتدا وارد شوید' }, { status: 401 })
     }
 
-    // دریافت leaderboard با استفاده از function
-    const { data: leaderboard, error: leaderboardError } = await supabase.rpc(
-      'get_leaderboard',
-      {
-        p_limit: limit,
-        p_offset: offset,
-      }
-    )
-
-    if (leaderboardError) {
-      console.error('خطا در دریافت leaderboard:', leaderboardError)
-      return NextResponse.json(
-        { error: 'خطا در دریافت رتبه‌بندی' },
-        { status: 500 }
-      )
-    }
-
-    // دریافت رتبه کاربر فعلی (اگر دانش‌آموز است)
     const { data: userProfile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, school_id')
       .eq('id', user.id)
       .single()
+
+    const schoolId = userProfile?.school_id || 'global'
+    const cacheKey = `${HotCacheKeys.leaderboard(schoolId)}:xp:${limit}:${offset}`
+
+    const { data: leaderboard, fromCache } = await withRedisCache(
+      cacheKey,
+      HotCacheTTL.leaderboard,
+      async () => {
+        const { data, error: leaderboardError } = await supabase.rpc(
+          'get_leaderboard',
+          {
+            p_limit: limit,
+            p_offset: offset,
+          }
+        )
+
+        if (leaderboardError) {
+          throw leaderboardError
+        }
+
+        return data || []
+      }
+    )
 
     let currentUserRank = null
 
     if (userProfile?.role === 'student') {
-      // پیدا کردن student_id از طریق user_id
       const { data: studentData } = await supabase
         .from('students')
         .select('id')
@@ -58,24 +66,31 @@ export async function GET(request: NextRequest) {
         .single()
 
       if (studentData) {
-        // پیدا کردن رتبه در لیست
-        const rankIndex = leaderboard.findIndex(
-          (item: any) => item.student_id === studentData.id
+        const rankIndex = (leaderboard as Array<{ student_id: string }>).findIndex(
+          (item) => item.student_id === studentData.id
         )
         currentUserRank = rankIndex !== -1 ? rankIndex + 1 + offset : null
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-      leaderboard,
-        total: leaderboard?.length || 0,
-        limit,
-        offset,
-        current_user_rank: currentUserRank,
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          leaderboard,
+          total: (leaderboard as unknown[])?.length || 0,
+          limit,
+          offset,
+          current_user_rank: currentUserRank,
+        },
       },
-    })
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=60',
+          'X-Cache': fromCache ? 'HIT' : 'MISS',
+        },
+      }
+    )
   } catch (error) {
     console.error('خطای سرور:', error)
     return NextResponse.json({ error: 'خطای داخلی سرور' }, { status: 500 })

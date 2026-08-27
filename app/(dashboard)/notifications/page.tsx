@@ -44,7 +44,7 @@ export default function NotificationsPage() {
     limit: 50,
     unreadOnly: filterRead === 'unread',
     realtime: true,
-    fallbackPollMs: 60_000,
+    fallbackPollMs: 120_000,
   })
 
   const filteredNotifications = notifications.filter((n) => {

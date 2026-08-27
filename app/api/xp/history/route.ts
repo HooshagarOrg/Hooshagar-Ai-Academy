@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     // Query builder
     let query = supabase
       .from('xp_transactions')
-      .select('*')
+      .select('id, user_id, action_type, xp_amount, description, metadata, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     // دریافت تعداد کل
     let countQuery = supabase
       .from('xp_transactions')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
     
     if (action_type) {

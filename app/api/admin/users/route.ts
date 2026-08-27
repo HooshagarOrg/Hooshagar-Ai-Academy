@@ -563,6 +563,8 @@ export async function PATCH(request: NextRequest) {
       if (Object.keys(updates).length > 0) {
         const { error } = await admin.from('profiles').update(updates).eq('id', id)
         if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+        const { invalidateProfileCache } = await import('@/lib/cache/profile-cache')
+        await invalidateProfileCache(id)
       }
 
       if (

@@ -29,7 +29,7 @@ export function NotificationBell() {
   } = useNotifications({
     limit: 20,
     realtime: true,
-    fallbackPollMs: 60_000,
+    fallbackPollMs: 120_000,
   });
 
   const handleNotificationClick = async (notification: Notification) => {

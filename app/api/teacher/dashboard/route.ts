@@ -63,17 +63,26 @@ export async function GET() {
       });
     }
 
-    // 4. دریافت دانش‌آموزان کلاس
-    const { data: students, error: studentsError } = await supabase
-      .from('students')
-      .select(`
-        id,
-        full_name,
-        grade,
-        user_id
-      `)
-      .eq('class_id', teacherClass.id)
-      .order('full_name', { ascending: true });
+    // 4. دریافت دانش‌آموزان کلاس + تعداد آزمون‌های پیش‌رو (موازی)
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const [
+      { data: students, error: studentsError },
+      { count: upcomingExamsCount },
+    ] = await Promise.all([
+      supabase
+        .from('students')
+        .select('id, full_name, grade, user_id')
+        .eq('class_id', teacherClass.id)
+        .order('full_name', { ascending: true })
+        .limit(200),
+      supabase
+        .from('exams')
+        .select('id', { count: 'exact', head: true })
+        .eq('class_id', teacherClass.id)
+        .gte('exam_date', todayStr)
+        .in('status', ['scheduled', 'published', 'active']),
+    ]);
 
     if (studentsError) {
       console.error('Error fetching students:', studentsError);
@@ -85,21 +94,39 @@ export async function GET() {
 
     const studentIds = students?.map((s) => s.id) || [];
 
-    // 5. دریافت آخرین نمرات (برای هر دانش‌آموز)
-    const { data: allGrades, error: gradesError } = await supabase
-      .from('grades')
-      .select('student_id, score, subject, exam_date, exam_type')
-      .in('student_id', studentIds)
-      .order('exam_date', { ascending: false })
-      .limit(100);
+    // 5–6. نمرات و حضور امروز (موازی؛ فقط وقتی دانش‌آموز داریم)
+    const today = todayStr;
+    const emptyGrades: {
+      student_id: string;
+      score: number;
+      subject: string;
+      exam_date: string;
+      exam_type: string;
+    }[] = [];
+    const emptyAttendance: { student_id: string; status: string }[] = [];
 
-    // 6. دریافت حضور امروز
-    const today = new Date().toISOString().split('T')[0];
-    const { data: todayAttendance, error: attendanceError } = await supabase
-      .from('attendance')
-      .select('student_id, status')
-      .in('student_id', studentIds)
-      .eq('date', today);
+    const [gradesResult, attendanceResult] =
+      studentIds.length > 0
+        ? await Promise.all([
+            supabase
+              .from('grades')
+              .select('student_id, score, subject, exam_date, exam_type')
+              .in('student_id', studentIds)
+              .order('exam_date', { ascending: false })
+              .limit(100),
+            supabase
+              .from('attendance')
+              .select('student_id, status')
+              .in('student_id', studentIds)
+              .eq('date', today),
+          ])
+        : [
+            { data: emptyGrades, error: null },
+            { data: emptyAttendance, error: null },
+          ];
+
+    const allGrades = gradesResult.data;
+    const todayAttendance = attendanceResult.data;
 
     // 7. محاسبه آخرین نمره هر دانش‌آموز
     const lastGradeMap = new Map<string, { score: number; subject: string }>();
@@ -204,14 +231,6 @@ export async function GET() {
       })
       .filter((a) => a !== null);
 
-    const todayStr = new Date().toISOString().split('T')[0];
-    const { count: upcomingExamsCount } = await supabase
-      .from('exams')
-      .select('id', { count: 'exact', head: true })
-      .eq('class_id', teacherClass.id)
-      .gte('exam_date', todayStr)
-      .in('status', ['scheduled', 'published', 'active']);
-
     // 13. پاسخ نهایی
     return NextResponse.json({
       success: true,
@@ -238,10 +257,11 @@ export async function GET() {
       alerts,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Teacher dashboard error:', error);
+    const message = error instanceof Error ? error.message : 'خطای سرور';
     return NextResponse.json(
-      { error: 'خطای سرور', details: error.message },
+      { error: 'خطای سرور', details: message },
       { status: 500 }
     );
   }

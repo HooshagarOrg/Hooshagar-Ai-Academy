@@ -111,22 +111,22 @@ export default function AISystemPage() {
     try {
       setLoading(true);
 
-      // دریافت تنظیمات کلی
-      const settingsRes = await fetch('/api/admin/ai-settings');
+      const [settingsRes, modelsRes, alertsRes] = await Promise.all([
+        fetch('/api/admin/ai-settings'),
+        fetch('/api/admin/ai-models'),
+        fetch('/api/admin/ai-alerts'),
+      ]);
+
       if (settingsRes.ok) {
         const data = await settingsRes.json();
         setSettings(data.settings);
       }
 
-      // دریافت مدل‌ها
-      const modelsRes = await fetch('/api/admin/ai-models');
       if (modelsRes.ok) {
         const data = await modelsRes.json();
         setModels(data.models);
       }
 
-      // دریافت هشدارها
-      const alertsRes = await fetch('/api/admin/ai-alerts');
       if (alertsRes.ok) {
         const data = await alertsRes.json();
         setAlerts(data.alerts);

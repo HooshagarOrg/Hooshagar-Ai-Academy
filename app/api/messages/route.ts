@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth } from '@/lib/security/api-guard'
 
@@ -25,7 +24,7 @@ export async function GET(request: NextRequest) {
   return withAuth(
     request,
     async (ctx) => {
-      const supabase = await createClient()
+      const supabase = ctx.supabase
       const { searchParams } = new URL(request.url)
       const type = searchParams.get('type') || 'all'
       const withUser = searchParams.get('with')
@@ -108,7 +107,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'نمی‌توانید به خودتان پیام بفرستید' }, { status: 400 })
       }
 
-      const supabase = await createClient()
+      const supabase = ctx.supabase
 
       // گیرنده باید در همان مدرسه باشد (در صورت امکان)
       if (ctx.schoolId) {
@@ -171,7 +170,7 @@ export async function PATCH(request: NextRequest) {
       }
 
       const { message_id, mark_all_read, peer_id } = parsed.data
-      const supabase = await createClient()
+      const supabase = ctx.supabase
       const readAt = new Date().toISOString()
 
       if (mark_all_read) {
@@ -225,7 +224,7 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: 'شناسه پیام الزامی است' }, { status: 400 })
       }
 
-      const supabase = await createClient()
+      const supabase = ctx.supabase
       const { error } = await supabase
         .from('messages_direct')
         .delete()

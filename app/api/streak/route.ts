@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 // دریافت اطلاعات Streak کاربر
@@ -26,22 +26,36 @@ export async function GET() {
       )
     }
 
-    // دریافت Milestones
-    const { data: milestones } = await supabase
-      .from('streak_milestones')
-      .select('*')
-      .eq('is_active', true)
-      .order('days_required')
-
-    // دریافت دستاوردهای کاربر
-    const { data: userMilestones } = await supabase
-      .from('user_streak_milestones')
-      .select(`
-        *,
-        milestone:milestone_id(*)
-      `)
-      .eq('user_id', user.id)
-      .order('achieved_at', { ascending: false })
+    // دریافت Milestones و دستاوردهای کاربر (موازی)
+    const [
+      { data: milestones },
+      { data: userMilestones },
+    ] = await Promise.all([
+      supabase
+        .from('streak_milestones')
+        .select(
+          'id, days_required, name, name_en, description, xp_reward, coins_reward, freeze_reward, icon_emoji, sort_order, is_active, created_at'
+        )
+        .eq('is_active', true)
+        .order('days_required')
+        .limit(100),
+      supabase
+        .from('user_streak_milestones')
+        .select(`
+          id,
+          user_id,
+          milestone_id,
+          achieved_at,
+          streak_at_time,
+          reward_claimed,
+          milestone:milestone_id(
+            id, days_required, name, name_en, description, xp_reward, coins_reward, freeze_reward, icon_emoji, sort_order, is_active
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('achieved_at', { ascending: false })
+        .limit(100),
+    ])
 
     return NextResponse.json({
       success: true,

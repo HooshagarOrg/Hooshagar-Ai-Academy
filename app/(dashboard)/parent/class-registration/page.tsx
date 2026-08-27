@@ -95,6 +95,8 @@ export default function ClassRegistrationPage() {
   const [timeRemaining, setTimeRemaining] = useState({ days: 0, hours: 0, minutes: 0, expired: false })
 
   // بارگذاری داده‌ها
+  // waterfall آگاهانه: layout/context والد studentId را فراهم نمی‌کند؛
+  // ابتدا /api/parent/dashboard برای activeChild.id، سپس lottery با همان studentId.
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)

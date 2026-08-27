@@ -58,12 +58,48 @@ export async function GET() {
       );
     }
 
-    // 4. دریافت XP data از talent_garden
-    const { data: xpData } = await supabase
-      .from('talent_garden')
-      .select('total_xp, level, coins, current_streak, longest_streak')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    // 4–6. XP، نمرات، حضور و تکالیف (موازی پس از دانستن student.id)
+    const today = new Date().toISOString().split('T')[0];
+
+    const [
+      { data: xpData },
+      { data: grades },
+      { data: todayAttendance },
+      { data: homeworkRows },
+      { data: classStudents },
+    ] = await Promise.all([
+      supabase
+        .from('talent_garden')
+        .select('total_xp, level, coins, current_streak, longest_streak')
+        .eq('user_id', user.id)
+        .maybeSingle(),
+      supabase
+        .from('grades')
+        .select('id, subject, score, exam_type, exam_date')
+        .eq('student_id', student.id)
+        .order('exam_date', { ascending: false })
+        .limit(20),
+      supabase
+        .from('attendance')
+        .select('status')
+        .eq('student_id', student.id)
+        .eq('date', today)
+        .maybeSingle(),
+      supabase
+        .from('homework_submissions')
+        .select('id, subject, title, due_date, submission_status')
+        .eq('student_id', student.id)
+        .in('submission_status', ['pending', 'late', 'not_submitted'])
+        .order('due_date', { ascending: true })
+        .limit(5),
+      student.class_id
+        ? supabase
+            .from('students')
+            .select('user_id')
+            .eq('class_id', student.class_id)
+            .limit(200)
+        : Promise.resolve({ data: null as { user_id: string | null }[] | null }),
+    ]);
 
     const xp = {
       ...(xpData || {
@@ -76,32 +112,6 @@ export async function GET() {
       rank: 0,
       total_students: 0,
     };
-
-    // 5. دریافت نمرات (20 نمره اخیر)
-    const { data: grades, error: gradesError } = await supabase
-      .from('grades')
-      .select('id, subject, score, exam_type, exam_date')
-      .eq('student_id', student.id)
-      .order('exam_date', { ascending: false })
-      .limit(20);
-
-    // 6. دریافت حضور امروز
-    const today = new Date().toISOString().split('T')[0];
-    const { data: todayAttendance } = await supabase
-      .from('attendance')
-      .select('status')
-      .eq('student_id', student.id)
-      .eq('date', today)
-      .maybeSingle();
-
-    // تکالیف در انتظار
-    const { data: homeworkRows } = await supabase
-      .from('homework_submissions')
-      .select('id, subject, title, due_date, submission_status')
-      .eq('student_id', student.id)
-      .in('submission_status', ['pending', 'late', 'not_submitted'])
-      .order('due_date', { ascending: true })
-      .limit(5);
 
     // 7. محاسبه میانگین نمرات
     const totalGrades = grades?.length || 0;
@@ -120,15 +130,10 @@ export async function GET() {
     })) || [];
 
     // 9. محاسبه رتبه در کلاس (ساده: بر اساس XP)
-    if (student.class_id) {
-      const { data: classStudents } = await supabase
-        .from('students')
-        .select('user_id')
-        .eq('class_id', student.class_id);
+    if (classStudents && classStudents.length > 0) {
+      const userIds = classStudents.map((s) => s.user_id).filter(Boolean) as string[];
 
-      if (classStudents) {
-        const userIds = classStudents.map((s) => s.user_id).filter(Boolean);
-        
+      if (userIds.length > 0) {
         const { data: classRanks } = await supabase
           .from('talent_garden')
           .select('user_id, total_xp')

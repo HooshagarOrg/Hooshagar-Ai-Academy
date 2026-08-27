@@ -59,6 +59,8 @@ export const HotCacheKeys = {
   classes: (schoolId: string) => `hooshagar:cache:classes:${schoolId}`,
   leaderboard: (schoolId: string) => `hooshagar:cache:leaderboard:${schoolId}`,
   unreadCount: (userId: string) => `hooshagar:cache:unread:${userId}`,
+  schoolName: (schoolId: string) => `hooshagar:cache:school-name:${schoolId}`,
+  parentChildren: (parentId: string) => `hooshagar:cache:parent-children:${parentId}`,
 } as const
 
 export const HotCacheTTL = {
@@ -67,4 +69,6 @@ export const HotCacheTTL = {
   classes: 300,
   leaderboard: 60,
   unreadCount: 10,
+  schoolName: 300,
+  parentChildren: 120,
 } as const

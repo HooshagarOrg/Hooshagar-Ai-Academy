@@ -1,11 +1,15 @@
 # خط پایه ظرفیت — هوشاگر
 
-**هدف ظرفیت:** ~۱۰٬۰۰۰ کاربر ثبت‌نامی، ~۱۰۰۰ کاربر همزمان  
+**هدف ظرفیت:** ~۳۰۰۰ دانش‌آموز / ~۶٬۵۰۰ کاربر ثبت‌نامی / ~۵۰۰ کاربر همزمان  
 **تاریخ خط پایه (قبل از سخت‌سازی):** ۱۴۰۵/۰۶/۰۴  
 **تاریخ اعمال روی DB Pro:** ۱۴۰۵/۰۶/۰۵ — MCP `apply_migration`:
 - `rls_student_scope_perf` (`20260826214752`)
 - `retention_and_trigger_lightening` (`20260826214901`)
 - `revoke_trigger_function_execute` (`20260826215757`) — بستن EXECUTE روی توابع trigger
+- `157_bulk_in_app_notifications` — درج دسته‌ای اعلان
+- `158_admin_aggregates` — تجمیع آمار ادمین در SQL
+- `159_drop_user_badges_realtime` — حذف `user_badges` از publication
+- `160_retention_rls_hot_indexes` — retention، سیاست‌های داغ، ایندکس FK
 
 منطقه: `eu-central-1` (Frankfurt = `fra1`). سیاست‌های RLS زنده: **۲۳۵**. ایندکس‌های داغ ساخته شد. cronهای cleanup فعال‌اند.  
 **دیپلوی کد سخت‌سازی روی Vercel:** هنوز روی Production نیست (آخرین Ready: `chore: remove ad-hoc SQL scripts`).  
@@ -25,7 +29,7 @@
 | لاگ | `155_retention_and_trigger_lightening.sql` |
 | امنیت trigger | `156_revoke_trigger_function_execute.sql` |
 | Rate limit | کلید `user:` برای احراز‌شده؛ exam_answer/submit؛ `SCHOOL_AI_DAILY_CAP` |
-| Polling | fallback ۱۲۰s فقط unread-count |
+| Polling | کارمند: Realtime + fallback ۱۲۰s؛ والد/دانش‌آموز: unread-count هر ۶۰s |
 | CI | `k6 inspect` روی اسکریپت‌های load |
 
 ## اقدام دستی ادمین (قبل از ادعای ظرفیت)

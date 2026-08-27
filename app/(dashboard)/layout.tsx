@@ -5,6 +5,11 @@ import { DashboardThemeProvider } from '@/components/providers/dashboard-theme-p
 import { DashboardSessionPending } from '@/components/layout/dashboard-session-pending'
 import { DEFAULT_UI_THEME, isUiTheme, type UiTheme } from '@/lib/theme/constants'
 import { getProfileCached } from '@/lib/cache/profile-cache'
+import {
+  HotCacheKeys,
+  HotCacheTTL,
+  withRedisCache,
+} from '@/lib/cache/hot-cache'
 
 export default async function DashboardLayout({
   children,
@@ -53,23 +58,39 @@ export default async function DashboardLayout({
 
   let schoolName: string | undefined
   if (schoolId) {
-    const { data: school } = await supabase
-      .from('schools')
-      .select('name')
-      .eq('id', schoolId)
-      .maybeSingle()
-    schoolName = school?.name
+    const { data: cachedName } = await withRedisCache<string | null>(
+      HotCacheKeys.schoolName(schoolId),
+      HotCacheTTL.schoolName,
+      async () => {
+        const { data: school } = await supabase
+          .from('schools')
+          .select('name')
+          .eq('id', schoolId)
+          .maybeSingle()
+        return school?.name ?? null
+      }
+    )
+    schoolName = cachedName ?? undefined
   }
 
   let contextLabel: string | undefined
   if (role === 'parent') {
     const parentId = headerUserId || user.id
-    const { data: children } = await supabase
-      .from('students')
-      .select('full_name, grade')
-      .eq('parent_id', parentId)
-      .order('full_name', { ascending: true })
-      .limit(3)
+    const { data: children } = await withRedisCache<
+      Array<{ full_name: string | null; grade: number | null }>
+    >(
+      HotCacheKeys.parentChildren(parentId),
+      HotCacheTTL.parentChildren,
+      async () => {
+        const { data } = await supabase
+          .from('students')
+          .select('full_name, grade')
+          .eq('parent_id', parentId)
+          .order('full_name', { ascending: true })
+          .limit(3)
+        return data || []
+      }
+    )
 
     if (children && children.length > 0) {
       const first = children[0]

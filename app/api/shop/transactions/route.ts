@@ -43,11 +43,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // محاسبه آمار
+    // آمار عمر: سقف سخت تا جدول تراکنش بی‌کران نشود
     const { data: statsData } = await supabase
       .from('coin_transactions')
       .select('type, amount')
       .eq('user_id', user.id)
+      .limit(2000)
 
     const stats = {
       total_earned: 0,

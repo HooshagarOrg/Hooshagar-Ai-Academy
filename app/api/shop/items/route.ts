@@ -112,7 +112,8 @@ export async function GET(request: NextRequest) {
         supabase
           .from('user_purchases')
           .select('item_id')
-          .eq('user_id', user.id),
+          .eq('user_id', user.id)
+          .limit(500),
         supabase
           .from('talent_garden')
           .select('level, coins')

@@ -1,6 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/supabase'
 import { logError } from '@/lib/logger'
+import { asOne } from '@/lib/supabase/relation'
+import {
+  HotCacheKeys,
+  HotCacheTTL,
+  withRedisCache,
+} from '@/lib/cache/hot-cache'
+
+type BadgeCatalogRow = {
+  id: string
+  name: string | null
+  name_fa: string | null
+  description_fa: string | null
+  icon: string | null
+  color: string | null
+  rarity: string | null
+  xp_reward: number | null
+  requirement_type: string | null
+  requirement_value: number | null
+}
+
+type StudentBadgeRow = {
+  id: string
+  unlocked_at: string | null
+  progress: number | null
+  badges: BadgeCatalogRow | BadgeCatalogRow[] | null
+}
+
+const BADGE_CATALOG_COLUMNS =
+  'id, name, name_fa, description_fa, icon, color, rarity, xp_reward, requirement_type, requirement_value'
 
 /**
  * GET /api/badges/student?studentId=xxx
@@ -9,7 +38,7 @@ import { logError } from '@/lib/logger'
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession()
-    
+
     if (!session) {
       return NextResponse.json(
         { error: 'احراز هویت نشده' },
@@ -29,7 +58,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const supabase = session.supabase
 
-    // دریافت badge‌های دانش‌آموز با جزئیات
     const { data: studentBadges, error } = await supabase
       .from('student_badges')
       .select(`
@@ -37,18 +65,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         unlocked_at,
         progress,
         badges (
-          id,
-          name,
-          name_fa,
-          description_fa,
-          icon,
-          color,
-          rarity,
-          xp_reward
+          ${BADGE_CATALOG_COLUMNS}
         )
       `)
       .eq('student_id', studentId)
       .order('unlocked_at', { ascending: false })
+      .limit(200)
 
     if (error) {
       console.error('❌ Failed to fetch student badges:', error)
@@ -58,43 +80,61 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       )
     }
 
-    // دریافت XP کل دانش‌آموز برای محاسبه پیشرفت
-    const { data: xpData } = await supabase
-      .from('xp_transactions')
-      .select('amount')
-      .eq('student_id', studentId)
+    const rows = (studentBadges || []) as StudentBadgeRow[]
 
-    const totalXp = xpData?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0
+    const [{ data: student }, { data: allBadges }] = await Promise.all([
+      supabase
+        .from('students')
+        .select('user_id')
+        .eq('id', studentId)
+        .maybeSingle(),
+      withRedisCache<BadgeCatalogRow[]>(
+        HotCacheKeys.badges(),
+        HotCacheTTL.badges,
+        async () => {
+          const { data, error: catalogError } = await supabase
+            .from('badges')
+            .select(BADGE_CATALOG_COLUMNS)
+            .eq('is_active', true)
+            .order('requirement_value', { ascending: true })
+            .limit(200)
+          if (catalogError) throw catalogError
+          return (data || []) as BadgeCatalogRow[]
+        }
+      ).then((r) => ({ data: r.data })),
+    ])
 
-    // دریافت تمام badge‌ها برای نمایش پیشرفت
-    const { data: allBadges } = await supabase
-      .from('badges')
-      .select('*')
-      .eq('is_active', true)
-      .order('requirement_value', { ascending: true })
+    let totalXp = 0
+    if (student?.user_id) {
+      const { data: garden } = await supabase
+        .from('talent_garden')
+        .select('total_xp')
+        .eq('user_id', student.user_id)
+        .maybeSingle()
+      totalXp = garden?.total_xp ?? 0
+    }
 
-    // محاسبه badge‌های available (قابل دریافت)
     const unlockedBadgeIds = new Set(
-      studentBadges?.map((sb: any) => sb.badges.id) || []
+      rows
+        .map((sb) => asOne(sb.badges)?.id)
+        .filter((id): id is string => Boolean(id))
     )
 
-    const availableBadges = allBadges?.filter(badge => {
+    const catalog = allBadges || []
+    const availableBadges = catalog.filter((badge) => {
       if (unlockedBadgeIds.has(badge.id)) return false
-      
-      // فقط XP-based badge‌ها را چک می‌کنیم
       if (badge.requirement_type === 'xp') {
-        return totalXp >= badge.requirement_value
+        return totalXp >= (badge.requirement_value ?? 0)
       }
-      
       return false
-    }) || []
+    })
 
     return NextResponse.json({
-      badges: studentBadges,
+      badges: rows,
       totalXp,
-      unlockedCount: studentBadges?.length || 0,
-      totalBadges: allBadges?.length || 0,
-      availableBadges
+      unlockedCount: rows.length,
+      totalBadges: catalog.length,
+      availableBadges,
     })
   } catch (error) {
     logError('Student badges GET error', error)
@@ -104,4 +144,3 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     )
   }
 }
-

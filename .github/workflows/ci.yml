@@ -59,6 +59,8 @@ jobs:
           k6 inspect scripts/load/teacher.js
           k6 inspect scripts/load/parent.js
           k6 inspect scripts/load/student.js
+          k6 inspect scripts/load/school-3000.js
+          node --check scripts/load/school-3000-curl.mjs
         # بار واقعی روی staging: docs/CAPACITY_BASELINE.md
 
   security-audit:

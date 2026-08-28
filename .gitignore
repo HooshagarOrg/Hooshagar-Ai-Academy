@@ -8,6 +8,9 @@
 
 # testing
 /coverage
+scripts/load/*-summary.json
+scripts/load/*-raw.json
+scripts/load/*-curl-results.txt
 /test-results/
 /playwright-report/
 /blob-report/

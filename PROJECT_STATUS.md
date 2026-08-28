@@ -1,5 +1,7 @@
 # 📊 وضعیت پروژه هوشاگر - 3 دی 1403
 
+> **منسوخ برای تصمیم جاری.** وضعیت محصول و ظرفیت: [`docs/POST_INTRO_PLAN.md`](docs/POST_INTRO_PLAN.md) و [`docs/CAPACITY_BASELINE.md`](docs/CAPACITY_BASELINE.md) (هدف ~۳۰۰۰ دانش‌آموز / ~۵۰۰ همزمان).
+
 ## ✅ Phase های تکمیل شده (90%)
 
 ### Phase 1: Foundation (100% ✅)

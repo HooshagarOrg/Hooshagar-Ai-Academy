@@ -3,7 +3,8 @@
 **تاریخ:** ۱۴۰۵/۰۵/۰۳ (۲۵ ژوئیه ۲۰۲۶)  
 **دامنه production:** https://www.hooshagar.ir  
 **مخاطب:** ادمین کل + اپراتور غیرتخصصی + توسعه‌دهنده (Cursor)  
-**وضعیت:** پیاده‌سازی فاز ۰–۳ در Agent انجام شد (اسناد + بک‌آپ workflow + حیاتی‌ها + school-settings/GDPR/PIN/CI). تست پایلوت دستی نقش‌محور هنوز باز است — [`PILOT_TEST_AUTO_RESULTS.md`](PILOT_TEST_AUTO_RESULTS.md).
+**وضعیت:** پیاده‌سازی فاز ۰–۳ در Agent انجام شد (اسناد + بک‌آپ workflow + حیاتی‌ها + school-settings/GDPR/PIN/CI). تست پایلوت دستی نقش‌محور هنوز باز است — [`PILOT_TEST_AUTO_RESULTS.md`](PILOT_TEST_AUTO_RESULTS.md).  
+**ظرفیت فعلی:** ~۳۰۰۰ دانش‌آموز / ~۵۰۰ همزمان روی Production — [`CAPACITY_BASELINE.md`](CAPACITY_BASELINE.md). هدف ۱۰k را از این سند دنبال نکنید.
 
 ---
 

@@ -25,7 +25,7 @@
 | کلید API | مرورگر روی publishable؛ JWTهای Legacy (`anon` / `service_role`) Disable |
 | دیپلوی | Production Ready روی `www.hooshagar.ir`؛ داشبورد بعد از Disable تأیید شد |
 
-اسکریپت k6 در `scripts/load/` برای اندازه‌گیری اختیاری است، نه شرط اتمام این پلن.
+اسکریپت k6 در `scripts/load/` برای اندازه‌گیری است. روی Production کلاینت Goِ k6 را فایروال Vercel با ۴۰۳ چالش می‌بندد؛ عدد SLO از `node scripts/load/school-3000-curl.mjs` ثبت شد.
 
 ---
 
@@ -38,7 +38,18 @@
 | نرخ خطای ۵xx | < ۰٫۱٪ |
 | پیک همزمان | ~۵۰۰ (سقف Realtime پلن Pro فعلی) |
 
-بارآزمایی k6 روی Production با VU بالا اجرا نشود.
+بارآزمایی با ۳۰۰۰ VU همزمان روی Production اجرا نشود. پیک ۵۰۰ همزمان فقط روی staging با `K6_PROFILE=peak`.
+
+### نتیجه ۱۴۰۵/۰۶/۰۶ — ۳۰۰۰ بازدید معادل روی Production
+
+شرایط: `https://www.hooshagar.ir`، ۱۵ همزمان (نه ۳۰۰۰ VU)، هر بازدید `GET /api/health` + `GET /login`، DNS pin به `64.29.17.1`. از این محیط lookup دامنه بدون pin شکست می‌خورد.
+
+| اجرا | نتیجه |
+|------|--------|
+| k6 v0.54، ۲۵ VU، ۳۰۰۰ iteration | ۶۰۰۰ درخواست؛ **۹۹٫۶٪ شکست** (صفحهٔ چالش Astro/۴۰۳ فایروال). health ۲۰۰ فقط ۲۴/۳۰۰۰. برای SLO اعتبار ندارد. |
+| `school-3000-curl.mjs` + curl.exe (Schannel)، ۱۵ همزمان، ۳۰۰۰ بازدید | **۶۰۰۰/۶۰۰۰ HTTP ۲۰۰**؛ نرخ شکست ۰؛ p95 **۱٫۱۹ s**؛ میانگین **۰٫۷۱ s**؛ مدت دیوار **۱۹٫۴ دقیقه** |
+
+صفحهٔ ورود از CDN با `X-Vercel-Cache: HIT` سرو شد؛ `/api/health` تابع سرور است. p95 ترکیبی از این مسیر شبکه است، نه SLO داخلی بدون cold start.
 
 ```bash
 export BASE_URL=https://staging.example.com
@@ -47,9 +58,12 @@ k6 run scripts/load/smoke.js
 k6 run scripts/load/teacher.js
 k6 run scripts/load/parent.js
 k6 run scripts/load/student.js
-```
 
-نتایج خالی در نسخه‌های قبلی این سند به‌معنای ناتمام بودن پلن کد نیست.
+# مدل ۳۰۰۰ دانش‌آموز (بازدید معادل، سقف همزمان پایین)
+k6 run scripts/load/school-3000.js
+# اگر k6 روی Production پاسخ ۴۰۳ گرفت:
+node scripts/load/school-3000-curl.mjs
+```
 
 ---
 
@@ -70,4 +84,4 @@ k6 run scripts/load/student.js
 - [x] Realtime در سقف ۵۰۰ پیک Pro، محدود به کارمند
 - [x] کد سخت‌سازی روی Production
 - [x] کلید publishable + Disable JWT Legacy
-- [ ] k6 روی staging — اختیاری، برای عدد p95 نه برای «آماده بودن معماری»
+- [x] k6/curl ۳۰۰۰ بازدید معادل روی Production (۱۵ همزمان؛ k6 به‌خاطر WAF عدد SLO نمی‌دهد)

@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils'
 import {
   REPORT_CATEGORIES,
   REPORT_CATEGORY_LABELS,
-  SUPPORT_CONTACT_EMAIL,
   TICKET_STATUS_LABELS,
   TICKET_STATUSES,
   type ReportCategory,
@@ -22,6 +21,7 @@ export default function AdminSupportPage() {
   const [savingId, setSavingId] = useState<string | null>(null)
   const [tickets, setTickets] = useState<SupportTicketRow[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<TicketStatus | 'all'>('open')
   const [categoryFilter, setCategoryFilter] = useState<ReportCategory | 'all'>('all')
 
@@ -52,18 +52,40 @@ export default function AdminSupportPage() {
 
   const updateStatus = async (id: string, status: TicketStatus) => {
     setSavingId(id)
+    setError(null)
     try {
       const res = await fetch(`/api/support/tickets/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({
+          status,
+          notifyReporter: status === 'resolved',
+        }),
       })
-      const data = (await res.json()) as { error?: string }
+      const data = (await res.json()) as {
+        error?: string
+        reporterSmsSent?: boolean
+        reporterNotifiedInApp?: boolean
+      }
       if (!res.ok) {
         throw new Error(data.error || 'به‌روزرسانی ناموفق بود')
       }
+      if (status === 'resolved') {
+        const parts: string[] = []
+        if (data.reporterNotifiedInApp) parts.push('اعلان داخل برنامه')
+        if (data.reporterSmsSent) parts.push('پیامک')
+        setInfo(
+          parts.length > 0
+            ? `کاربر با ${parts.join(' و ')} خبر شد.`
+            : 'وضعیت حل شد؛ پیامک ارسال نشد (شماره موبایل کاربر را بررسی کنید).'
+        )
+        setError(null)
+      } else {
+        setInfo(null)
+      }
       await load()
     } catch (err) {
+      setInfo(null)
       setError(err instanceof Error ? err.message : 'به‌روزرسانی ناموفق بود')
     } finally {
       setSavingId(null)
@@ -73,7 +95,7 @@ export default function AdminSupportPage() {
   return (
     <DashboardPage
       title="صندوق پشتیبانی"
-      description={`گزارش ورود، حساب و راهنما اینجا ثبت می‌شود. نسخهٔ ایمیلی به ${SUPPORT_CONTACT_EMAIL} می‌رود. باگ نرم‌افزار در Sentry است.`}
+      description="گزارش ورود و راهنما اینجا ثبت می‌شود. زنگ به اپراتور با پیامک است. با زدن «حل شد» کاربر با اعلان داخل برنامه و پیامک خبر می‌شود. باگ نرم‌افزار در Sentry است."
       actions={
         <Button type="button" variant="outline" size="sm" onClick={() => void load()} disabled={loading}>
           {loading ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
@@ -111,6 +133,11 @@ export default function AdminSupportPage() {
       </DashboardSectionBlock>
 
       <DashboardSectionBlock>
+        {info && (
+          <p className="mb-3 text-sm text-emerald-600" role="status">
+            {info}
+          </p>
+        )}
         {error && (
           <p className="mb-3 text-sm text-destructive" role="alert">
             {error}
@@ -141,8 +168,11 @@ export default function AdminSupportPage() {
                   >
                     {TICKET_STATUS_LABELS[ticket.status]}
                   </Badge>
-                  {ticket.email_sent_at && (
-                    <span className="text-xs text-muted-foreground">ایمیل ارسال شد</span>
+                  {ticket.operator_sms_sent_at && (
+                    <span className="text-xs text-muted-foreground">پیامک به اپراتور</span>
+                  )}
+                  {ticket.reporter_resolved_sms_sent_at && (
+                    <span className="text-xs text-muted-foreground">پیامک رفع به کاربر</span>
                   )}
                 </div>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-7">{ticket.message}</p>

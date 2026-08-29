@@ -10,7 +10,7 @@ import {
 } from '@/lib/support/report-problem'
 
 const TICKET_SELECT =
-  'id, user_id, school_id, role, category, status, message, path, error_name, reporter_name, reporter_email, school_name, email_sent_at, created_at, updated_at'
+  'id, user_id, school_id, role, category, status, message, path, error_name, reporter_name, reporter_email, school_name, email_sent_at, operator_sms_sent_at, reporter_resolved_sms_sent_at, created_at, updated_at'
 
 export async function GET(request: NextRequest) {
   return withAuth(

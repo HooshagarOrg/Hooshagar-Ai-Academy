@@ -12,7 +12,6 @@ import { LuxStatGrid } from '@/components/lux/lux-stat-grid'
 import { LuxHubGrid, type LuxHubGroup } from '@/components/lux/lux-hub-grid'
 import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
-import { SUPPORT_CONTACT_EMAIL } from '@/lib/support/report-problem'
 
 const ADMIN_HUB: LuxHubGroup[] = [
   {
@@ -146,7 +145,7 @@ const ADMIN_HUB: LuxHubGroup[] = [
     cards: [
       {
         title: 'صندوق پشتیبانی',
-        description: `گزارش ورود و راهنمای کاربران — اعلان به ${SUPPORT_CONTACT_EMAIL}`,
+        description: 'گزارش ورود و راهنما — زنگ پیامکی به اپراتور؛ پس از رفع به کاربر',
         icon: Inbox,
         href: '/admin/support',
         color: 'text-brand-cyan',

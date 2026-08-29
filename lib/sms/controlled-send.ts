@@ -19,6 +19,7 @@ export type SmsKind =
   | 'parent_invite'
   | 'financial'
   | 'broadcast'
+  | 'support'
   | 'other'
 
 export interface ControlledSmsInput {

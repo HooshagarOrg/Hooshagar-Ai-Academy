@@ -17,7 +17,7 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # نسخه از package.json → packageManager خوانده می‌شود
       - uses: pnpm/action-setup@v4

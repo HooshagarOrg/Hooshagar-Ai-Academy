@@ -1,24 +1,45 @@
 import { expect, test } from '@playwright/test'
+import { seedCookieConsent } from './helpers/cookies'
 
-test.describe('pilot smoke', () => {
-  test('home page responds with 200', async ({ request }) => {
-    const response = await request.get('/', { timeout: 180_000 })
-    expect(response.ok()).toBeTruthy()
-    const html = await response.text()
-    expect(html).toMatch(/lang=["']fa/i)
+test.describe('smoke', () => {
+  test.describe.configure({ timeout: 110_000 })
+
+  test('app loads with HTTP 200', async ({ page }) => {
+    const response = await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 45_000 })
+    expect(response?.status()).toBe(200)
   })
 
-  test('health API responds with status payload', async ({ request }) => {
-    const response = await request.get('/api/health', { timeout: 180_000 })
-    expect([200, 503]).toContain(response.status())
-    const body = (await response.json()) as { status?: string }
-    expect(['healthy', 'unhealthy']).toContain(body.status)
+  test('login page renders', async ({ page }) => {
+    await seedCookieConsent(page)
+    await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 45_000 })
+    await expect(page.getByTestId('login-page')).toBeVisible({ timeout: 20_000 })
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+    await expect(page.getByTestId('login-tab-staff')).toBeVisible()
+    await expect(page.getByTestId('login-tab-student')).toBeVisible()
   })
 
-  test('ready probe always returns ready', async ({ request }) => {
-    const response = await request.get('/api/ready', { timeout: 180_000 })
-    expect(response.status()).toBe(200)
-    const body = (await response.json()) as { ready?: boolean }
-    expect(body.ready).toBe(true)
+  test('health API returns 200', async ({ page }) => {
+    const response = await page.goto('/api/health', {
+      waitUntil: 'domcontentloaded',
+      timeout: 45_000,
+    })
+    expect(response?.status()).toBe(200)
+    const body = (await response?.json()) as {
+      status?: string
+      timestamp?: string
+      db?: string
+      version?: string
+      services?: { database?: string }
+    }
+    expect(['ok', 'healthy']).toContain(body.status)
+    expect(typeof body.timestamp).toBe('string')
+    if (body.db) {
+      expect(body.db).toBe('ok')
+    } else {
+      expect(body.services?.database).toBe('up')
+    }
+    if (body.version) {
+      expect(typeof body.version).toBe('string')
+    }
   })
 })

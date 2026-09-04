@@ -12,9 +12,17 @@ const SENTRY_ISSUES_URL =
 type HealthPayload = {
   status?: string
   timestamp?: string
+  db?: string
+  version?: string
   services?: { database?: string; api?: string }
   responseTime?: string
   error?: string
+}
+
+function isHealthOk(httpOk: boolean, data: HealthPayload): boolean {
+  const statusOk = data.status === 'ok' || data.status === 'healthy'
+  const dbOk = data.db === 'ok' || data.services?.database === 'up'
+  return httpOk && statusOk && dbOk
 }
 
 export default function AdminSystemHealthPage() {
@@ -29,7 +37,7 @@ export default function AdminSystemHealthPage() {
       const res = await fetch('/api/health', { cache: 'no-store' })
       const data = (await res.json()) as HealthPayload
       setHealth(data)
-      setHttpOk(res.ok && data.status === 'healthy')
+      setHttpOk(isHealthOk(res.ok, data))
       setCheckedAt(new Date().toLocaleString('fa-IR'))
     } catch {
       setHealth({

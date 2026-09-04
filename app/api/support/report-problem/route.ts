@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { withAuth } from '@/lib/security/api-guard'
 import { createServiceClient } from '@/lib/supabase/service'
-import { sendTransactionalEmail } from '@/lib/email/send-transactional'
-import { formatSupportEmail } from '@/lib/support/format-ticket-email'
+import { notifyOperatorsNewTicket } from '@/lib/support/notify-sms'
 import {
-  SUPPORT_CONTACT_EMAIL,
   reportProblemSchema,
-  shouldEmailSupportInbox,
+  shouldNotifyOperatorSms,
   supportSavedNotice,
 } from '@/lib/support/report-problem'
 
@@ -32,12 +30,11 @@ export async function POST(request: NextRequest) {
 
       const { category, message, path, errorName, digest } = parsed.data
       const reportPath = path || request.headers.get('referer') || 'unknown'
-      const createdAt = new Date().toISOString()
 
       const service = createServiceClient()
       const { data: profile } = await service
         .from('profiles')
-        .select('full_name, email, school_id')
+        .select('full_name, email, school_id, phone')
         .eq('id', ctx.userId)
         .maybeSingle()
 
@@ -82,32 +79,23 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      let emailSent = false
-      if (shouldEmailSupportInbox(category)) {
-        const email = formatSupportEmail({
-          category,
-          message,
-          path: reportPath,
-          role: ctx.role,
-          reporterName,
-          reporterEmail,
-          schoolName,
-          createdAt,
-        })
-        const sendResult = await sendTransactionalEmail({
-          to: process.env.SUPPORT_INBOX_EMAIL || SUPPORT_CONTACT_EMAIL,
-          subject: email.subject,
-          text: email.text,
-          html: email.html,
-        })
-        if (sendResult.ok) {
-          emailSent = true
-          await service
-            .from('support_tickets')
-            .update({ email_sent_at: createdAt })
-            .eq('id', inserted.id)
-        } else if (!('skipped' in sendResult && sendResult.skipped)) {
-          console.error('support ticket email failed:', sendResult)
+      let operatorSmsSent = false
+      if (shouldNotifyOperatorSms(category)) {
+        try {
+          operatorSmsSent = await notifyOperatorsNewTicket({
+            category,
+            reporterName,
+            schoolName,
+            schoolId,
+          })
+          if (operatorSmsSent) {
+            await service
+              .from('support_tickets')
+              .update({ operator_sms_sent_at: new Date().toISOString() })
+              .eq('id', inserted.id)
+          }
+        } catch (smsErr) {
+          console.error('support operator SMS failed:', smsErr)
         }
       }
 
@@ -132,11 +120,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         ok: true,
         destination: category === 'bug' ? ('sentry' as const) : ('inbox' as const),
-        emailSent,
-        notice: supportSavedNotice(category, emailSent),
+        smsSent: operatorSmsSent,
+        notice: supportSavedNotice(category, operatorSmsSent),
       })
     },
     { rateLimit: 'api_default' }
   )
 }
-

@@ -1,16 +1,16 @@
 import {
   reportProblemSchema,
-  shouldEmailSupportInbox,
+  shouldNotifyOperatorSms,
   supportSavedNotice,
-  SUPPORT_CONTACT_EMAIL,
 } from '@/lib/support/report-problem'
-import { escapeHtml, formatSupportEmail } from '@/lib/support/format-ticket-email'
+import {
+  formatSupportOperatorSms,
+  formatSupportResolvedSms,
+  parseOperatorPhones,
+  supportFirstName,
+} from '@/lib/support/sms-copy'
 
 describe('support report helpers', () => {
-  it('uses contact@ as the support inbox', () => {
-    expect(SUPPORT_CONTACT_EMAIL).toBe('contact@hooshagar.ir')
-  })
-
   it('accepts a valid report', () => {
     const result = reportProblemSchema.safeParse({
       category: 'account',
@@ -32,37 +32,45 @@ describe('support report helpers', () => {
     ).toBe(false)
   })
 
-  it('emails only account and help, not bugs', () => {
-    expect(shouldEmailSupportInbox('account')).toBe(true)
-    expect(shouldEmailSupportInbox('help')).toBe(true)
-    expect(shouldEmailSupportInbox('bug')).toBe(false)
+  it('notifies operator by SMS only for account and help', () => {
+    expect(shouldNotifyOperatorSms('account')).toBe(true)
+    expect(shouldNotifyOperatorSms('help')).toBe(true)
+    expect(shouldNotifyOperatorSms('bug')).toBe(false)
   })
 
-  it('formats a Persian email without raw HTML from the user message', () => {
-    const email = formatSupportEmail({
-      category: 'account',
-      message: '<script>alert(1)</script> رمز را نمی‌دانم',
-      path: '/teacher',
-      role: 'teacher',
-      reporterName: 'علی',
-      reporterEmail: 'teacher@example.com',
-      schoolName: 'مدرسه آزمایشی',
-      createdAt: '2026-08-24T12:00:00.000Z',
-    })
-    expect(email.subject).toContain('ورود، رمز یا حساب کاربری')
-    expect(email.subject).toContain('مدرسه آزمایشی')
-    expect(email.html).toContain('&lt;script&gt;')
-    expect(email.html).not.toContain('<script>alert')
-    expect(email.text).toContain('علی')
-  })
-
-  it('escapes HTML entities', () => {
-    expect(escapeHtml('a < b & "c"')).toBe('a &lt; b &amp; &quot;c&quot;')
-  })
-
-  it('does not claim email was sent when it was skipped', () => {
+  it('does not claim SMS was sent when it was skipped', () => {
     const notice = supportSavedNotice('help', false)
     expect(notice).toContain('صندوق پشتیبانی')
-    expect(notice).not.toContain(SUPPORT_CONTACT_EMAIL)
+    expect(notice).not.toContain('به اپراتور پیامک شد')
+  })
+})
+
+describe('support SMS copy', () => {
+  it('parses operator phones from env-style lists', () => {
+    expect(parseOperatorPhones('09121234567, 989123456789 9121112233')).toEqual([
+      '09121234567',
+      '09123456789',
+      '09121112233',
+    ])
+  })
+
+  it('uses first name and short category in operator SMS', () => {
+    const text = formatSupportOperatorSms({
+      category: 'account',
+      reporterName: 'علی رضایی',
+      schoolName: 'مدرسه آزمایشی',
+    })
+    expect(text).toContain('حساب')
+    expect(text).toContain('علی')
+    expect(text).toContain('مدرسه آزمایشی')
+    expect(text).not.toContain('رمز')
+  })
+
+  it('formats resolved SMS for the reporter', () => {
+    expect(supportFirstName('فاطمه محمدی')).toBe('فاطمه')
+    const text = formatSupportResolvedSms('فاطمه محمدی')
+    expect(text).toContain('فاطمه')
+    expect(text).toContain('برطرف شد')
+    expect(text).toContain('www.hooshagar.ir')
   })
 })

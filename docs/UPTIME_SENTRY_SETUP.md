@@ -7,7 +7,7 @@
 3. نوع: **HTTP(s)**
 4. URL: `https://www.hooshagar.ir/api/health`
 5. بازه: ۵ دقیقه
-6. Keyword (اختیاری): `healthy`
+6. Keyword (اختیاری): `"status":"ok"`
 7. هشدار به ایمیل ادمین کل
 
 Monitor دوم (اختیاری): `https://www.hooshagar.ir` — فقط برای صفحهٔ ورود.

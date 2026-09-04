@@ -85,7 +85,7 @@ export function ReportProblemDialog({
         throw new Error(data.error || 'ارسال گزارش ناموفق بود')
       }
       toast({
-        title: category === 'bug' ? 'گزارش باگ ثبت شد' : 'راهنما',
+        title: category === 'bug' ? 'گزارش باگ ثبت شد' : 'گزارش ثبت شد',
         description: data.notice || 'ثبت شد.',
       })
       setMessage('')
@@ -127,7 +127,7 @@ export function ReportProblemDialog({
         <DialogHeader>
           <DialogTitle>گزارش مشکل</DialogTitle>
           <DialogDescription>
-            فقط خرابی برنامه برای تیم فنی به Sentry می‌رود. ورود، رمز و سؤال در صندوق پشتیبانی مدرسه ثبت می‌شود. رمز عبور ننویسید.
+            فقط خرابی برنامه برای تیم فنی به Sentry می‌رود. ورود و سؤال در صندوق پشتیبانی ثبت می‌شود. پس از رفع، با پیامک خبر می‌شوید. رمز عبور ننویسید.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

@@ -28,6 +28,7 @@ export const updateTicketStatusSchema = z.object({
   status: z.enum(TICKET_STATUSES, {
     errorMap: () => ({ message: 'وضعیت نامعتبر است' }),
   }),
+  notifyReporter: z.boolean().optional(),
 })
 
 export const REPORT_CATEGORY_LABELS: Record<ReportCategory, string> = {
@@ -42,21 +43,24 @@ export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
   resolved: 'حل شد',
 }
 
-export function shouldEmailSupportInbox(category: ReportCategory): boolean {
+export function shouldNotifyOperatorSms(category: ReportCategory): boolean {
   return category === 'account' || category === 'help'
 }
 
+/** @deprecated use shouldNotifyOperatorSms */
+export const shouldEmailSupportInbox = shouldNotifyOperatorSms
+
 export function supportSavedNotice(
   category: ReportCategory,
-  emailSent: boolean
+  operatorSmsSent: boolean
 ): string {
   if (category === 'bug') {
-    return 'گزارش باگ ثبت شد. تیم فنی آن را در Sentry و صندوق پشتیبانی می‌بیند.'
+    return 'گزارش باگ ثبت شد. تیم فنی آن را در Sentry و صندوق پشتیبانی می‌بیند. پس از رفع، با پیامک خبر می‌شوید.'
   }
-  if (emailSent) {
-    return `گزارش ثبت شد. مدرسه در صندوق پشتیبانی می‌بیند و یک نسخه به ${SUPPORT_CONTACT_EMAIL} ارسال شد.`
+  if (operatorSmsSent) {
+    return 'گزارش ثبت شد. مدرسه در صندوق پشتیبانی می‌بیند و به اپراتور پیامک شد. پس از رفع، با پیامک خبر می‌شوید.'
   }
-  return 'گزارش ثبت شد. مدرسه و اپراتور آن را در صندوق پشتیبانی داخل برنامه می‌بینند.'
+  return 'گزارش ثبت شد. مدرسه و اپراتور آن را در صندوق پشتیبانی می‌بینند. پس از رفع، با پیامک خبر می‌شوید.'
 }
 
 export type SupportTicketRow = {
@@ -74,6 +78,8 @@ export type SupportTicketRow = {
   reporter_email: string | null
   school_name: string | null
   email_sent_at: string | null
+  operator_sms_sent_at: string | null
+  reporter_resolved_sms_sent_at: string | null
   created_at: string
   updated_at: string
 }

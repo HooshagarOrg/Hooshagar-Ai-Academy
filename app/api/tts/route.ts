@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { createClient } from '@/lib/supabase/server'
+import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
 
 export const runtime = 'nodejs'
 
@@ -9,11 +11,21 @@ const querySchema = z.object({
 })
 
 /**
- * پروکسی ساده TTS برای بازی املا و موارد آموزشی.
- * از translate_tts گوگل به‌عنوان fallback مرورگرهایی که speechSynthesis فارسی ندارند.
+ * پروکسی TTS برای بازی املا — فقط کاربر واردشده، با محدودیت نرخ.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'احراز هویت الزامی است' }, { status: 401 })
+    }
+
+    const rateLimited = await applyRateLimitAsync(request, 'tts', undefined, user.id)
+    if (rateLimited) return rateLimited
+
     const { searchParams } = new URL(request.url)
     const parsed = querySchema.safeParse({
       text: searchParams.get('text') ?? '',
@@ -54,7 +66,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       status: 200,
       headers: {
         'Content-Type': 'audio/mpeg',
-        'Cache-Control': 'public, max-age=86400, immutable',
+        'Cache-Control': 'private, max-age=3600',
       },
     })
   } catch (error) {

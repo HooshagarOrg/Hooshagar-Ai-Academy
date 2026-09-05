@@ -34,15 +34,19 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://www.gstatic.com",
+              process.env.NODE_ENV === 'production'
+                ? "script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com"
+                : "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://www.gstatic.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.anthropic.com https://*.workers.dev https://api.kavenegar.com https://*.arvanstorage.ir https://*.ingest.sentry.io https://*.ingest.de.sentry.io",
               "frame-src 'self' blob: https://www.google.com",
+              "frame-ancestors 'self'",
               "object-src 'self' blob:",
               "media-src 'self' blob:",
               "worker-src 'self' blob:",
+              'upgrade-insecure-requests',
             ].join('; '),
           },
         ],
@@ -56,7 +60,7 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
-    dangerouslyAllowSVG: true,
+    dangerouslyAllowSVG: false,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [

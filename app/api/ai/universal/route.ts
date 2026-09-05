@@ -18,6 +18,7 @@ import {
 } from '@/lib/ai/gateway'
 import { log } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
+import { sanitizeUserText } from '@/lib/ai/prompt-safety'
 
 export const maxDuration = 60
 
@@ -61,10 +62,12 @@ export async function POST(request: NextRequest) {
           )
         }
 
+        const userPrompt = sanitizeUserText(prompt, 8000)
+
         const result =
           image && typeof image === 'string' && image.length > 0
-            ? await gatewayCallVision(ctx.userId, feature, image, prompt)
-            : await gatewayCallAI(ctx.userId, feature, prompt)
+            ? await gatewayCallVision(ctx.userId, feature, image, userPrompt)
+            : await gatewayCallAI(ctx.userId, feature, userPrompt)
 
         return NextResponse.json({
           success: true,

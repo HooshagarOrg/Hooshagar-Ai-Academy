@@ -1,27 +1,33 @@
 /**
  * Supabase Universal Proxy — هوشاگر
- * تمام مسیرهای Supabase را forward می‌کند: REST, Auth, Realtime, Storage
- * برای دور زدن فیلترینگ ایران
+ * URL مقصد از secret/var با نام SUPABASE_URL خوانده می‌شود.
+ * Origin اجباری است. localhost فقط با ALLOW_DEV_ORIGINS=1.
  *
  * deploy: wrangler deploy
  */
 
-const SUPABASE_URL = 'https://qcplgczxdbjsjrorkprm.supabase.co'
-
-// آدرس‌هایی که مجاز به ارسال درخواست هستند
-const ALLOWED_ORIGINS = [
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:3002',
-  'https://www.hooshagar.ir',
-  'https://hooshagar.ir',
-  'https://hooshagar-project.vercel.app',
-]
+function isAllowedOrigin(origin, env) {
+  if (!origin) return false
+  try {
+    const host = new URL(origin).hostname
+    if (host === 'www.hooshagar.ir' || host === 'hooshagar.ir') return true
+    if (host === 'hooshagar-project.vercel.app') return true
+    if (host.endsWith('.vercel.app') && host.includes('hooshagar')) return true
+    if (
+      env?.ALLOW_DEV_ORIGINS === '1' &&
+      (host === 'localhost' || host === '127.0.0.1')
+    ) {
+      return true
+    }
+    return false
+  } catch {
+    return false
+  }
+}
 
 function corsHeaders(origin) {
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
   return {
-    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers':
       'Content-Type, Authorization, apikey, X-Client-Info, X-Supabase-Api-Version, x-client-info',
@@ -35,19 +41,26 @@ export default {
     const url = new URL(request.url)
     const origin = request.headers.get('Origin') || ''
 
-    // CORS preflight
+    if (!isAllowedOrigin(origin, env)) {
+      return new Response('Forbidden', { status: 403 })
+    }
+
+    const supabaseUrl = String(env.SUPABASE_URL || '').replace(/\/$/, '')
+    if (!supabaseUrl) {
+      return new Response(JSON.stringify({ error: 'supabase_url_missing' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
+      })
+    }
+
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders(origin) })
     }
 
-    // ساخت URL مقصد — همه مسیرها forward می‌شوند
-    const targetUrl = SUPABASE_URL + url.pathname + url.search
-
-    // کپی headers (بدون Host)
+    const targetUrl = supabaseUrl + url.pathname + url.search
     const headers = new Headers(request.headers)
     headers.delete('Host')
 
-    // forward درخواست
     let response
     try {
       response = await fetch(targetUrl, {
@@ -63,7 +76,6 @@ export default {
       })
     }
 
-    // افزودن CORS headers به response
     const newHeaders = new Headers(response.headers)
     const cors = corsHeaders(origin)
     Object.entries(cors).forEach(([k, v]) => newHeaders.set(k, v))

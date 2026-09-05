@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/service'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,9 +38,17 @@ function healthBody(
 
 async function checkDatabase(): Promise<DbStatus> {
   try {
-    const supabase = createServiceClient()
-    const { error } = await supabase.from('profiles').select('id').limit(1)
-    return error ? 'error' : 'ok'
+    const url = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/$/, '')
+    const apiKey =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      ''
+    if (!url || !apiKey) return 'error'
+    const response = await fetch(`${url}/auth/v1/health`, {
+      headers: { apikey: apiKey },
+      cache: 'no-store',
+    })
+    return response.ok ? 'ok' : 'error'
   } catch {
     return 'error'
   }

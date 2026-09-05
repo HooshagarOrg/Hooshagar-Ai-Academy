@@ -2,6 +2,9 @@ import {
   DEFAULT_EDUCATION_SYSTEM_INSTRUCTION,
   resolveSystemInstruction,
   sanitizeUserText,
+  filterStudentAIOutput,
+  STUDENT_BLOCKED_OUTPUT,
+  childStorySystemSuffix,
 } from '@/lib/ai/prompt-safety'
 
 describe('prompt safety (H2)', () => {
@@ -28,5 +31,17 @@ describe('prompt safety (H2)', () => {
       DEFAULT_EDUCATION_SYSTEM_INSTRUCTION
     )
     expect(resolveSystemInstruction('  نقش معلم  ')).toBe('نقش معلم')
+  })
+
+  it('rewrites unsafe model output for students', () => {
+    expect(filterStudentAIOutput('اینجا درباره suicide صحبت می‌کنیم')).toBe(
+      STUDENT_BLOCKED_OUTPUT
+    )
+    expect(filterStudentAIOutput('پاسخ ریاضی: ۲+۲=۴')).toBe('پاسخ ریاضی: ۲+۲=۴')
+  })
+
+  it('tightens story rules for children under 13', () => {
+    expect(childStorySystemSuffix(8)).toContain('کودک')
+    expect(childStorySystemSuffix(14)).toContain('نوجوان')
   })
 })

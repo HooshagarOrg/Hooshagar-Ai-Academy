@@ -28,3 +28,34 @@ export function resolveSystemInstruction(explicit?: string | null): string {
   const trimmed = explicit?.trim()
   return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_EDUCATION_SYSTEM_INSTRUCTION
 }
+
+export const STUDENT_BLOCKED_OUTPUT =
+  'این پاسخ برای فضای مدرسه مناسب نیست. لطفاً موضوع را با معلم یا مشاور در میان بگذارید.'
+
+const UNSAFE_OUTPUT_PATTERNS: RegExp[] = [
+  /suicide/i,
+  /self[- ]?harm/i,
+  /kill yourself/i,
+  /\bporn(ography)?\b/i,
+  /sexually explicit/i,
+  /خودکشی/,
+  /خودآزاری/,
+  /پورن/,
+  /تجاوز جنسی/,
+]
+
+export function isUnsafeStudentOutput(content: string): boolean {
+  return UNSAFE_OUTPUT_PATTERNS.some((pattern) => pattern.test(content))
+}
+
+export function filterStudentAIOutput(content: string): string {
+  if (!content.trim()) return content
+  return isUnsafeStudentOutput(content) ? STUDENT_BLOCKED_OUTPUT : content
+}
+
+export function childStorySystemSuffix(age: number): string {
+  if (age >= 13) {
+    return '\nمخاطب نوجوان است؛ از محتوای جنسی، مواد مخدر و خشونت گرافیکی پرهیز کنید.'
+  }
+  return '\nمخاطب کودک است؛ داستان باید امن، بدون ترس شدید، خشونت و مضمون عاشقانه بزرگسال باشد.'
+}

@@ -66,7 +66,7 @@ export function VirtualClassImportPanel({
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'skyroom-virtual-classes.xlsx'
+      a.download = 'skyroom-virtual-classes.csv'
       a.click()
       URL.revokeObjectURL(url)
     } catch (e) {
@@ -193,7 +193,7 @@ export function VirtualClassImportPanel({
         <input
           ref={fileRef}
           type="file"
-          accept=".xlsx,.xls,.csv"
+          accept=".csv,.txt"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0]

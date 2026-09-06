@@ -1,5 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import {
+  canStartExam,
+  computeMustSubmitBy,
+  EXAM_DEADLINE_MESSAGE,
+  isSubmitWithinDeadline,
+  resolveExamDurationMinutes,
+  resolveSessionDeadline,
+  startWindowErrorMessage,
+  type ExamTimingInput,
+} from '@/lib/exams/window';
+
+function examTimingFromRow(exam: {
+  exam_date?: string | null;
+  duration_minutes?: number | null;
+  exam_config?: unknown;
+}): ExamTimingInput {
+  const config = exam.exam_config as { time_limit_minutes?: number } | null;
+  return {
+    examDate: exam.exam_date,
+    durationMinutes: exam.duration_minutes,
+    configTimeLimitMinutes: config?.time_limit_minutes,
+  };
+}
 
 export async function POST(
   request: NextRequest,
@@ -48,6 +71,10 @@ export async function POST(
       );
     }
 
+    const timing = examTimingFromRow(exam);
+    const durationMinutes = resolveExamDurationMinutes(timing);
+    const now = new Date();
+
     // چک جلسه قبلی
     const { data: existingSession } = await supabase
       .from('exam_sessions')
@@ -62,6 +89,11 @@ export async function POST(
           { error: 'شما قبلاً در این امتحان شرکت کرده‌اید' },
           { status: 400 }
         );
+      }
+
+      const deadline = resolveSessionDeadline(existingSession, timing);
+      if (deadline && !isSubmitWithinDeadline(now, deadline)) {
+        return NextResponse.json({ error: EXAM_DEADLINE_MESSAGE }, { status: 400 });
       }
 
       // برگرداندن جلسه قبلی
@@ -81,10 +113,22 @@ export async function POST(
         exam,
         questions: questions || [],
         session_id: existingSession.id,
-        time_limit_minutes: Math.ceil((existingSession.time_remaining_seconds || exam.duration_minutes * 60) / 60),
+        time_limit_minutes: Math.ceil((existingSession.time_remaining_seconds || durationMinutes * 60) / 60),
         answers: answers || [],
+        must_submit_by: deadline?.toISOString() ?? existingSession.must_submit_by ?? null,
       });
     }
+
+    const windowCheck = canStartExam(now, timing);
+    if (!windowCheck.allowed && windowCheck.reason) {
+      return NextResponse.json(
+        { error: startWindowErrorMessage(windowCheck.reason) },
+        { status: 400 }
+      );
+    }
+
+    const startedAt = now;
+    const mustSubmitBy = computeMustSubmitBy(startedAt, timing);
 
     // ایجاد جلسه جدید
     const { data: session, error: sessionError } = await supabase
@@ -93,8 +137,9 @@ export async function POST(
         exam_id: params.id,
         student_id: student.id,
         status: 'in_progress',
-        started_at: new Date().toISOString(),
-        time_remaining_seconds: exam.duration_minutes * 60,
+        started_at: startedAt.toISOString(),
+        must_submit_by: mustSubmitBy.toISOString(),
+        time_remaining_seconds: durationMinutes * 60,
       })
       .select()
       .single();
@@ -139,8 +184,9 @@ export async function POST(
       exam,
       questions: questions || [],
       session_id: session.id,
-      time_limit_minutes: exam.duration_minutes,
+      time_limit_minutes: durationMinutes,
       answers: [],
+      must_submit_by: mustSubmitBy.toISOString(),
     });
   } catch (error) {
     console.error('خطای سرور:', error);

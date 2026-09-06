@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { z } from 'zod';
 import { withAuth, STAFF_ROLES } from '@/lib/security/api-guard';
+import { canNotifyTargetUser } from '@/lib/notifications/school-scope';
 
 const createNotificationSchema = z.object({
   user_id: z.string().uuid('شناسه کاربر نامعتبر است'),
@@ -29,9 +30,9 @@ const createNotificationSchema = z.object({
 export async function POST(request: NextRequest) {
   return withAuth(
     request,
-    async () => {
+    async (ctx) => {
       try {
-        const supabase = await createClient();
+        const supabase = ctx.supabase ?? (await createClient());
 
         const body = await request.json();
         const result = createNotificationSchema.safeParse(body);
@@ -48,6 +49,32 @@ export async function POST(request: NextRequest) {
         }
 
         const { user_id, type, title, message, data, action_url, priority } = result.data;
+
+        const { data: target, error: targetError } = await supabase
+          .from('profiles')
+          .select('id, school_id')
+          .eq('id', user_id)
+          .maybeSingle();
+
+        if (targetError || !target) {
+          return NextResponse.json(
+            { success: false, error: 'کاربر مقصد یافت نشد' },
+            { status: 404 }
+          );
+        }
+
+        if (
+          !canNotifyTargetUser({
+            callerRole: ctx.role,
+            callerSchoolId: ctx.schoolId,
+            targetSchoolId: target.school_id,
+          })
+        ) {
+          return NextResponse.json(
+            { success: false, error: 'ارسال اعلان فقط برای کاربران همین مدرسه مجاز است' },
+            { status: 403 }
+          );
+        }
 
         const { data: notification_id, error } = await supabase.rpc(
           'create_notification',

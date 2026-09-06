@@ -221,7 +221,7 @@ export default function SurveyResultsPage() {
     }
 
     try {
-      const { utils, writeFile } = await import('xlsx')
+      const { downloadRowsAsXlsx } = await import('@/lib/excel/download-rows')
       const rows: Record<string, string | number>[] = []
 
       results.questions?.forEach((q) => {
@@ -250,10 +250,7 @@ export default function SurveyResultsPage() {
         })
       }
 
-      const ws = utils.json_to_sheet(rows)
-      const wb = utils.book_new()
-      utils.book_append_sheet(wb, ws, 'نتایج')
-      writeFile(wb, `survey-${params.id}-results.xlsx`)
+      await downloadRowsAsXlsx(`survey-${params.id}-results.xlsx`, 'نتایج', rows)
 
       toast({
         title: 'موفق',

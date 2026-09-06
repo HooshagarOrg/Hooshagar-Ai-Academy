@@ -28,7 +28,8 @@ describe('login-code helpers', () => {
     })
 
     it('returns null for invalid input', () => {
-      expect(toLoginCode('123')).toBe(null)
+      expect(toLoginCode('')).toBe(null)
+      expect(toLoginCode(undefined, '12')).toBe(null)
     })
   })
 
@@ -41,8 +42,9 @@ describe('login-code helpers', () => {
   })
 
   describe('pin and auth helpers', () => {
-    it('hashes pin as base64', () => {
-      expect(hashPin('1234')).toBe(Buffer.from('1234', 'utf8').toString('base64'))
+    it('hashes pin with scrypt', () => {
+      const hashed = hashPin('1234')
+      expect(hashed.startsWith('scrypt$')).toBe(true)
     })
 
     it('builds internal email and default password', () => {

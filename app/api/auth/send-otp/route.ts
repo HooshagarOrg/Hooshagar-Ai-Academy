@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { randomInt } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/service'
 import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
+import { redactPhone } from '@/lib/privacy/redact'
 
 // ============================================
 // تایپ‌ها و اینترفیس‌ها
@@ -48,7 +50,7 @@ type ServiceClient = ReturnType<typeof createServiceClient>
 // Helper: Generate 6-digit OTP
 // ============================================
 function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
+  return randomInt(100000, 1000000).toString()
 }
 
 // ============================================
@@ -87,7 +89,7 @@ async function sendSMS(phoneNumber: string, code: string): Promise<boolean> {
       return false
     }
 
-    console.log(`✅ OTP sent to ${phoneNumber}`)
+    console.log(`OTP sent to ${redactPhone(phoneNumber)}`)
     return true
   } catch (error) {
     console.error('SMS sending failed:', error)
@@ -289,7 +291,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     const { allowed } = await checkRateLimit(admin, phoneNumber)
 
     if (!allowed) {
-      console.warn(`Rate limit exceeded for ${phoneNumber}`)
+      console.warn(`Rate limit exceeded for ${redactPhone(phoneNumber)}`)
       return NextResponse.json(
         {
           success: false,
@@ -317,12 +319,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     }
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🔐 [DEV] OTP for ${phoneNumber}: ${otpCode}`)
+      console.log(`OTP request queued for ${redactPhone(phoneNumber)} (purpose: ${purpose})`)
     } else {
       const sent = await sendSMS(phoneNumber, otpCode)
 
       if (!sent) {
-        console.error(`Failed to send SMS to ${phoneNumber}`)
+        console.error(`Failed to send SMS to ${redactPhone(phoneNumber)}`)
         // برای reset-password پیام خنثی؛ برای login خطای واقعی
         if (purpose === 'reset-password') {
           return NextResponse.json(
@@ -364,7 +366,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       }
     }
 
-    console.log(`✅ OTP request successful for ${phoneNumber} (purpose: ${purpose})`)
+    console.log(`OTP request successful for ${redactPhone(phoneNumber)} (purpose: ${purpose})`)
 
     return NextResponse.json(
       {

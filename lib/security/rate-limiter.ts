@@ -6,6 +6,12 @@ import { Ratelimit } from '@upstash/ratelimit'
 import { LRUCache } from 'lru-cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { getUpstashRedis } from '@/lib/cache/upstash'
+import {
+  FAIL_CLOSED_SCOPES,
+  shouldFailClosedWithoutRedis,
+} from '@/lib/security/fail-closed'
+
+export { FAIL_CLOSED_SCOPES, shouldFailClosedWithoutRedis }
 
 export const RATE_LIMIT_CONFIGS = {
   login:          { limit: 5,   window: 60_000 },
@@ -18,6 +24,7 @@ export const RATE_LIMIT_CONFIGS = {
   ai_generate:    { limit: 10,  window: 3_600_000 },
   exam_submit:    { limit: 2,   window: 3_600_000 },
   exam_answer:    { limit: 200, window: 3_600_000 },
+  tts:            { limit: 30,  window: 60_000 },
   api_default:    { limit: 100, window: 60_000 },
   admin_action:   { limit: 30,  window: 60_000 },
 } as const
@@ -36,18 +43,6 @@ const memoryStore = new LRUCache<string, WindowEntry>({
 
 const distributedLimiters = new Map<string, Ratelimit>()
 let warnedMemoryFallback = false
-
-/** AI / OTP / login: if Redis is configured but the check fails, deny (fail-closed). */
-const FAIL_CLOSED_SCOPES = new Set<string>([
-  'login',
-  'otp_send',
-  'otp_verify',
-  'change_password',
-  'ai_ocr',
-  'ai_general',
-  'ai_heavy',
-  'ai_generate',
-])
 
 function warnMemoryFallbackOnce(): void {
   if (warnedMemoryFallback) return
@@ -211,6 +206,16 @@ export async function checkRateLimitForRequest(
     RATE_LIMIT_CONFIGS.api_default
 
   const key = getClientKey(request, scope, userId)
+  const hasRedis = getRedisClient() !== null
+  if (shouldFailClosedWithoutRedis(scope, process.env.NODE_ENV, hasRedis)) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt: Date.now() + 60_000,
+      limit: config.limit,
+    }
+  }
+
   const distributed = await checkDistributedRateLimit(key, scope, config)
   if (distributed && distributed !== 'error') return distributed
 

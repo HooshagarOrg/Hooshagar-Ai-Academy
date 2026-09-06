@@ -26,7 +26,6 @@ export function detectSheetType(headers: string[]): ImportSheetType {
 function cellToString(value: unknown): string {
   if (value == null || value === '') return ''
   if (typeof value === 'number' && Number.isFinite(value)) {
-    // جلوگیری از scientific notation برای کد ملی/موبایل
     if (Number.isInteger(value) || Math.abs(value) >= 1e6) {
       return String(Math.trunc(value))
     }
@@ -35,44 +34,7 @@ function cellToString(value: unknown): string {
   return String(value).trim().replace(/\.0+$/, '')
 }
 
-export async function parseSpreadsheetFile(file: File): Promise<ParsedSheet[]> {
-  const sheets: ParsedSheet[] = []
-
-  if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-    const { read, utils } = await import('xlsx')
-    const buffer = await file.arrayBuffer()
-    const wb = read(buffer, { type: 'array', cellText: true, cellDates: false })
-
-    for (const sheetName of wb.SheetNames) {
-      const ws = wb.Sheets[sheetName]
-      if (!ws) continue
-      const json = utils.sheet_to_json<Record<string, unknown>>(ws, {
-        defval: '',
-        raw: true,
-      })
-      if (json.length === 0) continue
-      const first = json[0]
-      if (!first) continue
-      const headers = Object.keys(first)
-      const rows = json
-        .map((row) => {
-          const r: Record<string, string> = {}
-          headers.forEach((h) => { r[h] = cellToString(row[h]) })
-          return r
-        })
-        .filter((r) => Object.values(r).some((v) => v))
-
-      sheets.push({
-        sheetName,
-        type: detectSheetType(headers),
-        headers,
-        rows,
-      })
-    }
-    return sheets
-  }
-
-  const text = await file.text()
+function parseCsvText(text: string): ParsedSheet[] {
   const lines = text.replace(/\r/g, '').split('\n').filter((l) => l.trim())
   if (lines.length < 2) return []
 
@@ -80,19 +42,46 @@ export async function parseSpreadsheetFile(file: File): Promise<ParsedSheet[]> {
   if (!headerLine) return []
 
   const headers = headerLine.split(',').map((h) => h.trim().replace(/^\uFEFF/, ''))
-  const rows = lines.slice(1).map((line) => {
-    const vals = line.split(',').map((v) => v.trim())
-    const row: Record<string, string> = {}
-    headers.forEach((h, i) => { row[h] = vals[i] ?? '' })
-    return row
-  }).filter((r) => Object.values(r).some((v) => v))
+  const rows = lines
+    .slice(1)
+    .map((line) => {
+      const vals = line.split(',').map((v) => v.trim())
+      const row: Record<string, string> = {}
+      headers.forEach((h, i) => {
+        row[h] = cellToString(vals[i] ?? '')
+      })
+      return row
+    })
+    .filter((r) => Object.values(r).some((v) => v))
 
-  sheets.push({
-    sheetName: 'CSV',
-    type: detectSheetType(headers),
-    headers,
-    rows,
-  })
+  return [
+    {
+      sheetName: 'CSV',
+      type: detectSheetType(headers),
+      headers,
+      rows,
+    },
+  ]
+}
 
-  return sheets
+export async function parseSpreadsheetFile(file: File): Promise<ParsedSheet[]> {
+  const lower = file.name.toLowerCase()
+  if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
+    throw new Error(
+      'برای امنیت، فایل Excel پذیرفته نمی‌شود. لطفاً شیت را به‌صورت CSV ذخیره کنید و دوباره بارگذاری کنید.'
+    )
+  }
+
+  const text = await readUploadText(file)
+  return parseCsvText(text)
+}
+
+async function readUploadText(file: File): Promise<string> {
+  if (typeof file.text === 'function') {
+    return file.text()
+  }
+  if (typeof file.arrayBuffer === 'function') {
+    return new TextDecoder('utf-8').decode(await file.arrayBuffer())
+  }
+  throw new Error('خواندن فایل ممکن نشد')
 }

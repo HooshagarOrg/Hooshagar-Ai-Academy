@@ -14,7 +14,15 @@ export async function POST(request: NextRequest) {
   return withAuth(request, async (ctx) => {
     const supabase = await createClient()
     const body = await request.json()
-    const { plan_name, school_id } = body
+    const { plan_name } = body
+
+    const schoolId = ctx.schoolId
+    if (!schoolId) {
+      return NextResponse.json(
+        { error: 'مدرسه برای این حساب ثبت نشده است' },
+        { status: 400 }
+      )
+    }
 
     // دریافت اطلاعات پلن
     const { data: plan } = await supabase
@@ -30,7 +38,7 @@ export async function POST(request: NextRequest) {
     const { data: tx, error: txError } = await supabase
       .from('payment_transactions')
       .insert({
-        school_id: school_id || null,
+        school_id: schoolId,
         owner_id: ctx.userId,
         amount: plan.price_monthly,
         currency: 'IRR',

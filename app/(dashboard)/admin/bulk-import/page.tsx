@@ -293,7 +293,7 @@ export default function BulkImportPage() {
             <p className="text-[var(--lux-text)] font-medium text-lg">فایل Excel یا CSV را اینجا بکشید</p>
             <p className="text-sm text-[var(--lux-text-muted)] mt-2">چند شیت در یک فایل Excel پشتیبانی می‌شود</p>
             <input
-              ref={fileRef} type="file" accept=".csv,.txt,.xlsx,.xls" className="hidden"
+              ref={fileRef} type="file" accept=".csv,.txt" className="hidden"
               onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]) }}
             />
           </div>

@@ -1,8 +1,33 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai'
 import { callZai, isZaiConfigured } from '@/lib/ai/zai-provider'
 import { callGroq, isGroqConfigured } from '@/lib/ai/groq-provider'
 import { createHash } from 'crypto'
 import { getUpstashRedis, isUpstashRedisConfigured } from '@/lib/cache/upstash'
+import {
+  filterStudentAIOutput,
+  resolveSystemInstruction,
+  sanitizeUserText,
+  STUDENT_BLOCKED_OUTPUT,
+} from '@/lib/ai/prompt-safety'
+
+const GEMINI_CHILD_SAFETY_SETTINGS = [
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+  },
+] as const
 
 // ═══════════════════════════════════════════════════════════════
 // هوشاگر - سرویس AI با معماری چندلایه رایگان
@@ -56,6 +81,10 @@ export interface AICallOptions {
   grade?: number | null
   /** اگر موجود باشد، کش مشترک بین مدارس قاطی نمی‌شود */
   schoolId?: string | null
+  /** سیاست مدل — جدا از متن کاربر */
+  systemInstruction?: string
+  /** اگر true باشد sanitizeUserText روی prompt اعمال نمی‌شود */
+  skipUserSanitize?: boolean
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -217,16 +246,31 @@ async function callGoogleTier1(
   const client = new GoogleGenerativeAI(apiKey)
   const modelName = opts.googleModel ?? GOOGLE_MODEL_MAP[capability]
 
-    const model = client.getGenerativeModel({ 
+    const model = client.getGenerativeModel({
       model: modelName,
+      systemInstruction: resolveSystemInstruction(opts.systemInstruction),
+      safetySettings: [...GEMINI_CHILD_SAFETY_SETTINGS],
       generationConfig: {
-      temperature:     opts.temperature ?? 0.7,
-      maxOutputTokens: opts.maxTokens ?? 2000,
+        temperature: opts.temperature ?? 0.7,
+        maxOutputTokens: opts.maxTokens ?? 2000,
       },
     })
 
     const result = await model.generateContent(prompt)
-  return { content: result.response.text(), provider: 'google', model: modelName, tier: 1, is_fallback: false, cost: 0 }
+    let text = ''
+    try {
+      text = result.response.text()
+    } catch {
+      text = STUDENT_BLOCKED_OUTPUT
+    }
+    return {
+      content: filterStudentAIOutput(text),
+      provider: 'google',
+      model: modelName,
+      tier: 1,
+      is_fallback: false,
+      cost: 0,
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -250,7 +294,10 @@ async function callOpenRouterWithKey(
       },
       body: JSON.stringify({
       model,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        { role: 'system', content: resolveSystemInstruction(opts.systemInstruction) },
+        { role: 'user', content: prompt },
+      ],
       temperature: opts.temperature ?? 0.7,
       max_tokens:  opts.maxTokens  ?? 2000,
       }),
@@ -262,7 +309,14 @@ async function callOpenRouterWithKey(
     }
 
     const data = await response.json()
-  return { content: data.choices[0]?.message?.content || '', provider: 'openrouter', model, tier, is_fallback: true, cost: 0 }
+  return {
+    content: filterStudentAIOutput(data.choices[0]?.message?.content || ''),
+    provider: 'openrouter',
+    model,
+    tier,
+    is_fallback: true,
+    cost: 0,
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -278,8 +332,16 @@ async function callZaiTier2(
     capability,
     temperature: opts.temperature,
     maxTokens: opts.maxTokens,
+    systemInstruction: resolveSystemInstruction(opts.systemInstruction),
   })
-  return { content, provider: 'zai', model, tier: 2, is_fallback: true, cost: 0 }
+  return {
+    content: filterStudentAIOutput(content),
+    provider: 'zai',
+    model,
+    tier: 2,
+    is_fallback: true,
+    cost: 0,
+  }
 }
 
 async function callGroqTier3(
@@ -288,12 +350,22 @@ async function callGroqTier3(
   opts: AICallOptions
 ): Promise<AIResponse> {
   const { content, model } = await callGroq({
-    prompt,
     capability,
     temperature: opts.temperature,
     maxTokens: opts.maxTokens,
+    messages: [
+      { role: 'system', content: resolveSystemInstruction(opts.systemInstruction) },
+      { role: 'user', content: prompt },
+    ],
   })
-  return { content, provider: 'groq', model, tier: 3, is_fallback: true, cost: 0 }
+  return {
+    content: filterStudentAIOutput(content),
+    provider: 'groq',
+    model,
+    tier: 3,
+    is_fallback: true,
+    cost: 0,
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -318,6 +390,7 @@ export async function callAI(
   prompt: string,
   options: AICallOptions = {}
 ): Promise<AIResponse> {
+  const userPrompt = options.skipUserSanitize ? prompt : sanitizeUserText(prompt)
   const capability: AICapability = options.capability ?? 'study_buddy'
 
   // ── مرحله 1: Cache Check ──────────────────────────────────────
@@ -326,7 +399,7 @@ export async function callAI(
   const cacheSchool = normalizeCacheSchool(options.schoolId)
   const canUseSharedCache = !options.skipCache && ttl > 0 && cacheGrade !== null
   const cacheKey = canUseSharedCache
-    ? getCacheKey(capability, prompt, cacheGrade, cacheSchool)
+    ? getCacheKey(capability, userPrompt, cacheGrade, cacheSchool)
     : null
 
   if (cacheKey) {
@@ -343,17 +416,17 @@ export async function callAI(
   const tiers: Array<() => Promise<AIResponse>> = []
 
   if (!options.forceOpenRouter) {
-    tiers.push(() => callGoogleTier1(prompt, capability, options))
+    tiers.push(() => callGoogleTier1(userPrompt, capability, options))
   }
   if (isZaiConfigured()) {
-    tiers.push(() => callZaiTier2(prompt, capability, options))
+    tiers.push(() => callZaiTier2(userPrompt, capability, options))
   }
   if (isGroqConfigured()) {
-    tiers.push(() => callGroqTier3(prompt, capability, options))
+    tiers.push(() => callGroqTier3(userPrompt, capability, options))
   }
-  if (keyA) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier2, 4, keyA, options))
-  if (keyB) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier3, 5, keyB, options))
-  if (keyC) tiers.push(() => callOpenRouterWithKey(prompt, orModels.tier4, 6, keyC, options))
+  if (keyA) tiers.push(() => callOpenRouterWithKey(userPrompt, orModels.tier2, 4, keyA, options))
+  if (keyB) tiers.push(() => callOpenRouterWithKey(userPrompt, orModels.tier3, 5, keyB, options))
+  if (keyC) tiers.push(() => callOpenRouterWithKey(userPrompt, orModels.tier4, 6, keyC, options))
 
   let lastError: unknown
   for (let i = 0; i < tiers.length; i++) {
@@ -405,12 +478,29 @@ export async function callGeminiVision(
   try {
     const apiKey = getNextGoogleKey()
     const client = new GoogleGenerativeAI(apiKey)
-    const model = client.getGenerativeModel({ model: modelName })
+    const model = client.getGenerativeModel({
+      model: modelName,
+      systemInstruction: resolveSystemInstruction(options.systemInstruction),
+      safetySettings: [...GEMINI_CHILD_SAFETY_SETTINGS],
+    })
     const result = await model.generateContent([
       prompt,
       { inlineData: { data: imageBase64, mimeType: 'image/jpeg' } },
     ])
-    return { content: result.response.text(), provider: 'google', model: modelName, tier: 1, is_fallback: false, cost: 0 }
+    let text = ''
+    try {
+      text = result.response.text()
+    } catch {
+      text = STUDENT_BLOCKED_OUTPUT
+    }
+    return {
+      content: filterStudentAIOutput(text),
+      provider: 'google',
+      model: modelName,
+      tier: 1,
+      is_fallback: false,
+      cost: 0,
+    }
   } catch (err) {
     console.warn('Gemini Vision failed, falling back to OpenRouter Vision...', err)
     const keyA = process.env.OPENROUTER_API_KEY

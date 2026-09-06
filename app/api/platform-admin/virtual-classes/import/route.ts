@@ -25,10 +25,9 @@ export async function GET(request: NextRequest) {
       return new NextResponse(new Uint8Array(buffer), {
         status: 200,
         headers: {
-          'Content-Type':
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Type': 'text/csv; charset=utf-8',
           'Content-Disposition':
-            'attachment; filename="skyroom-virtual-classes.xlsx"',
+            'attachment; filename="skyroom-virtual-classes.csv"',
         },
       })
     },

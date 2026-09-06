@@ -22,6 +22,7 @@ export interface ZaiCallOptions {
   /** فعال‌سازی thinking mode (تحلیل عمیق) */
   thinking?: boolean
   capability?: string
+  systemInstruction?: string
 }
 
 export function isZaiConfigured(): boolean {
@@ -57,7 +58,12 @@ export async function callZai(
 
   const body: Record<string, unknown> = {
     model,
-    messages: [{ role: 'user', content: prompt }],
+    messages: options.systemInstruction
+      ? [
+          { role: 'system', content: options.systemInstruction },
+          { role: 'user', content: prompt },
+        ]
+      : [{ role: 'user', content: prompt }],
     temperature: options.temperature ?? 0.7,
     max_tokens: options.maxTokens ?? 2000,
   }

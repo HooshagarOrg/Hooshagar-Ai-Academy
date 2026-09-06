@@ -5,6 +5,9 @@
  * @see https://kavenegar.com/rest.html
  */
 
+import { randomInt } from 'crypto'
+import { redactPhone } from '@/lib/privacy/redact'
+
 // ============================================
 // تایپ‌ها و اینترفیس‌ها
 // ============================================
@@ -203,7 +206,7 @@ export async function sendOTP(
       template: template,
     })
 
-    console.log(`📤 Sending OTP to ${formattedPhone} with template: ${template}`)
+    console.log(`Sending OTP to ${redactPhone(formattedPhone)} with template: ${template}`)
 
     const response = await fetch(`${url}?${params.toString()}`, {
       method: 'GET',
@@ -216,7 +219,7 @@ export async function sendOTP(
 
     if (data.return?.status === 200) {
       const entry = data.entries?.[0]
-      console.log(`✅ OTP sent successfully to ${formattedPhone}`)
+      console.log(`OTP sent successfully to ${redactPhone(formattedPhone)}`)
 
       return {
         success: true,
@@ -282,7 +285,7 @@ export async function sendSMS(
       sender: sender || DEFAULT_SENDER,
     })
 
-    console.log(`📤 Sending SMS to ${formattedPhone}`)
+    console.log(`Sending SMS to ${redactPhone(formattedPhone)}`)
 
     const response = await fetch(`${url}?${params.toString()}`, {
       method: 'GET',
@@ -292,7 +295,7 @@ export async function sendSMS(
 
     if (data.return?.status === 200) {
       const entry = data.entries?.[0]
-      console.log(`✅ SMS sent successfully to ${formattedPhone}`)
+      console.log(`SMS sent successfully to ${redactPhone(formattedPhone)}`)
 
       return {
         success: true,
@@ -501,9 +504,9 @@ export function clearAllRateLimits(): void {
 // ============================================
 
 export function generateOTPCode(length: number = 6): string {
-  const min = Math.pow(10, length - 1)
-  const max = Math.pow(10, length) - 1
-  return Math.floor(min + Math.random() * (max - min + 1)).toString()
+  const min = 10 ** (length - 1)
+  const max = 10 ** length
+  return randomInt(min, max).toString()
 }
 
 // ============================================
@@ -514,7 +517,7 @@ export async function mockSendOTP(
   phoneNumber: string,
   code: string
 ): Promise<SendOTPResult> {
-  console.log(`🔐 [MOCK] OTP for ${phoneNumber}: ${code}`)
+  console.log(`Mock OTP queued for ${redactPhone(phoneNumber)}`)
 
   // شبیه‌سازی تأخیر شبکه
   await new Promise((resolve) => setTimeout(resolve, 500))

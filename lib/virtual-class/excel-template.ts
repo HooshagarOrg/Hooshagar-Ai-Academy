@@ -30,38 +30,21 @@ export const VIRTUAL_CLASS_SAMPLE_ROWS: string[][] = [
   ['12', 'دوازدهم الف', 'کلاس دوازدهم الف', '', '', ''],
 ]
 
-const GUIDE_ROWS: string[][] = [
-  ['ستون', 'اجباری', 'توضیح'],
-  ['پایه', 'بله', 'عدد ۱ تا ۱۲ یا فارسی: اول تا دوازدهم'],
-  ['کلاس', 'بله', 'دقیقاً همان ستون کلاس واردسازی دانش‌آموزان؛ مثلاً «خانم کرد» نه «اول خانم کرد»'],
-  ['عنوان', 'خیر', 'عنوان نمایشی در داشبورد؛ اگر خالی باشد از نام کلاس ساخته می‌شود'],
-  ['شناسه_اتاق', 'اگر نام لاتین خالی باشد', 'عدد نوار آدرس پنل: skyroom.online/panel/channel/182457/edit → 182457'],
-  ['نام_لاتین_اتاق', 'اگر شناسه خالی باشد', 'انتهای لینک عمومی: …/ch/omidan/kord → kord'],
-  ['لینک_اتاق', 'خیر', 'فقط برای یادداشت؛ اگر نام لاتین خالی باشد از انتهای لینک برداشته می‌شود'],
-  ['', '', ''],
-  ['نکته', '', 'یوزر و پسورد اسکای‌روم را در این فایل نگذارید؛ ورود از داخل هوشاگر است.'],
-  ['نکته', '', 'اتاق‌های مشاور/ورزش/هنر/قرآن کلاس درسی جدا نیستند و در این شیت نیستند.'],
-  ['نکته', '', 'اگر شناسه خالی باشد، سرور اتاق را با نام لاتین از API اسکای‌روم پیدا می‌کند.'],
-]
+function toCsv(rows: string[][]): string {
+  return rows
+    .map((row) =>
+      row.map((cell) => {
+        const value = cell ?? ''
+        if (/[",\n]/.test(value)) {
+          return `"${value.replace(/"/g, '""')}"`
+        }
+        return value
+      }).join(',')
+    )
+    .join('\n')
+}
 
 export async function buildVirtualClassTemplateXlsx(): Promise<Buffer> {
-  const { utils, write } = await import('xlsx')
-  const wb = utils.book_new()
-  const dataSheet = utils.aoa_to_sheet([
-    [...VIRTUAL_CLASS_IMPORT_HEADERS],
-    ...VIRTUAL_CLASS_SAMPLE_ROWS,
-  ])
-  dataSheet['!cols'] = [
-    { wch: 8 },
-    { wch: 28 },
-    { wch: 32 },
-    { wch: 14 },
-    { wch: 18 },
-    { wch: 48 },
-  ]
-  utils.book_append_sheet(wb, dataSheet, 'کلاس‌های مجازی')
-  const guideSheet = utils.aoa_to_sheet(GUIDE_ROWS)
-  guideSheet['!cols'] = [{ wch: 18 }, { wch: 22 }, { wch: 80 }]
-  utils.book_append_sheet(wb, guideSheet, 'راهنما')
-  return write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer
+  const csv = toCsv([[...VIRTUAL_CLASS_IMPORT_HEADERS], ...VIRTUAL_CLASS_SAMPLE_ROWS])
+  return Buffer.from(`\uFEFF${csv}\n`, 'utf8')
 }

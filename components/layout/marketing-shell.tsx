@@ -5,12 +5,21 @@
  */
 
 import type { ReactNode } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
 import { EnamadSeal } from '@/components/brand/enamad-seal'
-import { ScrollProgressBar } from '@/components/landing/motion'
-import { PersianDateDisplay } from '@/components/ui/persian-date-display'
+
+const ScrollProgressBar = dynamic(
+  () => import('@/components/landing/scroll-progress').then((m) => m.ScrollProgressBar),
+  { ssr: false },
+)
+
+const PersianDateDisplay = dynamic(
+  () => import('@/components/ui/persian-date-display').then((m) => m.PersianDateDisplay),
+  { ssr: false },
+)
 
 interface MarketingShellProps {
   children: ReactNode

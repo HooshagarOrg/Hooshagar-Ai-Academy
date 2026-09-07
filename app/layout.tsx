@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
-import { Toaster } from 'sonner'
-import { CookieConsent } from '@/components/cookie-consent'
 import { ServiceWorkerRegister } from '@/components/service-worker-register'
 import { SentryClientInit } from '@/components/sentry-client-init'
 import { ChunkLoadRecovery } from '@/components/chunk-load-recovery'
+import { DeferredChrome } from '@/components/deferred-chrome'
 import { CANONICAL_APP_ORIGIN } from '@/lib/app-url'
 
 const vazirmatn = localFont({
@@ -65,9 +64,8 @@ export default function RootLayout({
         <div className="relative z-10 min-h-app">{children}</div>
         <SentryClientInit />
         <ChunkLoadRecovery />
-        <CookieConsent />
+        <DeferredChrome />
         <ServiceWorkerRegister />
-        <Toaster position="top-center" richColors />
       </body>
     </html>
   )

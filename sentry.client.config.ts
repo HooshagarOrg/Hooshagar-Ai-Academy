@@ -1,57 +1,62 @@
-import * as Sentry from '@sentry/nextjs'
-import { shouldDropClientSentryEvent } from '@/lib/monitoring/sentry-event-filter'
+import { isPublicMarketingPath } from '@/lib/monitoring/public-path'
 
-function replayIntegrations(): ReturnType<typeof Sentry.replayIntegration>[] {
-  try {
-    if (Sentry.getClient()?.getIntegrationByName('Replay')) {
-      return []
-    }
-    return [
-      Sentry.replayIntegration({
-        maskAllText: true,
-        blockAllMedia: true,
-        maskAllInputs: true,
-      }),
-    ]
-  } catch {
-    return []
+/**
+ * عمداً @sentry/nextjs را اینجا import نمی‌کنیم تا SDK روی first paint پارس نشود.
+ * Replay جدا است تا rrweb وارد چانک لندینگ/ورود نشود.
+ */
+
+function runOnce(fn: () => void): () => void {
+  let done = false
+  return (): void => {
+    if (done) return
+    done = true
+    fn()
   }
 }
 
-try {
-  if (!Sentry.getClient()) {
-    Sentry.init({
-      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN,
-
-      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
-
-      replaysSessionSampleRate: 0.1,
-      replaysOnErrorSampleRate: 1.0,
-
-      integrations: replayIntegrations(),
-
-      environment: process.env.NODE_ENV || 'development',
-
-      beforeSend(event) {
-        if (shouldDropClientSentryEvent(event)) {
-          return null
-        }
-        return event
-      },
-
-      ignoreErrors: [
-        'ResizeObserver loop limit exceeded',
-        'Non-Error promise rejection captured',
-        'Invalid login credentials',
-        'Invalid login',
-        'AuthApiError',
-      ],
-
-      release: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
-        || process.env.VERCEL_GIT_COMMIT_SHA
-        || 'development',
+function bootCore(): void {
+  void import('@/lib/monitoring/sentry-client-boot')
+    .then((mod) => {
+      mod.initClientSentry()
     })
+    .catch(() => undefined)
+}
+
+function bootReplay(): void {
+  if (isPublicMarketingPath()) return
+  void import('@/lib/monitoring/sentry-client-replay')
+    .then((mod) => {
+      mod.addClientReplay()
+    })
+    .catch(() => undefined)
+}
+
+if (typeof window !== 'undefined') {
+  const start = runOnce(() => {
+    try {
+      bootCore()
+      if (!isPublicMarketingPath()) {
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(() => bootReplay(), { timeout: 4000 })
+        } else {
+          window.setTimeout(() => bootReplay(), 2500)
+        }
+      }
+    } catch {
+      // Sentry must never block the app
+    }
+  })
+
+  if (isPublicMarketingPath()) {
+    const onInteract = (): void => start()
+    window.addEventListener('pointerdown', onInteract, { once: true, passive: true })
+    window.addEventListener('keydown', onInteract, { once: true, passive: true })
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(start, { timeout: 12000 })
+    } else {
+      window.setTimeout(start, 10000)
+    }
+  } else {
+    start()
   }
-} catch {
-  // Sentry must never block the app
 }

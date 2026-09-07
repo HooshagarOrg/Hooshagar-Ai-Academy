@@ -1,16 +1,20 @@
 'use client'
 
 /**
- * پورتال سینمایی ورود/ثبت‌نام
+ * پورتال ورود — بدون date-fns-jalali و بدون انیمیشن سنگین لوگو روی first paint
  */
 
 import type { ReactNode } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { CinematicBackdrop } from '@/components/layout/cinematic-backdrop'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
-import { HeroLogoAnimated } from '@/components/brand/hero-logo-animated'
-import { PersianDateDisplay } from '@/components/ui/persian-date-display'
+
+const PersianDateDisplay = dynamic(
+  () => import('@/components/ui/persian-date-display').then((m) => m.PersianDateDisplay),
+  { ssr: false },
+)
 
 interface CinematicPortalProps {
   children: ReactNode
@@ -73,7 +77,7 @@ export function CinematicPortal({
           </div>
 
           <div className="relative z-10 flex flex-1 flex-col items-center justify-center py-8">
-            <HeroLogoAnimated priority />
+            <HooshagarLogo size="lg" href="/" inverted priority showWordmark={false} />
             <h2 className="mt-8 max-w-sm text-center text-2xl font-black leading-snug text-[var(--lux-text)]">
               {pageTitle}
             </h2>
@@ -108,7 +112,7 @@ export function CinematicPortal({
 
           {isLogin && (
             <div className="mb-6 flex flex-col items-center lg:hidden">
-              <HeroLogoAnimated compact priority />
+              <HooshagarLogo size="lg" href="/" inverted priority showWordmark={false} />
               <p className="mt-4 text-center text-lg font-black text-[var(--lux-text)]">{pageTitle}</p>
               <p className="mt-1 max-w-xs text-center text-xs leading-7 text-[var(--lux-text-muted)]">
                 {pageSubtitle}

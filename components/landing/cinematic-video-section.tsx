@@ -5,7 +5,6 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
-import { useReducedMotion } from 'framer-motion'
 import { brandAssets } from '@/lib/brand'
 import { shouldRenderCinematicVideo } from '@/lib/landing/cinematic-video'
 import { SectionReveal } from './motion'
@@ -13,14 +12,15 @@ import { SectionReveal } from './motion'
 export function CinematicVideoSection(): JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null)
   const sectionRef = useRef<HTMLElement>(null)
-  const reduceMotion = useReducedMotion()
   const [hasMounted, setHasMounted] = useState(false)
+  const [reduceMotion, setReduceMotion] = useState(false)
   const [videoOk, setVideoOk] = useState(false)
   const [inView, setInView] = useState(false)
   const showVideo = shouldRenderCinematicVideo(hasMounted, reduceMotion)
 
   useEffect(() => {
     setHasMounted(true)
+    setReduceMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   }, [])
 
   useEffect(() => {

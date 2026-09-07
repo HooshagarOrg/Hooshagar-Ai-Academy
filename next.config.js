@@ -88,6 +88,8 @@ const nextConfig = {
       'date-fns-jalali',
       'recharts',
       'framer-motion',
+      'gsap',
+      '@gsap/react',
       '@react-three/drei',
       '@react-three/fiber',
     ],
@@ -103,18 +105,54 @@ const nextConfig = {
 
   // Webpack configuration
   webpack: (config, { dev, isServer }) => {
-    // Production optimizations
     if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
         usedExports: true,
         sideEffects: true,
-      };
+        splitChunks: {
+          ...config.optimization.splitChunks,
+          cacheGroups: {
+            ...(config.optimization.splitChunks && typeof config.optimization.splitChunks === 'object'
+              ? config.optimization.splitChunks.cacheGroups
+              : {}),
+            sentry: {
+              test: /[\\/]node_modules[\\/]@sentry[\\/]/,
+              name: 'sentry',
+              chunks: 'all',
+              enforce: true,
+              priority: 30,
+              reuseExistingChunk: true,
+            },
+            three: {
+              test: /[\\/]node_modules[\\/](three|@react-three)[\\/]/,
+              name: 'three',
+              chunks: 'all',
+              enforce: true,
+              priority: 25,
+              reuseExistingChunk: true,
+            },
+            gsap: {
+              test: /[\\/]node_modules[\\/](gsap|@gsap)[\\/]/,
+              name: 'gsap',
+              chunks: 'all',
+              enforce: true,
+              priority: 25,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      }
     }
 
-    return config;
+    return config
   },
 };
+
+const withBundleAnalyzer =
+  process.env.ANALYZE === 'true'
+    ? require('@next/bundle-analyzer')({ enabled: true, openAnalyzer: false })
+    : (config) => config;
 
 // Sentry — همیشه wrap می‌شود تا tunnel/source maps کار کنند.
 // آپلود source map فقط وقتی auth token/org/project در بیلد موجود باشد.
@@ -131,7 +169,7 @@ console.log(
   `[Sentry] NEXT_PUBLIC_SENTRY_DSN at build: ${Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN)}`
 );
 
-module.exports = withSentryConfig(nextConfig, {
+module.exports = withSentryConfig(withBundleAnalyzer(nextConfig), {
   silent: true,
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
@@ -141,5 +179,15 @@ module.exports = withSentryConfig(nextConfig, {
   widenClientFileUpload: true,
   tunnelRoute: '/monitoring',
   hideSourceMaps: true,
-  disableLogger: true,
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+    excludeReplayIframe: true,
+    excludeReplayShadowDom: true,
+    excludeReplayWorker: true,
+  },
 });

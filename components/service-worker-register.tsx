@@ -17,7 +17,8 @@ export function ServiceWorkerRegister(): null {
       return
     }
 
-    void (async () => {
+    const register = (): void => {
+      void (async () => {
       try {
         const regs = await navigator.serviceWorker.getRegistrations()
         await Promise.all(
@@ -35,7 +36,14 @@ export function ServiceWorkerRegister(): null {
       } catch {
         // ignore
       }
-    })()
+      })()
+    }
+
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(register, { timeout: 4000 })
+    } else {
+      window.setTimeout(register, 2000)
+    }
   }, [])
 
   return null

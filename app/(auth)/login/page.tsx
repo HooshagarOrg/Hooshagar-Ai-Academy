@@ -9,12 +9,29 @@ import {
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TermsAcceptanceNotice } from '@/components/auth/terms-acceptance-notice'
-import { TurnstileWidget } from '@/components/auth/turnstile-widget'
-import { createClient } from '@/lib/supabase/client'
+import dynamic from 'next/dynamic'
+
+const TurnstileWidget = dynamic(
+  () => import('@/components/auth/turnstile-widget').then((m) => m.TurnstileWidget),
+  { ssr: false },
+)
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''
+
+type LoginTab = 'staff' | 'parent' | 'student' | 'sms'
+
+const LOGIN_TABS: Array<{
+  id: LoginTab
+  label: string
+  testId: string
+  Icon: typeof User
+}> = [
+  { id: 'staff', label: 'کارکنان', testId: 'login-tab-staff', Icon: User },
+  { id: 'parent', label: 'والدین', testId: 'login-tab-parent', Icon: User },
+  { id: 'student', label: 'دانش‌آموز', testId: 'login-tab-student', Icon: GraduationCap },
+  { id: 'sms', label: 'پیامک', testId: 'login-tab-sms', Icon: Smartphone },
+]
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -23,7 +40,7 @@ export default function LoginPage() {
   const [otpPhone, setOtpPhone] = useState('')
   const [otpCode, setOtpCode] = useState('')
   const [otpTimer, setOtpTimer] = useState(0)
-  const [activeTab, setActiveTab] = useState('staff')
+  const [activeTab, setActiveTab] = useState<LoginTab>('staff')
   const [requireCaptcha, setRequireCaptcha] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
 
@@ -171,8 +188,9 @@ export default function LoginPage() {
   const completeOtpSignIn = async (
     phone: string,
     otp: string,
-    supabase: ReturnType<typeof createClient>
   ) => {
+    const { createClient } = await import('@/lib/supabase/client')
+    const supabase = createClient()
     const { data: rpcData, error: rpcError } = await supabase.rpc('otp_login_verify', {
       p_phone: phone,
       p_otp: otp,
@@ -251,8 +269,7 @@ export default function LoginPage() {
     }
 
     try {
-      const supabase = createClient()
-      await completeOtpSignIn(otpPhone, otp, supabase)
+      await completeOtpSignIn(otpPhone, otp)
     } catch {
       toast.error('خطای اتصال به سرور')
     } finally {
@@ -387,25 +404,32 @@ export default function LoginPage() {
 
   return (
     <div className="w-full" dir="rtl" data-testid="login-page">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="lp-auth-tabs mb-6 h-auto w-full bg-transparent p-1" data-testid="login-tabs">
-                <TabsTrigger value="staff" className="lp-auth-tab" data-testid="login-tab-staff">
-                  <User className="w-3.5 h-3.5" />
-                  کارکنان
-                </TabsTrigger>
-                <TabsTrigger value="parent" className="lp-auth-tab" data-testid="login-tab-parent">
-                  <User className="w-3.5 h-3.5" />
-                  والدین
-                </TabsTrigger>
-                <TabsTrigger value="student" className="lp-auth-tab" data-testid="login-tab-student">
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  دانش‌آموز
-                </TabsTrigger>
-                <TabsTrigger value="sms" className="lp-auth-tab" data-testid="login-tab-sms">
-                  <Smartphone className="w-3.5 h-3.5" />
-                  پیامک
-                </TabsTrigger>
-              </TabsList>
+      <div className="w-full">
+              <div
+                className="lp-auth-tabs mb-6 flex h-auto w-full gap-1 bg-transparent p-1"
+                role="tablist"
+                aria-label="روش ورود"
+                data-testid="login-tabs"
+              >
+                {LOGIN_TABS.map(({ id, label, testId, Icon }) => {
+                  const selected = activeTab === id
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      data-state={selected ? 'active' : 'inactive'}
+                      className="lp-auth-tab"
+                      data-testid={testId}
+                      onClick={() => setActiveTab(id)}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
 
               {requireCaptcha && TURNSTILE_SITE_KEY ? (
                 <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
@@ -420,7 +444,7 @@ export default function LoginPage() {
               ) : null}
 
               {/* ===== تب کارکنان ===== */}
-              <TabsContent value="staff" className="space-y-1">
+              <div role="tabpanel" hidden={activeTab !== 'staff'} className="space-y-1">
                 <p className="lp-auth-hint">
                   نام کاربری لاتین یا کد ۱۰ رقمی (کد ملی / موبایل بدون صفر) + رمز عبور
                 </p>
@@ -483,10 +507,10 @@ export default function LoginPage() {
                     ورود با پیامک
                   </button>
                 </form>
-              </TabsContent>
+              </div>
 
               {/* ===== تب والدین ===== */}
-              <TabsContent value="parent" className="space-y-1">
+              <div role="tabpanel" hidden={activeTab !== 'parent'} className="space-y-1">
                 <p className="lp-auth-hint">
                   کد ۱۰ رقمی (کد ملی یا موبایل بدون صفر اول) + رمز عبور
                 </p>
@@ -531,10 +555,10 @@ export default function LoginPage() {
                     ورود با پیامک
                   </button>
                 </form>
-              </TabsContent>
+              </div>
 
               {/* ===== تب دانش‌آموز ===== */}
-              <TabsContent value="student" className="space-y-1">
+              <div role="tabpanel" hidden={activeTab !== 'student'} className="space-y-1">
                 <p className="lp-auth-hint">
                   کد دانش‌آموزی یا کد ملی ۱۰ رقمی + PIN
                 </p>
@@ -589,10 +613,10 @@ export default function LoginPage() {
                     ورود با پیامک (اگر موبایل اختصاصی دارید)
                   </button>
                 </form>
-              </TabsContent>
+              </div>
 
               {/* ===== تب ورود با پیامک (مشترک) ===== */}
-              <TabsContent value="sms" className="space-y-1">
+              <div role="tabpanel" hidden={activeTab !== 'sms'} className="space-y-1">
                 <p className="lp-auth-hint">
                   والدین و کارکنان: شماره ثبت‌شده در مدرسه. دانش‌آموز: فقط اگر موبایل اختصاصی در سیستم ثبت شده باشد.
                 </p>
@@ -674,8 +698,8 @@ export default function LoginPage() {
                     </button>
                   </form>
                 )}
-              </TabsContent>
-            </Tabs>
+              </div>
+            </div>
 
       <div className="mt-6 flex flex-col gap-3 border-t border-[rgba(232,236,244,0.1)] pt-5">
         <TermsAcceptanceNotice />

@@ -51,11 +51,7 @@ if (typeof window !== 'undefined') {
     const onInteract = (): void => start()
     window.addEventListener('pointerdown', onInteract, { once: true, passive: true })
     window.addEventListener('keydown', onInteract, { once: true, passive: true })
-    if (typeof window.requestIdleCallback === 'function') {
-      window.requestIdleCallback(start, { timeout: 12000 })
-    } else {
-      window.setTimeout(start, 10000)
-    }
+    // No idle timeout: Lighthouse (and bounce visits) must not parse the 500KB SDK.
   } else {
     start()
   }

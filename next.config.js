@@ -121,7 +121,7 @@ const nextConfig = {
             sentry: {
               test: /[\\/]node_modules[\\/]@sentry[\\/]/,
               name: 'sentry',
-              chunks: 'all',
+              chunks: 'async',
               enforce: true,
               priority: 30,
               reuseExistingChunk: true,

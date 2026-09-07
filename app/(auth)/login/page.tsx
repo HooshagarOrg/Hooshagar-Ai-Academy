@@ -8,7 +8,6 @@ import {
   Loader2, Eye, EyeOff, KeyRound,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { TermsAcceptanceNotice } from '@/components/auth/terms-acceptance-notice'
 import dynamic from 'next/dynamic'
 
@@ -450,7 +449,7 @@ export default function LoginPage() {
                 </p>
                 <form onSubmit={handleStaffLogin} className="space-y-4">
           <div className="space-y-2">
-                    <Label htmlFor="username">نام کاربری / کد ورود</Label>
+                    <label className="text-sm font-medium leading-none" htmlFor="username">نام کاربری / کد ورود</label>
             <Input
                       id="username"
                       name="username"
@@ -467,7 +466,7 @@ export default function LoginPage() {
 
           <div className="space-y-2">
                     <div className="flex items-center justify-between">
-            <Label htmlFor="password">رمز عبور</Label>
+            <label className="text-sm font-medium leading-none" htmlFor="password">رمز عبور</label>
                       <Link href="/forgot-password" className="text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-primary)]">
                         فراموشی رمز؟
                       </Link>
@@ -516,7 +515,7 @@ export default function LoginPage() {
                 </p>
                 <form onSubmit={handleParentLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login_code">کد ورود</Label>
+                    <label className="text-sm font-medium leading-none" htmlFor="login_code">کد ورود</label>
                     <Input
                       id="login_code"
                       name="login_code"
@@ -532,7 +531,7 @@ export default function LoginPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="parent_password">رمز عبور</Label>
+                    <label className="text-sm font-medium leading-none" htmlFor="parent_password">رمز عبور</label>
                     <Input
                       id="parent_password"
                       name="password"
@@ -564,7 +563,7 @@ export default function LoginPage() {
                 </p>
                 <form onSubmit={handleStudentLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="student_number">کد دانش‌آموزی / کد ملی</Label>
+                    <label className="text-sm font-medium leading-none" htmlFor="student_number">کد دانش‌آموزی / کد ملی</label>
                     <Input
                       id="student_number"
                       name="student_number"
@@ -584,7 +583,7 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <KeyRound className="w-4 h-4 text-muted-foreground" />
-                      <Label htmlFor="pin">رمز (PIN)</Label>
+                      <label className="text-sm font-medium leading-none" htmlFor="pin">رمز (PIN)</label>
                     </div>
                     <Input
                       id="pin"
@@ -623,7 +622,7 @@ export default function LoginPage() {
                 {!otpSent ? (
                   <form key="sms-phone-form" onSubmit={handleSendOtp} className="space-y-4" autoComplete="on">
                     <div className="space-y-2">
-                      <Label htmlFor="login-phone">شماره موبایل</Label>
+                      <label className="text-sm font-medium leading-none" htmlFor="login-phone">شماره موبایل</label>
                       <Input
                         id="login-phone"
                         name="phone"
@@ -647,7 +646,7 @@ export default function LoginPage() {
                   <form key="sms-otp-form" onSubmit={handleVerifyOtp} className="space-y-4" autoComplete="off">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="login-otp">کد تأیید ۶ رقمی</Label>
+                        <label className="text-sm font-medium leading-none" htmlFor="login-otp">کد تأیید ۶ رقمی</label>
                         {otpTimer > 0 && (
                           <span className="text-xs text-muted-foreground">{otpTimer} ثانیه</span>
                         )}

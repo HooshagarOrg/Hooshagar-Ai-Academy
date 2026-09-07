@@ -93,6 +93,7 @@ const nextConfig = {
       '@react-three/drei',
       '@react-three/fiber',
     ],
+    optimizeCss: true,
     serverActions: {
       bodySizeLimit: '5mb',
     },
@@ -102,6 +103,7 @@ const nextConfig = {
   swcMinify: true,
   reactStrictMode: true,
   poweredByHeader: false,
+  staticPageGenerationTimeout: 180,
 
   // Webpack configuration
   webpack: (config, { dev, isServer }) => {

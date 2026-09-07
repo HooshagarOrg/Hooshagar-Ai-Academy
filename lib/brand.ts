@@ -1,7 +1,9 @@
 /** مسیرهای برند و رسانه — لندینگ و auth سینمایی */
 
 export const brandAssets = {
-  logo: '/brand/logo.png?v=20260713',
+  /** UI mark — 256px WebP (~few KB). Master PNG stays at /brand/logo.png */
+  logo: '/brand/logo-mark.webp',
+  logoMaster: '/brand/logo.png',
   heroVideo: '/videos/hero.mp4',
   talentGarden: '/images/talent-garden.png',
 } as const

@@ -235,14 +235,16 @@
   }
 
   .lux-display {
+    font-family: var(--font-vazirmatn-black), var(--font-vazirmatn), Arial, sans-serif;
     font-size: clamp(2.5rem, 7.5vw, 5.25rem);
-    font-weight: 950;
+    font-weight: 900;
     line-height: 1.06;
     letter-spacing: -0.03em;
     color: var(--lux-text);
   }
 
   .lux-h2 {
+    font-family: var(--font-vazirmatn-black), var(--font-vazirmatn), Arial, sans-serif;
     font-size: clamp(1.6rem, 3.5vw, 2.65rem);
     font-weight: 900;
     line-height: 1.15;

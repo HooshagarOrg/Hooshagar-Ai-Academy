@@ -11,6 +11,17 @@ const vazirmatn = localFont({
   src: './fonts/Vazirmatn-Regular.woff2',
   variable: '--font-vazirmatn',
   display: 'swap',
+  preload: false,
+  adjustFontFallback: 'Arial',
+})
+
+const vazirmatnBlack = localFont({
+  src: './fonts/Vazirmatn-Black.woff2',
+  variable: '--font-vazirmatn-black',
+  weight: '900',
+  display: 'swap',
+  preload: true,
+  adjustFontFallback: 'Arial',
 })
 
 export const viewport: Viewport = {
@@ -29,8 +40,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'تیم هوشاگر' }],
   manifest: '/manifest.json',
   icons: {
-    icon: '/brand/logo.png',
-    apple: '/brand/logo.png',
+    icon: [{ url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' }],
+    apple: '/apple-touch-icon.png',
   },
   appleWebApp: {
     capable: true,
@@ -52,7 +63,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
+    <html
+      lang="fa"
+      dir="rtl"
+      className={`${vazirmatn.variable} ${vazirmatnBlack.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <meta name="theme-color" content="#0F1117" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

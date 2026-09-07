@@ -46,6 +46,7 @@ export function HooshagarLogo({
           width={img}
           height={img}
           priority={priority}
+          sizes={`${img}px`}
           className="shrink-0"
         />
       )}

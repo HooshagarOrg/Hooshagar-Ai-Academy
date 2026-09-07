@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { usePathname } from 'next/navigation'
 
 const CookieConsent = dynamic(
   () => import('@/components/cookie-consent').then((m) => m.CookieConsent),
@@ -13,9 +14,11 @@ const Toaster = dynamic(
   { ssr: false },
 )
 
-/** توست همان لحظه (ورود به آن نیاز دارد)؛ بنر کوکی بعد از idle. */
+/** لندینگ توست نمی‌خواهد؛ کوکی بعد از idle. */
 export function DeferredChrome(): JSX.Element {
+  const pathname = usePathname()
   const [consent, setConsent] = useState(false)
+  const showToaster = pathname !== '/'
 
   useEffect(() => {
     const enable = (): void => setConsent(true)
@@ -30,7 +33,7 @@ export function DeferredChrome(): JSX.Element {
   return (
     <>
       {consent ? <CookieConsent /> : null}
-      <Toaster position="top-center" richColors />
+      {showToaster ? <Toaster position="top-center" richColors /> : null}
     </>
   )
 }

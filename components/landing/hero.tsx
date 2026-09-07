@@ -1,45 +1,14 @@
-'use client'
-
 /**
- * Hero لندینگ — متن از ابتدا دیده می‌شود (LCP). GSAP فقط بعد از اسکرول.
+ * Hero لندینگ — HTML سرور برای LCP. بدون GSAP و بدون PNG یک‌مگابایتی.
  */
 
-import { useEffect, useRef } from 'react'
 import { ArrowLeft, Sparkles } from 'lucide-react'
-import { HeroLogoAnimated } from '@/components/brand/hero-logo-animated'
+import { BrandLogoImage } from '@/components/brand/brand-logo-image'
 
 export default function LandingHero(): JSX.Element {
-  const sectionRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const section = sectionRef.current
-    if (!section) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-
-    let cancelled = false
-    let stopMotion: (() => void) | undefined
-    const start = (): void => {
-      if (cancelled) return
-      void import('./hero-motion').then((mod) => {
-        if (!cancelled) stopMotion = mod.runHeroMotion(section)
-      })
-    }
-
-    const onScroll = (): void => {
-      if (window.scrollY > 24) start()
-    }
-    window.addEventListener('scroll', onScroll, { once: true, passive: true })
-
-    return () => {
-      cancelled = true
-      stopMotion?.()
-      window.removeEventListener('scroll', onScroll)
-    }
-  }, [])
-
   return (
     <section
-      ref={sectionRef}
+      data-hero-section
       className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-transparent"
       aria-label="معرفی هوشاگر"
     >
@@ -57,7 +26,13 @@ export default function LandingHero(): JSX.Element {
 
       <div data-hero-content className="lux-container relative z-10 py-24 text-center">
         <div className="relative mx-auto mb-8 flex justify-center">
-          <HeroLogoAnimated size={120} priority />
+          <BrandLogoImage
+            alt="لوگوی هوشاگر"
+            width={96}
+            height={96}
+            sizes="96px"
+            className="h-24 w-24"
+          />
         </div>
 
         <div className="mx-auto mb-7 inline-flex items-center gap-2 rounded-full border border-[rgba(201,169,98,0.35)] bg-[rgba(201,169,98,0.08)] px-4 py-1.5 text-xs font-extrabold text-[var(--lux-gold)]">
@@ -69,7 +44,7 @@ export default function LandingHero(): JSX.Element {
           مدرسه‌ای که آیندهٔ فرزندتان را می‌بیند
         </h1>
 
-        <h2 className="lp-gradient-text-animated mt-3 text-[clamp(1.9rem,5.5vw,3.6rem)] font-black leading-tight">
+        <h2 className="lux-h2 mt-3 text-[clamp(1.9rem,5.5vw,3.6rem)] leading-tight">
           با قدرت هوش مصنوعی
         </h2>
 

@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss'
 
+/** Full-app scan — imported by dashboard.css so authenticated routes keep complete utilities. */
 const config: Config = {
   darkMode: ['class'],
   content: [

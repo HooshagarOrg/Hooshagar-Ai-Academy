@@ -10,6 +10,7 @@ import {
   HotCacheTTL,
   withRedisCache,
 } from '@/lib/cache/hot-cache'
+import './dashboard.css'
 
 export default async function DashboardLayout({
   children,

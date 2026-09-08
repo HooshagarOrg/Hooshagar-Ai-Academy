@@ -33,11 +33,8 @@ export function PublicRuntimeScripts(): JSX.Element {
     if(restShown) return;
     restShown=true;
     var host=document.getElementById('lp-below-host');
-    if(!host) return;
-    fetch('/landing-below', {credentials:'same-origin'}).then(function(r){ return r.text(); }).then(function(html){
-      host.innerHTML=html;
-      bindVideo();
-    }).catch(function(){});
+    if(host) host.removeAttribute('hidden');
+    bindVideo();
   }
   window.addEventListener('scroll', function(){
     showNav();

@@ -11,6 +11,7 @@ import {
   withRedisCache,
 } from '@/lib/cache/hot-cache'
 import './dashboard.css'
+import { AppChrome } from '@/components/app-chrome'
 
 export default async function DashboardLayout({
   children,
@@ -115,6 +116,7 @@ export default async function DashboardLayout({
       >
         {children}
       </DashboardShell>
+      <AppChrome />
     </DashboardThemeProvider>
   )
 }

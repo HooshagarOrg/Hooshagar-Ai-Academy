@@ -1,5 +1,3 @@
-'use client'
-
 import type { ReactNode } from 'react'
 import {
   ArrowLeft,
@@ -18,17 +16,10 @@ import {
   Users,
   Wand2,
 } from 'lucide-react'
-import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
+import { BrandLogoImage } from '@/components/brand/brand-logo-image'
 import { EnamadSeal } from '@/components/brand/enamad-seal'
-import {
-  GlowCounter,
-  MagneticButton,
-  SectionReveal,
-  StaggerReveal,
-  TiltCard,
-} from './motion'
-import { CinematicVideoSection } from './cinematic-video-section'
-import { LiveInsightsSection } from './live-insights'
+import { CinematicVideoStatic } from './cinematic-video-static'
+import { LiveInsightsStatic } from './live-insights-static'
 
 function HooshiarSection(): JSX.Element {
   const chat: Array<{ from: 'ai' | 'user'; text: string }> = [
@@ -43,7 +34,7 @@ function HooshiarSection(): JSX.Element {
   return (
     <section id="hooshiar" className="lux-section lp-aurora relative" aria-label="هوشیار">
       <div className="lux-container relative z-10 grid items-center gap-12 lg:grid-cols-2">
-        <SectionReveal>
+        <div>
           <p className="lux-kicker lp-kicker-gold mb-4">همراه همیشگی</p>
           <h2 className="lux-h2 mb-5">
             با <span className="lp-gradient-text-animated">هوشیار</span> آشنا شوید
@@ -69,10 +60,10 @@ function HooshiarSection(): JSX.Element {
               </li>
             ))}
           </ul>
-        </SectionReveal>
+        </div>
 
-        <SectionReveal delay={0.15}>
-          <TiltCard className="lp-glass p-6" maxTilt={5}>
+        <div>
+          <div className="lp-glass p-6">
             <div className="mb-5 flex items-center gap-3 border-b border-[rgba(232,236,244,0.08)] pb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--lux-primary)] to-[var(--lux-secondary)]">
                 <Bot className="h-5 w-5 text-white" aria-hidden="true" />
@@ -105,8 +96,8 @@ function HooshiarSection(): JSX.Element {
                 ))}
               </div>
             </div>
-          </TiltCard>
-        </SectionReveal>
+          </div>
+        </div>
       </div>
     </section>
   )
@@ -162,16 +153,16 @@ function FeaturesSection(): JSX.Element {
   return (
     <section id="features" className="lux-section relative" aria-label="قابلیت‌ها">
       <div className="lux-container">
-        <SectionReveal className="mb-14 text-center">
+        <div className="mb-14 text-center">
           <p className="lux-kicker lp-kicker-gold mb-4">قدرت هوش مصنوعی</p>
           <h2 className="lux-h2">
             هر آنچه یک مدرسهٔ <span className="lp-gradient-text-animated">آینده‌نگر</span> نیاز دارد
           </h2>
-        </SectionReveal>
+        </div>
 
-        <StaggerReveal className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f) => (
-            <TiltCard key={f.title} className="lux-card h-full p-6" maxTilt={6}>
+            <div key={f.title} className="lux-card h-full p-6">
               <div
                 className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl"
                 style={{
@@ -183,9 +174,9 @@ function FeaturesSection(): JSX.Element {
               </div>
               <h3 className="mb-2 text-lg font-black text-[var(--lux-text)]">{f.title}</h3>
               <p className="text-sm leading-7 text-[var(--lux-text-muted)]">{f.desc}</p>
-            </TiltCard>
+            </div>
           ))}
-        </StaggerReveal>
+        </div>
       </div>
     </section>
   )
@@ -229,14 +220,14 @@ function RolesSection(): JSX.Element {
   return (
     <section id="roles" className="lux-section lp-aurora relative" aria-label="نقش‌ها">
       <div className="lux-container relative z-10">
-        <SectionReveal className="mb-14 text-center">
+        <div className="mb-14 text-center">
           <p className="lux-kicker lp-kicker-gold mb-4">برای همه</p>
           <h2 className="lux-h2">یک پلتفرم، چهار تجربهٔ اختصاصی</h2>
-        </SectionReveal>
+        </div>
 
-        <StaggerReveal className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {roles.map((r) => (
-            <TiltCard key={r.title} className="lp-gold-border h-full rounded-3xl p-6 text-center" maxTilt={8}>
+            <div key={r.title} className="lp-gold-border h-full rounded-3xl p-6 text-center">
               <div
                 className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full"
                 style={{
@@ -249,9 +240,9 @@ function RolesSection(): JSX.Element {
               </div>
               <h3 className="mb-2 text-lg font-black text-[var(--lux-text)]">{r.title}</h3>
               <p className="text-sm leading-7 text-[var(--lux-text-muted)]">{r.desc}</p>
-            </TiltCard>
+            </div>
           ))}
-        </StaggerReveal>
+        </div>
       </div>
     </section>
   )
@@ -268,21 +259,20 @@ function StatsSection(): JSX.Element {
   return (
     <section className="lux-section relative" aria-label="آمار">
       <div className="lux-container">
-        <StaggerReveal className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s) => (
             <div key={s.label} className="lp-glass p-6 text-center">
               <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(201,169,98,0.12)] text-[var(--lux-gold)]">
                 {s.icon}
               </div>
-              <GlowCounter
-                value={s.value}
-                suffix={s.suffix}
-                className="block text-4xl font-black text-[var(--lux-text)]"
-              />
+              <span className="block text-4xl font-black text-[var(--lux-text)]">
+                {s.value}
+                {s.suffix}
+              </span>
               <p className="mt-2 text-sm font-bold text-[var(--lux-text-muted)]">{s.label}</p>
             </div>
           ))}
-        </StaggerReveal>
+        </div>
       </div>
     </section>
   )
@@ -299,7 +289,7 @@ function CTASection(): JSX.Element {
       aria-label="شروع"
     >
       <div className="lux-container relative z-10 text-center">
-        <SectionReveal>
+        <div>
           <p className="lux-kicker lp-kicker-gold mb-5">همین امروز</p>
           <h2 className="lux-display mx-auto max-w-3xl text-[clamp(2rem,6vw,4rem)]">
             آیندهٔ مدرسه‌تان را{' '}
@@ -309,15 +299,15 @@ function CTASection(): JSX.Element {
             به جمع مدارسی بپیوندید که آموزش را با هوش مصنوعی متحول کرده‌اند.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <MagneticButton href="/login" className="lux-btn-accent px-9 text-base">
+            <a href="/login" className="lux-btn-accent px-9 text-base">
               شروع کنید
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            </MagneticButton>
-            <MagneticButton href="#hooshiar" className="lux-btn-ghost px-9 text-base">
+            </a>
+            <a href="#hooshiar" className="lux-btn-ghost px-9 text-base">
               بیشتر بدانید
-            </MagneticButton>
+            </a>
           </div>
-        </SectionReveal>
+        </div>
       </div>
     </section>
   )
@@ -328,7 +318,9 @@ function Footer(): JSX.Element {
     <footer className="border-t border-[rgba(232,236,244,0.08)] py-10">
       <div className="lux-container flex flex-col items-center gap-8 sm:flex-row sm:items-end sm:justify-between">
         <div className="text-center sm:text-right">
-          <HooshagarLogo size="sm" href="/" inverted showWordmark={false} />
+          <a href="/" className="inline-flex rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+            <BrandLogoImage width={36} height={36} sizes="36px" className="shrink-0" />
+          </a>
           <p className="mt-1 text-xs text-[var(--lux-text-muted)]">
             سیستم‌عامل هوشمند مدیریت مدارس
           </p>
@@ -364,8 +356,8 @@ function Footer(): JSX.Element {
 export default function LandingBelowFold(): JSX.Element {
   return (
     <>
-      <CinematicVideoSection />
-      <LiveInsightsSection />
+      <CinematicVideoStatic />
+      <LiveInsightsStatic />
       <HooshiarSection />
       <FeaturesSection />
       <RolesSection />

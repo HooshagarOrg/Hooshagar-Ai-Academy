@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
-import { ServiceWorkerRegister } from '@/components/service-worker-register'
-import { SentryClientInit } from '@/components/sentry-client-init'
-import { ChunkLoadRecovery } from '@/components/chunk-load-recovery'
-import { DeferredChrome } from '@/components/deferred-chrome'
+import { PublicRuntimeScripts } from '@/components/public-runtime-scripts'
 import { CANONICAL_APP_ORIGIN } from '@/lib/app-url'
 
 const vazirmatn = localFont({
@@ -78,10 +75,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased min-h-app bg-background text-foreground" suppressHydrationWarning>
         <div className="relative z-10 min-h-app">{children}</div>
-        <SentryClientInit />
-        <ChunkLoadRecovery />
-        <DeferredChrome />
-        <ServiceWorkerRegister />
+        <PublicRuntimeScripts />
       </body>
     </html>
   )

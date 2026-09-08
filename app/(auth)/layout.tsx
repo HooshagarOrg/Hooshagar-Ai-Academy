@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { AppChrome } from '@/components/app-chrome'
 import { CinematicPortal } from '@/components/auth/cinematic-portal'
 
 export const metadata: Metadata = {
@@ -11,5 +12,10 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <CinematicPortal>{children}</CinematicPortal>
+  return (
+    <>
+      <CinematicPortal>{children}</CinematicPortal>
+      <AppChrome />
+    </>
+  )
 }

@@ -10,25 +10,39 @@ export function PublicRuntimeScripts(): JSX.Element {
       dangerouslySetInnerHTML={{
         __html: `(function(){
   var KEY='hooshagar_cookie_consent';
+  var restShown=false;
   function showNav(){
     var n=document.getElementById('lp-nav');
     if(n && window.scrollY>window.innerHeight*0.7) n.classList.add('is-visible');
   }
-  window.addEventListener('scroll', showNav, {passive:true});
-  var vid=document.getElementById('lp-cinematic-video');
-  if(vid){
+  function bindVideo(){
+    var vid=document.getElementById('lp-cinematic-video');
+    if(!vid) return;
     var reduce=false;
     try{ reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
-    if(!reduce && 'IntersectionObserver' in window){
-      var io=new IntersectionObserver(function(es){
-        for(var i=0;i<es.length;i++){
-          if(es[i].isIntersecting){ vid.play().catch(function(){}); }
-          else { vid.pause(); }
-        }
-      },{threshold:0.25});
-      io.observe(document.getElementById('cinematic')||vid);
-    }
+    if(reduce || !('IntersectionObserver' in window)) return;
+    var io=new IntersectionObserver(function(es){
+      for(var i=0;i<es.length;i++){
+        if(es[i].isIntersecting){ vid.play().catch(function(){}); }
+        else { vid.pause(); }
+      }
+    },{threshold:0.25});
+    io.observe(document.getElementById('cinematic')||vid);
   }
+  function showRest(){
+    if(restShown) return;
+    restShown=true;
+    var host=document.getElementById('lp-below-host');
+    if(!host) return;
+    fetch('/landing-below', {credentials:'same-origin'}).then(function(r){ return r.text(); }).then(function(html){
+      host.innerHTML=html;
+      bindVideo();
+    }).catch(function(){});
+  }
+  window.addEventListener('scroll', function(){
+    showNav();
+    if(window.scrollY>48) showRest();
+  }, {passive:true});
   try {
     if (!localStorage.getItem(KEY)) {
       setTimeout(function(){

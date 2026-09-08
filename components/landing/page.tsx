@@ -4,6 +4,7 @@
 
 import { AmbientVectors } from './ambient-vectors'
 import { LandingBelowFoldGate, LandingChrome } from './landing-chrome'
+import { LandingNav } from './landing-nav'
 import LandingHero from './hero'
 
 export default function LandingPage(): JSX.Element {
@@ -15,6 +16,7 @@ export default function LandingPage(): JSX.Element {
       style={{ background: 'var(--lux-void)' }}
     >
       <AmbientVectors />
+      <LandingNav />
       <LandingChrome />
       <div className="relative z-10">
         <LandingHero />

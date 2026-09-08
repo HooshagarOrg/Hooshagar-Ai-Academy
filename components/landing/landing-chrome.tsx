@@ -1,73 +1,81 @@
 'use client'
 
 /**
- * ناوبری، ستاره و GSAP — فقط بعد از اسکرول تا LCP هیرو را نگیرند.
+ * تزئینات و below-fold — فقط بعد از اسکرول، با import() تا webpack پیش‌بار نکند.
  */
 
-import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
-import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
+import { useEffect, useState, type ComponentType } from 'react'
 
-const StarfieldCanvas = dynamic(
-  () => import('./starfield-canvas').then((m) => m.StarfieldCanvas),
-  { ssr: false },
-)
+type StarfieldProps = {
+  density: number
+  brightness: number
+  className: string
+}
 
-const LandingBelowFold = dynamic(() => import('./landing-rest'), {
-  ssr: false,
-  loading: () => <div className="min-h-[70vh]" aria-hidden="true" />,
-})
-
-const ScrollProgressBar = dynamic(
-  () => import('./scroll-progress').then((m) => m.ScrollProgressBar),
-  { ssr: false },
-)
-
-function FloatingNav(): JSX.Element {
-  const [visible, setVisible] = useState(false)
+function LazyStarfield(): JSX.Element | null {
+  const [El, setEl] = useState<ComponentType<StarfieldProps> | null>(null)
 
   useEffect(() => {
-    const onScroll = (): void => {
-      setVisible(window.scrollY > window.innerHeight * 0.7)
+    let cancelled = false
+    void import(
+      /* webpackPrefetch: false, webpackPreload: false */
+      './starfield-canvas'
+    ).then((mod) => {
+      if (!cancelled) setEl(() => mod.StarfieldCanvas)
+    })
+    return () => {
+      cancelled = true
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  if (!El) return null
   return (
-    <nav className={`lp-nav ${visible ? 'is-visible' : ''}`} aria-label="ناوبری اصلی">
-      <HooshagarLogo
-        size="sm"
-        href="/"
-        inverted
-        showWordmark
-        showImage={visible}
-      />
-      <div className="hidden items-center gap-5 text-sm font-bold text-[var(--lux-text-muted)] sm:flex">
-        <a href="#cinematic" className="transition-colors hover:text-[var(--lux-text)]">
-          جهان
-        </a>
-        <a href="#insights" className="transition-colors hover:text-[var(--lux-text)]">
-          بینش
-        </a>
-        <a href="#hooshiar" className="transition-colors hover:text-[var(--lux-text)]">
-          هوشیار
-        </a>
-        <a href="#features" className="transition-colors hover:text-[var(--lux-text)]">
-          قابلیت‌ها
-        </a>
-        <a href="#roles" className="transition-colors hover:text-[var(--lux-text)]">
-          نقش‌ها
-        </a>
-      </div>
-      <a
-        href="/login"
-        className="rounded-full bg-[var(--lux-primary)] px-4 py-1.5 text-sm font-extrabold text-white transition-transform hover:-translate-y-0.5"
-      >
-        ورود
-      </a>
-    </nav>
+    <El
+      density={0.55}
+      brightness={1.05}
+      className="pointer-events-none fixed inset-0 z-[1] h-full w-full"
+    />
   )
+}
+
+function LazyScrollProgress(): JSX.Element | null {
+  const [El, setEl] = useState<ComponentType<Record<string, never>> | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    void import(
+      /* webpackPrefetch: false, webpackPreload: false */
+      './scroll-progress'
+    ).then((mod) => {
+      if (!cancelled) setEl(() => mod.ScrollProgressBar)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (!El) return null
+  return <El />
+}
+
+function LazyBelowFold(): JSX.Element | null {
+  const [El, setEl] = useState<ComponentType<Record<string, never>> | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    void import(
+      /* webpackPrefetch: false, webpackPreload: false */
+      './landing-rest'
+    ).then((mod) => {
+      if (!cancelled) setEl(() => mod.default)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (!El) return <div className="min-h-[70vh]" aria-hidden="true" />
+  return <El />
 }
 
 export function LandingChrome(): JSX.Element {
@@ -77,20 +85,30 @@ export function LandingChrome(): JSX.Element {
     let cancelled = false
     let done = false
     let stopMotion: (() => void) | undefined
+
     const enable = (): void => {
       if (done) return
       done = true
+      document.getElementById('lp-nav')?.classList.add('is-visible')
       setEnhance(true)
       const section = document.querySelector('[data-hero-section]')
       if (section instanceof HTMLElement) {
-        void import('./hero-motion').then((mod) => {
+        void import(
+          /* webpackPrefetch: false, webpackPreload: false */
+          './hero-motion'
+        ).then((mod) => {
           if (!cancelled) stopMotion = mod.runHeroMotion(section)
         })
       }
     }
+
     const onScroll = (): void => {
+      if (window.scrollY > window.innerHeight * 0.7) {
+        document.getElementById('lp-nav')?.classList.add('is-visible')
+      }
       if (window.scrollY > 48) enable()
     }
+
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       cancelled = true
@@ -101,15 +119,8 @@ export function LandingChrome(): JSX.Element {
 
   return (
     <>
-      {enhance ? (
-        <StarfieldCanvas
-          density={0.55}
-          brightness={1.05}
-          className="pointer-events-none fixed inset-0 z-[1] h-full w-full"
-        />
-      ) : null}
-      {enhance ? <ScrollProgressBar /> : null}
-      <FloatingNav />
+      {enhance ? <LazyStarfield /> : null}
+      {enhance ? <LazyScrollProgress /> : null}
     </>
   )
 }
@@ -130,5 +141,5 @@ export function LandingBelowFoldGate(): JSX.Element {
     return <div className="min-h-[70vh]" aria-hidden="true" />
   }
 
-  return <LandingBelowFold />
+  return <LazyBelowFold />
 }

@@ -1,41 +1,57 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
+import { useEffect, useState, type ComponentType } from 'react'
 import { usePathname } from 'next/navigation'
 import { isPublicMarketingPath } from '@/lib/monitoring/public-path'
 
-const CookieConsent = dynamic(
-  () => import('@/components/cookie-consent').then((m) => m.CookieConsent),
-  { ssr: false },
-)
+type CookieBannerComponent = ComponentType<Record<string, never>>
+type LazyToaster = typeof import('sonner').Toaster
 
-const Toaster = dynamic(
-  () => import('sonner').then((m) => m.Toaster),
-  { ssr: false },
-)
-
-/** لندینگ توست نمی‌خواهد؛ کوکی روی صفحات عمومی خیلی دیرتر می‌آید تا LCP/TBT نگیرد. */
+/**
+ * کوکی و توست را با import() تأخیری بار می‌کند.
+ * requestIdleCallback({timeout:20000}) همان لحظهٔ بیکاری (~۲ثانیه) اجرا می‌شد و LCP را می‌دزدید.
+ */
 export function DeferredChrome(): JSX.Element {
   const pathname = usePathname()
-  const [consent, setConsent] = useState(false)
-  const showToaster = pathname !== '/'
+  const [CookieBanner, setCookieBanner] = useState<CookieBannerComponent | null>(
+    null,
+  )
+  const [Toaster, setToaster] = useState<LazyToaster | null>(null)
+  const publicPath = isPublicMarketingPath(pathname)
 
   useEffect(() => {
-    const enable = (): void => setConsent(true)
-    const delayMs = isPublicMarketingPath(pathname) ? 20000 : 4000
-    if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(enable, { timeout: delayMs })
-      return () => window.cancelIdleCallback(id)
+    const cookieMs = publicPath ? 20_000 : 4_000
+    const cookieId = window.setTimeout(() => {
+      void import(
+        /* webpackPrefetch: false, webpackPreload: false */
+        '@/components/cookie-consent'
+      ).then((mod) => {
+        setCookieBanner(() => mod.CookieConsent)
+      })
+    }, cookieMs)
+
+    let toasterId: number | undefined
+    if (pathname !== '/') {
+      toasterId = window.setTimeout(() => {
+        void import(
+          /* webpackPrefetch: false, webpackPreload: false */
+          'sonner'
+        ).then((mod) => {
+          setToaster(() => mod.Toaster)
+        })
+      }, 0)
     }
-    const id = window.setTimeout(enable, Math.min(delayMs, 4000))
-    return () => window.clearTimeout(id)
-  }, [pathname])
+
+    return () => {
+      window.clearTimeout(cookieId)
+      if (toasterId !== undefined) window.clearTimeout(toasterId)
+    }
+  }, [pathname, publicPath])
 
   return (
     <>
-      {consent ? <CookieConsent /> : null}
-      {showToaster ? <Toaster position="top-center" richColors /> : null}
+      {CookieBanner ? <CookieBanner /> : null}
+      {Toaster ? <Toaster position="top-center" richColors /> : null}
     </>
   )
 }

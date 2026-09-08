@@ -129,7 +129,7 @@ const nextConfig = {
             three: {
               test: /[\\/]node_modules[\\/](three|@react-three)[\\/]/,
               name: 'three',
-              chunks: 'all',
+              chunks: 'async',
               enforce: true,
               priority: 25,
               reuseExistingChunk: true,
@@ -137,7 +137,7 @@ const nextConfig = {
             gsap: {
               test: /[\\/]node_modules[\\/](gsap|@gsap)[\\/]/,
               name: 'gsap',
-              chunks: 'all',
+              chunks: 'async',
               enforce: true,
               priority: 25,
               reuseExistingChunk: true,

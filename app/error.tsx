@@ -1,41 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import * as Sentry from '@sentry/nextjs'
-import {
-  AlertTriangle,
-  RefreshCw,
-  Home,
-  Bug,
-  HelpCircle,
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  CheckCircle2,
-} from 'lucide-react'
-import { ReportProblemDialog } from '@/components/support/report-problem-dialog'
 import { maybeHardReloadOnStaleBundle } from '@/lib/monitoring/stale-client-bundle'
 
-// ============================================
-// تایپ‌ها
-// ============================================
 interface ErrorProps {
   error: Error & { digest?: string }
   reset: () => void
 }
 
-// ============================================
-// کامپوننت Error Boundary
-// ============================================
 function isNextNavigationError(error: Error & { digest?: string }): boolean {
   const digest = error.digest ?? ''
   return digest.startsWith('NEXT_REDIRECT') || digest.startsWith('NEXT_NOT_FOUND')
 }
 
-export default function Error({ error, reset }: ErrorProps) {
+export default function Error({ error, reset }: ErrorProps): JSX.Element {
   const [showDetails, setShowDetails] = useState(false)
-  const [copied, setCopied] = useState(false)
   const isDevelopment = process.env.NODE_ENV === 'development'
 
   if (isNextNavigationError(error)) {
@@ -46,234 +25,101 @@ export default function Error({ error, reset }: ErrorProps) {
     if (maybeHardReloadOnStaleBundle(error, window.location, window.sessionStorage)) {
       return
     }
-
-    // Next.js catches error.tsx before Sentry's global handler — report manually
-    Sentry.captureException(error)
-
-    if (isDevelopment) {
-      console.error('🔴 Error caught by Error Boundary:', error)
-      console.error('Error name:', error.name)
-      console.error('Error message:', error.message)
-      console.error('Error stack:', error.stack)
-      if (error.digest) {
-        console.error('Error digest:', error.digest)
-      }
-    }
-  }, [error, isDevelopment])
-
-  // کپی جزئیات خطا
-  const copyErrorDetails = async (): Promise<void> => {
-    const details = `
-خطا: ${error.name}
-پیام: ${error.message}
-${error.digest ? `Digest: ${error.digest}` : ''}
-زمان: ${new Date().toLocaleString('fa-IR')}
-URL: ${typeof window !== 'undefined' ? window.location.href : 'N/A'}
-    `.trim()
-
-    await navigator.clipboard.writeText(details)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    void import(
+      /* webpackPrefetch: false, webpackPreload: false */
+      '@sentry/nextjs'
+    )
+      .then((Sentry) => {
+        Sentry.captureException(error)
+      })
+      .catch(() => undefined)
+  }, [error])
 
   return (
-    <div 
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/30 to-slate-900 flex items-center justify-center p-4"
+    <div
+      className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900/30 to-slate-900 p-4"
       dir="rtl"
     >
-      <div className="max-w-lg w-full">
-        {/* کارت اصلی */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 shadow-2xl">
-          {/* آیکون و عنوان */}
-          <div className="text-center mb-8">
-            <div className="relative inline-block">
-              <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-500/30">
-                <AlertTriangle className="w-12 h-12 text-white" />
-              </div>
-              {/* پالس انیمیشن */}
-              <div className="absolute inset-0 w-24 h-24 bg-red-500/30 rounded-full animate-ping" />
-            </div>
-            
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">
-              اوه! مشکلی پیش آمد 😔
+      <div className="w-full max-w-lg">
+        <div className="rounded-3xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-lg">
+          <div className="mb-8 text-center">
+            <h1 className="mb-3 text-2xl font-bold text-white md:text-3xl">
+              اوه! مشکلی پیش آمد
             </h1>
-            <p className="text-white/60 leading-relaxed">
+            <p className="leading-relaxed text-white/60">
               متأسفانه در پردازش درخواست شما خطایی رخ داده است.
               <br />
               نگران نباشید، تیم فنی ما در حال بررسی است.
             </p>
           </div>
 
-          {/* دکمه‌های اصلی */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row">
             <button
+              type="button"
               onClick={reset}
-              className="flex-1 flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50"
+              className="flex-1 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4 font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:from-blue-600 hover:to-cyan-600"
             >
-              <RefreshCw className="w-5 h-5" />
               تلاش دوباره
             </button>
-            <Link
+            <a
               href="/"
-              className="flex-1 flex items-center justify-center gap-2 py-4 px-6 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all border border-white/20"
+              className="flex-1 rounded-xl border border-white/20 bg-white/10 px-6 py-4 text-center font-bold text-white transition-all hover:bg-white/20"
             >
-              <Home className="w-5 h-5" />
               بازگشت به خانه
-            </Link>
-          </div>
-          <div className="mb-6 flex justify-center">
-            <ReportProblemDialog
-              errorName={error.name}
-              digest={error.digest ?? null}
-              defaultCategory="bug"
-            />
+            </a>
           </div>
 
-          {/* جزئیات خطا (فقط در development یا با کلیک) */}
+          <p className="mb-6 text-center text-sm text-white/50">
+            نیاز به کمک دارید؟{' '}
+            <a href="mailto:contact@hooshagar.ir" className="text-blue-400 hover:underline">
+              پشتیبانی
+            </a>
+          </p>
+
           <div className="border-t border-white/10 pt-6">
             <button
-              onClick={() => setShowDetails(!showDetails)}
-              className="w-full flex items-center justify-between py-2 text-white/50 hover:text-white/70 transition-colors"
+              type="button"
+              onClick={() => setShowDetails((v) => !v)}
+              className="w-full py-2 text-sm text-white/50 transition-colors hover:text-white/70"
             >
-              <div className="flex items-center gap-2">
-                <Bug className="w-4 h-4" />
-                <span className="text-sm">جزئیات فنی</span>
-                {isDevelopment && (
-                  <span className="bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded text-xs">
-                    DEV
-                  </span>
-                )}
-              </div>
-              {showDetails ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
+              {showDetails ? 'پنهان کردن جزئیات فنی' : 'جزئیات فنی'}
             </button>
 
-            {showDetails && (
+            {showDetails ? (
               <div className="mt-4 space-y-3">
-                {/* نام خطا */}
-                <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-white/40 text-xs mb-1">نوع خطا</p>
-                  <p className="text-red-400 font-mono text-sm">{error.name}</p>
+                <div className="rounded-lg bg-white/5 p-3">
+                  <p className="mb-1 text-xs text-white/40">نوع خطا</p>
+                  <p className="font-mono text-sm text-red-400">{error.name}</p>
                 </div>
-
-                {/* پیام خطا */}
-                <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-white/40 text-xs mb-1">پیام</p>
-                  <p className="text-white/80 font-mono text-sm break-all">
+                <div className="rounded-lg bg-white/5 p-3">
+                  <p className="mb-1 text-xs text-white/40">پیام</p>
+                  <p className="break-all font-mono text-sm text-white/80">
                     {error.message || 'خطای ناشناخته'}
                   </p>
                 </div>
-
-                {/* Digest (اگر وجود داشته باشد) */}
-                {error.digest && (
-                  <div className="bg-white/5 rounded-lg p-3">
-                    <p className="text-white/40 text-xs mb-1">شناسه خطا</p>
-                    <p className="text-white/60 font-mono text-sm">{error.digest}</p>
+                {error.digest ? (
+                  <div className="rounded-lg bg-white/5 p-3">
+                    <p className="mb-1 text-xs text-white/40">شناسه خطا</p>
+                    <p className="font-mono text-sm text-white/60">{error.digest}</p>
                   </div>
-                )}
-
-                {/* Stack trace (فقط در development) */}
-                {isDevelopment && error.stack && (
-                  <div className="bg-white/5 rounded-lg p-3">
-                    <p className="text-white/40 text-xs mb-1">Stack Trace</p>
-                    <pre className="text-white/60 font-mono text-xs overflow-x-auto max-h-40 overflow-y-auto whitespace-pre-wrap">
+                ) : null}
+                {isDevelopment && error.stack ? (
+                  <div className="rounded-lg bg-white/5 p-3">
+                    <p className="mb-1 text-xs text-white/40">Stack Trace</p>
+                    <pre className="max-h-40 overflow-auto whitespace-pre-wrap font-mono text-xs text-white/60">
                       {error.stack}
                     </pre>
                   </div>
-                )}
-
-                {/* دکمه کپی */}
-                <button
-                  onClick={copyErrorDetails}
-                  className="w-full flex items-center justify-center gap-2 py-2 bg-white/5 hover:bg-white/10 text-white/60 rounded-lg transition-all text-sm"
-                >
-                  {copied ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-green-400" />
-                      کپی شد!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4" />
-                      کپی جزئیات خطا
-                    </>
-                  )}
-                </button>
+                ) : null}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
-        {/* راهنمای تماس */}
-        <div className="mt-6 text-center">
-          <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur rounded-xl px-4 py-3 border border-white/10">
-            <HelpCircle className="w-4 h-4 text-blue-400" />
-            <span className="text-white/50 text-sm">
-              نیاز به کمک دارید؟{' '}
-              <a href="mailto:contact@hooshagar.ir" className="text-blue-400 hover:underline">
-                پشتیبانی
-              </a>
-            </span>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <p className="text-center text-white/30 text-xs mt-6">
+        <p className="mt-6 text-center text-xs text-white/30">
           سیستم هوشمند مدیریت مدارس - هوشاگر
         </p>
       </div>
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,32 +1,42 @@
-import Image, { type ImageProps } from 'next/image'
+import type { ImgHTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 import { brandAssets } from '@/lib/brand'
 
-type BrandLogoImageProps = Omit<ImageProps, 'src' | 'alt'> & {
+type BrandLogoImageProps = {
   alt?: string
-}
+  className?: string
+  width: number
+  height: number
+  sizes?: string
+  loading?: 'eager' | 'lazy'
+  priority?: boolean
+  unoptimized?: boolean
+} & Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt' | 'width' | 'height' | 'loading'>
 
 /**
- * لوگوی برند — فایل WebP ازپیش‌فشرده؛ unoptimized تا /_next/image به LCP نخورد
+ * لوگوی برند — img ساده تا runtime next/image وارد باندل لندینگ نشود
  */
 export function BrandLogoImage({
   alt = 'لوگوی هوشاگر',
   className,
-  unoptimized = true,
-  sizes = '96px',
+  width,
+  height,
   loading,
-  priority,
+  priority = false,
+  unoptimized: _unoptimized,
+  sizes: _sizes,
   ...props
-}: BrandLogoImageProps) {
+}: BrandLogoImageProps): JSX.Element {
   return (
     <span className="lp-brand-logo inline-flex leading-none">
-      <Image
+      <img
         src={brandAssets.logo}
         alt={alt}
-        unoptimized={unoptimized}
-        sizes={sizes}
-        priority={priority}
-        loading={priority ? undefined : loading}
+        width={width}
+        height={height}
+        decoding="async"
+        fetchPriority={priority ? 'high' : 'auto'}
+        loading={priority ? 'eager' : (loading ?? 'lazy')}
         className={cn('bg-transparent object-contain', className)}
         {...props}
       />

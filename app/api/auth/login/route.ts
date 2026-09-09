@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
+import { isRelaxedAuthRuntime } from '@/lib/security/test-runtime'
 import {
   clearIpFailures,
   clearProfileFailures,
@@ -22,6 +23,7 @@ import { sanitizeString, normalizeIranPhone } from '@/lib/security/sanitize'
 import { getSupabaseServerUrl } from '@/lib/supabase/resolve-url'
 import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
 import { supabaseGlobalOptions } from '@/lib/supabase/fetch'
+import { applyE2eTestEnv } from '@/lib/supabase/e2e-env'
 import { verifyPin, isScryptPinHash } from '@/lib/security/pin-hash'
 import {
   buildAuthPassword,
@@ -96,7 +98,11 @@ function jsonWithSessionCookies(
 ) {
   const res = NextResponse.json(body, { status })
   sessionCookies.forEach(({ name, value, options }) => {
-    res.cookies.set(name, value, options)
+    const opts = { ...options }
+    if (process.env.HOOSHAGAR_E2E === '1' || process.env.APP_ENV === 'test') {
+      delete opts.domain
+    }
+    res.cookies.set(name, value, opts)
   })
   return res
 }
@@ -122,6 +128,7 @@ async function queryWithRetry<T>(
 }
 
 function getAdminClient() {
+  applyE2eTestEnv()
   return createAdminClient(
     getSupabaseServerUrl(),
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -144,6 +151,10 @@ async function enforcePreLoginGuards(
 ): Promise<{ ok: true; ip: string; ipStatus: LoginLockStatus } | { ok: false; response: NextResponse }> {
   const ip = getRequestIp(request)
   const ua = request.headers.get('user-agent')
+
+  if (isRelaxedAuthRuntime()) {
+    return { ok: true, ip, ipStatus: await getIpLockStatus(ip) }
+  }
 
   if (await isBlockedIp(ip)) {
     await logLoginSecurityEvent({
@@ -208,6 +219,12 @@ async function onLoginFailure(params: {
   userId?: string | null
   reason: string
 }): Promise<NextResponse> {
+  if (isRelaxedAuthRuntime()) {
+    return NextResponse.json(
+      { success: false, error: params.reason, require_captcha: false, failures: 0 },
+      { status: 401 }
+    )
+  }
   const ua = params.request.headers.get('user-agent')
   let status = await recordIpFailure(params.ip)
 
@@ -275,13 +292,18 @@ async function handleStaffLogin(
   password: string
 ) {
   const admin = getAdminClient()
-  const { data: profile, error: profileError } = await queryWithRetry(() =>
-    admin
+  const rawUsername = username.toLowerCase().trim()
+  const profileQuery = () => {
+    const q = admin
       .from('profiles')
       .select('id, email, role, must_change_password, is_staff, login_attempts, locked_until')
-      .eq('username', username.toLowerCase().trim())
-      .single()
-  )
+    if (rawUsername.includes('@')) {
+      return q.eq('email', rawUsername).maybeSingle()
+    }
+    return q.eq('username', rawUsername).maybeSingle()
+  }
+
+  const { data: profile, error: profileError } = await queryWithRetry(profileQuery)
 
   if (profileError || !profile) {
     return { success: false as const, error: 'نام کاربری یا رمز عبور اشتباه است', userId: null }
@@ -352,11 +374,35 @@ async function handleLoginCode(loginCode: string, password: string) {
     }
   }
 
-  if (!profile.pin_hash) {
+  let pinHash = profile.pin_hash as string | null
+  let authKind: 'user' | 'student' = 'user'
+
+  // دانش‌آموزان PIN را روی students دارند، نه profiles — تب کارکنان
+  // کد ۱۰رقمی را به login_code می‌فرستد و قبلاً همه دانش‌آموزان رد می‌شدند.
+  if (!pinHash && profile.role === 'student') {
+    const { data: student } = await admin
+      .from('students')
+      .select('pin_hash, can_login')
+      .eq('user_id', profile.id)
+      .maybeSingle()
+
+    if (student && student.can_login === false) {
+      return {
+        success: false as const,
+        error: 'دسترسی ورود برای این دانش‌آموز فعال نشده است. لطفاً با مدرسه تماس بگیرید.',
+        userId: profile.id,
+      }
+    }
+
+    pinHash = student?.pin_hash ?? null
+    if (pinHash) authKind = 'student'
+  }
+
+  if (!pinHash) {
     return { success: false as const, error: 'رمز ورود تنظیم نشده — با مدرسه تماس بگیرید', userId: profile.id }
   }
 
-  if (!verifyPin(password.trim(), profile.pin_hash)) {
+  if (!verifyPin(password.trim(), pinHash)) {
     return { success: false as const, error: 'رمز ورود اشتباه است', userId: profile.id }
   }
 
@@ -364,7 +410,7 @@ async function handleLoginCode(loginCode: string, password: string) {
     return { success: false as const, error: 'خطا در احراز هویت', userId: profile.id }
   }
 
-  const authPassword = buildAuthPassword(profile.id, password.trim(), 'user')
+  const authPassword = buildAuthPassword(profile.id, password.trim(), authKind)
 
   // فقط برای signIn سمت سرور — هرگز در JSON پاسخ HTTP برنگردانید
   return {
@@ -381,17 +427,19 @@ async function handleOtpLogin(phone: string, otp: string) {
   const admin = getAdminClient()
 
   const now = new Date().toISOString()
-  const { data: otpRecord, error: otpError } = await admin
-    .from('otp_codes')
-    .select('id, code, expires_at, is_used')
-    .eq('phone_number', phone)
-    .eq('code', otp)
-    .eq('purpose', 'login')
-    .eq('is_used', false)
-    .gte('expires_at', now)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single()
+  const { data: otpRecord, error: otpError } = await queryWithRetry(() =>
+    admin
+      .from('otp_codes')
+      .select('id, code, expires_at, is_used')
+      .eq('phone_number', phone)
+      .eq('code', otp)
+      .eq('purpose', 'login')
+      .eq('is_used', false)
+      .gte('expires_at', now)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+  )
 
   if (otpError || !otpRecord) {
     return { success: false as const, error: 'کد تأیید نامعتبر یا منقضی شده است', userId: null }
@@ -402,10 +450,12 @@ async function handleOtpLogin(phone: string, otp: string) {
     .update({ is_used: true, used_at: new Date().toISOString() })
     .eq('id', otpRecord.id)
 
-  const { data: profiles, error: profileError } = await admin
-    .from('profiles')
-    .select('id, email, role, full_name, pin_hash, phone, must_change_password')
-    .eq('phone', phone)
+  const { data: profiles, error: profileError } = await queryWithRetry(() =>
+    admin
+      .from('profiles')
+      .select('id, email, role, full_name, pin_hash, phone, must_change_password')
+      .eq('phone', phone)
+  )
 
   if (profileError || !profiles?.length) {
     return { success: false as const, error: 'کاربری با این شماره موبایل یافت نشد', userId: null }
@@ -647,6 +697,7 @@ async function handleStudentPinLogin(student_number: string, pin: string) {
 }
 
 export async function POST(request: NextRequest) {
+  applyE2eTestEnv()
   try {
     const rateLimitRes = await applyRateLimitAsync(request, 'login')
     if (rateLimitRes) return rateLimitRes

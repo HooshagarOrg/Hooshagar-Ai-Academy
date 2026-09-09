@@ -17,7 +17,9 @@ export function applyE2eTestEnv(): void {
   }
   process.env.APP_ENV = 'test'
   process.env.HOOSHAGAR_E2E = '1'
-  process.env.SUPABASE_SERVER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-  process.env.NEXT_PUBLIC_APP_URL = 'http://127.0.0.1:3000'
-  delete process.env.NEXT_PUBLIC_SUPABASE_PROXY
+  // Next inlines `process.env.NEXT_PUBLIC_*` as string literals at build time.
+  // Bracket access keeps these as real runtime env writes for Playwright.
+  process.env.SUPABASE_SERVER_URL = process.env['NEXT_PUBLIC_SUPABASE_URL']
+  process.env['NEXT_PUBLIC_APP_URL'] = 'http://127.0.0.1:3000'
+  delete process.env['NEXT_PUBLIC_SUPABASE_PROXY']
 }

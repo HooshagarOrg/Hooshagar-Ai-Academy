@@ -6,6 +6,10 @@ import dotenv from 'dotenv'
  * Next.js always hydrates `.env.local` (production). When the E2E server is
  * started with HOOSHAGAR_E2E=1, re-apply `.env.test` at runtime on Node.
  * Do not import this from Edge middleware.
+ *
+ * Never write `process.env.NEXT_PUBLIC_*` (dot or bracket). Next replaces
+ * those identifiers with string literals at build time, which turns
+ * assignment into invalid JavaScript on Vercel.
  */
 export function applyE2eTestEnv(): void {
   if (process.env.HOOSHAGAR_E2E !== '1') return
@@ -17,9 +21,11 @@ export function applyE2eTestEnv(): void {
   }
   process.env.APP_ENV = 'test'
   process.env.HOOSHAGAR_E2E = '1'
-  // Next inlines `process.env.NEXT_PUBLIC_*` as string literals at build time.
-  // Bracket access keeps these as real runtime env writes for Playwright.
-  process.env.SUPABASE_SERVER_URL = process.env['NEXT_PUBLIC_SUPABASE_URL']
-  process.env['NEXT_PUBLIC_APP_URL'] = 'http://127.0.0.1:3000'
-  delete process.env['NEXT_PUBLIC_SUPABASE_PROXY']
+  const supabaseUrl = parsed.NEXT_PUBLIC_SUPABASE_URL
+  if (supabaseUrl) {
+    process.env.SUPABASE_SERVER_URL = supabaseUrl
+  }
+  if (!Object.prototype.hasOwnProperty.call(parsed, 'NEXT_PUBLIC_SUPABASE_PROXY')) {
+    Reflect.deleteProperty(process.env, 'NEXT_PUBLIC_SUPABASE_PROXY')
+  }
 }

@@ -10,14 +10,15 @@ export function PublicRuntimeScripts(): JSX.Element {
       dangerouslySetInnerHTML={{
         __html: `(function(){
   var KEY='hooshagar_cookie_consent';
-  var restShown=false;
   function showNav(){
     var n=document.getElementById('lp-nav');
     if(n && window.scrollY>window.innerHeight*0.7) n.classList.add('is-visible');
   }
   function bindVideo(){
+    if(window.__lpVidBound) return;
     var vid=document.getElementById('lp-cinematic-video');
     if(!vid) return;
+    window.__lpVidBound=true;
     var reduce=false;
     try{ reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
     if(reduce || !('IntersectionObserver' in window)) return;
@@ -29,16 +30,9 @@ export function PublicRuntimeScripts(): JSX.Element {
     },{threshold:0.25});
     io.observe(document.getElementById('cinematic')||vid);
   }
-  function showRest(){
-    if(restShown) return;
-    restShown=true;
-    var host=document.getElementById('lp-below-host');
-    if(host) host.removeAttribute('hidden');
-    bindVideo();
-  }
   window.addEventListener('scroll', function(){
     showNav();
-    if(window.scrollY>48) showRest();
+    bindVideo();
   }, {passive:true});
   try {
     if (!localStorage.getItem(KEY)) {

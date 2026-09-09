@@ -1,11 +1,11 @@
 /**
- * لندینگ — هیرو سرورساید برای LCP؛ بدون کامپوننت کلاینت
+ * لندینگ — هیرو سرورساید برای LCP؛ زیرِ فولد بعد از اسکرول
  */
 
 import { AmbientVectors } from './ambient-vectors'
 import { LandingNav } from './landing-nav'
 import LandingHero from './hero'
-import LandingBelowFold from './landing-rest'
+import { LandingBelowFoldGate } from './landing-chrome'
 
 export default function LandingPage(): JSX.Element {
   return (
@@ -19,9 +19,7 @@ export default function LandingPage(): JSX.Element {
       <LandingNav />
       <div className="relative z-10">
         <LandingHero />
-        <div id="lp-below-host" hidden>
-          <LandingBelowFold />
-        </div>
+        <LandingBelowFoldGate />
       </div>
     </main>
   )

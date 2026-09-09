@@ -305,7 +305,24 @@ async function handleStaffLogin(
 
   const { data: profile, error: profileError } = await queryWithRetry(profileQuery)
 
-  if (profileError || !profile) {
+  if (profileError) {
+    const msg = (profileError.message ?? '').toLowerCase()
+    if (
+      msg.includes('invalid api key') ||
+      msg.includes('invalid jwt') ||
+      msg.includes('forbidden') ||
+      msg.includes('jwt expired')
+    ) {
+      return {
+        success: false as const,
+        error: 'سرویس ورود در دسترس نیست. کلید API را در تنظیمات بررسی کنید.',
+        userId: null,
+      }
+    }
+    return { success: false as const, error: 'نام کاربری یا رمز عبور اشتباه است', userId: null }
+  }
+
+  if (!profile) {
     return { success: false as const, error: 'نام کاربری یا رمز عبور اشتباه است', userId: null }
   }
 
@@ -333,6 +350,19 @@ async function handleStaffLogin(
   })
 
   if (error) {
+    const msg = (error.message ?? '').toLowerCase()
+    if (
+      msg.includes('invalid api key') ||
+      msg.includes('invalid jwt') ||
+      msg.includes('forbidden') ||
+      msg.includes('jwt expired')
+    ) {
+      return {
+        success: false as const,
+        error: 'سرویس ورود در دسترس نیست. کلید API را در تنظیمات بررسی کنید.',
+        userId: profile.id,
+      }
+    }
     return {
       success: false as const,
       error: 'نام کاربری یا رمز عبور اشتباه است',

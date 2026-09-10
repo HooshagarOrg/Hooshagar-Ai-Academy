@@ -185,7 +185,7 @@ export default function TeacherTextbooksPage() {
   return (
     <DashboardPage
       title="کتاب‌های درسی"
-      description="PDF کتاب‌های پایه کلاس شما — مشترک بین معلمان همان پایه؛ یادداشت روی کتاب ذخیره نمی‌شود"
+      description="قفسه مدرسه: هر درس را یک‌بار آپلود کنید و هنگام تدریس همان را باز کنید. هر جلسه دوباره آپلود نکنید. یادداشت روی کتاب ذخیره نمی‌شود و فایل اصلی عوض نمی‌شود."
     >
       {canUpload && grades.length > 0 && (
         <form

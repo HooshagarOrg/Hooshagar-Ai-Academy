@@ -626,6 +626,25 @@ export function generateTextbookPath(
 }
 
 /**
+ * مسیر فایل کلاس: class-files/{schoolId}/{classId}/{kind}/...
+ */
+export function generateClassFilePath(
+  schoolId: string,
+  classId: string,
+  kind: 'materials' | 'prompts' | 'submissions',
+  filename: string
+): string {
+  const timestamp = Date.now()
+  const random = Math.random().toString(36).substring(2, 9)
+  const ext = filename.split('.').pop()?.toLowerCase() || 'bin'
+  const sanitized = filename
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-zA-Z0-9\u0600-\u06FF.-]/g, '_')
+    .substring(0, 50)
+  return `class-files/${schoolId}/${classId}/${kind}/${timestamp}_${random}_${sanitized}.${ext}`
+}
+
+/**
  * تولید مسیر برای آواتار کاربر
  */
 export function generateAvatarPath(userId: string): string {
@@ -835,6 +854,7 @@ export default {
   getSignedUploadUrl,
   generateFilePath,
   generateTextbookPath,
+  generateClassFilePath,
   generateAvatarPath,
   generateSchoolLogoPath,
   getArvanURL,

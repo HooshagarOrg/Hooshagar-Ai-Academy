@@ -76,6 +76,10 @@
     "__tests__",
     "agent-tools",
     ".next",
-    "dist"
+    "dist",
+    "vitest.config.ts",
+    "vitest.integration.config.ts",
+    "playwright.config.ts",
+    "playwright.smoke.config.ts"
   ]
 }

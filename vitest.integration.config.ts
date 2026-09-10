@@ -24,7 +24,7 @@ export default defineConfig({
     testTimeout: 180_000,
     hookTimeout: 180_000,
     maxWorkers: 2,
-    reporter: 'default',
+    reporters: ['default'],
     include: ['__tests__/integration/**/*.test.ts'],
     exclude: ['**/node_modules/**', 'e2e/**', '.next/**'],
     setupFiles: ['__tests__/helpers/vitest.setup.ts'],

@@ -20,7 +20,7 @@ export default defineConfig({
     testTimeout: 30_000,
     hookTimeout: 30_000,
     maxWorkers: 2,
-    reporter: 'default',
+    reporters: ['default'],
     include: [
       '__tests__/unit/**/*.test.ts',
       '__tests__/lib/**/*.test.ts',

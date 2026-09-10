@@ -36,14 +36,15 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
-    ? undefined
-    : {
-        command: 'pnpm exec next dev -H 127.0.0.1 -p 3000',
-        url: `${baseURL}/api/ready`,
-        reuseExistingServer: !process.env.CI,
-        timeout: 420_000,
-        stdout: 'pipe',
-        stderr: 'pipe',
-      },
+  webServer:
+    process.env.PLAYWRIGHT_SKIP_WEBSERVER || process.env.PLAYWRIGHT_REUSE_SERVER === '1'
+      ? undefined
+      : {
+          command: 'pnpm exec next dev -H 127.0.0.1 -p 3000',
+          url: `${baseURL}/api/ready`,
+          reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === '1',
+          timeout: 420_000,
+          stdout: 'pipe',
+          stderr: 'pipe',
+        },
 })

@@ -1,0 +1,88 @@
+name: E2E Nightly
+
+on:
+  schedule:
+    # 01:00 Tehran = 21:30 UTC
+    - cron: '30 21 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-nightly
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+      HOOSHAGAR_E2E: '1'
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      NEXTAUTH_URL: http://127.0.0.1:3000
+      NEXTAUTH_SECRET: ci-placeholder-secret-minimum-32-chars
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_REUSE_SERVER: '1'
+      PLAYWRIGHT_SKIP_WEBSERVER: '1'
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_TEST_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_TEST_SERVICE_ROLE_KEY }}
+      SUPABASE_SERVER_URL: ${{ secrets.SUPABASE_TEST_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (hooshagar-test)
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
+        run: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "Missing GitHub Actions secrets SUPABASE_TEST_URL / SUPABASE_TEST_ANON_KEY / SUPABASE_TEST_SERVICE_ROLE_KEY (hooshagar-test only)"
+            exit 1
+          fi
+          pnpm run build
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Start production server
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
+        run: |
+          pnpm exec next start -H 127.0.0.1 -p 3000 > next-start.log 2>&1 &
+          echo $! > next-start.pid
+          for i in $(seq 1 90); do
+            if curl -sf http://127.0.0.1:3000/api/ready | grep -q '"ready":true'; then
+              echo "Server ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Server did not become ready within 3 minutes"
+          cat next-start.log || true
+          exit 1
+
+      - name: Integration tests
+        run: pnpm test:integration
+
+      - name: End-to-end tests
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
+        run: pnpm test:e2e
+
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f next-start.pid ]; then
+            kill "$(cat next-start.pid)" 2>/dev/null || true
+          fi
+          pkill -f "next start" 2>/dev/null || true

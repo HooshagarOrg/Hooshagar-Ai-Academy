@@ -4,7 +4,7 @@ import {
   Activity, ClipboardCheck, DollarSign, Mail, Search, AlertCircle,
   Wrench, Bell, Send, GraduationCap, Building, Sparkles, Trophy, Compass,
   Gamepad2, Lightbulb, Heart, PenTool, HelpCircle, TrendingUp, CreditCard, Video,
-  ArrowLeftRight, Palette, Flame, Presentation, Inbox,
+  ArrowLeftRight, Palette, Flame, Presentation, Inbox, FolderOpen, ClipboardList,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
@@ -99,6 +99,8 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'گزارش هفتگی', href: '/teacher/weekly-report', icon: FileText },
         { title: 'کلاس مجازی', href: '/teacher/virtual-class', icon: Video },
         { title: 'کتاب‌های درسی', href: '/teacher/textbooks', icon: BookOpen },
+        { title: 'منابع کلاس', href: '/teacher/class-materials', icon: FolderOpen },
+        { title: 'تکالیف', href: '/teacher/assignments', icon: ClipboardList },
         { title: 'تخته تدریس', href: '/teacher/whiteboard', icon: Presentation },
       ],
     },
@@ -128,6 +130,8 @@ export const navConfig: Record<string, NavGroup[]> = {
       title: 'فرزندم',
       items: [
         { title: 'نمرات فرزند', href: '/parent/grades', icon: GraduationCap },
+        { title: 'منابع کلاس', href: '/parent/class-materials', icon: FolderOpen },
+        { title: 'تکالیف', href: '/parent/assignments', icon: ClipboardList },
         { title: 'گزارشات', href: '/parent/reports', icon: BarChart3 },
         { title: 'حضور و غیاب', href: '/parent/attendance', icon: ClipboardCheck },
         { title: 'بهداشت', href: '/parent/health', icon: Heart },
@@ -152,6 +156,8 @@ export const navConfig: Record<string, NavGroup[]> = {
       title: 'یادگیری',
       items: [
         { title: 'نمراتم', href: '/student/grades', icon: GraduationCap },
+        { title: 'منابع کلاس', href: '/student/class-materials', icon: FolderOpen },
+        { title: 'تکالیف', href: '/student/assignments', icon: ClipboardList },
         { title: 'مسیر یادگیری', href: '/student/learning-journey', icon: Compass },
         { title: 'آزمون‌هایم', href: '/student/exams', icon: ClipboardCheck },
         { title: 'کلاس مجازی', href: '/student/virtual-class', icon: Video },

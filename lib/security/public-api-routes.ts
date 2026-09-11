@@ -10,6 +10,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/auth/reset-password',
   '/api/auth/validate-code',
   '/api/auth/activate',
+  '/api/auth/logout',
   '/api/analytics/vitals',
   '/api/health',
   '/api/ready',

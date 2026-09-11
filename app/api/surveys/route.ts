@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import { SURVEY_COLUMNS } from '@/lib/db/columns';
 
 // اسکیما ایجاد نظرسنجی
 const createSurveySchema = z.object({
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('surveys')
-      .select('*', { count: 'exact' })
+      .select(SURVEY_COLUMNS, { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 

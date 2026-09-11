@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { SURVEY_COLUMNS, SURVEY_QUESTION_COLUMNS } from '@/lib/db/columns';
 
 // دریافت نظرسنجی با سوالات
 export async function GET(
@@ -12,7 +13,7 @@ export async function GET(
     // دریافت نظرسنجی
     const { data: survey, error: surveyError } = await supabase
       .from('surveys')
-      .select('*')
+      .select(SURVEY_COLUMNS)
       .eq('id', params.id)
       .single();
 
@@ -53,9 +54,10 @@ export async function GET(
     // دریافت سوالات
     const { data: questions, error: questionsError } = await supabase
       .from('survey_questions')
-      .select('*')
+      .select(SURVEY_QUESTION_COLUMNS)
       .eq('survey_id', params.id)
-      .order('question_order', { ascending: true });
+      .order('question_order', { ascending: true })
+      .limit(100);
 
     if (questionsError) {
       console.error('خطا در دریافت سوالات:', questionsError);
@@ -100,7 +102,7 @@ export async function PATCH(
       })
       .eq('id', params.id)
       .eq('created_by', user.user.id)
-      .select()
+      .select(SURVEY_COLUMNS)
       .single();
 
     if (error) {

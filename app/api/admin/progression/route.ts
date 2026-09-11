@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard'
 import { fetchAllPaged } from '@/lib/supabase/paginate'
+import { PROGRESSION_HISTORY_COLUMNS } from '@/lib/db/columns'
 
 export async function GET(request: NextRequest) {
   return withAuth(
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
           const { data: history, error } = await supabase
             .from('student_progression_history')
             .select(`
-              *,
+              ${PROGRESSION_HISTORY_COLUMNS},
               students!inner(
                 id,
                 profiles!inner(full_name)
@@ -190,63 +191,75 @@ export async function POST(request: NextRequest) {
         })
 
         if (error) {
+          const { data: studentRows } = await supabase
+            .from('students')
+            .select('id, grade, school_id')
+            .in('id', targetStudentIds)
+            .limit(500)
+
+          const { data: gradeRows } = await supabase
+            .from('grades')
+            .select('student_id, score')
+            .in('student_id', targetStudentIds)
+            .limit(5000)
+
+          const studentById = new Map((studentRows || []).map((row) => [row.id, row]))
+          const scoresByStudent = new Map<string, number[]>()
+          for (const grade of gradeRows || []) {
+            const list = scoresByStudent.get(grade.student_id) || []
+            list.push(grade.score)
+            scoresByStudent.set(grade.student_id, list)
+          }
+
           const results = []
           let successCount = 0
           let failCount = 0
+          const historyRows: Array<Record<string, unknown>> = []
+          const promoteIds: Array<{ id: string; nextGrade: number }> = []
 
           for (const studentId of targetStudentIds) {
-            try {
-              const { data: student } = await supabase
-                .from('students')
-                .select('id, grade, school_id')
-                .eq('id', studentId)
-                .single()
+            const student = studentById.get(studentId)
+            if (!student || student.grade >= 12) {
+              failCount++
+              results.push({ student_id: studentId, success: false })
+              continue
+            }
+            const scores = scoresByStudent.get(studentId) || []
+            const avgGrade = scores.length > 0
+              ? scores.reduce((sum, score) => sum + score, 0) / scores.length
+              : 0
+            historyRows.push({
+              student_id: studentId,
+              from_grade: student.grade,
+              to_grade: student.grade + 1,
+              academic_year,
+              progression_type: 'normal',
+              status: 'completed',
+              performance_summary: {
+                avg_grade: Math.round(avgGrade * 10) / 10,
+                progression_date: new Date().toISOString(),
+              },
+              created_by: ctx.userId,
+            })
+            promoteIds.push({ id: studentId, nextGrade: student.grade + 1 })
+            results.push({ student_id: studentId, success: true, new_grade: student.grade + 1 })
+            successCount++
+          }
 
-              if (!student || student.grade >= 12) {
-                failCount++
-                continue
-              }
-
-              const { data: grades } = await supabase
-                .from('grades')
-                .select('score')
-                .eq('student_id', studentId)
-
-              const avgGrade = grades && grades.length > 0
-                ? grades.reduce((s, g) => s + g.score, 0) / grades.length
-                : 0
-
-              await supabase
-                .from('student_progression_history')
-                .insert({
-                  student_id: studentId,
-                  from_grade: student.grade,
-                  to_grade: student.grade + 1,
-                  academic_year,
-                  progression_type: 'normal',
-                  status: 'completed',
-                  performance_summary: {
-                    avg_grade: Math.round(avgGrade * 10) / 10,
-                    progression_date: new Date().toISOString(),
-                  },
-                  created_by: ctx.userId,
-                })
-
-              await supabase
+          if (historyRows.length > 0) {
+            await supabase.from('student_progression_history').insert(historyRows)
+          }
+          await Promise.all(
+            promoteIds.map((row) =>
+              supabase
                 .from('students')
                 .update({
-                  grade: student.grade + 1,
+                  grade: row.nextGrade,
                   class_id: null,
                 })
-                .eq('id', studentId)
-
-              results.push({ student_id: studentId, success: true, new_grade: student.grade + 1 })
-              successCount++
-            } catch {
-              results.push({ student_id: studentId, success: false })
-              failCount++
-            }
-          }
+                .eq('id', row.id),
+            ),
+          )
 
           return NextResponse.json({
             success: true,

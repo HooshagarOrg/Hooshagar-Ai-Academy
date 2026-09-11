@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth } from '@/lib/security/api-guard'
+import { SUBSCRIPTION_PLAN_COLUMNS, PAYMENT_TRANSACTION_COLUMNS } from '@/lib/db/columns'
 
 const ZARINPAL_MERCHANT = process.env.ZARINPAL_MERCHANT_ID || 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
 const ZARINPAL_REQUEST_URL = 'https://api.zarinpal.com/pg/v4/payment/request.json'
@@ -14,20 +16,12 @@ export async function POST(request: NextRequest) {
   return withAuth(request, async (ctx) => {
     const supabase = await createClient()
     const body = await request.json()
-    const { plan_name } = body
-
-    const schoolId = ctx.schoolId
-    if (!schoolId) {
-      return NextResponse.json(
-        { error: 'مدرسه برای این حساب ثبت نشده است' },
-        { status: 400 }
-      )
-    }
+    const { plan_name, school_id } = body
 
     // دریافت اطلاعات پلن
     const { data: plan } = await supabase
       .from('subscription_plans')
-      .select('*')
+      .select(SUBSCRIPTION_PLAN_COLUMNS)
       .eq('name', plan_name)
       .single()
 
@@ -38,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { data: tx, error: txError } = await supabase
       .from('payment_transactions')
       .insert({
-        school_id: schoolId,
+        school_id: school_id || ctx.schoolId || null,
         owner_id: ctx.userId,
         amount: plan.price_monthly,
         currency: 'IRR',
@@ -52,8 +46,25 @@ export async function POST(request: NextRequest) {
 
     if (txError) return NextResponse.json({ error: txError.message }, { status: 400 })
 
+    const useTestGateway =
+      process.env.APP_ENV === 'test' ||
+      String(ZARINPAL_MERCHANT).startsWith('mock')
+
+    if (useTestGateway) {
+      const authority = `A${'0'.repeat(35)}`
+      await supabase
+        .from('payment_transactions')
+        .update({ gateway_ref_id: authority })
+        .eq('id', tx.id)
+      return NextResponse.json({
+        success: true,
+        payment_url: `https://www.zarinpal.com/pg/StartPay/${authority}`,
+        transaction_id: tx.id,
+      })
+    }
+
     // درخواست به زرین‌پال
-    const callbackUrl = `${APP_URL}/api/payment/verify?tx_id=${tx.id}`
+    const callbackUrl = `${APP_URL}/api/payment?tx_id=${tx.id}`
 
     const zpRes = await fetch(ZARINPAL_REQUEST_URL, {
       method: 'POST',
@@ -102,7 +113,7 @@ export async function POST(request: NextRequest) {
 // GET: تأیید پرداخت (Callback از زرین‌پال)
 // ============================================
 export async function GET(request: NextRequest) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { searchParams } = new URL(request.url)
 
   const txId     = searchParams.get('tx_id')
@@ -116,7 +127,7 @@ export async function GET(request: NextRequest) {
   // دریافت تراکنش
   const { data: tx } = await supabase
     .from('payment_transactions')
-    .select('*, metadata')
+    .select(PAYMENT_TRANSACTION_COLUMNS)
     .eq('id', txId)
     .single()
 
@@ -124,7 +135,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${APP_URL}/pricing?error=invalid`)
   }
 
-  // تأیید با زرین‌پال
+  // SECURITY FIX: never trust Authority alone — verify with Zarinpal before any paid write
+  if (!authority) {
+    return NextResponse.redirect(`${APP_URL}/pricing?error=payment_failed`)
+  }
+  if (tx.gateway_ref_id && authority !== tx.gateway_ref_id) {
+    return NextResponse.redirect(`${APP_URL}/pricing?error=payment_failed`)
+  }
+
   const verifyRes = await fetch(ZARINPAL_VERIFY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -134,9 +152,9 @@ export async function GET(request: NextRequest) {
       authority,
     }),
   }).catch(() => null)
-
-  const isDevMode = authority === 'dev-test'
-  const isVerified = isDevMode || (verifyRes?.ok && (await verifyRes.json()).data?.code === 100)
+  const isVerified = Boolean(
+    verifyRes?.ok && (await verifyRes.json()).data?.code === 100,
+  )
 
   if (!isVerified) {
     await supabase

@@ -8,6 +8,7 @@ import {
   formatResetTime,
   getUsagePercentage,
 } from '@/lib/check-ai-limit'
+import { applySchoolDailyCap } from '@/lib/ai/school-daily-cap'
 
 // ============================================
 // تایپ RPC
@@ -64,12 +65,6 @@ function blockedLimit(featureName: string, reason: string): AIUsageLimit {
   }
 }
 
-function getSchoolAiDailyCap(): number {
-  const raw = process.env.SCHOOL_AI_DAILY_CAP
-  const parsed = raw ? Number.parseInt(raw, 10) : 2000
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 2000
-}
-
 /**
  * سقف روزانه مدرسه روی ai_usage_logs — fail-open اگر شمارش خطا دهد
  */
@@ -94,18 +89,6 @@ async function getSchoolDailyUsage(schoolId: string): Promise<number | null> {
     console.warn('[quota] school daily cap check failed (fail-open):', err)
     return null
   }
-}
-
-function applySchoolDailyCap(userLimit: AIUsageLimit, schoolUsed: number | null): AIUsageLimit {
-  if (!userLimit.allowed || schoolUsed === null) return userLimit
-  if (schoolUsed >= getSchoolAiDailyCap()) {
-    return {
-      ...userLimit,
-      allowed: false,
-      reason: 'سقف مصرف روزانه هوش مصنوعی این مدرسه به پایان رسیده است. فردا دوباره تلاش کنید.',
-    }
-  }
-  return userLimit
 }
 
 async function enforceSchoolDailyCap(

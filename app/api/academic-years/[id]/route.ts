@@ -1,3 +1,4 @@
+import { ACADEMIC_YEAR_COLUMNS } from '@/lib/db/columns'
 import { createServerClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -23,7 +24,7 @@ export async function GET(
 
     const { data: year, error } = await supabase
       .from('academic_years')
-      .select('*')
+      .select(ACADEMIC_YEAR_COLUMNS)
       .eq('id', params.id)
       .single()
 

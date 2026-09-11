@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { ActivateAccountRequest, ActivateAccountResponse } from '@/types/auth'
+import { ACTIVATION_CODE_COLUMNS } from '@/lib/db/columns'
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     // پیدا کردن و اعتبارسنجی کد
     const { data: activationCode, error: codeError } = await supabase
       .from('activation_codes')
-      .select('*')
+      .select(ACTIVATION_CODE_COLUMNS)
       .or(`code.eq.${formattedCode},code.eq.${code}`)
       .eq('status', 'pending')
       .single()

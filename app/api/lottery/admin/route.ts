@@ -5,6 +5,12 @@ import { z } from 'zod'
 import { sendControlledSmsBatch } from '@/lib/sms/controlled-send'
 import { withAuth } from '@/lib/security/api-guard'
 import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
+import {
+  CLASS_COLUMNS,
+  CLASS_REGISTRATION_COLUMNS,
+  LOTTERY_LOG_COLUMNS,
+  LOTTERY_SETTING_COLUMNS,
+} from '@/lib/db/columns'
 
 const lotterySettingSchema = z.object({
   school_id: z.string().uuid(),
@@ -34,7 +40,7 @@ export async function GET(request: NextRequest) {
         if (lotteryId) {
           const { data: lottery, error } = await supabase
             .from('lottery_settings')
-            .select('*')
+            .select(LOTTERY_SETTING_COLUMNS)
             .eq('id', lotteryId)
             .single()
 
@@ -52,17 +58,18 @@ export async function GET(request: NextRequest) {
           // دریافت کلاس‌ها
           const { data: classes } = await supabase
             .from('classes')
-            .select('*')
+            .select(CLASS_COLUMNS)
             .eq('school_id', lottery.school_id)
             .eq('grade', lottery.target_grade)
             .eq('academic_year', lottery.academic_year)
             .eq('is_active', true)
+            .limit(100)
 
           // دریافت ثبت‌نام‌ها
           const { data: registrations } = await supabase
             .from('class_registrations')
             .select(`
-              *,
+              ${CLASS_REGISTRATION_COLUMNS},
               student:student_id(id, full_name, grade),
               result_class:result_class_id(id, name, teacher_name),
               choice_1_class:choice_1_class_id(id, name, teacher_name),
@@ -72,11 +79,12 @@ export async function GET(request: NextRequest) {
             `)
             .eq('lottery_setting_id', lotteryId)
             .order('registered_at', { ascending: false })
+            .limit(500)
 
           // دریافت لاگ‌ها
           const { data: logs } = await supabase
             .from('lottery_logs')
-            .select('*')
+            .select(LOTTERY_LOG_COLUMNS)
             .eq('lottery_setting_id', lotteryId)
             .order('created_at', { ascending: false })
             .limit(100)
@@ -94,8 +102,9 @@ export async function GET(request: NextRequest) {
         // لیست قرعه‌کشی‌ها
         let query = supabase
           .from('lottery_settings')
-          .select('*')
+          .select(LOTTERY_SETTING_COLUMNS)
           .order('created_at', { ascending: false })
+          .limit(50)
 
         if (schoolId) {
           query = query.eq('school_id', schoolId)

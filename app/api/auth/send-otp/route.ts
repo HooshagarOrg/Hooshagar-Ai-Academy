@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { randomInt } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/service'
 import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
-import { redactPhone } from '@/lib/privacy/redact'
 
 // ============================================
 // تایپ‌ها و اینترفیس‌ها
@@ -14,6 +12,7 @@ interface SuccessResponse {
   success: true
   message: string
   expiresIn: number
+  phoneNumber?: string
 }
 
 interface ErrorResponse {
@@ -27,14 +26,23 @@ type ApiResponse = SuccessResponse | ErrorResponse
 // ============================================
 // Validation Schema
 // ============================================
-const otpRequestSchema = z.object({
-  phoneNumber: z
-    .string()
-    .regex(/^09[0-9]{9}$/, 'فرمت شماره موبایل نامعتبر است'),
-  purpose: z.enum(['login', 'reset-password'], {
-    errorMap: () => ({ message: 'نوع درخواست نامعتبر است' }),
-  }),
-})
+const otpRequestSchema = z
+  .object({
+    phoneNumber: z
+      .string()
+      .regex(/^09[0-9]{9}$/, 'فرمت شماره موبایل نامعتبر است')
+      .optional(),
+    nationalId: z
+      .string()
+      .regex(/^\d{10}$/, 'کد ملی باید ۱۰ رقم باشد')
+      .optional(),
+    purpose: z.enum(['login', 'reset-password'], {
+      errorMap: () => ({ message: 'نوع درخواست نامعتبر است' }),
+    }),
+  })
+  .refine((data) => Boolean(data.phoneNumber || data.nationalId), {
+    message: 'شماره موبایل یا کد ملی الزامی است',
+  })
 
 // ============================================
 // Constants
@@ -50,7 +58,7 @@ type ServiceClient = ReturnType<typeof createServiceClient>
 // Helper: Generate 6-digit OTP
 // ============================================
 function generateOTP(): string {
-  return randomInt(100000, 1000000).toString()
+  return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
 // ============================================
@@ -89,7 +97,7 @@ async function sendSMS(phoneNumber: string, code: string): Promise<boolean> {
       return false
     }
 
-    console.log(`OTP sent to ${redactPhone(phoneNumber)}`)
+    console.log(`✅ OTP sent to ${phoneNumber}`)
     return true
   } catch (error) {
     console.error('SMS sending failed:', error)
@@ -221,10 +229,48 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       )
     }
 
-    const { phoneNumber, purpose } = validationResult.data
+    const { phoneNumber: rawPhone, nationalId, purpose } = validationResult.data
 
     // OTP باید با service role ذخیره شود (RLS روی otp_codes برای anon بسته است)
     const admin = createServiceClient()
+
+    let phoneNumber = rawPhone ?? ''
+    if (!phoneNumber && nationalId) {
+      let lastLookupError: string | null = null
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const { data: byNational, error } = await admin
+          .from('profiles')
+          .select('phone')
+          .or(`national_code.eq.${nationalId},login_code.eq.${nationalId}`)
+          .maybeSingle()
+        if (!error) {
+          phoneNumber = byNational?.phone ?? ''
+          lastLookupError = null
+          break
+        }
+        lastLookupError = error.message
+        const retriable = /fetch failed|timeout|ENOTFOUND|ECONNRESET/i.test(error.message)
+        if (!retriable) break
+        await new Promise((resolve) => setTimeout(resolve, 800 * (attempt + 1)))
+      }
+      if (lastLookupError) {
+        console.error('OTP national-id lookup failed:', lastLookupError)
+      }
+    }
+
+    if (!/^09[0-9]{9}$/.test(phoneNumber)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            purpose === 'login'
+              ? 'کاربری با این مشخصات ثبت نشده است. با مدرسه تماس بگیرید.'
+              : 'اگر این شماره در سیستم ثبت باشد، کد تأیید ارسال می‌شود.',
+          code: 'USER_NOT_FOUND',
+        },
+        { status: purpose === 'login' ? 404 : 200 }
+      )
+    }
 
     // پیام یکسان برای جلوگیری از user enumeration در بازیابی رمز
     const NEUTRAL_RESET_MESSAGE = 'اگر این شماره در سیستم ثبت باشد، کد تأیید ارسال می‌شود.'
@@ -291,7 +337,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     const { allowed } = await checkRateLimit(admin, phoneNumber)
 
     if (!allowed) {
-      console.warn(`Rate limit exceeded for ${redactPhone(phoneNumber)}`)
+      console.warn(`Rate limit exceeded for ${phoneNumber}`)
       return NextResponse.json(
         {
           success: false,
@@ -318,13 +364,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       )
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`OTP request queued for ${redactPhone(phoneNumber)} (purpose: ${purpose})`)
+    const skipLiveSms =
+      process.env.NODE_ENV === 'development' ||
+      process.env.APP_ENV === 'test' ||
+      (process.env.KAVENEGAR_API_KEY || '').startsWith('mock')
+
+    if (skipLiveSms) {
+      console.log(`🔐 [TEST/DEV] OTP for ${phoneNumber}: ${otpCode}`)
     } else {
       const sent = await sendSMS(phoneNumber, otpCode)
 
       if (!sent) {
-        console.error(`Failed to send SMS to ${redactPhone(phoneNumber)}`)
+        console.error(`Failed to send SMS to ${phoneNumber}`)
         // برای reset-password پیام خنثی؛ برای login خطای واقعی
         if (purpose === 'reset-password') {
           return NextResponse.json(
@@ -366,7 +417,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       }
     }
 
-    console.log(`OTP request successful for ${redactPhone(phoneNumber)} (purpose: ${purpose})`)
+    console.log(`✅ OTP request successful for ${phoneNumber} (purpose: ${purpose})`)
 
     return NextResponse.json(
       {
@@ -374,6 +425,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         message:
           purpose === 'reset-password' ? NEUTRAL_RESET_MESSAGE : 'کد تایید ارسال شد',
         expiresIn: OTP_EXPIRY_SECONDS,
+        phoneNumber,
       },
       { status: 200 }
     )

@@ -164,38 +164,40 @@ export async function POST(request: NextRequest) {
 
         if (result.data.type === 'bulk_students') {
           const { student_ids, pin_length } = result.data
+          const issuedAt = new Date().toISOString()
+          const { data: students } = await admin
+            .from('students')
+            .select('id, full_name, student_number')
+            .in('id', student_ids)
+            .limit(100)
+
+          const byId = new Map((students || []).map((row) => [row.id, row]))
           const results: Array<{ full_name: string; student_number: string; pin: string }> = []
           const errors: string[] = []
 
-          for (const studentId of student_ids) {
-            const pin = generatePin(pin_length)
-
-            const { data: student } = await admin
-              .from('students')
-              .select('id, full_name, student_number')
-              .eq('id', studentId)
-              .single()
-
-            if (!student) {
-              errors.push(`دانش‌آموز ${studentId} یافت نشد`)
-              continue
-            }
-
-            await admin
-              .from('students')
-              .update({
-                pin_hash: hashPin(pin),
-                can_login: true,
-                login_enabled_at: new Date().toISOString(),
+          await Promise.all(
+            student_ids.map(async (studentId) => {
+              const student = byId.get(studentId)
+              if (!student) {
+                errors.push(`دانش‌آموز ${studentId} یافت نشد`)
+                return
+              }
+              const pin = generatePin(pin_length)
+              await admin
+                .from('students')
+                .update({
+                  pin_hash: hashPin(pin),
+                  can_login: true,
+                  login_enabled_at: issuedAt,
+                })
+                .eq('id', studentId)
+              results.push({
+                full_name: student.full_name,
+                student_number: student.student_number || '',
+                pin,
               })
-              .eq('id', studentId)
-
-            results.push({
-              full_name: student.full_name,
-              student_number: student.student_number || '',
-              pin,
-            })
-          }
+            }),
+          )
 
           return NextResponse.json({
             success: true,

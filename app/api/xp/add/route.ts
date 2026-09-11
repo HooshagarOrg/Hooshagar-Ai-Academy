@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { z } from 'zod'
 
 const addXpSchema = z.object({
@@ -49,8 +50,9 @@ export async function POST(request: NextRequest) {
       finalUserId = targetUserId
     }
 
-    // افزودن XP با RPC (SECURITY DEFINER - bypass RLS)
-    const { data: result, error: xpError } = await supabase.rpc('add_xp', {
+    // SECURITY FIX: add_xp is service_role-only; do not call it with the user JWT
+    const admin = createServiceClient()
+    const { data: result, error: xpError } = await admin.rpc('add_xp', {
       p_user_id: finalUserId,
       p_action_type: action_type,
       p_xp_amount: xp_amount,

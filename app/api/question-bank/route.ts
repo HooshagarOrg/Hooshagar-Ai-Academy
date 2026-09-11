@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 import { withAuth } from '@/lib/security/api-guard';
 import { EXAM_MANAGE_ROLES } from '@/lib/security/sensitive-api-roles';
+import { QUESTION_BANK_COLUMNS } from '@/lib/db/columns';
 
 const createQuestionSchema = z.object({
   question_text: z.string().min(5, 'متن سوال باید حداقل 5 کاراکتر باشد'),
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
 
         let query = supabase
           .from('question_bank')
-          .select('*', { count: 'exact' })
+          .select(`${QUESTION_BANK_COLUMNS}`, { count: 'exact' })
           .eq('is_active', true)
           .order('created_at', { ascending: false })
           .range(offset, offset + Math.min(limit, 100) - 1);

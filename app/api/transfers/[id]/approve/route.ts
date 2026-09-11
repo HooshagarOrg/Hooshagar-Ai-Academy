@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { TRANSFER_REQUEST_COLUMNS } from '@/lib/db/columns'
 
 const approveSchema = z.object({
   approved: z.boolean(),
@@ -45,7 +46,7 @@ export async function POST(
     // دریافت اطلاعات درخواست
     const { data: transfer, error: fetchError } = await supabase
       .from('transfer_requests')
-      .select('*')
+      .select(TRANSFER_REQUEST_COLUMNS)
       .eq('id', params.id)
       .single()
 

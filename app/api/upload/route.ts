@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/security/api-guard'
 import { UPLOAD_ROLES } from '@/lib/security/sensitive-api-roles'
+import { FILE_COLUMNS } from '@/lib/db/columns'
 import {
   uploadToArvan,
   generateFilePath,
@@ -234,7 +235,7 @@ export async function GET(request: NextRequest) {
     // 3. Build query
     let query = supabase
       .from('files')
-      .select('*')
+      .select(FILE_COLUMNS)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 

@@ -8,6 +8,7 @@ import {
   isWithinSessionWindow,
   resolveVirtualClassJoinAccess,
 } from '@/lib/virtual-class/access'
+import { VIRTUAL_CLASS_COLUMNS, VIRTUAL_CLASS_SESSION_COLUMNS } from '@/lib/db/columns'
 
 export async function POST(
   request: NextRequest,
@@ -25,7 +26,7 @@ export async function POST(
 
       const { data: virtualClass, error: vcError } = await supabase
         .from('virtual_classes')
-        .select('*')
+        .select(VIRTUAL_CLASS_COLUMNS)
         .eq('id', id)
         .maybeSingle()
 
@@ -63,7 +64,7 @@ export async function POST(
       const now = new Date().toISOString()
       const { data: session } = await service
         .from('virtual_class_sessions')
-        .select('*')
+        .select(VIRTUAL_CLASS_SESSION_COLUMNS)
         .eq('virtual_class_id', id)
         .in('status', ['scheduled', 'live'])
         .gte('ends_at', now)

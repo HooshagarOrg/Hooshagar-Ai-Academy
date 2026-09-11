@@ -1,25 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
-import {
-  EXAM_DEADLINE_MESSAGE,
-  isSubmitWithinDeadline,
-  resolveSessionDeadline,
-  type ExamTimingInput,
-} from '@/lib/exams/window'
-
-function examTimingFromRow(exam: {
-  exam_date?: string | null
-  duration_minutes?: number | null
-  exam_config?: unknown
-}): ExamTimingInput {
-  const config = exam.exam_config as { time_limit_minutes?: number } | null
-  return {
-    examDate: exam.exam_date,
-    durationMinutes: exam.duration_minutes,
-    configTimeLimitMinutes: config?.time_limit_minutes,
-  }
-}
 
 export async function POST(
   request: NextRequest,
@@ -61,28 +43,6 @@ export async function POST(
       )
     }
 
-    const { data: session } = await supabase
-      .from('exam_sessions')
-      .select('id, exam_id, student_id, status, started_at, must_submit_by')
-      .eq('id', session_id)
-      .eq('student_id', student.id)
-      .maybeSingle()
-
-    if (!session || session.exam_id !== params.id) {
-      return NextResponse.json({ error: 'جلسه آزمون یافت نشد' }, { status: 404 })
-    }
-
-    const { data: exam } = await supabase
-      .from('exams')
-      .select('exam_date, duration_minutes, exam_config')
-      .eq('id', params.id)
-      .single()
-
-    const deadline = resolveSessionDeadline(session, examTimingFromRow(exam ?? {}))
-    if (deadline && !isSubmitWithinDeadline(new Date(), deadline)) {
-      return NextResponse.json({ error: EXAM_DEADLINE_MESSAGE }, { status: 400 })
-    }
-
     const { data: gradeResult, error: gradeError } = await supabase.rpc(
       'submit_exam',
       {
@@ -91,26 +51,8 @@ export async function POST(
       }
     )
 
-    if (
-      !gradeError &&
-      gradeResult &&
-      typeof gradeResult === 'object' &&
-      !Array.isArray(gradeResult) &&
-      (gradeResult as { success?: boolean }).success === false
-    ) {
-      const message =
-        typeof (gradeResult as { error?: unknown }).error === 'string'
-          ? (gradeResult as { error: string }).error
-          : 'ارسال آزمون ناموفق بود'
-      return NextResponse.json({ error: message }, { status: 400 })
-    }
-
     if (gradeError) {
       console.error('خطا در تصحیح:', gradeError)
-
-      if (deadline && !isSubmitWithinDeadline(new Date(), deadline)) {
-        return NextResponse.json({ error: EXAM_DEADLINE_MESSAGE }, { status: 400 })
-      }
 
       const { data: answers } = await supabase
         .from('exam_answers')
@@ -155,6 +97,12 @@ export async function POST(
 
       const percentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0
 
+      const { data: exam } = await supabase
+        .from('exams')
+        .select('exam_config')
+        .eq('id', params.id)
+        .single()
+
       const config = exam?.exam_config as Record<string, unknown> | null
       const passingScore = (config?.passing_score as number) || 50
       const passed = percentage >= passingScore
@@ -183,7 +131,8 @@ export async function POST(
                 ? 50
                 : 20
 
-      await supabase.rpc('add_xp', {
+      // SECURITY FIX: add_xp is service_role-only
+      await createServiceClient().rpc('add_xp', {
         p_user_id: student.user_id,
         p_action_type: 'exam_submitted',
         p_xp_amount: xpEarned,
@@ -202,24 +151,15 @@ export async function POST(
       })
     }
 
-    const result = Array.isArray(gradeResult) ? gradeResult[0] : gradeResult
-    const row = (result ?? {}) as {
-      total_score?: number
-      max_score?: number
-      percentage?: number
-      passed?: boolean
-      correct_count?: number
-      wrong_count?: number
-      xp_earned?: number
-    }
+    const result = gradeResult?.[0]
     return NextResponse.json({
-      total_score: row.total_score,
-      max_score: row.max_score,
-      percentage: row.percentage,
-      passed: row.passed,
-      correct_count: row.correct_count,
-      wrong_count: row.wrong_count,
-      xp_earned: row.xp_earned,
+      total_score: result?.total_score,
+      max_score: result?.max_score,
+      percentage: result?.percentage,
+      passed: result?.passed,
+      correct_count: result?.correct_count,
+      wrong_count: result?.wrong_count,
+      xp_earned: result?.xp_earned,
     })
   } catch (error) {
     console.error('خطای سرور:', error)

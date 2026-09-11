@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/security/api-guard'
+import { createServiceClient } from '@/lib/supabase/service'
 
 const TALENT_GARDEN_COLUMNS =
   'id, user_id, xp, level, coins, current_streak, longest_streak, last_activity_date, streak_freeze_count, total_active_days, created_at, updated_at'
@@ -31,7 +32,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (!row) {
-      const { data: newGarden, error: insertError } = await supabase
+      const admin = createServiceClient()
+      const { data: newGarden, error: insertError } = await admin
         .from('talent_garden')
         .insert({
           user_id: ctx.userId,
@@ -43,14 +45,29 @@ export async function GET(request: NextRequest) {
         .select(TALENT_GARDEN_COLUMNS)
         .single()
 
-      if (insertError) {
+      if (insertError?.code === '23505') {
+        const { data: raced } = await admin
+          .from('talent_garden')
+          .select(TALENT_GARDEN_COLUMNS)
+          .eq('user_id', ctx.userId)
+          .maybeSingle()
+        row = raced
+      } else if (insertError) {
         console.error('خطا در ایجاد talent_garden:', insertError)
         return NextResponse.json(
           { error: 'خطا در دریافت اطلاعات' },
           { status: 500 }
         )
+      } else {
+        row = newGarden
       }
-      row = newGarden
+    }
+
+    if (!row) {
+      return NextResponse.json(
+        { error: 'خطا در دریافت اطلاعات' },
+        { status: 500 }
+      )
     }
 
     const { data: nextLevelXP } = await supabase.rpc('xp_for_next_level', {

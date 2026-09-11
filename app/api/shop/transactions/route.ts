@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { CoinTransactionType } from '@/lib/types/shop.types'
+import { COIN_TRANSACTION_COLUMNS } from '@/lib/db/columns'
 
 // دریافت تاریخچه تراکنش‌های سکه
 export async function GET(request: NextRequest) {
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
     // ساخت کوئری
     let query = supabase
       .from('coin_transactions')
-      .select('*', { count: 'exact' })
+      .select(COIN_TRANSACTION_COLUMNS, { count: 'exact' })
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, TEACHER_AND_ABOVE } from '@/lib/security/api-guard'
+import { createServiceClient } from '@/lib/supabase/service'
 import { studentBelongsToTeacher } from '@/lib/teacher/class-scope'
 
 export async function GET(request: NextRequest) {
@@ -143,7 +144,8 @@ export async function POST(request: NextRequest) {
           .single()
         if (student?.user_id) {
           const xpAmount = percentage >= 90 ? 50 : 30
-          await supabase.rpc('add_xp', {
+          // SECURITY FIX: add_xp is service_role-only
+          await createServiceClient().rpc('add_xp', {
             p_user_id: student.user_id,
             p_action_type: 'grade_earned',
             p_xp_amount: xpAmount,

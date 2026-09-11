@@ -10,6 +10,7 @@ import type {
   VirtualClassMineItem,
   VirtualClassSession,
 } from '@/lib/types/virtual-class.types'
+import { VIRTUAL_CLASS_COLUMNS, VIRTUAL_CLASS_SESSION_COLUMNS } from '@/lib/db/columns'
 
 export async function GET(request: Request) {
   const nextRequest = request as import('next/server').NextRequest
@@ -27,6 +28,7 @@ export async function GET(request: Request) {
           .from('virtual_classes')
           .select('id')
           .eq('status', 'active')
+          .limit(200)
         virtualClassIds = (data || []).map((r) => r.id)
       } else if (ctx.role === 'teacher') {
         const { data } = await supabase
@@ -74,8 +76,9 @@ export async function GET(request: Request) {
 
       const { data: rows, error } = await service
         .from('virtual_classes')
-        .select('*')
+        .select(VIRTUAL_CLASS_COLUMNS)
         .in('id', virtualClassIds)
+        .limit(200)
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })
@@ -84,11 +87,12 @@ export async function GET(request: Request) {
       const now = new Date().toISOString()
       const { data: sessions } = await service
         .from('virtual_class_sessions')
-        .select('*')
+        .select(VIRTUAL_CLASS_SESSION_COLUMNS)
         .in('virtual_class_id', virtualClassIds)
         .in('status', ['scheduled', 'live'])
         .gte('ends_at', now)
         .order('starts_at', { ascending: true })
+        .limit(400)
 
       const sessionByVc = new Map<string, VirtualClassSession>()
       for (const s of sessions || []) {

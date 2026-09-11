@@ -71,6 +71,21 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'لیست قابلیت‌ها الزامی است' }, { status: 400 })
       }
 
+      const validFeatures = features.filter((name) => Boolean(AI_FEATURES[name]))
+      const checked = await Promise.all(
+        validFeatures.map(async (featureName) => {
+          const status = await checkAIFeatureAccessServer(ctx.userId, featureName)
+          return [
+            featureName,
+            {
+              hasAccess: status.hasAccess,
+              blockedBy: status.blockedBy,
+              blockedReason: status.blockedReason,
+              blockedUntil: status.blockedUntil,
+            },
+          ] as const
+        }),
+      )
       const results: Record<
         string,
         {
@@ -79,18 +94,7 @@ export async function POST(request: NextRequest) {
           blockedReason?: string | null
           blockedUntil?: string | null
         }
-      > = {}
-
-      for (const featureName of features) {
-        if (!AI_FEATURES[featureName]) continue
-        const status = await checkAIFeatureAccessServer(ctx.userId, featureName)
-        results[featureName] = {
-          hasAccess: status.hasAccess,
-          blockedBy: status.blockedBy,
-          blockedReason: status.blockedReason,
-          blockedUntil: status.blockedUntil,
-        }
-      }
+      > = Object.fromEntries(checked)
 
       return NextResponse.json({ results })
     } catch (error) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard';
+import { AI_GENERAL_SETTINGS_COLUMNS } from '@/lib/db/columns';
 
 /**
  * GET /api/admin/ai-settings
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
       // دریافت تنظیمات
       const { data: settings, error } = await supabase
         .from('ai_general_settings')
-        .select('*')
+        .select(AI_GENERAL_SETTINGS_COLUMNS)
         .single();
 
       if (error) {

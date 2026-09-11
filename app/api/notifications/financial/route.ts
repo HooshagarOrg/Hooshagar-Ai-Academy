@@ -9,6 +9,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { z } from 'zod'
+import {
+  SMS_FINANCIAL_DISABLED_CODE,
+  SMS_FINANCIAL_ENABLED,
+} from '@/lib/sms/pilot-flags'
 
 const FinancialSmsSchema = z.object({
   type: z.enum(['debt_reminder', 'thank_you']),
@@ -47,14 +51,26 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    if (!SMS_FINANCIAL_ENABLED) {
+      return NextResponse.json(
+        {
+          error:
+            'ارسال پیامک مالی فعلاً غیرفعال است. از اعلان داخل برنامه استفاده کنید.',
+          code: SMS_FINANCIAL_DISABLED_CODE,
+          sms_enabled: false,
+        },
+        { status: 503 }
+      )
+    }
+
     return NextResponse.json(
-      {
-        error:
-          'ارسال پیامک مالی فعلاً غیرفعال است. از اعلان داخل برنامه استفاده کنید.',
-        code: 'SMS_FINANCIAL_DISABLED',
-        sms_enabled: false,
-      },
-      { status: 503 }
+      { error: 'ارسال پیامک مالی هنوز پیاده‌سازی نشده است', sms_enabled: true },
+      { status: 501 }
+    )
+
+    return NextResponse.json(
+      { error: 'ارسال پیامک مالی هنوز پیاده‌سازی نشده است', sms_enabled: true },
+      { status: 501 }
     )
   } catch {
     return NextResponse.json({ error: 'خطا در درخواست پیامک مالی' }, { status: 500 })

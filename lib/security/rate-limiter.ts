@@ -8,28 +8,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUpstashRedis } from '@/lib/cache/upstash'
 import {
   FAIL_CLOSED_SCOPES,
-  shouldFailClosedWithoutRedis,
-} from '@/lib/security/fail-closed'
+  RATE_LIMIT_CONFIGS,
+  type RateLimitKey,
+} from '@/lib/security/rate-limit-config'
+import { isRelaxedAuthRuntime } from '@/lib/security/test-runtime'
 
-export { FAIL_CLOSED_SCOPES, shouldFailClosedWithoutRedis }
-
-export const RATE_LIMIT_CONFIGS = {
-  login:          { limit: 5,   window: 60_000 },
-  otp_send:       { limit: 3,   window: 300_000 },
-  otp_verify:     { limit: 5,   window: 300_000 },
-  change_password:{ limit: 3,   window: 3_600_000 },
-  ai_ocr:         { limit: 20,  window: 3_600_000 },
-  ai_general:     { limit: 50,  window: 3_600_000 },
-  ai_heavy:       { limit: 10,  window: 3_600_000 },
-  ai_generate:    { limit: 10,  window: 3_600_000 },
-  exam_submit:    { limit: 2,   window: 3_600_000 },
-  exam_answer:    { limit: 200, window: 3_600_000 },
-  tts:            { limit: 30,  window: 60_000 },
-  api_default:    { limit: 100, window: 60_000 },
-  admin_action:   { limit: 30,  window: 60_000 },
-} as const
-
-type RateLimitKey = keyof typeof RATE_LIMIT_CONFIGS
+export { FAIL_CLOSED_SCOPES, RATE_LIMIT_CONFIGS, type RateLimitKey }
 
 interface WindowEntry {
   count: number
@@ -206,16 +190,6 @@ export async function checkRateLimitForRequest(
     RATE_LIMIT_CONFIGS.api_default
 
   const key = getClientKey(request, scope, userId)
-  const hasRedis = getRedisClient() !== null
-  if (shouldFailClosedWithoutRedis(scope, process.env.NODE_ENV, hasRedis)) {
-    return {
-      allowed: false,
-      remaining: 0,
-      resetAt: Date.now() + 60_000,
-      limit: config.limit,
-    }
-  }
-
   const distributed = await checkDistributedRateLimit(key, scope, config)
   if (distributed && distributed !== 'error') return distributed
 
@@ -246,6 +220,9 @@ export async function applyRateLimitAsync(
   customConfig?: { limit: number; window: number },
   userId?: string | null
 ): Promise<NextResponse | null> {
+  if (isRelaxedAuthRuntime()) {
+    return null
+  }
   const result = await checkRateLimitForRequest(
     request,
     scope,

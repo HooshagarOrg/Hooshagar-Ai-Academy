@@ -7,21 +7,15 @@ import {
   LEGACY_SUPABASE_AUTH_COOKIES,
 } from '@/lib/supabase/auth-cookie'
 import { isPublicApiRoute } from '@/lib/security/public-api-routes'
+import { stripSpoofedUserHeaders } from '@/lib/security/internal-headers'
+import { shouldBlockDevTestPath } from '@/lib/security/dev-test-routes'
+import {
+  GRADE_RESTRICTED_ROUTES,
+  checkGradeRestriction,
+  type EducationStage,
+} from '@/lib/security/grade-restricted-routes'
 import { SUPABASE_AUTH_COOKIE_NAME } from '@/lib/supabase/auth-cookie'
 import { getProfileCached } from '@/lib/cache/profile-cache'
-
-/** هدرهای هویت داخلی — هرگز از کلاینت پذیرفته نمی‌شوند */
-const INTERNAL_USER_HEADERS = [
-  'x-user-role',
-  'x-user-id',
-  'x-school-id',
-] as const
-
-function stripSpoofedUserHeaders(headers: Headers): void {
-  for (const name of INTERNAL_USER_HEADERS) {
-    headers.delete(name)
-  }
-}
 
 function hasSupabaseAuthCookie(request: NextRequest): boolean {
   const cookies = request.cookies.getAll()
@@ -55,17 +49,6 @@ type UserRole =
   | 'security'
   | 'maintenance'
 
-type EducationStage = 'preschool' | 'elementary' | 'middle_school' | 'high_school' | 'vocational' | 'technical'
-
-// مسیرهایی که حداقل پایه تحصیلی نیاز دارند
-const GRADE_RESTRICTED_ROUTES: Record<string, { min_grade: number; stages: EducationStage[] }> = {
-  '/student/konkur':         { min_grade: 10, stages: ['high_school', 'vocational', 'technical'] },
-  '/student/konkur-roadmap': { min_grade: 10, stages: ['high_school', 'vocational', 'technical'] },
-  '/student/field-selection':{ min_grade: 9,  stages: ['middle_school', 'high_school', 'vocational', 'technical'] },
-  '/student/future-compass': { min_grade: 8,  stages: ['middle_school', 'high_school', 'vocational', 'technical'] },
-  '/student/ai-guidance':    { min_grade: 7,  stages: ['middle_school', 'high_school', 'vocational', 'technical'] },
-}
-
 // ============================================
 // مسیرهای عمومی (بدون نیاز به احراز هویت)
 // ============================================
@@ -84,6 +67,9 @@ const PUBLIC_ROUTES = [
   '/help',
   '/offline',
 ]
+
+/** Logged-in users still need these (payment / plan selection). */
+const PUBLIC_ROUTES_WHILE_AUTHENTICATED = ['/pricing', '/checkout']
 
 // مسیرهای استاتیک که middleware نباید بررسی کند (بدون /api)
 const EXCLUDED_ROUTES = [
@@ -104,6 +90,7 @@ const EXCLUDED_ROUTES = [
 // ============================================
 const ROUTE_PERMISSIONS: Record<string, UserRole[]> = {
   '/admin':           ['admin', 'platform_admin'],
+  '/platform-admin':  ['platform_admin'],
   '/principal':       ['principal', 'admin', 'platform_admin'],
   '/teacher':         ['teacher', 'principal', 'admin', 'platform_admin'],
   '/parent':          ['parent'],
@@ -148,6 +135,13 @@ function isPublicRoute(pathname: string): boolean {
   })
 }
 
+function isPublicRouteWhileAuthenticated(pathname: string): boolean {
+  const pathOnly = pathname.split('?')[0] ?? pathname
+  return PUBLIC_ROUTES_WHILE_AUTHENTICATED.some(
+    (route) => pathOnly === route || pathOnly.startsWith(`${route}/`),
+  )
+}
+
 // ============================================
 // هلپر: دریافت نقش‌های مجاز برای مسیر
 // ============================================
@@ -186,24 +180,6 @@ function getDefaultRouteForRole(role: UserRole): string {
     maintenance: '/maintenance',
   }
   return roleRoutes[role] || '/dashboard'
-}
-
-// ============================================
-// هلپر: بررسی محدودیت مقطع تحصیلی
-// ============================================
-function checkGradeRestriction(
-  pathname: string,
-  grade_level: number | null,
-  education_stage: EducationStage | null
-): boolean {
-  for (const [route, restriction] of Object.entries(GRADE_RESTRICTED_ROUTES)) {
-    if (pathname.startsWith(route)) {
-      if (!grade_level || !education_stage) return false
-      if (grade_level < restriction.min_grade) return false
-      if (!restriction.stages.includes(education_stage)) return false
-    }
-  }
-  return true
 }
 
 // ============================================
@@ -284,7 +260,7 @@ export async function middleware(request: NextRequest) {
   )
 
   // مسیرهای تست — فقط در development
-  if (process.env.NODE_ENV === 'production' && pathname.startsWith('/test-')) {
+  if (shouldBlockDevTestPath(pathname, process.env.NODE_ENV)) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -305,7 +281,7 @@ export async function middleware(request: NextRequest) {
 
   // 7. مسیرهای عمومی - اگر لاگین است، redirect به داشبورد
   if (isPublicRoute(pathname)) {
-    if (user) {
+    if (user && !isPublicRouteWhileAuthenticated(pathname)) {
       const profile = await getProfileCached(user.id, async () => {
         const { data } = await supabase
           .from('profiles')

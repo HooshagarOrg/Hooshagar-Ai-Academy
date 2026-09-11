@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { withAuth, type AllowedRole } from '@/lib/security/api-guard'
 import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
-import { CLASS_REGISTRATION_COLUMNS } from '@/lib/db/columns'
 
 const registerSchema = z.object({
   studentId: z.string().uuid('شناسه دانش‌آموز نامعتبر'),
@@ -100,15 +99,12 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const { data: classRows } = await supabase
-        .from('classes')
-        .select('id, school_id, grade, academic_year, is_active')
-        .in('id', choices)
-        .limit(10)
-
-      const classById = new Map((classRows || []).map((row) => [row.id, row]))
       for (const classId of choices) {
-        const classData = classById.get(classId)
+        const { data: classData } = await supabase
+          .from('classes')
+          .select('id, school_id, grade, academic_year, is_active')
+          .eq('id', classId)
+          .single()
 
         if (!classData ||
             classData.school_id !== lotterySetting.school_id ||
@@ -136,7 +132,7 @@ export async function POST(request: NextRequest) {
           registered_at: new Date().toISOString(),
         })
         .select(`
-          ${CLASS_REGISTRATION_COLUMNS},
+          *,
           choice_1_class:choice_1_class_id(name, teacher_name),
           choice_2_class:choice_2_class_id(name, teacher_name),
           choice_3_class:choice_3_class_id(name, teacher_name),
@@ -184,7 +180,7 @@ export async function PUT(request: NextRequest) {
       const { data: existingReg } = await supabase
         .from('class_registrations')
         .select(`
-          ${CLASS_REGISTRATION_COLUMNS},
+          *,
           student:student_id(id, parent_id),
           lottery_setting:lottery_setting_id(
             id, status, allow_edit_until_end, registration_end
@@ -256,7 +252,7 @@ export async function PUT(request: NextRequest) {
         })
         .eq('id', registrationId)
         .select(`
-          ${CLASS_REGISTRATION_COLUMNS},
+          *,
           choice_1_class:choice_1_class_id(name, teacher_name),
           choice_2_class:choice_2_class_id(name, teacher_name),
           choice_3_class:choice_3_class_id(name, teacher_name),
@@ -303,7 +299,7 @@ export async function DELETE(request: NextRequest) {
       const { data: existingReg } = await supabase
         .from('class_registrations')
         .select(`
-          ${CLASS_REGISTRATION_COLUMNS},
+          *,
           student:student_id(id, parent_id),
           lottery_setting:lottery_setting_id(id, status, registration_end)
         `)

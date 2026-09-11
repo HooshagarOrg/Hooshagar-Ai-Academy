@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { SURVEY_COLUMNS } from '@/lib/db/columns';
 
 export async function GET(
   request: NextRequest,
@@ -18,7 +17,7 @@ export async function GET(
     // دریافت نظرسنجی
     const { data: survey, error: surveyError } = await supabase
       .from('surveys')
-      .select(SURVEY_COLUMNS)
+      .select('*')
       .eq('id', params.id)
       .single();
 

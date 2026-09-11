@@ -12,11 +12,6 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import {
-  AI_MODEL_CONFIG_COLUMNS,
-  GEMINI_KEY_COLUMNS,
-  USER_AI_LIMIT_COLUMNS,
-} from '@/lib/db/columns'
 
 // ========================================
 // Types
@@ -226,7 +221,7 @@ async function getModelConfig(capability: string): Promise<ModelConfig> {
 
   const { data, error } = await supabase
     .from('ai_model_configs')
-    .select(AI_MODEL_CONFIG_COLUMNS)
+    .select('*')
     .eq('capability_key', capability)
     .eq('is_active', true)
     .single()
@@ -505,7 +500,7 @@ export async function getUserAIStats(userId: string) {
 
   const { data, error } = await supabase
     .from('user_ai_limits')
-    .select(USER_AI_LIMIT_COLUMNS)
+    .select('*')
     .eq('user_id', userId)
     .single()
 
@@ -553,18 +548,16 @@ export async function getAISystemStats() {
 
   const { data: configs } = await supabase
     .from('ai_model_configs')
-    .select(AI_MODEL_CONFIG_COLUMNS)
-    .limit(50)
+    .select('*')
 
   const { data: keys } = await supabase
     .from('gemini_api_keys')
-    .select(GEMINI_KEY_COLUMNS)
+    .select('*')
     .eq('is_active', true)
-    .limit(20)
 
-  const { count: cacheSize } = await supabase
+  const { data: cache } = await supabase
     .from('ai_response_cache')
-    .select('id', { count: 'exact', head: true })
+    .select('id')
 
   if (!configs) return null
 
@@ -580,7 +573,7 @@ export async function getAISystemStats() {
     totalCacheHits,
     cacheRate: totalRequests > 0 ? ((totalCacheHits / totalRequests) * 100).toFixed(1) + '%' : '0%',
     totalTokensSaved: totalTokensSaved.toLocaleString(),
-    cacheSize: cacheSize || 0,
+    cacheSize: cache?.length || 0,
     geminiKeysActive: keys?.length || 0,
     geminiDailyUsage: geminiUsage,
     geminiDailyLimit: geminiLimit,

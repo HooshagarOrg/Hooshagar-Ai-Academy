@@ -6,7 +6,6 @@
  */
 
 import { createClient } from '@/lib/supabase-server'
-import { AI_MODEL_CONFIG_COLUMNS } from '@/lib/db/columns'
 
 // Types
 export interface AIRequest {
@@ -240,7 +239,7 @@ export async function getAIStats(capability: string) {
 
   const { data, error } = await supabase
     .from('ai_model_configs')
-    .select(AI_MODEL_CONFIG_COLUMNS)
+    .select('*')
     .eq('capability_key', capability)
     .single()
 

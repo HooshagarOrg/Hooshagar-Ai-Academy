@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/security/api-guard'
 import { SPECIALTY_API_ROLES } from '@/lib/security/sensitive-api-roles'
 import { parentOwnsStudent } from '@/lib/security/parent-child'
-import { SPECIALTY_ASSESSMENT_COLUMNS } from '@/lib/db/columns'
 
 // ==========================================
 // GET - Get All Assessments for Student
@@ -31,7 +30,7 @@ export async function GET(
 
       let musicQuery = supabase
         .from('music_assessments')
-        .select(SPECIALTY_ASSESSMENT_COLUMNS.music)
+        .select('*')
         .eq('student_id', student_id)
         .order('assessment_date', { ascending: false })
         .limit(5)
@@ -43,7 +42,7 @@ export async function GET(
 
       let artQuery = supabase
         .from('art_assessments')
-        .select(SPECIALTY_ASSESSMENT_COLUMNS.art)
+        .select('*')
         .eq('student_id', student_id)
         .order('assessment_date', { ascending: false })
         .limit(5)
@@ -55,7 +54,7 @@ export async function GET(
 
       let sportsQuery = supabase
         .from('sports_assessments')
-        .select(SPECIALTY_ASSESSMENT_COLUMNS.sports)
+        .select('*')
         .eq('student_id', student_id)
         .order('assessment_date', { ascending: false })
         .limit(5)
@@ -67,7 +66,7 @@ export async function GET(
 
       let stemQuery = supabase
         .from('stem_assessments')
-        .select(SPECIALTY_ASSESSMENT_COLUMNS.stem)
+        .select('*')
         .eq('student_id', student_id)
         .order('assessment_date', { ascending: false })
         .limit(5)

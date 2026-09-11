@@ -1,11 +1,13 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test'
-
-type HeaderListResponse = {
-  headersArray(): ReadonlyArray<{ name: string; value: string }>
-}
 import { seedCookieConsent } from './cookies'
 import { installExternalMocks, type ExternalMockState } from './mocks'
 import { readLatestOtp, type E2eActor } from './seed'
+
+type CookieHeaderSource = {
+  headersArray():
+    | ReadonlyArray<{ name: string; value: string }>
+    | Promise<ReadonlyArray<{ name: string; value: string }>>
+}
 
 const LOOPBACK_ORIGIN = 'http://127.0.0.1:3000'
 const LOCALHOST_ORIGIN = 'http://localhost:3000'
@@ -56,8 +58,10 @@ async function pinLoopbackHost(page: Page): Promise<void> {
   })
 }
 
-function authCookiesFromResponse(response: HeaderListResponse): Array<{ name: string; value: string }> {
-  const raw = response.headersArray()
+async function authCookiesFromResponse(
+  response: CookieHeaderSource,
+): Promise<Array<{ name: string; value: string }>> {
+  const raw = await Promise.resolve(response.headersArray())
   const headers = Array.isArray(raw) ? raw : []
   return headers
     .filter((h) => String(h.name).toLowerCase() === 'set-cookie')
@@ -75,9 +79,9 @@ function authCookiesFromResponse(response: HeaderListResponse): Array<{ name: st
 /** Chrome often rewrites 127.0.0.1 → localhost; host-only cookies would not follow. */
 async function syncLoopbackAuthCookies(
   page: Page,
-  fromResponse?: HeaderListResponse,
+  fromResponse?: CookieHeaderSource,
 ): Promise<void> {
-  const fromHeader = fromResponse ? authCookiesFromResponse(fromResponse) : []
+  const fromHeader = fromResponse ? await authCookiesFromResponse(fromResponse) : []
   const fromJar = (await page.context().cookies()).filter((c) =>
     c.name.startsWith('sb-hooshagar-auth-token'),
   )

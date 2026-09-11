@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { withAuth } from '@/lib/security/api-guard';
 import { EXAM_MANAGE_ROLES } from '@/lib/security/sensitive-api-roles';
+import { QUESTION_BANK_COLUMNS } from '@/lib/db/columns';
 
 export async function GET(
   request: NextRequest,
@@ -15,7 +16,7 @@ export async function GET(
 
         const { data, error } = await supabase
           .from('question_bank')
-          .select('*')
+          .select(QUESTION_BANK_COLUMNS)
           .eq('id', params.id)
           .single();
 

@@ -70,13 +70,20 @@ export async function checkAIFeatureAccess(
 }
 
 export async function checkAllFeatureAccess(
-  userId: string
+  _userId: string
 ): Promise<Record<string, AIAccessStatus>> {
-  const result: Record<string, AIAccessStatus> = {}
-  for (const featureName of Object.keys(AI_FEATURES)) {
-    result[featureName] = await checkAIFeatureAccess(userId, featureName)
+  try {
+    const res = await fetch('/api/ai/check-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ features: Object.keys(AI_FEATURES) }),
+    })
+    if (!res.ok) return {}
+    const data = (await res.json()) as { results?: Record<string, AIAccessStatus> }
+    return data.results ?? {}
+  } catch {
+    return {}
   }
-  return result
 }
 
 export async function getFeatureAccessStatus(
@@ -140,11 +147,12 @@ export async function setAllFeaturesAccess(
     scopeName?: string
   }
 ): Promise<{ success: boolean; count: number; error?: string }> {
-  let count = 0
-  for (const featureName of Object.keys(AI_FEATURES)) {
-    const result = await setFeatureAccess(featureName, scope, scopeId, isEnabled, options)
-    if (result.success) count++
-  }
+  const results = await Promise.all(
+    Object.keys(AI_FEATURES).map((featureName) =>
+      setFeatureAccess(featureName, scope, scopeId, isEnabled, options),
+    ),
+  )
+  const count = results.filter((result) => result.success).length
   return { success: true, count }
 }
 

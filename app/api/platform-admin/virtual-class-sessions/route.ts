@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth } from '@/lib/security/api-guard'
 import { PLATFORM_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
+import { VIRTUAL_CLASS_SESSION_COLUMNS } from '@/lib/db/columns'
 
 const isoDateTime = z
   .string()
@@ -36,8 +37,9 @@ export async function GET(request: NextRequest) {
 
       let query = service
         .from('virtual_class_sessions')
-        .select('*')
+        .select(VIRTUAL_CLASS_SESSION_COLUMNS)
         .order('starts_at', { ascending: false })
+        .limit(200)
 
       if (virtualClassId) {
         query = query.eq('virtual_class_id', virtualClassId)

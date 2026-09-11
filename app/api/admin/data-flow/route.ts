@@ -61,14 +61,15 @@ export async function GET(request: NextRequest) {
       }
 
       // بررسی اتصال جداول مهم
-      const checks: { table: string; ok: boolean; count: number }[] = []
       const tables = ['profiles', 'students', 'grades', 'exams', 'classes', 'messages_direct']
-      for (const t of tables) {
-        const { count, error } = await supabase
-          .from(t)
-          .select('id', { count: 'exact', head: true })
-        checks.push({ table: t, ok: !error, count: count || 0 })
-      }
+      const checks = await Promise.all(
+        tables.map(async (t) => {
+          const { count, error } = await supabase
+            .from(t)
+            .select('id', { count: 'exact', head: true })
+          return { table: t, ok: !error, count: count || 0 }
+        }),
+      )
 
       return NextResponse.json({
         stats: stats || {},

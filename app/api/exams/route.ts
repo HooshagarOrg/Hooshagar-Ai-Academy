@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 import { withAuth } from '@/lib/security/api-guard';
 import { EXAM_MANAGE_ROLES } from '@/lib/security/sensitive-api-roles';
+import { QUESTION_BANK_COLUMNS } from '@/lib/db/columns';
 
 // اسکیما سوال مستقیم (از OCR)
 const directQuestionSchema = z.object({
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
 
     const status = searchParams.get('status');
     const subject = searchParams.get('subject');
+    const filter = searchParams.get('filter');
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -56,6 +58,9 @@ export async function GET(request: NextRequest) {
 
     if (status) query = query.eq('status', status);
     if (subject) query = query.eq('subject', subject);
+    if (filter === 'upcoming') {
+      query = query.in('status', ['published', 'active']);
+    }
 
     const { data, error, count } = await query;
 
@@ -110,6 +115,7 @@ export async function POST(request: NextRequest) {
         total_questions: totalQuestions,
         status: 'draft',
         created_by: ctx.userId,
+        school_id: ctx.schoolId ?? null,
       })
       .select()
       .single();
@@ -127,7 +133,7 @@ export async function POST(request: NextRequest) {
       // دریافت سوالات از بانک
       const { data: questions } = await supabase
         .from('question_bank')
-        .select('*')
+        .select(QUESTION_BANK_COLUMNS)
         .in('id', question_ids);
 
       if (questions && questions.length > 0) {

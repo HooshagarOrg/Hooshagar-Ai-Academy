@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       if (userGarden) {
         const { count } = await supabase
           .from('talent_garden')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .gt('xp', userGarden.xp)
 
         userRank = (count || 0) + 1

@@ -7,6 +7,13 @@ import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/security/api-guard'
 import { COUNSELING_API_ROLES } from '@/lib/security/sensitive-api-roles'
 import { z } from 'zod'
+import {
+  BEHAVIORAL_OBSERVATION_COLUMNS,
+  COUNSELING_RECORD_COLUMNS,
+  COUNSELING_SESSION_COLUMNS,
+  PARENT_CONTACT_COLUMNS,
+  PSYCHOLOGICAL_TEST_COLUMNS,
+} from '@/lib/db/columns'
 
 // ==========================================
 // Validation Schema
@@ -50,7 +57,7 @@ export async function GET(
       const { data: record, error } = await supabase
         .from('counseling_records')
         .select(`
-        *,
+        ${COUNSELING_RECORD_COLUMNS},
         student:students!counseling_records_student_id_fkey(
           id,
           user_id,
@@ -75,27 +82,31 @@ export async function GET(
 
       const { data: sessions } = await supabase
         .from('counseling_sessions')
-        .select('*')
+        .select(COUNSELING_SESSION_COLUMNS)
         .eq('counseling_record_id', id)
         .order('session_number', { ascending: false })
+        .limit(50)
 
       const { data: tests } = await supabase
         .from('psychological_tests')
-        .select('*')
+        .select(PSYCHOLOGICAL_TEST_COLUMNS)
         .eq('counseling_record_id', id)
         .order('test_date', { ascending: false })
+        .limit(50)
 
       const { data: observations } = await supabase
         .from('behavioral_observations')
-        .select('*')
+        .select(BEHAVIORAL_OBSERVATION_COLUMNS)
         .eq('counseling_record_id', id)
         .order('observation_date', { ascending: false })
+        .limit(50)
 
       const { data: contacts } = await supabase
         .from('parent_contacts')
-        .select('*')
+        .select(PARENT_CONTACT_COLUMNS)
         .eq('counseling_record_id', id)
         .order('contact_date', { ascending: false })
+        .limit(50)
 
       const transformedRecord = {
         ...record,

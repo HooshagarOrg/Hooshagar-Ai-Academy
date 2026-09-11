@@ -21,21 +21,21 @@ export async function GET(request: NextRequest) {
 
       const { count: totalStudents } = await supabase
         .from('students')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('school_id', schoolId)
 
       stats.totalStudents = totalStudents || 0
 
       const { count: studentsWithRecords } = await supabase
         .from('student_health_records')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('school_id', schoolId)
 
       stats.studentsWithRecords = studentsWithRecords || 0
 
       const { count: pendingFollowups } = await supabase
         .from('health_checkups')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('school_id', schoolId)
         .eq('needs_followup', true)
         .eq('followup_completed', false)
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
       const { count: checkupsThisMonth } = await supabase
         .from('health_checkups')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('school_id', schoolId)
         .gte('checkup_date', startOfMonth.toISOString().split('T')[0])
 
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 
       const { count: visitsThisMonth } = await supabase
         .from('health_visits')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('school_id', schoolId)
         .gte('visit_date', startOfMonth.toISOString())
 

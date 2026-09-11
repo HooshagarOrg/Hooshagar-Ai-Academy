@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { ATTENDANCE_MONTHLY_STATS_COLUMNS } from '@/lib/db/columns'
 
 // GET: دریافت آمار حضور و غیاب
 export async function GET(request: Request) {
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
       
       const { data: monthlyStats, error } = await supabase
         .from('attendance_monthly_stats')
-        .select('*')
+        .select(ATTENDANCE_MONTHLY_STATS_COLUMNS)
         .eq('student_id', studentId)
         .eq('month', currentMonth)
         .single()

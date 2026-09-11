@@ -10,6 +10,7 @@ import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
 import { fetchAllPaged } from '@/lib/supabase/paginate'
+import { ADMIN_BROADCAST_COLUMNS } from '@/lib/db/columns'
 
 /** سقف ردیف در هر رفت‌و‌برگشت — برودکست مدرسه‌گستر چند هزار گیرنده دارد. */
 const INSERT_CHUNK_SIZE = 500
@@ -262,7 +263,7 @@ export async function GET(req: NextRequest) {
 
     const { data: broadcasts } = await supabase
       .from('admin_broadcast_sms')
-      .select('*, profiles!admin_id(full_name)')
+      .select(`${ADMIN_BROADCAST_COLUMNS}, profiles!admin_id(full_name)`)
       .order('created_at', { ascending: false })
       .limit(50)
 

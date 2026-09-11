@@ -11,6 +11,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { log } from '@/lib/logger';
+import { AI_GENERAL_SETTINGS_COLUMNS, AI_MODEL_SETTINGS_COLUMNS } from '@/lib/db/columns';
 
 interface AIRequest {
   feature: string;
@@ -47,13 +48,13 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
   // دریافت تنظیمات
   const { data: settings, error: settingsError } = await supabase
     .from('ai_model_settings')
-    .select('*')
+    .select(AI_MODEL_SETTINGS_COLUMNS)
     .eq('feature_name', request.feature)
     .single();
   
   const { data: general, error: generalError } = await supabase
     .from('ai_general_settings')
-    .select('*')
+    .select(AI_GENERAL_SETTINGS_COLUMNS)
     .single();
   
   if (!settings || !general) {

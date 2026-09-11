@@ -53,12 +53,14 @@ export async function GET(
 
     // دریافت نام‌های دانش‌آموزان
     const studentIds = sessions.map(s => s.student_id)
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name')
+    const { data: students } = await supabase
+      .from('students')
+      .select('id, full_name, user_id')
       .in('id', studentIds)
 
-    const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p.full_name]))
+    const nameMap = Object.fromEntries(
+      (students || []).map((row) => [row.id, row.full_name]),
+    )
 
     // شمارش پاسخ‌های تشریحی در انتظار تصحیح برای هر جلسه
     const sessionIds = sessions.map(s => s.id)
@@ -82,7 +84,7 @@ export async function GET(
       max_score:           s.max_score || 0,
       percentage:          s.percentage || 0,
       passed:              s.passed,
-      student_name:        profileMap[s.student_id] || 'نامشخص',
+      student_name:        nameMap[s.student_id] || 'نامشخص',
       pending_descriptive: pendingMap[s.id] || 0,
     }))
 

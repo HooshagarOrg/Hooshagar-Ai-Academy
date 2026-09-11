@@ -5,6 +5,8 @@
  */
 
 import { createClient } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase/service'
+import { DAILY_ACTIVITY_COLUMNS } from '@/lib/db/columns'
 
 /**
  * مقادیر XP برای هر action
@@ -51,8 +53,9 @@ export async function awardXP(
   description?: string
 ): Promise<AwardXPResult> {
   try {
-    const supabase = await createClient()
-    
+    // SECURITY FIX: add_xp is service_role-only
+    const admin = createServiceClient()
+
     // مقدار XP
     const xpAmount = customAmount || XP_VALUES[actionType]
     
@@ -76,7 +79,7 @@ export async function awardXP(
     const finalDescription = description || defaultDescriptions[actionType]
     
     // فراخوانی Function
-    const { data, error } = await supabase.rpc('add_xp', {
+    const { data, error } = await admin.rpc('add_xp', {
       p_user_id: userId,
       p_action_type: actionType,
       p_xp_amount: xpAmount,
@@ -131,7 +134,7 @@ export async function recordDailyActivity(
     // Check if already recorded today
     const { data: existing } = await supabase
       .from('daily_activities')
-      .select('*')
+      .select(DAILY_ACTIVITY_COLUMNS)
       .eq('user_id', userId)
       .eq('activity_date', today)
       .single()

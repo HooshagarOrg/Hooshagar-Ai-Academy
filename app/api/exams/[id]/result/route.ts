@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import {
+  EXAM_ANSWER_COLUMNS,
+  EXAM_QUESTION_COLUMNS,
+  EXAM_SESSION_COLUMNS,
+} from '@/lib/db/columns';
 
 export async function GET(
   request: NextRequest,
@@ -37,7 +42,7 @@ export async function GET(
     // دریافت جلسه
     const { data: session, error: sessionError } = await supabase
       .from('exam_sessions')
-      .select('*')
+      .select(EXAM_SESSION_COLUMNS)
       .eq('exam_id', params.id)
       .eq('student_id', student.id)
       .single();
@@ -52,10 +57,11 @@ export async function GET(
     // دریافت پاسخ‌ها با سوالات
     const { data: answers } = await supabase
       .from('exam_answers')
-      .select('*, exam_questions(*)')
+      .select(`${EXAM_ANSWER_COLUMNS}, exam_questions(${EXAM_QUESTION_COLUMNS})`)
       .eq('exam_id', params.id)
       .eq('student_id', student.id)
-      .order('exam_questions(question_order)', { ascending: true });
+      .order('exam_questions(question_order)', { ascending: true })
+      .limit(200);
 
     // تبدیل به فرمت review
     const reviews = (answers || []).map((a) => ({
@@ -92,7 +98,8 @@ export async function GET(
       .from('exam_sessions')
       .select('percentage')
       .eq('exam_id', params.id)
-      .eq('status', 'graded');
+      .eq('status', 'graded')
+      .limit(500);
 
     let classAverage = 0;
     let classMedian = 0;

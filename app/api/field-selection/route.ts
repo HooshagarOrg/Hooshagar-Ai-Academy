@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { FIELD_SELECTION_COLUMNS } from '@/lib/db/columns'
 
 const BRANCH_BY_FIELD_ID: Record<string, string> = {
   '1': 'math_physics',
@@ -48,7 +49,7 @@ export async function GET() {
 
     const { data: selection } = await supabase
       .from('field_selection')
-      .select('*')
+      .select(FIELD_SELECTION_COLUMNS)
       .eq('student_id', student.id)
       .order('created_at', { ascending: false })
       .limit(1)

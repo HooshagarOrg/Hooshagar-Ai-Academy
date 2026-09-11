@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 
 // استفاده از محافظ Streak
 export async function POST() {
@@ -93,8 +94,8 @@ export async function PUT() {
       )
     }
 
-    // خرید محافظ
-    const { error: updateError } = await supabase
+    // SECURITY FIX: clients cannot UPDATE talent_garden coins; write via service role
+    const { error: updateError } = await createServiceClient()
       .from('talent_garden')
       .update({
         coins: talentGarden.coins - FREEZE_PRICE,

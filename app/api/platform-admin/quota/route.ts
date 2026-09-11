@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { secureErrorResponse } from '@/lib/security/error-handler'
 import { withAuth } from '@/lib/security/api-guard'
 import { PLATFORM_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
+import { LOTTERY_CAPACITY_SUMMARY_COLUMNS, PLATFORM_SETTINGS_COLUMNS } from '@/lib/db/columns'
 
 const quotaUpdateSchema = z.object({
   key: z.enum(['class_quota', 'lottery_quota', 'school_limits']),
@@ -31,9 +32,10 @@ export async function GET(request: NextRequest) {
 
           let query = supabase
             .from('v_lottery_capacity_summary')
-            .select('*')
+            .select(LOTTERY_CAPACITY_SUMMARY_COLUMNS)
             .order('school_name')
             .order('grade')
+            .limit(500)
 
           if (schoolId) query = query.eq('school_id', schoolId)
           if (academicYear) query = query.eq('academic_year', academicYear)
@@ -45,8 +47,9 @@ export async function GET(request: NextRequest) {
 
         const { data: settings, error } = await supabase
           .from('platform_settings')
-          .select('*')
+          .select(PLATFORM_SETTINGS_COLUMNS)
           .order('key')
+          .limit(50)
 
         if (error) throw error
         return NextResponse.json({ settings: settings || [] })

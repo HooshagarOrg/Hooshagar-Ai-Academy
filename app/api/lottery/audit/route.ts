@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/security/api-guard'
 import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
+import { LOTTERY_LOG_COLUMNS, LOTTERY_SETTING_COLUMNS } from '@/lib/db/columns'
 
 export async function GET(req: NextRequest) {
   return withAuth(
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
         if (lotteryId) {
           const { data: lottery, error: lotteryError } = await supabase
             .from('lottery_settings')
-            .select('*')
+            .select(LOTTERY_SETTING_COLUMNS)
             .eq('id', lotteryId)
             .single()
 
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
             .from('class_registrations')
             .select('status')
             .eq('lottery_setting_id', lotteryId)
+            .limit(2000)
 
           const totalRegistrations = stats?.length || 0
           const successful = stats?.filter(s => s.status === 'assigned').length || 0
@@ -35,9 +37,10 @@ export async function GET(req: NextRequest) {
 
           const { data: logs } = await supabase
             .from('lottery_logs')
-            .select('*')
+            .select(LOTTERY_LOG_COLUMNS)
             .eq('lottery_setting_id', lotteryId)
             .order('created_at', { ascending: true })
+            .limit(200)
 
           return NextResponse.json({
             success: true,
@@ -54,9 +57,10 @@ export async function GET(req: NextRequest) {
 
         const { data: lotteries, error } = await supabase
           .from('lottery_settings')
-          .select('*')
+          .select(LOTTERY_SETTING_COLUMNS)
           .eq('status', 'completed')
           .order('executed_at', { ascending: false })
+          .limit(50)
 
         if (error) {
           console.error('خطا در دریافت لیست قرعه‌کشی‌ها:', error)

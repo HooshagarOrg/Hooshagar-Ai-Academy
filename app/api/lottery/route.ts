@@ -31,11 +31,38 @@ export async function GET(request: NextRequest) {
       if (!STUDENT_LOTTERY_ROLES.includes(ctx.role)) {
         return forbidden()
       }
+    } else if (type === 'periods' || type === 'classes') {
+      if (!isLotteryAdmin(ctx.role) && !STUDENT_LOTTERY_ROLES.includes(ctx.role)) {
+        return forbidden()
+      }
     } else if (!isLotteryAdmin(ctx.role)) {
       return forbidden()
     }
 
     if (type === 'periods') {
+      if (STUDENT_LOTTERY_ROLES.includes(ctx.role) && !isLotteryAdmin(ctx.role)) {
+        let grade: number | null = null
+        let schoolId = ctx.schoolId
+        if (ctx.role === 'student') {
+          const { data: student } = await supabase
+            .from('students')
+            .select('grade, school_id')
+            .eq('user_id', ctx.userId)
+            .maybeSingle()
+          grade = (student?.grade as number | undefined) ?? null
+          schoolId = (student?.school_id as string | undefined) ?? schoolId
+        }
+        let query = supabase
+          .from('registration_periods')
+          .select('id, title, academic_year, for_grade, from_grade, start_at, end_at, status, school_id, created_at')
+          .eq('status', 'open')
+          .order('created_at', { ascending: false })
+        if (schoolId) query = query.eq('school_id', schoolId)
+        if (grade != null) query = query.eq('from_grade', grade)
+        const { data, error } = await query
+        if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+        return NextResponse.json({ periods: data })
+      }
       const { data, error } = await supabase
         .from('registration_periods')
         .select('id, title, academic_year, for_grade, from_grade, start_at, end_at, status, school_id, created_at')
@@ -187,7 +214,9 @@ export async function POST(request: NextRequest) {
 
       const { data, error } = await createServiceClient().rpc('run_lottery', { p_period_id: period_id })
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-      return NextResponse.json({ success: true, result: data })
+
+      const notifiedPhones = await notifyLotteryResultsBySms(period_id as string)
+      return NextResponse.json({ success: true, result: data, notified_phones: notifiedPhones })
     }
 
     return NextResponse.json({ error: 'عملیات نامعتبر' }, { status: 400 })
@@ -214,4 +243,41 @@ export async function DELETE(request: NextRequest) {
     }
     return NextResponse.json({ success: true })
   }, { roles: ADMIN_PLUS_PRINCIPAL })
+}
+
+async function notifyLotteryResultsBySms(periodId: string): Promise<string[]> {
+  const admin = createServiceClient()
+  const { data: rows } = await admin
+    .from('lottery_results')
+    .select('student_id, students(user_id)')
+    .eq('period_id', periodId)
+
+  const userIds = (rows ?? [])
+    .map((row) => {
+      const student = row.students as { user_id?: string } | { user_id?: string }[] | null
+      if (Array.isArray(student)) return student[0]?.user_id
+      return student?.user_id
+    })
+    .filter((id): id is string => Boolean(id))
+
+  if (userIds.length === 0) return []
+
+  const { data: profiles } = await admin
+    .from('profiles')
+    .select('phone')
+    .in('id', userIds)
+
+  const phones = (profiles ?? [])
+    .map((p) => p.phone)
+    .filter((phone): phone is string => Boolean(phone))
+
+  if (phones.length === 0) return []
+
+  const { sendSMS } = await import('@/lib/kavenegar')
+  const notified: string[] = []
+  for (const phone of phones) {
+    const result = await sendSMS(phone, 'نتیجه قرعه‌کشی ثبت‌نام کلاس در هوشاگر اعلام شد.')
+    if (result.success) notified.push(phone)
+  }
+  return notified
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { AcademicYear, CreateAcademicYearInput } from '@/lib/types/academic.types'
+import { ACADEMIC_YEAR_COLUMNS } from '@/lib/db/columns'
 import { withAuth, ADMIN_ROLES, type AllowedRole } from '@/lib/security/api-guard'
 
 const ACADEMIC_YEAR_ROLES: AllowedRole[] = [...ADMIN_ROLES, 'principal']
@@ -22,8 +23,9 @@ export async function GET(request: NextRequest) {
         const supabase = await createServerClient()
         const { data: years, error } = await supabase
           .from('academic_years')
-          .select('*')
+          .select(ACADEMIC_YEAR_COLUMNS)
           .order('start_date', { ascending: false })
+          .limit(50)
 
         if (error) throw error
 

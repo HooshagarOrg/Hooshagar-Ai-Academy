@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth } from '@/lib/security/api-guard'
 import { SPECIALTY_API_ROLES } from '@/lib/security/sensitive-api-roles'
+import { SPECIALTY_ASSESSMENT_COLUMNS } from '@/lib/db/columns'
 
 // ==========================================
 // GET - Get Single Assessment
@@ -29,10 +30,17 @@ export async function GET(
       }
 
       const tableName = `${type}_assessments`
+      const columns = SPECIALTY_ASSESSMENT_COLUMNS[type]
+      if (!columns) {
+        return NextResponse.json(
+          { error: 'نوع ارزیابی مشخص نشده یا نامعتبر است' },
+          { status: 400 }
+        )
+      }
 
       const { data: assessment, error } = await supabase
         .from(tableName)
-        .select('*')
+        .select(columns)
         .eq('id', id)
         .single()
 

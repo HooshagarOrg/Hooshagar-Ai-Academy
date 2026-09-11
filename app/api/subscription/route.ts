@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard'
+import { SUBSCRIPTION_PLAN_COLUMNS } from '@/lib/db/columns'
 
 // ============================================
 // GET: پلن‌ها و اشتراک فعلی
@@ -14,9 +15,10 @@ export async function GET(request: NextRequest) {
     if (type === 'plans') {
       const { data } = await supabase
         .from('subscription_plans')
-        .select('*')
+        .select(SUBSCRIPTION_PLAN_COLUMNS)
         .eq('is_active', true)
         .order('sort_order')
+        .limit(20)
       return NextResponse.json({ plans: data || [] })
     }
 
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
         // پلن رایگان پیش‌فرض
         const { data: freePlan } = await supabase
           .from('subscription_plans')
-          .select('*')
+          .select(SUBSCRIPTION_PLAN_COLUMNS)
           .eq('name', 'free')
           .single()
         return NextResponse.json({ subscription: null, plan: freePlan })
@@ -40,9 +42,11 @@ export async function GET(request: NextRequest) {
 
       const { data: sub } = await supabase
         .from('active_subscriptions')
-        .select('*')
+        .select(
+          'id, school_id, plan_id, status, starts_at, ends_at, gateway, created_at',
+        )
         .eq('school_id', profile.school_id)
-        .single()
+        .maybeSingle()
 
       return NextResponse.json({ subscription: sub })
     }
@@ -50,8 +54,11 @@ export async function GET(request: NextRequest) {
     if (type === 'all' && ADMIN_ROLES.includes(ctx.role as never)) {
       const { data } = await supabase
         .from('subscriptions')
-        .select('*, subscription_plans(name,display_name,price_monthly), schools(name)')
+        .select(
+          'id, school_id, plan_id, status, starts_at, ends_at, created_at, subscription_plans(name,display_name,price_monthly), schools(name)',
+        )
         .order('created_at', { ascending: false })
+        .limit(100)
       return NextResponse.json({ subscriptions: data || [] })
     }
 

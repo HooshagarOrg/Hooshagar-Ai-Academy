@@ -4,6 +4,7 @@ import { getRoom } from '@/lib/skyroom'
 import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth } from '@/lib/security/api-guard'
 import { PLATFORM_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
+import { VIRTUAL_CLASS_COLUMNS } from '@/lib/db/columns'
 
 const createSchema = z.object({
   class_id: z.string().uuid(),
@@ -71,8 +72,9 @@ export async function GET(request: NextRequest) {
       const service = createServiceClient()
       const { data, error } = await service
         .from('virtual_classes')
-        .select('*')
+        .select(VIRTUAL_CLASS_COLUMNS)
         .order('created_at', { ascending: false })
+        .limit(200)
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })

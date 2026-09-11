@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { withAuth, ADMIN_ROLES } from '@/lib/security/api-guard';
+import { AI_ALERT_COLUMNS } from '@/lib/db/columns';
 
 /**
  * GET /api/admin/ai-alerts
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
       // دریافت هشدارها (فقط 50 تای اخیر)
       const { data: alerts, error } = await supabase
         .from('ai_alerts')
-        .select('*')
+        .select(AI_ALERT_COLUMNS)
         .order('created_at', { ascending: false })
         .limit(50);
 

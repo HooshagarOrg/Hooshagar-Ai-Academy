@@ -94,9 +94,17 @@ export async function POST(
       answerData.time_spent_seconds = time_spent
     }
 
-    const { error } = await supabase.from('exam_answers').upsert(answerData, {
-      onConflict: 'exam_id,question_id,student_id',
-    })
+    const { data: existing } = await supabase
+      .from('exam_answers')
+      .select('id')
+      .eq('exam_id', params.id)
+      .eq('question_id', question_id)
+      .eq('student_id', student.id)
+      .maybeSingle()
+
+    const { error } = existing?.id
+      ? await supabase.from('exam_answers').update(answerData).eq('id', existing.id)
+      : await supabase.from('exam_answers').insert(answerData)
 
     if (error) {
       console.error('خطا در ذخیره پاسخ:', error)

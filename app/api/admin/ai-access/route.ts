@@ -123,14 +123,15 @@ export async function PUT(request: NextRequest) {
       }
 
       const { scope, scopeId, isEnabled, reason } = parsed.data
-      let count = 0
-      for (const featureName of Object.keys(AI_FEATURES)) {
-        const result = await setFeatureAccessServer(featureName, scope, scopeId, isEnabled, {
-          reason: isEnabled ? undefined : reason || 'غیرفعال‌سازی گروهی',
-          userId: ctx.userId,
-        })
-        if (result.success) count++
-      }
+      const results = await Promise.all(
+        Object.keys(AI_FEATURES).map((featureName) =>
+          setFeatureAccessServer(featureName, scope, scopeId, isEnabled, {
+            reason: isEnabled ? undefined : reason || 'غیرفعال‌سازی گروهی',
+            userId: ctx.userId,
+          }),
+        ),
+      )
+      const count = results.filter((result) => result.success).length
 
       return NextResponse.json({
         success: true,

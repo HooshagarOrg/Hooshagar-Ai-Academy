@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
         let query = supabase
           .from('students')
           .select('id, parent_id')
-          .not('parent_id', 'is', null);
+          .not('parent_id', 'is', null)
+          .limit(200);
 
         if (studentIds && studentIds.length > 0) {
           query = query.in('id', studentIds);

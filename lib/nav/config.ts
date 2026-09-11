@@ -33,6 +33,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'ارتقاء پایه', href: '/admin/progression', icon: ArrowUpCircle },
         { title: 'انتقال بین‌مدرسه‌ای', href: '/admin/transfers', icon: ArrowLeftRight },
         { title: 'کلاس مجازی', href: '/admin/virtual-classes', icon: Video },
+        { title: 'کتاب‌های درسی', href: '/admin/textbooks', icon: BookOpen },
       ],
     },
     {

@@ -10,6 +10,7 @@ import {
   MAX_TEXTBOOK_BYTES,
   canUploadGrade,
   canManageAllSchoolGrades,
+  canManagePlatformTextbooks,
   getTeacherGrades,
   type TextbookRow,
 } from '@/lib/teacher/textbooks'
@@ -26,6 +27,7 @@ const confirmSchema = z.object({
     .max(500)
     .regex(/^textbooks\//, 'مسیر فایل نامعتبر است'),
   fileSize: z.number().int().positive().max(MAX_TEXTBOOK_BYTES),
+  scope: z.enum(['school', 'platform']).optional(),
 })
 
 export async function GET(request: NextRequest) {
@@ -42,16 +44,24 @@ export async function GET(request: NextRequest) {
       const supabase = await createClient()
       const gradeParam = request.nextUrl.searchParams.get('grade')
       const gradeFilter = gradeParam ? Number.parseInt(gradeParam, 10) : null
+      const scope = request.nextUrl.searchParams.get('scope')
 
       let query = supabase
         .from('textbooks')
         .select(TEXTBOOK_SELECT)
         .order('grade', { ascending: true })
         .order('title', { ascending: true })
-        .limit(100)
+        .limit(200)
 
-      if (ctx.schoolId) {
-        query = query.eq('school_id', ctx.schoolId)
+      if (scope === 'platform') {
+        if (!canManagePlatformTextbooks(ctx.role)) {
+          return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 403 })
+        }
+        query = query.is('school_id', null)
+      } else if (ctx.schoolId) {
+        query = query.or(`school_id.eq.${ctx.schoolId},school_id.is.null`)
+      } else if (ctx.role === 'platform_admin' || ctx.role === 'admin') {
+        query = query.is('school_id', null)
       }
 
       if (gradeFilter && gradeFilter >= 1 && gradeFilter <= 12) {
@@ -72,10 +82,18 @@ export async function GET(request: NextRequest) {
         ? Array.from({ length: 12 }, (_, i) => i + 1)
         : await getTeacherGrades(supabase, ctx.userId, ctx.role)
 
+      const textbooks = ((data || []) as TextbookRow[]).filter((book) => {
+        if (canManageAllSchoolGrades(ctx.role) || canManagePlatformTextbooks(ctx.role)) {
+          return true
+        }
+        return grades.includes(book.grade)
+      })
+
       return NextResponse.json({
-        textbooks: (data || []) as TextbookRow[],
+        textbooks,
         grades,
         canUpload: grades.length > 0 || canManageAllSchoolGrades(ctx.role),
+        canManagePlatform: canManagePlatformTextbooks(ctx.role),
       })
     },
     { roles: TEXTBOOK_ROLES, rateLimit: 'api_default' }
@@ -87,13 +105,6 @@ export async function POST(request: NextRequest) {
   return withAuth(
     request,
     async (ctx) => {
-      if (!ctx.schoolId) {
-        return NextResponse.json(
-          { error: 'مدرسه کاربر مشخص نیست' },
-          { status: 400 }
-        )
-      }
-
       let body: unknown
       try {
         body = await request.json()
@@ -109,7 +120,20 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const { title, subject, grade, filePath, fileSize } = parsed.data
+      const { title, subject, grade, filePath, fileSize, scope } = parsed.data
+      const isPlatform = scope === 'platform'
+
+      if (isPlatform && !canManagePlatformTextbooks(ctx.role)) {
+        return NextResponse.json({ error: 'فقط ادمین کل می‌تواند قفسه سراسری را پر کند' }, { status: 403 })
+      }
+
+      if (!isPlatform && !ctx.schoolId) {
+        return NextResponse.json(
+          { error: 'مدرسه کاربر مشخص نیست' },
+          { status: 400 }
+        )
+      }
+
       const supabase = await createClient()
 
       const allowed = await canUploadGrade(supabase, ctx.userId, ctx.role, grade)
@@ -120,7 +144,9 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const expectedPrefix = `textbooks/${ctx.schoolId}/grade-${grade}/`
+      const expectedPrefix = isPlatform
+        ? `textbooks/platform/grade-${grade}/`
+        : `textbooks/${ctx.schoolId}/grade-${grade}/`
       if (!filePath.startsWith(expectedPrefix)) {
         return NextResponse.json({ error: 'مسیر فایل با مدرسه/پایه هم‌خوان نیست' }, { status: 400 })
       }
@@ -128,7 +154,7 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabase
         .from('textbooks')
         .insert({
-          school_id: ctx.schoolId,
+          school_id: isPlatform ? null : ctx.schoolId,
           grade,
           title: title.trim(),
           subject: subject?.trim() || null,

@@ -22,7 +22,8 @@ export const TEXTBOOK_MIME = 'application/pdf'
 
 export type TextbookRow = {
   id: string
-  school_id: string
+  /** null = قفسه سراسری پلتفرم */
+  school_id: string | null
   grade: number
   title: string
   subject: string | null
@@ -31,6 +32,16 @@ export type TextbookRow = {
   mime_type: string
   uploaded_by: string | null
   created_at: string
+}
+
+export const PLATFORM_TEXTBOOK_SCOPE = 'platform'
+
+export function isPlatformTextbook(book: Pick<TextbookRow, 'school_id'>): boolean {
+  return book.school_id == null
+}
+
+export function canManagePlatformTextbooks(role: AllowedRole): boolean {
+  return role === 'platform_admin' || role === 'admin'
 }
 
 export const TEXTBOOK_SELECT =

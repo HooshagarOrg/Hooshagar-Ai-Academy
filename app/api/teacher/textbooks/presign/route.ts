@@ -8,6 +8,7 @@ import {
   TEXTBOOK_MIME,
   MAX_TEXTBOOK_BYTES,
   canUploadGrade,
+  canManagePlatformTextbooks,
 } from '@/lib/teacher/textbooks'
 
 export const maxDuration = 30
@@ -19,19 +20,13 @@ const presignSchema = z.object({
   fileName: z.string().min(3).max(200),
   fileSize: z.number().int().positive().max(MAX_TEXTBOOK_BYTES, 'حداکثر حجم ۵۰ مگابایت است'),
   mimeType: z.literal(TEXTBOOK_MIME),
+  scope: z.enum(['school', 'platform']).optional(),
 })
 
 export async function POST(request: NextRequest) {
   return withAuth(
     request,
     async (ctx) => {
-      if (!ctx.schoolId) {
-        return NextResponse.json(
-          { error: 'مدرسه کاربر مشخص نیست' },
-          { status: 400 }
-        )
-      }
-
       let body: unknown
       try {
         body = await request.json()
@@ -47,7 +42,23 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const { grade, fileName, fileSize, mimeType } = parsed.data
+      const { grade, fileName, fileSize, mimeType, scope } = parsed.data
+      const isPlatform = scope === 'platform'
+
+      if (isPlatform && !canManagePlatformTextbooks(ctx.role)) {
+        return NextResponse.json(
+          { error: 'فقط ادمین کل می‌تواند قفسه سراسری را پر کند' },
+          { status: 403 }
+        )
+      }
+
+      if (!isPlatform && !ctx.schoolId) {
+        return NextResponse.json(
+          { error: 'مدرسه کاربر مشخص نیست' },
+          { status: 400 }
+        )
+      }
+
       const supabase = await createClient()
 
       const allowed = await canUploadGrade(supabase, ctx.userId, ctx.role, grade)
@@ -62,7 +73,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'فقط فایل PDF مجاز است' }, { status: 400 })
       }
 
-      const filePath = generateTextbookPath(ctx.schoolId, grade, fileName)
+      const filePath = generateTextbookPath(
+        isPlatform ? 'platform' : ctx.schoolId!,
+        grade,
+        fileName
+      )
       const uploadUrl = await getSignedUploadUrl(filePath, TEXTBOOK_MIME, 900)
 
       if (!uploadUrl) {

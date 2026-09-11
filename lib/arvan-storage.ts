@@ -609,7 +609,7 @@ export function generateFilePath(
 }
 
 /**
- * مسیر کتاب درسی: textbooks/{schoolId}/grade-{n}/...
+ * مسیر کتاب درسی: textbooks/{schoolId|platform}/grade-{n}/...
  */
 export function generateTextbookPath(
   schoolId: string,
@@ -622,7 +622,8 @@ export function generateTextbookPath(
     .replace(/\.[^/.]+$/, '')
     .replace(/[^a-zA-Z0-9\u0600-\u06FF.-]/g, '_')
     .substring(0, 50)
-  return `textbooks/${schoolId}/grade-${grade}/${timestamp}_${random}_${sanitized}.pdf`
+  const scope = schoolId || 'platform'
+  return `textbooks/${scope}/grade-${grade}/${timestamp}_${random}_${sanitized}.pdf`
 }
 
 /**

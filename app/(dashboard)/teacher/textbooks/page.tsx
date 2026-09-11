@@ -14,13 +14,19 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
-import { formatBytes, MAX_TEXTBOOK_BYTES, type TextbookRow } from '@/lib/teacher/textbooks'
+import {
+  formatBytes,
+  isPlatformTextbook,
+  MAX_TEXTBOOK_BYTES,
+  type TextbookRow,
+} from '@/lib/teacher/textbooks'
 import { BookOpen, Loader2, Trash2, Upload } from 'lucide-react'
 
 type ListResponse = {
   textbooks: TextbookRow[]
   grades: number[]
   canUpload: boolean
+  canManagePlatform?: boolean
   error?: string
 }
 
@@ -31,6 +37,7 @@ export default function TeacherTextbooksPage() {
   const [items, setItems] = useState<TextbookRow[]>([])
   const [grades, setGrades] = useState<number[]>([])
   const [canUpload, setCanUpload] = useState(false)
+  const [canManagePlatform, setCanManagePlatform] = useState(false)
   const [title, setTitle] = useState('')
   const [subject, setSubject] = useState('')
   const [grade, setGrade] = useState<string>('')
@@ -47,6 +54,7 @@ export default function TeacherTextbooksPage() {
       setItems(data.textbooks || [])
       setGrades(data.grades || [])
       setCanUpload(Boolean(data.canUpload))
+      setCanManagePlatform(Boolean(data.canManagePlatform))
       setGrade((prev) => {
         if (prev) return prev
         if (data.grades?.length === 1) return String(data.grades[0])
@@ -163,15 +171,23 @@ export default function TeacherTextbooksPage() {
     }
   }
 
-  const onDelete = async (id: string) => {
-    if (!window.confirm('این کتاب برای همه معلمان همان پایه حذف می‌شود. ادامه می‌دهید؟')) {
+  const onDelete = async (book: TextbookRow) => {
+    const message = isPlatformTextbook(book)
+      ? 'این کتاب از قفسه سراسری همه مدارس حذف می‌شود. ادامه می‌دهید؟'
+      : 'این کتاب برای همه معلمان همان پایه این مدرسه حذف می‌شود. ادامه می‌دهید؟'
+    if (!window.confirm(message)) {
       return
     }
     try {
-      const res = await fetch(`/api/teacher/textbooks/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/teacher/textbooks/${book.id}`, { method: 'DELETE' })
       const data = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(data.error || 'حذف ناموفق بود')
-      toast({ title: 'حذف شد', description: 'کتاب از فهرست مدرسه حذف شد' })
+      toast({
+        title: 'حذف شد',
+        description: isPlatformTextbook(book)
+          ? 'کتاب از قفسه سراسری برداشته شد'
+          : 'کتاب از فهرست مدرسه حذف شد',
+      })
       await load()
     } catch (err) {
       toast({
@@ -185,7 +201,7 @@ export default function TeacherTextbooksPage() {
   return (
     <DashboardPage
       title="کتاب‌های درسی"
-      description="قفسه مدرسه: هر درس را یک‌بار آپلود کنید و هنگام تدریس همان را باز کنید. هر جلسه دوباره آپلود نکنید. یادداشت روی کتاب ذخیره نمی‌شود و فایل اصلی عوض نمی‌شود."
+      description="کتاب‌های سراسری هر پایه را ادمین کل یک‌بار آپلود می‌کند؛ همان فایل برای معلمان همان پایه در همه مدارس آماده است. در صورت نیاز کتاب اضافهٔ مدرسه را هم اینجا بگذارید. یادداشت روی کتاب ذخیره نمی‌شود و فایل اصلی عوض نمی‌شود."
     >
       {canUpload && grades.length > 0 && (
         <form
@@ -195,7 +211,7 @@ export default function TeacherTextbooksPage() {
         >
           <h2 className="flex items-center gap-2 text-base font-semibold">
             <Upload className="size-4" />
-            آپلود کتاب جدید
+            آپلود کتاب اضافهٔ مدرسه
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -270,42 +286,59 @@ export default function TeacherTextbooksPage() {
           در حال بارگذاری…
         </div>
       ) : items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">هنوز کتابی برای پایه‌های شما ثبت نشده است.</p>
+        <p className="text-sm text-muted-foreground">
+          هنوز کتاب سراسری یا مدرسه‌ای برای پایه‌های شما ثبت نشده است.
+        </p>
       ) : (
         <ul className="space-y-3" dir="rtl">
-          {items.map((book) => (
-            <li
-              key={book.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/30 px-4 py-3"
-            >
-              <div className="min-w-0">
-                <p className="flex items-center gap-2 font-medium">
-                  <BookOpen className="size-4 shrink-0 text-role-accent" />
-                  <span className="truncate">{book.title}</span>
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  پایه {book.grade}
-                  {book.subject ? ` · ${book.subject}` : ''}
-                  {' · '}
-                  {formatBytes(book.file_size)}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button asChild size="sm">
-                  <Link href={`/teacher/textbooks/${book.id}`}>باز کردن برای تدریس</Link>
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void onDelete(book.id)}
-                  aria-label={`حذف ${book.title}`}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-            </li>
-          ))}
+          {items.map((book) => {
+            const platform = isPlatformTextbook(book)
+            const showDelete = !platform || canManagePlatform
+            return (
+              <li
+                key={book.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/30 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 font-medium">
+                    <BookOpen className="size-4 shrink-0 text-role-accent" />
+                    <span className="truncate">{book.title}</span>
+                    {platform ? (
+                      <span className="shrink-0 rounded-full bg-role-accent/15 px-2 py-0.5 text-[11px] font-medium text-role-accent">
+                        سراسری
+                      </span>
+                    ) : (
+                      <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                        مدرسه
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    پایه {book.grade}
+                    {book.subject ? ` · ${book.subject}` : ''}
+                    {' · '}
+                    {formatBytes(book.file_size)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button asChild size="sm">
+                    <Link href={`/teacher/textbooks/${book.id}`}>باز کردن برای تدریس</Link>
+                  </Button>
+                  {showDelete ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void onDelete(book)}
+                      aria-label={`حذف ${book.title}`}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  ) : null}
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
     </DashboardPage>

@@ -7,6 +7,8 @@ import {
   TEXTBOOK_ROLES,
   TEXTBOOK_SELECT,
   canManageAllSchoolGrades,
+  canManagePlatformTextbooks,
+  isPlatformTextbook,
   type TextbookRow,
 } from '@/lib/teacher/textbooks'
 
@@ -92,12 +94,19 @@ export async function DELETE(
       }
 
       const textbook = data as TextbookRow
-      const canDelete =
-        textbook.uploaded_by === ctx.userId || canManageAllSchoolGrades(ctx.role)
+      const canDeletePlatform =
+        isPlatformTextbook(textbook) && canManagePlatformTextbooks(ctx.role)
+      const canDeleteSchool =
+        !isPlatformTextbook(textbook) &&
+        (textbook.uploaded_by === ctx.userId || canManageAllSchoolGrades(ctx.role))
 
-      if (!canDelete) {
+      if (!canDeletePlatform && !canDeleteSchool) {
         return NextResponse.json(
-          { error: 'فقط آپلودکننده یا مدیر می‌تواند حذف کند' },
+          {
+            error: isPlatformTextbook(textbook)
+              ? 'فقط ادمین کل می‌تواند کتاب سراسری را حذف کند'
+              : 'فقط آپلودکننده یا مدیر می‌تواند این کتاب را حذف کند',
+          },
           { status: 403 }
         )
       }

@@ -12,7 +12,8 @@ import { loginViaApi, preparePage } from './helpers/session'
 
 test.describe.configure({ mode: 'serial' })
 
-test.describe('payment', () => {
+// پرداخت در سایت هنوز فعال نیست؛ این سوئیت را بعد از راه‌اندازی درگاه برگردان.
+test.describe.skip('payment', () => {
   test.skip(isPlaceholderSupabase(), 'نیاز به Auth واقعی Supabase')
 
   let bundle: E2eSchoolBundle

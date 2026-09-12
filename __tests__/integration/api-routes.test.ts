@@ -78,7 +78,7 @@ function isOpenApiRoute(pathname: string): boolean {
   )
 }
 
-function hasAuthGuard(source: string): boolean {
+function sourceHasAuthGuard(source: string): boolean {
   return (
     /withAuth\s*\(/.test(source) ||
     /auth\.getUser\s*\(/.test(source) ||
@@ -87,6 +87,31 @@ function hasAuthGuard(source: string): boolean {
     /createClient\s*\(/.test(source) ||
     /createServerSupabaseClient\s*\(/.test(source)
   )
+}
+
+function resolveHandlerReexport(
+  file: string,
+  source: string,
+): string | null {
+  const match = source.match(
+    /export\s*\{[^}]*\b(?:GET|POST|PUT|PATCH|DELETE)\b[^}]*\}\s*from\s*['"]([^'"]+)['"]/,
+  )
+  if (!match?.[1]) return null
+  const dir = path.dirname(path.join(process.cwd(), file))
+  const targetBase = path.resolve(dir, match[1])
+  const candidates = [
+    `${targetBase}.ts`,
+    path.join(targetBase, 'route.ts'),
+    targetBase,
+  ]
+  return candidates.find((candidate) => fs.existsSync(candidate)) ?? null
+}
+
+function hasAuthGuard(file: string, source: string): boolean {
+  if (sourceHasAuthGuard(source)) return true
+  const target = resolveHandlerReexport(file, source)
+  if (!target) return false
+  return sourceHasAuthGuard(fs.readFileSync(target, 'utf8'))
 }
 
 function listApiRouteFiles(): string[] {
@@ -123,7 +148,7 @@ describe('API route auth matrix', () => {
 
   it.each(protectedFiles)('%s guards unauthenticated callers', (file) => {
     const source = fs.readFileSync(path.join(process.cwd(), file), 'utf8')
-    expect(hasAuthGuard(source)).toBe(true)
+    expect(hasAuthGuard(file, source)).toBe(true)
   })
 
   it('public routes stay in the allow-list', () => {

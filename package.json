@@ -35,7 +35,8 @@
     "generate-icons": "node scripts/generate-pwa-icons.js",
     "logo:all": "node scripts/prepare-logo.js && node scripts/generate-pwa-icons.js",
     "test:recaptcha": "node scripts/test-recaptcha.js",
-    "analyze": "next build"
+    "analyze": "node scripts/perf/analyze.mjs",
+    "lhci": "node scripts/perf/lhci-run.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.940.0",

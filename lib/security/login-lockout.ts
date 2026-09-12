@@ -9,6 +9,7 @@ import { LRUCache } from 'lru-cache'
 import type { NextRequest } from 'next/server'
 import { getSupabaseServerUrl } from '@/lib/supabase/resolve-url'
 import { supabaseGlobalOptions } from '@/lib/supabase/fetch'
+import { nodeRealtimeOptions } from '@/lib/supabase/node-websocket'
 
 export const LOGIN_LOCK_MAX_FAILURES = 5
 export const LOGIN_LOCK_DURATION_MS = 15 * 60_000
@@ -61,7 +62,11 @@ function adminDb() {
   return createAdminClient(
     getSupabaseServerUrl(),
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false }, ...supabaseGlobalOptions }
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+      ...supabaseGlobalOptions,
+      ...nodeRealtimeOptions,
+    }
   )
 }
 

@@ -1,7 +1,5 @@
-import {
-  createTestServiceClient,
-  createTestSupabaseClient,
-} from '../helpers/supabase-test-client'
+import { createTestServiceClient, createTestSupabaseClient } from '../helpers/supabase-test-client'
+import { createServiceClient } from '@/lib/supabase/service'
 
 const TEST_PROJECT_URL = 'https://nllxjhmmczkongrdzbfu.supabase.co'
 
@@ -36,5 +34,9 @@ describe('supabase test client on Node without native WebSocket', () => {
 
   it('constructs the anon client without throwing', () => {
     expect(() => createTestSupabaseClient()).not.toThrow()
+  })
+
+  it('constructs the production service client without throwing', () => {
+    expect(() => createServiceClient()).not.toThrow()
   })
 })

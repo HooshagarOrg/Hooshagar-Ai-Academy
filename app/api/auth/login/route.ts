@@ -23,6 +23,7 @@ import { sanitizeString, normalizeIranPhone } from '@/lib/security/sanitize'
 import { getSupabaseServerUrl } from '@/lib/supabase/resolve-url'
 import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
 import { supabaseGlobalOptions } from '@/lib/supabase/fetch'
+import { nodeRealtimeOptions } from '@/lib/supabase/node-websocket'
 import { applyE2eTestEnv } from '@/lib/supabase/e2e-env'
 import { verifyPin, isScryptPinHash } from '@/lib/security/pin-hash'
 import {
@@ -132,7 +133,7 @@ function getAdminClient() {
   return createAdminClient(
     getSupabaseServerUrl(),
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false }, ...supabaseGlobalOptions }
+    { auth: { autoRefreshToken: false, persistSession: false }, ...supabaseGlobalOptions, ...nodeRealtimeOptions }
   )
 }
 

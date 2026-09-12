@@ -1,12 +1,7 @@
-import {
-  createClient,
-  type SupabaseClient,
-  type User,
-  type WebSocketLikeConstructor,
-} from '@supabase/supabase-js'
-import WebSocket from 'ws'
+import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js'
 import type { Database } from '@/types/database.types'
 import { supabaseFetch } from '@/lib/supabase/fetch'
+import { nodeRealtimeOptions } from '@/lib/supabase/node-websocket'
 
 const TEST_PROJECT_REF = 'nllxjhmmczkongrdzbfu'
 const TEST_EMAIL_DOMAIN = 'hooshagar-test.local'
@@ -79,13 +74,10 @@ const fetchWithRetry: typeof fetch = async (input, init) => {
   throw lastError
 }
 
-/** Node 20 has no native WebSocket; supabase-js requires an explicit transport. */
-const nodeWebSocket = WebSocket as unknown as WebSocketLikeConstructor
-
 const TEST_CLIENT_OPTIONS = {
   auth: { persistSession: false, autoRefreshToken: false },
   global: { fetch: fetchWithRetry },
-  realtime: { transport: nodeWebSocket },
+  ...nodeRealtimeOptions,
 }
 
 export function createTestSupabaseClient(): SupabaseClient<Database> {

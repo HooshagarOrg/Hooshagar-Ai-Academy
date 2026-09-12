@@ -1,4 +1,10 @@
-import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js'
+import {
+  createClient,
+  type SupabaseClient,
+  type User,
+  type WebSocketLikeConstructor,
+} from '@supabase/supabase-js'
+import WebSocket from 'ws'
 import type { Database } from '@/types/database.types'
 import { supabaseFetch } from '@/lib/supabase/fetch'
 
@@ -73,24 +79,27 @@ const fetchWithRetry: typeof fetch = async (input, init) => {
   throw lastError
 }
 
+/** Node 20 has no native WebSocket; supabase-js requires an explicit transport. */
+const nodeWebSocket = WebSocket as unknown as WebSocketLikeConstructor
+
+const TEST_CLIENT_OPTIONS = {
+  auth: { persistSession: false, autoRefreshToken: false },
+  global: { fetch: fetchWithRetry },
+  realtime: { transport: nodeWebSocket },
+}
+
 export function createTestSupabaseClient(): SupabaseClient<Database> {
   const url = requireTestEnv('NEXT_PUBLIC_SUPABASE_URL')
   const anonKey = requireTestEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
   assertTestProject(url)
-  return createClient<Database>(url, anonKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { fetch: fetchWithRetry },
-  })
+  return createClient<Database>(url, anonKey, TEST_CLIENT_OPTIONS)
 }
 
 export function createTestServiceClient(): SupabaseClient<Database> {
   const url = requireTestEnv('NEXT_PUBLIC_SUPABASE_URL')
   const serviceKey = requireTestEnv('SUPABASE_SERVICE_ROLE_KEY')
   assertTestProject(url)
-  return createClient<Database>(url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { fetch: fetchWithRetry },
-  })
+  return createClient<Database>(url, serviceKey, TEST_CLIENT_OPTIONS)
 }
 
 export async function createUserWithRole(

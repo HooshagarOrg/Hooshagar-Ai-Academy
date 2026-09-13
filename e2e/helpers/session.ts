@@ -173,7 +173,7 @@ export async function loginWithOtpUi(
   await page.getByTestId('login-tab-sms').click()
   const phone = page.getByTestId('login-phone')
   await phone.waitFor({ state: 'visible', timeout: 90_000 })
-  await phone.fill(actor.nationalCode)
+  await phone.fill(actor.phone)
   const sendWait = page.waitForResponse(
     (res) => res.url().includes('/api/auth/send-otp') && res.request().method() === 'POST',
     { timeout: 180_000 },

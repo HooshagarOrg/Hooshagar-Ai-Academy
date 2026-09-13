@@ -625,6 +625,7 @@ export default function LoginPage() {
                       <label className="text-sm font-medium leading-none" htmlFor="login-phone">شماره موبایل</label>
                       <Input
                         id="login-phone"
+                        data-testid="login-phone"
                         name="phone"
                         type="tel"
                         placeholder="09123456789"
@@ -653,6 +654,7 @@ export default function LoginPage() {
                       </div>
                       <Input
                         id="login-otp"
+                        data-testid="login-otp"
                         name="otp"
                         type="text"
                         inputMode="numeric"

@@ -203,7 +203,7 @@ function QuestionRenderer({
   onChange: (value: string) => void;
   showHint: boolean;
 }) {
-  switch (question.question_type) {
+  switch (String(question.question_type) === 'descriptive' ? 'essay' : question.question_type) {
     case 'multiple_choice':
       return (
         <div className="space-y-4">
@@ -293,6 +293,7 @@ function QuestionRenderer({
           value={answer || ''}
           onChange={(e) => onChange(e.target.value)}
           placeholder="پاسخ خود را بنویسید..."
+          data-testid="exam-essay-answer"
           className="min-h-[200px] text-base leading-relaxed"
         />
       );

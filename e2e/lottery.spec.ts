@@ -48,9 +48,9 @@ test.describe('lottery', () => {
     await page.goto('/admin/lottery', { waitUntil: 'domcontentloaded' })
     await expect(page.getByText(periodTitle)).toBeVisible({ timeout: 60_000 })
 
-    const periodCard = page.locator('section, div').filter({ hasText: periodTitle }).first()
-    await periodCard.getByRole('button', { name: 'بستن ثبت' }).click()
-    await expect(periodCard.getByRole('button', { name: 'اجرای قرعه‌کشی' })).toBeVisible({
+    const periodCard = page.getByTestId('lottery-period-card').filter({ hasText: periodTitle })
+    await periodCard.getByTestId('lottery-close-registration').click()
+    await expect(periodCard.getByTestId('lottery-run')).toBeVisible({
       timeout: 30_000,
     })
 
@@ -60,7 +60,7 @@ test.describe('lottery', () => {
       return postData.includes('run_lottery')
     })
     page.once('dialog', (dialog) => dialog.accept())
-    await periodCard.getByRole('button', { name: 'اجرای قرعه‌کشی' }).click()
+    await periodCard.getByTestId('lottery-run').click()
     const response = await drawResponse
     const payload = (await response.json()) as {
       success?: boolean

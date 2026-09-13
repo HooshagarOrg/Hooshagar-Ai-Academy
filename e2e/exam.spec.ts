@@ -206,7 +206,7 @@ test.describe('exam flow', () => {
         res.ok(),
       { timeout: 60_000 },
     )
-    await page.getByPlaceholder('پاسخ خود را بنویسید...').fill(
+    await page.getByTestId('exam-essay-answer').fill(
       'بهار فصل شکوفه و باران است.',
     )
     expect((await answeredText).ok()).toBeTruthy()

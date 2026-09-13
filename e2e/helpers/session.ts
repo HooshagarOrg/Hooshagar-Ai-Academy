@@ -189,15 +189,12 @@ export async function loginWithOtpUi(
   }
   await page.getByTestId('login-otp').waitFor({ state: 'visible', timeout: 30_000 })
   const otp = await readLatestOtp(actor.phone)
-  await page.getByTestId('login-otp').fill(otp)
   const loginWait = page.waitForResponse(
     (res) => res.url().includes('/api/auth/login') && res.request().method() === 'POST',
     { timeout: 180_000 },
   )
-  await Promise.all([
-    loginWait,
-    page.getByRole('button', { name: 'تأیید و ورود' }).click(),
-  ])
+  await page.getByTestId('login-otp').fill(otp)
+  await page.getByTestId('login-otp-submit').click()
   const loggedIn = await loginWait
   if (!loggedIn.ok()) {
     const payload = (await loggedIn.json().catch(() => ({}))) as { error?: string }

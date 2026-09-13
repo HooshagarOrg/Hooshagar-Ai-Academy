@@ -250,38 +250,38 @@ async function notifyLotteryResultsBySms(periodId: string): Promise<string[]> {
   const admin = createServiceClient()
   const { data: rows } = await admin
     .from('lottery_results')
-    .select('student_id, students(user_id)')
+    .select('student_id')
     .eq('period_id', periodId)
 
-  const userIds = (rows ?? [])
-    .map((row) => {
-      const student = row.students as { user_id?: string } | { user_id?: string }[] | null
-      if (Array.isArray(student)) return student[0]?.user_id
-      return student?.user_id
-    })
-    .filter((id): id is string => Boolean(id))
+  const studentIds = [...new Set(
+    (rows ?? [])
+      .map((row) => row.student_id)
+      .filter((id): id is string => Boolean(id)),
+  )]
+  if (studentIds.length === 0) return []
 
-  if (userIds.length === 0) return []
+  const { data: students } = await admin
+    .from('students')
+    .select('id, user_id')
+    .in('id', studentIds)
+
+  const userIds = [...new Set(
+    (students ?? [])
+      .map((row) => row.user_id)
+      .filter((id): id is string => Boolean(id)),
+  )]
+  const profileIds = userIds.length > 0 ? userIds : studentIds
 
   const { data: profiles } = await admin
     .from('profiles')
     .select('phone')
-    .in('id', userIds)
+    .in('id', profileIds)
 
-  const profilePhones = (profiles ?? [])
-    .map((p) => p.phone)
-    .filter((phone): phone is string => Boolean(phone))
-
-  let phones = profilePhones
-  if (phones.length === 0) {
-    const { data: studentRows } = await admin
-      .from('students')
-      .select('phone')
-      .in('user_id', userIds)
-    phones = (studentRows ?? [])
-      .map((row) => row.phone)
-      .filter((phone): phone is string => Boolean(phone))
-  }
+  const phones = [...new Set(
+    (profiles ?? [])
+      .map((p) => p.phone)
+      .filter((phone): phone is string => Boolean(phone)),
+  )]
 
   if (phones.length === 0) return []
 

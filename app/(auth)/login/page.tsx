@@ -188,50 +188,6 @@ export default function LoginPage() {
     phone: string,
     otp: string,
   ) => {
-    const { createClient } = await import('@/lib/supabase/client')
-    const supabase = createClient()
-    const { data: rpcData, error: rpcError } = await supabase.rpc('otp_login_verify', {
-      p_phone: phone,
-      p_otp: otp,
-    })
-
-    if (!rpcError) {
-      const rpc = rpcData as {
-        success: boolean
-        error?: string
-        email?: string
-        password?: string
-        full_name?: string
-        role?: string
-        must_change_password?: boolean
-      }
-      if (rpc.success && rpc.email && rpc.password) {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: rpc.email,
-          password: rpc.password,
-        })
-        if (signInError) {
-          toast.error('خطا در ورود به سیستم')
-          return
-        }
-        toast.success(`خوش آمدید! ${rpc.full_name || ''}`)
-        redirectByRole(rpc.role, rpc.must_change_password)
-        return
-      }
-      const otpMsgs: Record<string, string> = {
-        invalid_otp: 'کد تأیید نامعتبر یا منقضی شده',
-        user_not_found: 'کاربری با این شماره یافت نشد',
-        ambiguous_phone: 'این شماره برای چند حساب ثبت شده',
-        student_no_phone: 'ورود پیامکی برای دانش‌آموز فعال نیست — از PIN استفاده کنید',
-        no_password: 'رمز ورود تنظیم نشده — با مدرسه تماس بگیرید',
-      }
-      if (!rpc.success) {
-        toast.error(otpMsgs[rpc.error ?? ''] || 'خطا در تأیید کد')
-        return
-      }
-    }
-
-    // fallback سرور
     if (requireCaptcha && TURNSTILE_SITE_KEY && !captchaToken) {
       toast.error('لطفاً تأیید امنیتی را کامل کنید')
       return
@@ -259,7 +215,9 @@ export default function LoginPage() {
   const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
-    const otp = otpCode.replace(/\D/g, '').slice(0, 6)
+    const formData = new FormData(e.currentTarget)
+    const fromInput = String(formData.get('otp') ?? '').replace(/\D/g, '').slice(0, 6)
+    const otp = fromInput || otpCode.replace(/\D/g, '').slice(0, 6)
 
     if (!/^\d{6}$/.test(otp)) {
       toast.error('کد تأیید باید ۶ رقم باشد')
@@ -677,7 +635,12 @@ export default function LoginPage() {
                         ارسال شده به {otpPhone}
                       </p>
                     </div>
-                    <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
+                    <button
+                      type="submit"
+                      data-testid="login-otp-submit"
+                      className="lux-btn-accent w-full"
+                      disabled={isLoading}
+                    >
                       {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال تأیید...</> : 'تأیید و ورود'}
                     </button>
                     {otpTimer === 0 && (

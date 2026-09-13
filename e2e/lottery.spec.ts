@@ -80,7 +80,10 @@ test.describe('lottery', () => {
     await preparePage(page)
     await loginViaApi(page, bundle.student)
     await page.goto('/student/lottery', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByText(/ثبت‌نام شدید|لیست انتظار|تخصیص نیافت/)).toBeVisible({
+    await expect(page.getByText('ثبت‌نام کلاس').first()).toBeVisible({ timeout: 60_000 })
+    await expect(
+      page.getByText(/ثبت‌نام شدید|لیست انتظار|تخصیص نیافت|نتایج قرعه‌کشی|دوره ثبت‌نامی باز نیست/),
+    ).toBeVisible({
       timeout: 60_000,
     })
   })

@@ -97,6 +97,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '5mb',
     },
+    serverComponentsExternalPackages: ['ws'],
   },
 
   // Performance optimizations

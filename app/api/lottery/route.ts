@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth, type AllowedRole } from '@/lib/security/api-guard'
 import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
 import { fetchAllPaged } from '@/lib/supabase/paginate'
+import { isRelaxedAuthRuntime } from '@/lib/security/test-runtime'
 
 const ADMIN_PLUS_PRINCIPAL: AllowedRole[] = [...LOTTERY_ADMIN_ROLES]
 
@@ -267,11 +268,26 @@ async function notifyLotteryResultsBySms(periodId: string): Promise<string[]> {
     .select('phone')
     .in('id', userIds)
 
-  const phones = (profiles ?? [])
+  const profilePhones = (profiles ?? [])
     .map((p) => p.phone)
     .filter((phone): phone is string => Boolean(phone))
 
+  let phones = profilePhones
+  if (phones.length === 0) {
+    const { data: studentRows } = await admin
+      .from('students')
+      .select('phone')
+      .in('user_id', userIds)
+    phones = (studentRows ?? [])
+      .map((row) => row.phone)
+      .filter((phone): phone is string => Boolean(phone))
+  }
+
   if (phones.length === 0) return []
+
+  if (isRelaxedAuthRuntime()) {
+    return phones
+  }
 
   const { sendSMS } = await import('@/lib/kavenegar')
   const notified: string[] = []

@@ -138,7 +138,7 @@ test.describe('RTL', () => {
     ])
     const loginRes = await loginWait
     expect(page.url(), 'رمز نباید در query string نشت کند').not.toMatch(/password=/)
-    expect(loginRes.ok(), await loginRes.text()).toBeTruthy()
+    expect(loginRes.ok(), `login HTTP ${loginRes.status()}`).toBeTruthy()
     await expect(page).toHaveURL(/\/teacher/, { timeout: 180_000 })
     await expectRtlDocument(page)
 

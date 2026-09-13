@@ -226,7 +226,7 @@ export default function AdminLotteryPage() {
           const waitlisted = res.filter(r => r.status === 'waitlisted').length
 
           return (
-            <Card key={period.id} className="border-2">
+            <Card key={period.id} className="border-2" data-testid="lottery-period-card">
               <CardHeader className="cursor-pointer" onClick={() => togglePeriod(period.id)}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -260,7 +260,12 @@ export default function AdminLotteryPage() {
                         <span className="hidden sm:inline text-xs text-[var(--lux-text-muted)] max-w-[10rem]">
                           دانش‌آموزان در حال ثبت اولویت — بعد بستن ثبت
                         </span>
-                        <Button size="sm" variant="outline" onClick={() => setStatus(period.id, 'closed')}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          data-testid="lottery-close-registration"
+                          onClick={() => setStatus(period.id, 'closed')}
+                        >
                           بستن ثبت
                         </Button>
                       </>
@@ -269,6 +274,7 @@ export default function AdminLotteryPage() {
                       <Button
                         size="sm"
                         className="bg-purple-600 gap-1"
+                        data-testid="lottery-run"
                         onClick={() => runLottery(period.id)}
                         disabled={runningLottery === period.id}
                       >

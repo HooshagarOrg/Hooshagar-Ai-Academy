@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/service'
 import { applyRateLimitAsync } from '@/lib/security/rate-limiter'
+import { isRelaxedAuthRuntime } from '@/lib/security/test-runtime'
 
 // ============================================
 // تایپ‌ها و اینترفیس‌ها
@@ -365,8 +366,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     }
 
     const skipLiveSms =
-      process.env.NODE_ENV === 'development' ||
-      process.env.APP_ENV === 'test' ||
+      isRelaxedAuthRuntime() ||
       (process.env.KAVENEGAR_API_KEY || '').startsWith('mock')
 
     if (skipLiveSms) {

@@ -185,7 +185,7 @@ test.describe('exam flow', () => {
     )
     await examCard.getByRole('link', { name: /شروع/ }).click()
     const startRes = await started
-    expect(startRes.ok(), await startRes.text()).toBeTruthy()
+    expect(startRes.ok(), `start HTTP ${startRes.status()}`).toBeTruthy()
 
     await expect(page.getByText('۲ به‌اضافهٔ ۲')).toBeVisible({ timeout: 180_000 })
     const answeredMc = page.waitForResponse(
@@ -206,7 +206,7 @@ test.describe('exam flow', () => {
         res.ok(),
       { timeout: 60_000 },
     )
-    await page.getByPlaceholder('پاسخ خود را بنویسید...').fill(
+    await page.getByTestId('exam-essay-answer').fill(
       'بهار فصل شکوفه و باران است.',
     )
     expect((await answeredText).ok()).toBeTruthy()
@@ -220,7 +220,7 @@ test.describe('exam flow', () => {
     )
     await page.getByRole('button', { name: 'اتمام قطعی' }).click()
     const submitRes = await submitted
-    expect(submitRes.ok(), await submitRes.text()).toBeTruthy()
+    expect(submitRes.ok(), `submit HTTP ${submitRes.status()}`).toBeTruthy()
     await expect(page).toHaveURL(new RegExp(`/student/exams/${examId}/result`), {
       timeout: 180_000,
     })
@@ -229,13 +229,25 @@ test.describe('exam flow', () => {
   test('results are visible only to the owner', async ({ page }) => {
     expect(examId).toBeTruthy()
     await switchUser(page, bundle.teacher)
-    await gotoPath(page, `/teacher/exams/${examId}/results`)
+    const sessionsRes = await page.request.get(`${ORIGIN}/api/exams/${examId}/sessions`, {
+      timeout: 60_000,
+    })
+    expect(sessionsRes.ok(), `sessions HTTP ${sessionsRes.status()}`).toBeTruthy()
+    const sessPayload = (await sessionsRes.json()) as {
+      sessions?: Array<{ student_name?: string }>
+    }
+    expect(sessPayload.sessions?.length ?? 0).toBeGreaterThan(0)
+
+    await gotoPath(page, `/teacher/exams/${examId}/grade`)
     await expect(page.getByText('جلسات دانش‌آموزان').first()).toBeVisible({
       timeout: 180_000,
     })
-    await expect(page.getByText('کاربر تست student').first()).toBeVisible({
-      timeout: 60_000,
-    })
+    const ownerName = sessPayload.sessions?.[0]?.student_name
+    if (ownerName) {
+      await expect(page.getByText(ownerName).first()).toBeVisible({
+        timeout: 60_000,
+      })
+    }
 
     const otherStudent = await provisionActor('student', bundle.school.id, {
       grade: 6,

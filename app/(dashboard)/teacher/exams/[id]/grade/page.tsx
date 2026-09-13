@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   Brain, CheckCircle2, Clock, User, Loader2,
@@ -49,8 +50,9 @@ function ScoreBadge({ pct }: { pct: number }) {
   return <span className={`font-bold text-lg tabular-nums ${color}`}>{pct.toFixed(0)}٪</span>
 }
 
-export default function ExamGradePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function ExamGradePage() {
+  const routeParams = useParams()
+  const id = typeof routeParams.id === 'string' ? routeParams.id : ''
 
   const [exam, setExam] = useState<ExamInfo | null>(null)
   const [sessions, setSessions] = useState<ExamSession[]>([])
@@ -77,7 +79,8 @@ export default function ExamGradePage({ params }: { params: Promise<{ id: string
   }
 
   useEffect(() => {
-    fetchData()
+    if (!id) return
+    void fetchData()
   }, [id])
 
   const gradeSession = async (sessionId: string) => {

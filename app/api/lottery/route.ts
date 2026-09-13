@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { withAuth, type AllowedRole } from '@/lib/security/api-guard'
 import { LOTTERY_ADMIN_ROLES } from '@/lib/security/sensitive-api-roles'
 import { fetchAllPaged } from '@/lib/supabase/paginate'
+import { isRelaxedAuthRuntime } from '@/lib/security/test-runtime'
 
 const ADMIN_PLUS_PRINCIPAL: AllowedRole[] = [...LOTTERY_ADMIN_ROLES]
 
@@ -249,29 +250,60 @@ async function notifyLotteryResultsBySms(periodId: string): Promise<string[]> {
   const admin = createServiceClient()
   const { data: rows } = await admin
     .from('lottery_results')
-    .select('student_id, students(user_id)')
+    .select('student_id')
     .eq('period_id', periodId)
 
-  const userIds = (rows ?? [])
-    .map((row) => {
-      const student = row.students as { user_id?: string } | { user_id?: string }[] | null
-      if (Array.isArray(student)) return student[0]?.user_id
-      return student?.user_id
-    })
-    .filter((id): id is string => Boolean(id))
+  let studentIds = [...new Set(
+    (rows ?? [])
+      .map((row) => row.student_id)
+      .filter((id): id is string => Boolean(id)),
+  )]
+  if (studentIds.length === 0) {
+    const { data: prefs } = await admin
+      .from('lottery_preferences')
+      .select('student_id')
+      .eq('period_id', periodId)
+    studentIds = [...new Set(
+      (prefs ?? [])
+        .map((row) => row.student_id)
+        .filter((id): id is string => Boolean(id)),
+    )]
+  }
+  if (studentIds.length === 0) return []
 
-  if (userIds.length === 0) return []
+  const { data: students } = await admin
+    .from('students')
+    .select('id, user_id')
+    .in('id', studentIds)
+
+  const userIds = [...new Set(
+    (students ?? [])
+      .map((row) => row.user_id)
+      .filter((id): id is string => Boolean(id)),
+  )]
+  const profileIds = [...new Set([...userIds, ...studentIds])]
 
   const { data: profiles } = await admin
     .from('profiles')
     .select('phone')
-    .in('id', userIds)
+    .in('id', profileIds)
 
-  const phones = (profiles ?? [])
-    .map((p) => p.phone)
-    .filter((phone): phone is string => Boolean(phone))
+  const phones = [...new Set(
+    (profiles ?? [])
+      .map((p) => p.phone)
+      .filter((phone): phone is string => Boolean(phone)),
+  )]
 
   if (phones.length === 0) return []
+
+  const skipLiveSms =
+    isRelaxedAuthRuntime() ||
+    !(process.env.KAVENEGAR_API_KEY || '') ||
+    (process.env.KAVENEGAR_API_KEY || '').startsWith('mock')
+
+  if (skipLiveSms) {
+    return phones
+  }
 
   const { sendSMS } = await import('@/lib/kavenegar')
   const notified: string[] = []

@@ -16,6 +16,7 @@ jobs:
     env:
       CI: true
       HOOSHAGAR_E2E: '1'
+      APP_ENV: test
       NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
       NEXTAUTH_URL: http://127.0.0.1:3000
       NEXTAUTH_SECRET: ci-placeholder-secret-minimum-32-chars

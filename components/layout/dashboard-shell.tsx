@@ -62,7 +62,10 @@ export function DashboardShell({ role, userName, schoolName, contextLabel, child
         />
       )}
 
-      <div className="hidden lg:flex flex-col h-full flex-shrink-0 z-20">
+      <div
+        className="hidden lg:flex flex-col h-full flex-shrink-0 z-20"
+        data-testid="desktop-nav"
+      >
         <LuxNav
           role={role}
           userName={userName}

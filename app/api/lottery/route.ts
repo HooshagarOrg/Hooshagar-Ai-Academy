@@ -253,11 +253,22 @@ async function notifyLotteryResultsBySms(periodId: string): Promise<string[]> {
     .select('student_id')
     .eq('period_id', periodId)
 
-  const studentIds = [...new Set(
+  let studentIds = [...new Set(
     (rows ?? [])
       .map((row) => row.student_id)
       .filter((id): id is string => Boolean(id)),
   )]
+  if (studentIds.length === 0) {
+    const { data: prefs } = await admin
+      .from('lottery_preferences')
+      .select('student_id')
+      .eq('period_id', periodId)
+    studentIds = [...new Set(
+      (prefs ?? [])
+        .map((row) => row.student_id)
+        .filter((id): id is string => Boolean(id)),
+    )]
+  }
   if (studentIds.length === 0) return []
 
   const { data: students } = await admin
@@ -270,7 +281,7 @@ async function notifyLotteryResultsBySms(periodId: string): Promise<string[]> {
       .map((row) => row.user_id)
       .filter((id): id is string => Boolean(id)),
   )]
-  const profileIds = userIds.length > 0 ? userIds : studentIds
+  const profileIds = [...new Set([...userIds, ...studentIds])]
 
   const { data: profiles } = await admin
     .from('profiles')
@@ -285,7 +296,12 @@ async function notifyLotteryResultsBySms(periodId: string): Promise<string[]> {
 
   if (phones.length === 0) return []
 
-  if (isRelaxedAuthRuntime()) {
+  const skipLiveSms =
+    isRelaxedAuthRuntime() ||
+    !(process.env.KAVENEGAR_API_KEY || '') ||
+    (process.env.KAVENEGAR_API_KEY || '').startsWith('mock')
+
+  if (skipLiveSms) {
     return phones
   }
 

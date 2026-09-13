@@ -234,6 +234,7 @@ export function LuxNav({
                 <TooltipTrigger asChild>
                   <button
                     type="button"
+                    data-testid="logout-trigger"
                     onClick={() => setLogoutOpen(true)}
                     className="lux-focus-ring flex items-center justify-center touch-target rounded-xl text-red-400 hover:bg-red-500/10 transition-colors min-h-[44px] min-w-[44px]"
                     aria-label="خروج از حساب"
@@ -252,6 +253,7 @@ export function LuxNav({
               </Link>
               <button
                 type="button"
+                data-testid="logout-trigger"
                 onClick={() => setLogoutOpen(true)}
                 className="lux-focus-ring w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-colors min-h-[44px]"
               >

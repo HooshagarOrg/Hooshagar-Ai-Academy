@@ -78,7 +78,7 @@ export function LuxNav({
           style={{ borderColor: 'var(--lux-border)' }}
         >
           {!collapsed && (
-            <HooshagarLogo size="sm" href="/dashboard" subtitle={schoolName} showWordmark surface="void" inverted />
+            <HooshagarLogo size="sm" href="/dashboard" subtitle={schoolName} surface="void" inverted />
           )}
           {collapsed && (
             <Link href="/dashboard" className="rounded-xl focus-visible:ring-2 focus-visible:ring-white/20">

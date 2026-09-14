@@ -28,7 +28,8 @@ export interface HooshagarLogoProps {
 }
 
 export function HooshagarLogo({
-  showWordmark = true,
+  // New brand lockup already includes «هوشاگر»; keep text off by default.
+  showWordmark = false,
   showImage = true,
   subtitle,
   size = 'md',
@@ -50,21 +51,24 @@ export function HooshagarLogo({
           className="shrink-0"
         />
       )}
-      {showWordmark && (
+      {(showWordmark || subtitle) && (
         <div className="min-w-0 text-right leading-tight">
-          <span
-            className={cn(
-              'font-bold tracking-tight block truncate',
-              text,
-              inverted ? 'text-white' : 'text-foreground',
-            )}
-          >
-            هوشاگر
-          </span>
+          {showWordmark && (
+            <span
+              className={cn(
+                'font-bold tracking-tight block truncate',
+                text,
+                inverted ? 'text-white' : 'text-foreground',
+              )}
+            >
+              هوشاگر
+            </span>
+          )}
           {subtitle && (
             <span
               className={cn(
-                'text-xs block truncate mt-0.5',
+                'text-xs block truncate',
+                showWordmark ? 'mt-0.5' : '',
                 inverted ? 'text-white/70' : 'text-muted-foreground',
               )}
             >

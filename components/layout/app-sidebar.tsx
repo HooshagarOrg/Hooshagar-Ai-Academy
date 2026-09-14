@@ -383,7 +383,6 @@ export function AppSidebar({
               size="sm"
               href="/dashboard"
               subtitle={schoolName}
-              showWordmark
               surface="void"
               inverted
             />

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="250" height="250" viewBox="0 0 250 250" role="img" aria-label="eNamad">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1B4F9C"/>
+      <stop offset="100%" stop-color="#0B2F6B"/>
+    </linearGradient>
+  </defs>
+  <circle cx="125" cy="125" r="118" fill="url(#g)"/>
+  <circle cx="125" cy="125" r="102" fill="none" stroke="#F5C542" stroke-width="8"/>
+  <circle cx="125" cy="125" r="88" fill="#FFFFFF"/>
+  <path d="M125 45 L145 95 L200 95 L155 125 L172 178 L125 148 L78 178 L95 125 L50 95 L105 95 Z" fill="#1B4F9C"/>
+  <text x="125" y="212" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#1B4F9C">eNamad</text>
+</svg>

@@ -1,8 +1,9 @@
 name: Deploy to Vercel
 
+# Production auto-deploys via Vercel GitHub Integration.
+# Keep this workflow for manual emergency deploys only — a second
+# push-to-master job was creating two Production deployments per merge.
 on:
-  push:
-    branches: [master]
   workflow_dispatch:
 
 concurrency:

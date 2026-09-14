@@ -1,6 +1,8 @@
-# Deploy خودکار با GitHub Actions (بدون Vercel Pro Git)
+# Deploy دستی با GitHub Actions
 
-وقتی Git integration در Vercel نیاز به Pro دارد، این workflow بعد از هر `push` به `master` همان deploy production را با CLI انجام می‌دهد.
+Production به‌صورت خودکار با **Vercel GitHub Integration** روی `push` به `master` دیپلوی می‌شود (پیش‌نمایش PR هم از همان مسیر است).
+
+Workflow `deploy.yml` فقط برای **Deploy دستی اضطراری** است؛ اگر روی هر push هم اجرا شود، هر merge دو دیپلوی Production می‌سازد و Functions Storage پر می‌شود.
 
 ## ۱. ساخت توکن Vercel
 
@@ -22,18 +24,16 @@ Repo → **Settings** → **Secrets and variables** → **Actions** → **New re
 
 ## ۳. فعال‌سازی
 
-فایل `.github/workflows/deploy.yml` را commit و push کنید.
-
-هر `push` به `master` → workflow **Deploy to Vercel** اجرا می‌شود.
-
 Deploy دستی: **Actions** → **Deploy to Vercel** → **Run workflow**
+
+هر `push` به `master` را GitHub Integration به Production می‌برد؛ این workflow را دوباره روی `push` فعال نکنید.
 
 ## ۴. تفاوت با CI
 
 | Workflow | کار |
 |----------|-----|
 | `ci.yml` | lint, type-check, build تست (بدون deploy) |
-| `deploy.yml` | build + deploy production روی Vercel |
+| `deploy.yml` | deploy دستی اضطراری production (CLI) |
 
 ## ۵. عیب‌یابی
 

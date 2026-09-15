@@ -2,8 +2,8 @@
 
 export const brandAssets = {
   /** UI mark — WebP. Master PNG stays at /brand/logo.png */
-  logo: '/brand/logo-mark.webp?v=20260914',
-  logoMaster: '/brand/logo.png?v=20260914',
+  logo: '/brand/logo-mark.webp?v=20260915',
+  logoMaster: '/brand/logo.png?v=20260915',
   heroVideo: '/videos/hero.mp4',
   talentGarden: '/images/talent-garden.png',
 } as const

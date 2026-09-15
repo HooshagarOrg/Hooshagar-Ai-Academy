@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils'
 import { BrandLogoImage } from '@/components/brand/brand-logo-image'
 
 const SIZES = {
-  xs: { img: 28, text: 'text-sm' },
-  sm: { img: 36, text: 'text-base' },
-  md: { img: 44, text: 'text-lg' },
-  lg: { img: 52, text: 'text-xl' },
-  xl: { img: 64, text: 'text-2xl' },
-  hero: { img: 88, text: 'text-3xl' },
+  xs: { h: 40, w: 64, text: 'text-sm' },
+  sm: { h: 52, w: 84, text: 'text-base' },
+  md: { h: 64, w: 104, text: 'text-lg' },
+  lg: { h: 80, w: 128, text: 'text-xl' },
+  xl: { h: 96, w: 156, text: 'text-2xl' },
+  hero: { h: 140, w: 220, text: 'text-3xl' },
 } as const
 
 export type HooshagarLogoSize = keyof typeof SIZES
@@ -38,16 +38,16 @@ export function HooshagarLogo({
   priority = false,
   inverted = false,
 }: HooshagarLogoProps) {
-  const { img, text } = SIZES[size]
+  const { h, w, text } = SIZES[size]
 
   const content = (
     <div className={cn('inline-flex items-center gap-2.5 min-w-0', className)}>
       {showImage && (
         <BrandLogoImage
-          width={img}
-          height={img}
+          width={w}
+          height={h}
           priority={priority}
-          sizes={`${img}px`}
+          sizes={`${w}px`}
           className="shrink-0"
         />
       )}
@@ -95,7 +95,7 @@ export function HooshagarLogo({
 }
 
 export function HooshagarMark({
-  size = 40,
+  size = 48,
   className,
   priority = false,
 }: {

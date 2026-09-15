@@ -28,10 +28,10 @@ export default function LandingHero(): JSX.Element {
         <div className="relative mx-auto mb-8 flex justify-center">
           <BrandLogoImage
             alt="لوگوی هوشاگر"
-            width={96}
-            height={96}
-            sizes="96px"
-            className="h-24 w-24"
+            width={280}
+            height={190}
+            sizes="(max-width: 640px) 200px, 280px"
+            className="h-auto w-[min(280px,72vw)]"
           />
         </div>
 

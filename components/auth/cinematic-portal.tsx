@@ -48,7 +48,7 @@ export function CinematicPortal({
 
         <div className="relative flex flex-col justify-center px-4 py-10 sm:px-8">
           <div className="mb-6 flex items-center justify-between">
-            <HooshagarLogo size="sm" href="/" inverted />
+            <HooshagarLogo size="md" href="/" inverted />
             <Link
               href="/"
               className="text-xs font-bold text-[var(--lux-text-muted)] hover:text-[var(--lux-text)] lg:hidden"

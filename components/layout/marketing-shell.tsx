@@ -40,7 +40,7 @@ export function MarketingShell({
 
       <header className="sticky top-0 z-50 border-b border-[rgba(232,236,244,0.08)] bg-[rgba(11,13,18,0.85)] backdrop-blur-xl">
         <div className="lux-container flex items-center justify-between py-4">
-          <HooshagarLogo size="sm" href="/" inverted priority />
+          <HooshagarLogo size="md" href="/" inverted priority />
           <div className="flex items-center gap-3">
             <PersianDateDisplay variant="compact" className="hidden sm:inline-flex" />
             {action}

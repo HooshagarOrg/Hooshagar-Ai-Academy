@@ -319,7 +319,7 @@ function Footer(): JSX.Element {
       <div className="lux-container flex flex-col items-center gap-8 sm:flex-row sm:items-end sm:justify-between">
         <div className="text-center sm:text-right">
           <a href="/" className="inline-flex rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-            <BrandLogoImage width={36} height={36} sizes="36px" className="shrink-0" />
+            <BrandLogoImage width={120} height={81} sizes="120px" className="h-auto w-[120px] shrink-0" />
           </a>
           <p className="mt-1 text-xs text-[var(--lux-text-muted)]">
             سیستم‌عامل هوشمند مدیریت مدارس

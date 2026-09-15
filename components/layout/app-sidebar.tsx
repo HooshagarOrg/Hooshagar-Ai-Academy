@@ -380,7 +380,7 @@ export function AppSidebar({
         >
           {!collapsed && (
             <HooshagarLogo
-              size="sm"
+              size="md"
               href="/dashboard"
               subtitle={schoolName}
               surface="void"
@@ -389,7 +389,7 @@ export function AppSidebar({
           )}
           {collapsed && (
             <Link href="/dashboard" className="rounded-xl focus-visible:ring-2 focus-visible:ring-brand-magenta/30">
-              <HooshagarMark size={32} surface="void" />
+              <HooshagarMark size={48} surface="void" />
             </Link>
           )}
           {onCollapse && (

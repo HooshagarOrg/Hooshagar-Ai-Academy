@@ -96,12 +96,19 @@ async function processLogoBuffer(inputPath) {
 
   removeEdgeConnected(data, info.width, info.height, info.channels, matcher)
 
+  if (mode === 'dark') {
+    for (let pi = 0; pi < data.length; pi += info.channels) {
+      if (isNearDark(pi, data)) data[pi + 3] = 0
+    }
+  }
+
   return {
     buffer: await sharp(data, {
       raw: { width: info.width, height: info.height, channels: info.channels },
     })
+      .trim({ threshold: 8 })
       .resize(MASTER_SIZE, MASTER_SIZE, {
-        fit: 'contain',
+        fit: 'inside',
         background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png({ compressionLevel: 9 })

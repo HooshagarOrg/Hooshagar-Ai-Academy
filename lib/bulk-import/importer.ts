@@ -38,15 +38,17 @@ async function existsLoginCode(admin: SupabaseClient, code: string): Promise<boo
   return Boolean(p?.length || s?.length)
 }
 
+/** رمز موقت createUser — قبل از set رمز واقعی؛ باید حداقل ۶ کاراکتر و مطابق سیاست Pro باشد */
+const BOOTSTRAP_AUTH_PASSWORD = 'Hg_temp_bootstrap!9'
+
 async function createAuthUser(
   admin: SupabaseClient,
   email: string,
-  password: string,
   metadata: Record<string, unknown>
 ): Promise<{ userId: string | null; error: string | null }> {
   const { data, error } = await admin.auth.admin.createUser({
     email,
-    password,
+    password: BOOTSTRAP_AUTH_PASSWORD,
     email_confirm: true,
     user_metadata: metadata,
   })
@@ -95,7 +97,7 @@ export async function importStudentRows(
     try {
       const pin = generatePin(4)
       const email = buildInternalEmail(row.nationalCode, 'student')
-      const authResult = await createAuthUser(admin, email, 'temp', {
+      const authResult = await createAuthUser(admin, email, {
         full_name: name,
         role: 'student',
       })
@@ -186,7 +188,7 @@ export async function importStudentRows(
         const parentEmail = buildInternalEmail(row.parentLoginCode, 'parent')
 
         if (!(options.skipDuplicates && await existsLoginCode(admin, row.parentLoginCode))) {
-          const { userId: parentId, error: pAuthErr } = await createAuthUser(admin, parentEmail, 'temp', {
+          const { userId: parentId, error: pAuthErr } = await createAuthUser(admin, parentEmail, {
             full_name: parentName,
             role: 'parent',
           })
@@ -287,7 +289,7 @@ export async function importStaffRows(
       const email = buildInternalEmail(row.loginCode, row.role)
       const isStaff = STAFF_ROLES.has(row.role)
 
-      const authResult = await createAuthUser(admin, email, 'temp', {
+      const authResult = await createAuthUser(admin, email, {
         full_name: name,
         role: row.role,
       })

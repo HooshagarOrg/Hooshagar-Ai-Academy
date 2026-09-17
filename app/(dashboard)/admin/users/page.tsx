@@ -48,6 +48,7 @@ interface UserData {
   last_login_at: string | null
   must_change_password: boolean
   homeroom_class?: { id: string; name: string; grade: number | null } | null
+  homeroom_classes?: { id: string; name: string; grade: number | null }[]
 }
 
 const ROLES = [
@@ -97,6 +98,7 @@ export default function AdminUsersPage() {
     username: '', phone: '',
     school_id: '',
     class_id: '',
+    class_ids: [] as string[],
     // برای دانش‌آموز
     student_number: '', pin: '', grade: 1, parent_id: '',
     // برای والد
@@ -123,6 +125,7 @@ export default function AdminUsersPage() {
     must_change_password: false,
     new_password: '',
     class_id: '',
+    class_ids: [] as string[],
   })
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -252,6 +255,7 @@ export default function AdminUsersPage() {
     setNewUser({
       email: '', password: '', full_name: '', role: 'teacher',
       username: '', phone: '', school_id: '', class_id: '',
+      class_ids: [],
       student_number: '', pin: '', grade: 1,
       parent_id: '', children_ids: [],
     })
@@ -294,7 +298,10 @@ export default function AdminUsersPage() {
           email: newUser.email.trim() || null,
           password: newUser.role === 'student' ? (newUser.password || null) : newUser.password,
           school_id: newUser.school_id || null,
-          class_id: newUser.class_id || null,
+          class_id: newUser.role === 'teacher'
+            ? (newUser.class_ids[0] || null)
+            : (newUser.class_id || null),
+          class_ids: newUser.role === 'teacher' ? newUser.class_ids : undefined,
         }),
       })
       const data = await res.json()
@@ -339,6 +346,11 @@ export default function AdminUsersPage() {
 
   const openEdit = (user: UserData) => {
     setEditUser(user)
+    const rooms = user.homeroom_classes?.length
+      ? user.homeroom_classes
+      : user.homeroom_class
+        ? [user.homeroom_class]
+        : []
     setEditForm({
       full_name: user.full_name || '',
       username: user.username || '',
@@ -346,9 +358,11 @@ export default function AdminUsersPage() {
       role: user.role || 'teacher',
       must_change_password: !!user.must_change_password,
       new_password: '',
-      class_id: user.homeroom_class?.id || '',
+      class_id: rooms[0]?.id || '',
+      class_ids: rooms.map((r) => r.id),
     })
     setShowNewPassword(false)
+    if (user.school_id) void loadClasses(user.school_id)
   }
 
   const handleUpdate = async () => {
@@ -382,8 +396,11 @@ export default function AdminUsersPage() {
           role: editForm.role,
           must_change_password: editForm.must_change_password,
           new_password: newPass || undefined,
-          class_id: needsClassField(editForm.role)
+          class_id: needsClassField(editForm.role) && editForm.role !== 'teacher'
             ? (editForm.class_id || null)
+            : undefined,
+          class_ids: editForm.role === 'teacher'
+            ? editForm.class_ids
             : undefined,
         }),
       })
@@ -866,10 +883,51 @@ export default function AdminUsersPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                {needsClassField(newUser.role) && (
+                {needsClassField(newUser.role) && newUser.role === 'teacher' && (
+                  <div>
+                    <Label>کلاس‌های راهنما (چندتایی)</Label>
+                    <div className="mt-2 max-h-40 space-y-2 overflow-y-auto rounded-lg border border-white/10 p-3">
+                      {!newUser.school_id ? (
+                        <p className="text-xs text-[var(--lux-text-muted)]">اول مدرسه را انتخاب کنید</p>
+                      ) : classes.length === 0 ? (
+                        <p className="text-xs text-[var(--lux-text-muted)]">کلاسی یافت نشد</p>
+                      ) : (
+                        classes.map((c) => {
+                          const checked = newUser.class_ids.includes(c.id)
+                          return (
+                            <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => {
+                                  const next = checked
+                                    ? newUser.class_ids.filter((id) => id !== c.id)
+                                    : [...newUser.class_ids, c.id]
+                                  setNewUser({
+                                    ...newUser,
+                                    class_ids: next,
+                                    class_id: next[0] || '',
+                                  })
+                                }}
+                              />
+                              <span>
+                                {c.name}
+                                {c.grade != null ? ` — پایه ${c.grade}` : ''}
+                              </span>
+                            </label>
+                          )
+                        })
+                      )}
+                    </div>
+                    <p className="text-xs text-[var(--lux-text-muted)] mt-1">
+                      معلم می‌تواند راهنمای چند کلاس باشد (مثلاً پنجم الف و ب).
+                    </p>
+                  </div>
+                )}
+                {needsClassField(newUser.role) && newUser.role !== 'teacher' && (
                   <div>
                     <Label>
-                      کلاس {newUser.role === 'student' ? '(اختیاری)' : '(اختیاری — معلم کلاس)'}
+                      کلاس {newUser.role === 'student' ? '(اختیاری)' : '(اختیاری)'}
                     </Label>
                     <Select
                       value={newUser.class_id || '__none'}
@@ -894,9 +952,6 @@ export default function AdminUsersPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-[var(--lux-text-muted)] mt-1">
-                      برای معلم: در صورت انتخاب، به‌عنوان معلم همان کلاس ثبت می‌شود.
-                    </p>
                   </div>
                 )}
               </div>
@@ -1109,7 +1164,44 @@ export default function AdminUsersPage() {
               </Select>
             </div>
 
-            {needsClassField(editForm.role) && editUser?.school_id && (
+            {needsClassField(editForm.role) && editUser?.school_id && editForm.role === 'teacher' && (
+              <div>
+                <Label>کلاس‌های راهنما (چندتایی)</Label>
+                <div className="mt-2 max-h-40 space-y-2 overflow-y-auto rounded-lg border border-white/10 p-3">
+                  {classes.length === 0 ? (
+                    <p className="text-xs text-[var(--lux-text-muted)]">کلاسی یافت نشد</p>
+                  ) : (
+                    classes.map((c) => {
+                      const checked = editForm.class_ids.includes(c.id)
+                      return (
+                        <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              const next = checked
+                                ? editForm.class_ids.filter((id) => id !== c.id)
+                                : [...editForm.class_ids, c.id]
+                              setEditForm({
+                                ...editForm,
+                                class_ids: next,
+                                class_id: next[0] || '',
+                              })
+                            }}
+                          />
+                          <span>
+                            {c.name}
+                            {c.grade != null ? ` — پایه ${c.grade}` : ''}
+                          </span>
+                        </label>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
+            {needsClassField(editForm.role) && editUser?.school_id && editForm.role !== 'teacher' && (
               <div>
                 <Label>کلاس هوم‌روم (برای دیدن دانش‌آموزان و کتاب درسی)</Label>
                 <Select

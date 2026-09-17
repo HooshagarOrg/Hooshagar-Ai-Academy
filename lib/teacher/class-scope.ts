@@ -44,27 +44,101 @@ export function canViewSchoolWideStudents(role: AllowedRole): boolean {
 
 export async function getTeacherClasses(
   supabase: SupabaseClient,
-  teacherId: string
+  teacherId: string,
+  options?: { includeTaught?: boolean }
 ): Promise<TeacherClassRow[]> {
-  const { data } = await supabase
+  const { data: homeroom } = await supabase
     .from('classes')
     .select('id, name, grade')
     .eq('teacher_id', teacherId)
     .limit(20)
 
-  return (data || []).map((row) => ({
-    id: row.id,
-    name: row.name ?? null,
-    grade: typeof row.grade === 'number' ? row.grade : null,
-  }))
+  const byId = new Map<string, TeacherClassRow>()
+  for (const row of homeroom || []) {
+    byId.set(row.id, {
+      id: row.id,
+      name: row.name ?? null,
+      grade: typeof row.grade === 'number' ? row.grade : null,
+    })
+  }
+
+  if (options?.includeTaught !== false) {
+    const todayIso = new Date().toISOString().slice(0, 10)
+    const { data: taughtSlots } = await supabase
+      .from('class_timetable_slots')
+      .select(
+        `
+        class_timetable_versions!inner(
+          class_id, effective_from, effective_to,
+          classes(id, name, grade)
+        )
+      `
+      )
+      .eq('teacher_id', teacherId)
+      .limit(200)
+
+    type TaughtRow = {
+      class_timetable_versions:
+        | {
+            class_id: string
+            effective_from: string
+            effective_to: string | null
+            classes:
+              | { id: string; name: string | null; grade: number | null }
+              | { id: string; name: string | null; grade: number | null }[]
+              | null
+          }
+        | {
+            class_id: string
+            effective_from: string
+            effective_to: string | null
+            classes:
+              | { id: string; name: string | null; grade: number | null }
+              | { id: string; name: string | null; grade: number | null }[]
+              | null
+          }[]
+    }
+
+    for (const row of (taughtSlots || []) as unknown as TaughtRow[]) {
+      const v = Array.isArray(row.class_timetable_versions)
+        ? row.class_timetable_versions[0]
+        : row.class_timetable_versions
+      if (!v) continue
+      if (v.effective_from > todayIso) continue
+      if (v.effective_to !== null && v.effective_to < todayIso) continue
+      const cls = Array.isArray(v.classes) ? v.classes[0] : v.classes
+      if (!cls?.id || byId.has(cls.id)) continue
+      byId.set(cls.id, {
+        id: cls.id,
+        name: cls.name ?? null,
+        grade: typeof cls.grade === 'number' ? cls.grade : null,
+      })
+    }
+  }
+
+  return [...byId.values()]
 }
 
 export async function getTeacherClassIds(
   supabase: SupabaseClient,
+  teacherId: string,
+  options?: { includeTaught?: boolean }
+): Promise<string[]> {
+  const classes = await getTeacherClasses(supabase, teacherId, options)
+  return classes.map((row) => row.id)
+}
+
+/** فقط کلاس‌های هوم‌روم — برای حضور و غیاب */
+export async function getHomeroomClassIds(
+  supabase: SupabaseClient,
   teacherId: string
 ): Promise<string[]> {
-  const classes = await getTeacherClasses(supabase, teacherId)
-  return classes.map((row) => row.id)
+  const { data } = await supabase
+    .from('classes')
+    .select('id')
+    .eq('teacher_id', teacherId)
+    .limit(20)
+  return (data || []).map((r) => r.id as string)
 }
 
 export type HomeroomClassInfo = {
@@ -74,25 +148,42 @@ export type HomeroomClassInfo = {
 }
 
 /**
- * اتصال معلم کلاس به یک کلاس (و جدا کردن از کلاس قبلی).
+ * اتصال معلم کلاس به یک یا چند کلاس.
+ * کلاس‌های قبلی همین معلم که در لیست نیستند پاک می‌شوند.
  * هنر/ورزش برای دیدن دانش‌آموز به این نیاز ندارند.
  */
-export async function assignHomeroomClass(
+export async function assignHomeroomClasses(
   admin: SupabaseClient,
   params: {
     teacherId: string
-    classId: string | null
+    classIds: string[]
     teacherName?: string | null
   }
 ): Promise<void> {
-  const { error: clearError } = await admin
+  const uniqueIds = [...new Set(params.classIds.filter(Boolean))]
+
+  const { data: current, error: currentError } = await admin
     .from('classes')
-    .update({ teacher_id: null })
+    .select('id')
     .eq('teacher_id', params.teacherId)
-  if (clearError) {
-    throw new Error(clearError.message)
+  if (currentError) {
+    throw new Error(currentError.message)
   }
-  if (!params.classId) return
+
+  const currentIds = (current || []).map((c) => c.id as string)
+  const toClear = currentIds.filter((id) => !uniqueIds.includes(id))
+
+  if (toClear.length > 0) {
+    const { error: clearError } = await admin
+      .from('classes')
+      .update({ teacher_id: null })
+      .in('id', toClear)
+    if (clearError) {
+      throw new Error(clearError.message)
+    }
+  }
+
+  if (uniqueIds.length === 0) return
 
   const patch: { teacher_id: string; teacher_name?: string } = {
     teacher_id: params.teacherId,
@@ -103,10 +194,26 @@ export async function assignHomeroomClass(
   const { error: setError } = await admin
     .from('classes')
     .update(patch)
-    .eq('id', params.classId)
+    .in('id', uniqueIds)
   if (setError) {
     throw new Error(setError.message)
   }
+}
+
+/** سازگاری با فراخوانی‌های قدیمی تک‌کلاسه */
+export async function assignHomeroomClass(
+  admin: SupabaseClient,
+  params: {
+    teacherId: string
+    classId: string | null
+    teacherName?: string | null
+  }
+): Promise<void> {
+  await assignHomeroomClasses(admin, {
+    teacherId: params.teacherId,
+    classIds: params.classId ? [params.classId] : [],
+    teacherName: params.teacherName,
+  })
 }
 
 /**
@@ -146,9 +253,13 @@ export async function listStudentsForTeacher(
     schoolId: string | null
     limit?: number
     offset?: number
+    purpose?: 'attendance' | 'teaching'
   }
 ): Promise<{ classes: TeacherClassRow[]; students: TeacherStudentRow[] }> {
-  const classes = await getTeacherClasses(supabase, params.teacherId)
+  const includeTaught = params.purpose !== 'attendance'
+  const classes = await getTeacherClasses(supabase, params.teacherId, {
+    includeTaught,
+  })
   const offset = params.offset ?? 0
 
   let query = supabase
@@ -156,7 +267,7 @@ export async function listStudentsForTeacher(
     .select(STUDENT_LIST_COLUMNS)
     .order('full_name', { ascending: true })
 
-  if (isSpecialtyTeacherRole(params.role)) {
+  if (isSpecialtyTeacherRole(params.role) && params.purpose !== 'teaching') {
     if (!params.schoolId) {
       return { classes, students: [] }
     }
@@ -199,6 +310,8 @@ export async function studentBelongsToTeacher(
     role: AllowedRole
     schoolId: string | null
     studentId: string
+    /** attendance = فقط هوم‌روم؛ teaching = هوم‌روم ∪ برنامه */
+    purpose?: 'attendance' | 'teaching'
   }
 ): Promise<boolean> {
   const { data: student } = await supabase
@@ -220,16 +333,28 @@ export async function studentBelongsToTeacher(
   }
 
   if (SPECIALTY_ROLES.includes(params.role)) {
+    if (params.purpose === 'attendance') {
+      return false
+    }
+    // هنر/ورزش: در حالت teaching اگر در برنامه باشند یا مدرسه‌گستر
+    if (params.purpose === 'teaching') {
+      const taught = await getTeacherClassIds(supabase, params.teacherId, {
+        includeTaught: true,
+      })
+      if (
+        typeof student.class_id === 'string' &&
+        taught.includes(student.class_id)
+      ) {
+        return true
+      }
+    }
     return Boolean(params.schoolId && student.school_id === params.schoolId)
   }
 
-  const { data: classes } = await supabase
-    .from('classes')
-    .select('id, grade')
-    .eq('teacher_id', params.teacherId)
-    .limit(20)
-
-  const classIds = (classes || []).map((c) => c.id)
+  const includeTaught = params.purpose !== 'attendance'
+  const classIds = await getTeacherClassIds(supabase, params.teacherId, {
+    includeTaught,
+  })
   if (classIds.length === 0) return false
 
   return typeof student.class_id === 'string' && classIds.includes(student.class_id)
@@ -246,6 +371,7 @@ export async function filterStudentIdsForTeacher(
     role: AllowedRole
     schoolId: string | null
     studentIds: string[]
+    purpose?: 'attendance' | 'teaching'
   }
 ): Promise<string[]> {
   const unique = [...new Set(params.studentIds.filter(Boolean))]
@@ -270,6 +396,22 @@ export async function filterStudentIdsForTeacher(
   }
 
   if (SPECIALTY_ROLES.includes(params.role)) {
+    if (params.purpose === 'attendance') return []
+    if (params.purpose === 'teaching') {
+      const taught = new Set(
+        await getTeacherClassIds(supabase, params.teacherId, {
+          includeTaught: true,
+        })
+      )
+      return students
+        .filter(
+          (s) =>
+            inSchool(s.school_id) &&
+            typeof s.class_id === 'string' &&
+            taught.has(s.class_id)
+        )
+        .map((s) => s.id)
+    }
     return students
       .filter(
         (s) =>
@@ -279,7 +421,10 @@ export async function filterStudentIdsForTeacher(
       .map((s) => s.id)
   }
 
-  const classIds = new Set(await getTeacherClassIds(supabase, params.teacherId))
+  const includeTaught = params.purpose !== 'attendance'
+  const classIds = new Set(
+    await getTeacherClassIds(supabase, params.teacherId, { includeTaught })
+  )
   if (classIds.size === 0) return []
 
   return students

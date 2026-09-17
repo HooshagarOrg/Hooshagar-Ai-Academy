@@ -63,6 +63,26 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', user.id)
 
+    try {
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('phone, full_name, school_id')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const { notifyPasswordChangedSms } = await import(
+        '@/lib/auth/password-notify-sms'
+      )
+      await notifyPasswordChangedSms({
+        phone: profile?.phone ?? null,
+        fullName: result.data.full_name || profile?.full_name || null,
+        schoolId: profile?.school_id ?? null,
+        userId: user.id,
+      })
+    } catch (smsErr) {
+      console.warn('Password changed SMS failed:', smsErr)
+    }
+
     return NextResponse.json({ success: true })
 
   } catch (err) {

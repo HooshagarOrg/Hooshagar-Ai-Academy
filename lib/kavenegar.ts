@@ -72,16 +72,35 @@ export function getKavenegarOtpTemplate(): string {
 }
 
 /**
- * نام الگوهای پیشنهادی کاوه‌نگار (داشبورد کاوه‌نگار → ایجاد الگو)
- * - OTP بازیابی: token = کد ۶ رقمی
- * - ریست ادمین: بدون رمز در SMS (امن‌تر) یا token = رمز موقت فقط در صورت نیاز
- * - تأیید تغییر رمز: اطلاع‌رسانی ساده
+ * نام الگوهای پیشنهادی کاوه‌نگار (داشبورد → ایجاد الگو؛ بدون پیشوند hooshagar-)
+ * Lookup همیشه به %token نیاز دارد:
+ * - otp-reset → token = کد OTP
+ * - admin-password-reset → token = ثابت «reset» (نه رمز؛ اختیاری: username لاتین)
+ * - password-changed → token = ثابت «ok» (مثل support-resolved)
  */
 export const KAVENEGAR_TEMPLATE_HINTS = {
-  otpForgotPassword: 'hooshagar-otp-reset',
-  adminPasswordReset: 'hooshagar-admin-reset',
-  passwordChanged: 'hooshagar-password-changed',
+  otpForgotPassword: 'otp-reset',
+  adminPasswordReset: 'admin-password-reset',
+  passwordChanged: 'password-changed',
 } as const
+
+/** ثابت‌های بی‌خطر برای الگوهایی که متغیر واقعی ندارند */
+export const KAVENEGAR_LOOKUP_PLACEHOLDER = {
+  adminPasswordReset: 'reset',
+  passwordChanged: 'ok',
+} as const
+
+export function getKavenegarOtpResetTemplate(): string | undefined {
+  return process.env.KAVENEGAR_TEMPLATE_OTP_RESET || undefined
+}
+
+export function getKavenegarAdminResetTemplate(): string | undefined {
+  return process.env.KAVENEGAR_TEMPLATE_ADMIN_RESET || undefined
+}
+
+export function getKavenegarPasswordChangedTemplate(): string | undefined {
+  return process.env.KAVENEGAR_TEMPLATE_PASSWORD_CHANGED || undefined
+}
 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
 const RATE_LIMIT_MAX_ATTEMPTS = 3

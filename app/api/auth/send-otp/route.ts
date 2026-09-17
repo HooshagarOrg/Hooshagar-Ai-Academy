@@ -65,7 +65,11 @@ function generateOTP(): string {
 // ============================================
 // Helper: Send SMS via Kavenegar
 // ============================================
-async function sendSMS(phoneNumber: string, code: string): Promise<boolean> {
+async function sendSMS(
+  phoneNumber: string,
+  code: string,
+  purpose: OtpPurpose
+): Promise<boolean> {
   const apiKey = process.env.KAVENEGAR_API_KEY
 
   if (!apiKey) {
@@ -74,8 +78,12 @@ async function sendSMS(phoneNumber: string, code: string): Promise<boolean> {
   }
 
   try {
-    const { getKavenegarOtpTemplate } = await import('@/lib/kavenegar')
-    const templateName = getKavenegarOtpTemplate()
+    const { getKavenegarOtpTemplate, getKavenegarOtpResetTemplate } =
+      await import('@/lib/kavenegar')
+    const templateName =
+      purpose === 'reset-password'
+        ? getKavenegarOtpResetTemplate() || getKavenegarOtpTemplate()
+        : getKavenegarOtpTemplate()
     const url = `https://api.kavenegar.com/v1/${apiKey}/verify/lookup.json`
 
     const params = new URLSearchParams({
@@ -372,7 +380,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     if (skipLiveSms) {
       console.log(`🔐 [TEST/DEV] OTP for ${phoneNumber}: ${otpCode}`)
     } else {
-      const sent = await sendSMS(phoneNumber, otpCode)
+      const sent = await sendSMS(phoneNumber, otpCode, purpose)
 
       if (!sent) {
         console.error(`Failed to send SMS to ${phoneNumber}`)

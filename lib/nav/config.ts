@@ -78,6 +78,7 @@ export const navConfig: Record<string, NavGroup[]> = {
       title: 'تنظیمات',
       items: [
         { title: 'سال تحصیلی', href: '/admin/academic-years', icon: Calendar },
+        { title: 'برنامهٔ کلاسی', href: '/admin/timetable', icon: Calendar },
         { title: 'پلن‌های اشتراک', href: '/admin/subscriptions', icon: CreditCard },
         { title: 'ظرفیت و سهمیه', href: '/admin/quota-settings', icon: Sliders },
         { title: 'برندینگ مدرسه', href: '/admin/school-settings', icon: Palette },
@@ -93,6 +94,7 @@ export const navConfig: Record<string, NavGroup[]> = {
       title: 'کلاس درس',
       items: [
         { title: 'دانش‌آموزان', href: '/teacher/students', icon: Users },
+        { title: 'برنامهٔ کلاسی', href: '/teacher/timetable', icon: Calendar },
         { title: 'حضور و غیاب', href: '/teacher/attendance', icon: ClipboardCheck },
         { title: 'نمرات', href: '/teacher/grades', icon: GraduationCap },
         { title: 'رفتار دانش‌آموزان', href: '/teacher/behavior', icon: Heart },
@@ -130,6 +132,7 @@ export const navConfig: Record<string, NavGroup[]> = {
       title: 'فرزندم',
       items: [
         { title: 'نمرات فرزند', href: '/parent/grades', icon: GraduationCap },
+        { title: 'برنامهٔ کلاسی', href: '/parent/schedule', icon: Calendar },
         { title: 'منابع کلاس', href: '/parent/class-materials', icon: FolderOpen },
         { title: 'تکالیف', href: '/parent/assignments', icon: ClipboardList },
         { title: 'گزارشات', href: '/parent/reports', icon: BarChart3 },
@@ -214,7 +217,7 @@ export const simpleNavs: Record<string, NavItem[]> = {
   ],
   educational_vp: [
     { title: 'داشبورد', href: '/educational-vp', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'برنامه‌ریزی', href: '/educational-vp/planning', icon: Calendar, badge: COMING_SOON_BADGE },
+    { title: 'برنامه‌ریزی', href: '/educational-vp/planning', icon: Calendar },
     { title: 'فعالیت‌ها', href: '/educational-vp/activities', icon: Activity, badge: COMING_SOON_BADGE },
   ],
   disciplinary_vp: [
@@ -241,10 +244,12 @@ export const simpleNavs: Record<string, NavItem[]> = {
   ],
   art_teacher: [
     { title: 'داشبورد', href: '/art-teacher', icon: Home, badge: COMING_SOON_BADGE },
+    { title: 'برنامهٔ من', href: '/art-teacher/timetable', icon: Calendar },
     { title: 'گزارشات هنری', href: '/art-teacher/art-reports', icon: FileText, badge: COMING_SOON_BADGE },
   ],
   sports_teacher: [
     { title: 'داشبورد', href: '/sports-teacher', icon: Home, badge: COMING_SOON_BADGE },
+    { title: 'برنامهٔ من', href: '/sports-teacher/timetable', icon: Calendar },
     { title: 'گزارشات ورزشی', href: '/sports-teacher/sports-reports', icon: FileText, badge: COMING_SOON_BADGE },
   ],
   secretary: [

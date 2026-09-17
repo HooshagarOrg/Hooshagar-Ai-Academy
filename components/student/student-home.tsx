@@ -30,6 +30,15 @@ type DashboardPayload = {
   }
   homework?: Array<{ id: string; subject: string; title: string; due_date: string; status: string }>
   grades?: { recent: Array<{ subject: string; score: number }> }
+  schedule?: Array<{
+    id: string
+    subject: string
+    title: string
+    progress: number
+    starts_at?: string
+    ends_at?: string
+    kind?: string
+  }>
 }
 
 type DailyItem = { id: string; subject: string; title: string; progress: number }
@@ -83,7 +92,18 @@ function MiniTalentRadar({ values }: { values: number[] }) {
   )
 }
 
-function buildDailyPlan(homework: DashboardPayload['homework']): DailyItem[] {
+function buildDailyPlan(
+  schedule: DashboardPayload['schedule'],
+  homework: DashboardPayload['homework']
+): DailyItem[] {
+  if (schedule && schedule.length > 0) {
+    return schedule.slice(0, 8).map((s) => ({
+      id: s.id,
+      subject: s.subject,
+      title: s.starts_at ? `${s.title} (${s.starts_at})` : s.title,
+      progress: s.progress,
+    }))
+  }
   if (homework && homework.length > 0) {
     return homework.slice(0, 4).map((h, i) => ({
       id: h.id,
@@ -164,7 +184,10 @@ export function StudentHome() {
     loadDashboard()
   }, [])
 
-  const dailyPlan = useMemo(() => buildDailyPlan(data.homework), [data.homework])
+  const dailyPlan = useMemo(
+    () => buildDailyPlan(data.schedule, data.homework),
+    [data.schedule, data.homework]
+  )
   const goals = useMemo(() => buildGoals(data.xp), [data.xp])
   const insight = useMemo(() => buildInsight(data), [data])
   const talentValues = useMemo(() => {
@@ -198,16 +221,16 @@ export function StudentHome() {
           <LuxCard>
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="lux-kicker mb-1">برنامه هوشمند امروز</p>
-                <h2 className="text-lg font-black text-[var(--lux-text)]">مسیر یادگیری روزانه</h2>
+                <p className="lux-kicker mb-1">برنامه کلاسی امروز</p>
+                <h2 className="text-lg font-black text-[var(--lux-text)]">زنگ‌های امروز</h2>
               </div>
               <Sparkles className="h-5 w-5 shrink-0 text-[var(--lux-primary)]" aria-hidden />
             </div>
             {dailyPlan.length === 0 ? (
               <LuxEmptyState
                 icon={<Brain className="h-6 w-6" />}
-                title="هوشیار برنامه‌ات را می‌سازد"
-                description="با یک گفتگوی کوتاه با هوشیار، برنامه شخصی امروزت آماده می‌شود."
+                title="برنامه هنوز ثبت نشده"
+                description="وقتی معلم کلاس برنامه را وارد کند، زنگ‌های امروز اینجا دیده می‌شود. می‌توانی با هوشیار هم تمرین کنی."
                 actionLabel="شروع با هوشیار"
                 actionHref="/student/study-buddy"
               />

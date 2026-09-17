@@ -347,6 +347,28 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     // 9. Log the password reset
     await logPasswordReset(supabase, userId, phoneNumber, ipAddress)
 
+    // 9b. SMS تأیید تغییر (Lookup password-changed)
+    try {
+      const adminClient = getAdminClient()
+      const { data: profile } = await adminClient
+        .from('profiles')
+        .select('full_name, school_id')
+        .eq('id', userId)
+        .maybeSingle()
+
+      const { notifyPasswordChangedSms } = await import(
+        '@/lib/auth/password-notify-sms'
+      )
+      await notifyPasswordChangedSms({
+        phone: phoneNumber,
+        fullName: profile?.full_name ?? null,
+        schoolId: profile?.school_id ?? null,
+        userId,
+      })
+    } catch (smsErr) {
+      console.warn('Password changed SMS after reset failed:', smsErr)
+    }
+
     // 10. Log success
     console.log(`✅ Password reset successful for user ${userId} (phone: ${phoneNumber})`)
 

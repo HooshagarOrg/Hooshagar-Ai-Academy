@@ -183,12 +183,57 @@ www.hooshagar.ir
 
 ---
 
+## ۸) رمز عبور — بازیابی، ریست ادمین، تأیید تغییر
+
+همان قالب `support-*`: نوع استفاده **وب سایت**، برند در متن، Lookup با `%token%`. رمز عبور را در پیامک نگذارید.
+
+| کاربرد | نام الگو | env |
+|--------|----------|-----|
+| OTP بازیابی رمز | `otp-reset` | `KAVENEGAR_TEMPLATE_OTP_RESET=otp-reset` |
+| ریست توسط مدیر | `admin-password-reset` | `KAVENEGAR_TEMPLATE_ADMIN_RESET=admin-password-reset` |
+| تأیید تغییر رمز | `password-changed` | `KAVENEGAR_TEMPLATE_PASSWORD_CHANGED=password-changed` |
+
+> پیشوند `hooshagar-` لازم نیست. ورود OTP همان `otp-login` بماند.
+
+`otp-reset` — به کاربر، وقتی کد بازیابی رمز درخواست می‌شود:
+
+```
+هوشاگر
+کد بازیابی رمز شما: %token%
+این کد تا ۵ دقیقه معتبر است. اگر درخواست نداده‌اید نادیده بگیرید.
+```
+
+`%token` = کد ۶ رقمی OTP
+
+`admin-password-reset` — به کاربر، وقتی مدیر رمز را بازنشانی می‌کند:
+
+```
+هوشاگر
+%token10% عزیز، رمز شما توسط مدیر بازنشانی شد. با رمز موقت وارد شوید و فوراً آن را عوض کنید.
+```
+
+`%token` = مقدار ثابت `reset` (الزام Lookup)  
+`%token10` = نام کوچک کاربر
+
+`password-changed` — به کاربر، وقتی رمز با موفقیت عوض شد:
+
+```
+هوشاگر
+%token10% عزیز، رمز عبور شما با موفقیت تغییر کرد. اگر این کار را نکرده‌اید با پشتیبانی تماس بگیرید.
+```
+
+`%token` = مقدار ثابت `ok` (الزام Lookup)  
+`%token10` = نام کوچک کاربر
+
+---
+
 ## اولویت ثبت در پنل
 
 1. `otp-login` ← بدون این ورود با پیامک کار نمی‌کند  
 2. اصلاح `lottery-result`  
 3. `support-resolved` و `support-new` (اطلاع رفع به کاربر و زنگ اپراتور)  
-4. `attendance-notification` (برای آینده)  
-5. بقیه در صورت نیاز
+4. `otp-reset` / `admin-password-reset` / `password-changed`  
+5. `attendance-notification` (برای آینده)  
+6. بقیه در صورت نیاز
 
 پس از تأیید، در Vercel مقدار envها را با **نام دقیق** الگوها چک کنید (الان با `.env.local` هم‌خوان است).

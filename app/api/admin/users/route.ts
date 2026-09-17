@@ -657,16 +657,22 @@ export async function PATCH(request: NextRequest) {
         const phone =
           (typeof updates.phone === 'string' ? updates.phone : null) ||
           (typeof existing.phone === 'string' ? existing.phone : null)
-        if (phone && /^09[0-9]{9}$/.test(phone)) {
+        if (phone) {
           try {
-            const { sendControlledSms } = await import('@/lib/sms/controlled-send')
-            await sendControlledSms({
-              to: phone,
-              text: 'هوشاگر: رمز عبور شما توسط مدیر بازنشانی شد. در ورود بعدی رمز موقت را تغییر دهید.',
-              smsType: 'other',
+            const { notifyAdminPasswordResetSms } = await import(
+              '@/lib/auth/password-notify-sms'
+            )
+            await notifyAdminPasswordResetSms({
+              phone,
+              fullName:
+                (typeof updates.full_name === 'string'
+                  ? updates.full_name
+                  : null) ||
+                (typeof existing.full_name === 'string'
+                  ? existing.full_name
+                  : null),
               schoolId: existing.school_id ?? null,
               userId: id,
-              bypassDailyCap: true,
             })
           } catch (smsErr) {
             console.warn('Admin password reset SMS failed:', smsErr)

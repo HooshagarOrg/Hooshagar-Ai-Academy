@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
         const { data: student, error: studentError } = await supabase
           .from('students')
-          .select('id, full_name, grade')
+          .select('id, full_name, grade, class_id')
           .eq('id', studentId)
           .maybeSingle()
 
@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
           role: ctx.role,
           schoolId: ctx.schoolId,
           studentId,
+          purpose: 'teaching',
         })
         if (!allowed) {
           return NextResponse.json({ error: 'این دانش‌آموز در کلاس شما نیست' }, { status: 403 })
@@ -66,6 +67,14 @@ export async function POST(request: NextRequest) {
           .eq('student_id', studentId)
           .order('report_date', { ascending: false })
           .limit(8)
+
+        const { buildClassTimetableSummary } = await import(
+          '@/lib/timetable/ai-summary'
+        )
+        const timetableSummary = await buildClassTimetableSummary(
+          supabase,
+          student.class_id
+        )
 
         const gradeLines = (gradeRows || [])
           .map((g) => `${g.exam_date ?? ''} ${g.subject}: ${g.score} (${g.exam_type})`)
@@ -94,6 +103,8 @@ export async function POST(request: NextRequest) {
 ${gradeLines || 'نمره‌ای ثبت نشده'}
 گزارش رفتار اخیر:
 ${behaviorLines || 'گزارش رفتاری ثبت نشده'}
+برنامهٔ کلاسی هفته:
+${timetableSummary}
 
 فقط JSON:
 {

@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
         role: ctx.role,
         schoolId: ctx.schoolId,
         studentIds: requestedIds,
+        purpose: 'attendance',
       })
       const allowedSet = new Set(allowedIds)
       const scopedRecords = records.filter((r: { student_id: string }) =>
@@ -93,6 +94,55 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { error: 'هیچ دانش‌آموزی از کلاس شما در این لیست نیست' },
           { status: 403 }
+        )
+      }
+
+      // روز تعطیل — حضور ثبت نشود
+      const { parseLocalIsoDate, toLocalIsoDate } = await import(
+        '@/lib/date/jalali-school'
+      )
+      const { resolveSchoolDay } = await import('@/lib/timetable/school-day')
+      const { ensureNationalHolidays } = await import('@/lib/timetable/seed')
+
+      const dateStr =
+        typeof scopedRecords[0]?.date === 'string'
+          ? scopedRecords[0].date
+          : toLocalIsoDate(new Date())
+
+      try {
+        await ensureNationalHolidays(supabase)
+      } catch {
+        /* ignore */
+      }
+
+      const schoolId = ctx.schoolId
+      const { data: calendarDays } = await supabase
+        .from('academic_calendar_days')
+        .select('on_date, kind, title')
+        .eq('on_date', dateStr)
+        .or(
+          schoolId
+            ? `school_id.is.null,school_id.eq.${schoolId}`
+            : 'school_id.is.null'
+        )
+
+      const dayStatus = resolveSchoolDay(
+        parseLocalIsoDate(dateStr),
+        (calendarDays || []).map((d) => ({
+          on_date: d.on_date,
+          kind: d.kind as 'official_holiday' | 'school_closure' | 'exam_note',
+          title: d.title,
+        }))
+      )
+
+      if (!dayStatus.isSchoolDay) {
+        return NextResponse.json(
+          {
+            error: 'امروز روز درسی نیست؛ حضور و غیاب ثبت نمی‌شود',
+            reason: dayStatus.reason,
+            title: 'title' in dayStatus ? dayStatus.title : undefined,
+          },
+          { status: 400 }
         )
       }
 

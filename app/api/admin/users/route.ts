@@ -11,7 +11,10 @@ import { resolveParentDisplayName } from '@/lib/bulk-import/parent-name'
 import { validatePassword } from '@/lib/security/sanitize'
 import { PASSWORD_GUIDE_FA } from '@/lib/security/password-policy'
 import { parseListPage, POSTGREST_PAGE_SIZE } from '@/lib/supabase/paginate'
-import { assignHomeroomClass } from '@/lib/teacher/class-scope'
+import {
+  assignHomeroomClass,
+  assignHomeroomClasses,
+} from '@/lib/teacher/class-scope'
 
 // ============================================
 // GET: لیست کاربران
@@ -50,7 +53,8 @@ export async function GET(request: NextRequest) {
       }
 
       const teacherIds = [...new Set((data || []).map((u) => u.id))]
-      const classByTeacher = new Map<string, { id: string; name: string; grade: number | null }>()
+      type HomeroomInfo = { id: string; name: string; grade: number | null }
+      const classesByTeacher = new Map<string, HomeroomInfo[]>()
       if (teacherIds.length > 0) {
         const { data: classRows } = await admin
           .from('classes')
@@ -58,11 +62,13 @@ export async function GET(request: NextRequest) {
           .in('teacher_id', teacherIds)
         for (const row of classRows || []) {
           if (!row.teacher_id) continue
-          classByTeacher.set(row.teacher_id, {
+          const list = classesByTeacher.get(row.teacher_id) ?? []
+          list.push({
             id: row.id,
             name: row.name,
             grade: typeof row.grade === 'number' ? row.grade : null,
           })
+          classesByTeacher.set(row.teacher_id, list)
         }
       }
 
@@ -78,10 +84,14 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.json({
-        users: (data || []).map((u) => ({
-          ...u,
-          homeroom_class: classByTeacher.get(u.id) ?? null,
-        })),
+        users: (data || []).map((u) => {
+          const rooms = classesByTeacher.get(u.id) ?? []
+          return {
+            ...u,
+            homeroom_class: rooms[0] ?? null,
+            homeroom_classes: rooms,
+          }
+        }),
         total: count || 0,
         stats,
       })
@@ -137,6 +147,7 @@ const createUserSchema = z
     phone: optionalText,
     school_id: optionalUuid,
     class_id: optionalUuid,
+    class_ids: z.array(z.string().uuid()).optional(),
     student_number: optionalText,
     pin: optionalText,
     grade: z.coerce.number().int().min(1).max(12).optional().nullable(),
@@ -193,6 +204,7 @@ export async function POST(request: NextRequest) {
         phone,
         school_id,
         class_id,
+        class_ids,
         student_number,
         pin,
         grade,
@@ -366,16 +378,28 @@ export async function POST(request: NextRequest) {
         })
       }
 
-      // معلم/معلم هنر/ورزش: اتصال اختیاری به کلاس
-      if (
-        ['teacher', 'art_teacher', 'sports_teacher'].includes(role)
-      ) {
+      // معلم: یک یا چند کلاس راهنما؛ هنر/ورزش معمولاً بدون هوم‌روم
+      if (['teacher', 'art_teacher', 'sports_teacher'].includes(role)) {
         try {
-          await assignHomeroomClass(admin, {
-            teacherId: userId,
-            classId: class_id || null,
-            teacherName: full_name,
-          })
+          const ids =
+            Array.isArray(class_ids) && class_ids.length > 0
+              ? class_ids
+              : class_id
+                ? [class_id]
+                : []
+          if (role === 'teacher') {
+            await assignHomeroomClasses(admin, {
+              teacherId: userId,
+              classIds: ids,
+              teacherName: full_name,
+            })
+          } else if (ids.length > 0) {
+            await assignHomeroomClass(admin, {
+              teacherId: userId,
+              classId: ids[0] ?? null,
+              teacherName: full_name,
+            })
+          }
         } catch (linkErr) {
           console.error('خطا در اتصال معلم به کلاس:', linkErr)
         }
@@ -451,6 +475,7 @@ export async function PATCH(request: NextRequest) {
           (v) => (typeof v === 'string' && v.trim() === '' ? null : v),
           z.string().uuid().nullable().optional()
         ),
+        class_ids: z.array(z.string().uuid()).optional(),
       })
       const parsed = schema.safeParse(body)
       if (!parsed.success) {
@@ -460,7 +485,13 @@ export async function PATCH(request: NextRequest) {
         )
       }
 
-      const { id, new_password, class_id: homeroomClassId, ...rawUpdates } = parsed.data
+      const {
+        id,
+        new_password,
+        class_id: homeroomClassId,
+        class_ids: homeroomClassIds,
+        ...rawUpdates
+      } = parsed.data
       const updates: Record<string, unknown> = { ...rawUpdates }
 
       if (typeof updates.role === 'string') {
@@ -556,7 +587,10 @@ export async function PATCH(request: NextRequest) {
         }
       }
 
-      if (Object.keys(updates).length === 0 && !new_password && homeroomClassId === undefined) {
+      const hasHomeroomUpdate =
+        homeroomClassIds !== undefined || homeroomClassId !== undefined
+
+      if (Object.keys(updates).length === 0 && !new_password && !hasHomeroomUpdate) {
         return NextResponse.json({ error: 'هیچ فیلدی برای بروزرسانی ارسال نشده' }, { status: 400 })
       }
 
@@ -568,17 +602,31 @@ export async function PATCH(request: NextRequest) {
       }
 
       if (
-        homeroomClassId !== undefined &&
+        hasHomeroomUpdate &&
         ['teacher', 'art_teacher', 'sports_teacher'].includes(effectiveRole)
       ) {
         try {
           const teacherName =
             typeof updates.full_name === 'string' ? updates.full_name : existing.full_name
-          await assignHomeroomClass(admin, {
-            teacherId: id,
-            classId: homeroomClassId,
-            teacherName,
-          })
+          const ids =
+            homeroomClassIds !== undefined
+              ? homeroomClassIds
+              : homeroomClassId
+                ? [homeroomClassId]
+                : []
+          if (effectiveRole === 'teacher') {
+            await assignHomeroomClasses(admin, {
+              teacherId: id,
+              classIds: ids,
+              teacherName,
+            })
+          } else {
+            await assignHomeroomClass(admin, {
+              teacherId: id,
+              classId: ids[0] ?? null,
+              teacherName,
+            })
+          }
         } catch (linkErr) {
           return NextResponse.json(
             {

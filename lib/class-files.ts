@@ -13,6 +13,8 @@ export const CLASS_FILES_ROLES: AllowedRole[] = [
 
 export const CLASS_FILES_TEACHER_ROLES: AllowedRole[] = [
   'teacher',
+  'art_teacher',
+  'sports_teacher',
   'principal',
   'admin',
   'platform_admin',
@@ -135,7 +137,13 @@ export async function assertTeacherOwnsClass(
     return Boolean(params.schoolId && cls.school_id === params.schoolId)
   }
 
-  return cls.teacher_id === params.userId
+  if (cls.teacher_id === params.userId) return true
+
+  // معلم درس / هنر / ورزش از روی برنامه
+  const taughtIds = await getTeacherClassIds(supabase, params.userId, {
+    includeTaught: true,
+  })
+  return taughtIds.includes(params.classId)
 }
 
 export async function getScopedClassIds(
@@ -185,15 +193,19 @@ export async function getScopedClassIds(
     return []
   }
 
-  return getTeacherClassIds(supabase, params.userId)
+  return getTeacherClassIds(supabase, params.userId, { includeTaught: true })
 }
 
 export async function getScopedClasses(
   supabase: SupabaseClient,
   params: { userId: string; role: AllowedRole; schoolId: string | null }
 ): Promise<TeacherClassRow[]> {
-  if (params.role === 'teacher') {
-    return getTeacherClasses(supabase, params.userId)
+  if (
+    params.role === 'teacher' ||
+    params.role === 'art_teacher' ||
+    params.role === 'sports_teacher'
+  ) {
+    return getTeacherClasses(supabase, params.userId, { includeTaught: true })
   }
 
   const ids = await getScopedClassIds(supabase, params)

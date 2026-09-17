@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
           role: ctx.role,
           schoolId: ctx.schoolId,
           studentId,
+          purpose: 'teaching',
         })
         if (!allowed) return NextResponse.json({ grades: [] })
         query = query.eq('student_id', studentId)
@@ -109,6 +110,7 @@ export async function POST(request: NextRequest) {
         role: ctx.role,
         schoolId: ctx.schoolId,
         studentId: student_id,
+        purpose: 'teaching',
       })
       if (!allowed) {
         return NextResponse.json({ error: 'این دانش‌آموز در کلاس شما نیست' }, { status: 403 })

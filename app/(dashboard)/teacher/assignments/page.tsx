@@ -84,6 +84,24 @@ export default function TeacherAssignmentsPage() {
     void load()
   }, [load])
 
+  useEffect(() => {
+    if (!classId) return
+    void (async () => {
+      try {
+        const res = await fetch(`/api/timetable/today?class_id=${classId}`)
+        const data = await res.json()
+        if (!res.ok || !data.isSchoolDay) return
+        const lesson = (data.periods || []).find(
+          (p: { kind: string; subject_name: string | null }) =>
+            p.kind === 'lesson' && p.subject_name
+        )
+        if (lesson?.subject_name) setSubject(lesson.subject_name)
+      } catch {
+        /* ignore */
+      }
+    })()
+  }, [classId])
+
   const onCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!classId || !title.trim()) {

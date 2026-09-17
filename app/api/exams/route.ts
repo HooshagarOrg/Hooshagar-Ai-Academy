@@ -22,6 +22,7 @@ const createExamSchema = z.object({
   grade: z.number().int().min(1).max(12),
   exam_date: z.string(),
   duration_minutes: z.number().int().min(10).max(180),
+  class_id: z.string().uuid().optional().nullable(),
   exam_config: z.record(z.unknown()).optional(),
   difficulty_distribution: z
     .object({
@@ -104,6 +105,29 @@ export async function POST(request: NextRequest) {
     }
 
     const { question_ids, questions: directQuestions, ...examData } = result.data;
+
+    // معلم معمولی باید class_id بدهد و آن کلاس در محدودهٔ تدریس باشد
+    if (ctx.role === 'teacher' || ctx.role === 'art_teacher' || ctx.role === 'sports_teacher') {
+      if (!examData.class_id) {
+        return NextResponse.json(
+          { error: 'برای معلم، انتخاب کلاس الزامی است' },
+          { status: 400 }
+        )
+      }
+      const { assertTeacherOwnsClass } = await import('@/lib/class-files')
+      const owns = await assertTeacherOwnsClass(supabase, {
+        userId: ctx.userId,
+        role: ctx.role,
+        schoolId: ctx.schoolId,
+        classId: examData.class_id,
+      })
+      if (!owns) {
+        return NextResponse.json(
+          { error: 'این کلاس در محدودهٔ تدریس شما نیست' },
+          { status: 403 }
+        )
+      }
+    }
 
     const totalQuestions = (question_ids?.length || 0) + (directQuestions?.length || 0)
 

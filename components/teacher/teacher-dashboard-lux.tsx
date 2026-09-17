@@ -21,26 +21,37 @@ import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-moti
 import { VirtualClassCard } from '@/components/virtual-class/virtual-class-card'
 
 type DashboardData = {
-  teacher: { name: string; class: { name: string; grade: number } | null }
+  teacher: {
+    name: string
+    class: { id?: string; name: string; grade: number } | null
+    classes?: Array<{ id: string; name: string; grade: number | null }>
+  }
   students: Array<{ id: string; name: string; needsAttention: boolean; lastScore: number | null }>
   stats: { totalStudents: number; attendanceRate: number; upcomingExams: number; averageGrade: number }
+  timetableIncomplete?: boolean
 }
 
 export function TeacherDashboardLux() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [classId, setClassId] = useState('')
 
   useEffect(() => {
-    fetch('/api/teacher/dashboard')
+    const qs = classId ? `?class_id=${classId}` : ''
+    setLoading(true)
+    fetch(`/api/teacher/dashboard${qs}`)
       .then((r) => r.json())
       .then((d) => {
         if (!d.success) setError(d.error || 'خطا')
-        else setData(d)
+        else {
+          setData(d)
+          if (!classId && d.teacher?.class?.id) setClassId(d.teacher.class.id)
+        }
       })
       .catch(() => setError('خطای شبکه'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [classId])
 
   if (loading) {
     return <div className="lux-dash-card flex justify-center p-12"><Loader2 className="h-8 w-8 animate-spin text-[var(--arc-teacher)]" /></div>
@@ -75,6 +86,34 @@ export function TeacherDashboardLux() {
           subtitle={data.teacher.class ? `کلاس ${data.teacher.class.name} — پایه ${data.teacher.class.grade}` : 'کلاسی اختصاص داده نشده'}
         />
       </LuxFadeUp>
+
+      {data.teacher.classes && data.teacher.classes.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {data.teacher.classes.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setClassId(c.id)}
+              className={`rounded-full px-3 py-1 text-sm border ${
+                classId === c.id
+                  ? 'border-[var(--arc-teacher)] bg-[var(--arc-teacher)]/15'
+                  : 'border-white/10'
+              }`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {data.timetableIncomplete && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          برنامهٔ کلاسی این کلاس هنوز کامل نیست.{' '}
+          <Link href="/teacher/timetable" className="underline font-bold">
+            همین حالا تکمیل کنید
+          </Link>
+        </div>
+      )}
 
       <LuxStagger className="space-y-6" stagger={0.1}>
         <LuxStaggerItem>

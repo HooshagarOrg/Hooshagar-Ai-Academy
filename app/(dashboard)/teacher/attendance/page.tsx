@@ -118,6 +118,34 @@ export default function TeacherAttendancePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isListLoaded, setIsListLoaded] = useState(false)
+  const [schoolDayOff, setSchoolDayOff] = useState<{ off: boolean; title?: string }>({
+    off: false,
+  })
+
+  useEffect(() => {
+    // بررسی محلی پنجشنبه/جمعه + API تعطیلات برای تاریخ انتخابی
+    const js = selectedDate.getDay()
+    const jalaliWd = (js + 1) % 7
+    if (jalaliWd === 5 || jalaliWd === 6) {
+      setSchoolDayOff({ off: true, title: 'پنجشنبه/جمعه' })
+      return
+    }
+    const dateStr = selectedDate.toISOString().split('T')[0]
+    fetch(`/api/academic-calendar?from=${dateStr}&to=${dateStr}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const days = (data.days || []) as Array<{ kind: string; title: string }>
+        const hit = days.find(
+          (d) => d.kind === 'official_holiday' || d.kind === 'school_closure'
+        )
+        if (hit) {
+          setSchoolDayOff({ off: true, title: hit.title })
+        } else {
+          setSchoolDayOff({ off: false })
+        }
+      })
+      .catch(() => setSchoolDayOff({ off: false }))
+  }, [selectedDate])
 
   useEffect(() => {
     fetch('/api/teacher/class-students')
@@ -254,6 +282,10 @@ export default function TeacherAttendancePage() {
   // ذخیره واقعی در پایگاه داده
   const saveAll = async () => {
     if (!isListLoaded || students.length === 0) return
+    if (schoolDayOff.off) {
+      toast.error('امروز روز درسی نیست؛ حضور ثبت نمی‌شود')
+      return
+    }
     setIsSaving(true)
     try {
       const dateStr = selectedDate.toISOString().split('T')[0]
@@ -348,6 +380,12 @@ export default function TeacherAttendancePage() {
         </Button>
       }
     >
+      {schoolDayOff.off && (
+        <div className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          این تاریخ روز درسی نیست
+          {schoolDayOff.title ? ` (${schoolDayOff.title})` : ''}. ثبت حضور و غیاب غیرفعال است.
+        </div>
+      )}
       <DashboardSectionBlock>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         {/* Main Content */}

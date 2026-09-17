@@ -50,6 +50,27 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        const { buildClassTimetableSummary } = await import(
+          '@/lib/timetable/ai-summary'
+        )
+        const studentId =
+          typeof report.student === 'object' && report.student && 'id' in report.student
+            ? (report.student as { id: string }).id
+            : null
+        let classId: string | null = null
+        if (studentId) {
+          const { data: st } = await supabase
+            .from('students')
+            .select('class_id')
+            .eq('id', studentId)
+            .maybeSingle()
+          classId = st?.class_id ?? null
+        }
+        const timetableSummary = await buildClassTimetableSummary(
+          supabase,
+          classId
+        )
+
         const prompt = `
 شما یک مشاور آموزشی حرفه‌ای هستید. گزارش عملکرد تحصیلی یک دانش‌آموز را دریافت کرده‌اید.
 
@@ -65,6 +86,9 @@ export async function POST(request: NextRequest) {
 - امتیاز رفتاری: ${report.stats.behavior_score}/10
 
 **نمره کل: ${report.stats.total_score}/100**
+
+**برنامهٔ کلاسی هفته:**
+${timetableSummary}
 
 لطفاً:
 1. یک تحلیل جامع و دلسوزانه از عملکرد دانش‌آموز ارائه دهید (حداکثر 200 کلمه).

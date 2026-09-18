@@ -7,22 +7,14 @@ import {
 } from '@/lib/timetable/permissions'
 import { ensureSchoolBellSlots } from '@/lib/timetable/seed'
 import { DEFAULT_BELL_SLOTS } from '@/lib/timetable/defaults'
-
-function resolveSchoolId(
-  ctxSchoolId: string | null,
-  role: string,
-  querySchoolId: string | null
-): string | null {
-  if (role === 'platform_admin' && querySchoolId) return querySchoolId
-  return ctxSchoolId
-}
+import { resolveTimetableSchoolId } from '@/lib/timetable/school-scope'
 
 export async function GET(request: NextRequest) {
   return withAuth(
     request,
     async (ctx) => {
       const { searchParams } = new URL(request.url)
-      const schoolId = resolveSchoolId(
+      const schoolId = resolveTimetableSchoolId(
         ctx.schoolId,
         ctx.role,
         searchParams.get('school_id')
@@ -78,7 +70,7 @@ export async function PUT(request: NextRequest) {
         )
       }
 
-      const schoolId = resolveSchoolId(
+      const schoolId = resolveTimetableSchoolId(
         ctx.schoolId,
         ctx.role,
         parsed.data.school_id ?? null
@@ -132,7 +124,7 @@ export async function POST(request: NextRequest) {
         school_id?: string
         reset?: boolean
       }
-      const schoolId = resolveSchoolId(
+      const schoolId = resolveTimetableSchoolId(
         ctx.schoolId,
         ctx.role,
         body.school_id ?? null

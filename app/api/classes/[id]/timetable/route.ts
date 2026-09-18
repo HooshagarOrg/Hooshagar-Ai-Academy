@@ -45,8 +45,21 @@ export async function GET(request: NextRequest, routeCtx: RouteCtx) {
         return NextResponse.json({ error: 'کلاس یافت نشد' }, { status: 404 })
       }
 
-      const bells = await ensureSchoolBellSlots(ctx.supabase, cls.school_id)
-      await ensureSchoolSubjects(ctx.supabase, cls.school_id)
+      let bells
+      try {
+        bells = await ensureSchoolBellSlots(ctx.supabase, cls.school_id)
+        await ensureSchoolSubjects(ctx.supabase, cls.school_id)
+      } catch (e) {
+        return NextResponse.json(
+          {
+            error:
+              e instanceof Error
+                ? e.message
+                : 'بارگذاری قالب زنگ یا فهرست درس ناموفق بود',
+          },
+          { status: 500 }
+        )
+      }
 
       const { data: versions } = await ctx.supabase
         .from('class_timetable_versions')

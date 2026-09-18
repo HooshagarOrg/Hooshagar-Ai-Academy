@@ -1,10 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
 
 type Subject = { id: string; name: string; is_active: boolean }
@@ -16,58 +23,100 @@ type Bell = {
   label: string
 }
 type CalDay = { id: string; on_date: string; kind: string; title: string }
+type SchoolOpt = { id: string; name: string }
+
+function withSchool(path: string, schoolId: string, extra?: Record<string, string>): string {
+  const params = new URLSearchParams()
+  if (schoolId) params.set('school_id', schoolId)
+  if (extra) {
+    for (const [k, v] of Object.entries(extra)) params.set(k, v)
+  }
+  const q = params.toString()
+  return q ? `${path}?${q}` : path
+}
 
 export default function AdminTimetableSettingsPage() {
+  const [schools, setSchools] = useState<SchoolOpt[]>([])
+  const [schoolId, setSchoolId] = useState('')
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [bells, setBells] = useState<Bell[]>([])
   const [days, setDays] = useState<CalDay[]>([])
   const [newSubject, setNewSubject] = useState('')
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [schoolsReady, setSchoolsReady] = useState(false)
 
-  const reload = async () => {
+  const reload = useCallback(async (sid: string) => {
     const [s, b, c] = await Promise.all([
-      fetch('/api/school/subjects?active=0').then((r) => r.json()),
-      fetch('/api/school/bell-slots').then((r) => r.json()),
-      fetch('/api/academic-calendar').then((r) => r.json()),
+      fetch(withSchool('/api/school/subjects', sid, { active: '0' })).then((r) =>
+        r.json().catch(() => ({}))
+      ),
+      fetch(withSchool('/api/school/bell-slots', sid)).then((r) =>
+        r.json().catch(() => ({}))
+      ),
+      fetch(withSchool('/api/academic-calendar', sid)).then((r) =>
+        r.json().catch(() => ({}))
+      ),
     ])
+    const err = s.error || b.error
+    setLoadError(typeof err === 'string' ? err : null)
     setSubjects(s.subjects || [])
     setBells(b.slots || [])
     setDays(c.days || [])
-  }
+  }, [])
 
   useEffect(() => {
-    void reload()
+    fetch('/api/admin/schools')
+      .then((r) => r.json().catch(() => ({})))
+      .then((d) => {
+        const list: SchoolOpt[] = (d.schools || []).map(
+          (row: { id: string; name: string }) => ({ id: row.id, name: row.name })
+        )
+        setSchools(list)
+        if (list.length === 1 && list[0]) setSchoolId(list[0].id)
+      })
+      .catch(() => {})
+      .finally(() => setSchoolsReady(true))
   }, [])
+
+  useEffect(() => {
+    if (!schoolsReady) return
+    if (schools.length > 0 && !schoolId) return
+    void reload(schoolId)
+  }, [schoolId, schools.length, schoolsReady, reload])
 
   const addSubject = async () => {
     if (!newSubject.trim()) return
     const res = await fetch('/api/school/subjects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newSubject.trim() }),
+      body: JSON.stringify({
+        name: newSubject.trim(),
+        ...(schoolId ? { school_id: schoolId } : {}),
+      }),
     })
-    const data = await res.json()
+    const data = await res.json().catch(() => ({}))
     if (!res.ok) {
       toast.error(data.error || 'خطا')
       return
     }
     toast.success('درس اضافه شد')
     setNewSubject('')
-    await reload()
+    await reload(schoolId)
   }
 
   const resetBells = async () => {
     const res = await fetch('/api/school/bell-slots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reset: true }),
+      body: JSON.stringify({ reset: true, ...(schoolId ? { school_id: schoolId } : {}) }),
     })
+    const data = await res.json().catch(() => ({}))
     if (!res.ok) {
-      const data = await res.json()
       toast.error(data.error || 'خطا')
       return
     }
     toast.success('قالب بازگردانی شد')
-    await reload()
+    await reload(schoolId)
   }
 
   return (
@@ -75,6 +124,27 @@ export default function AdminTimetableSettingsPage() {
       title="تنظیمات برنامهٔ کلاسی"
       description="درس‌ها، قالب زنگ و تعطیلات"
     >
+      {schools.length > 0 && (
+        <div className="mb-4 flex justify-end">
+          <Select value={schoolId} onValueChange={setSchoolId}>
+            <SelectTrigger className="w-[240px]">
+              <SelectValue placeholder="انتخاب مدرسه" />
+            </SelectTrigger>
+            <SelectContent>
+              {schools.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      {loadError && (
+        <p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+          {loadError}
+        </p>
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         <DashboardSectionBlock>
           <Card>

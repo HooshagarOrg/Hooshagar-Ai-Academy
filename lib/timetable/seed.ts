@@ -4,10 +4,18 @@ import {
   DEFAULT_SUBJECT_NAMES,
 } from '@/lib/timetable/defaults'
 import { IRAN_OFFICIAL_HOLIDAYS } from '@/lib/calendar/iran-holidays'
+import { createServiceClient } from '@/lib/supabase/service'
+import { isUniqueViolation } from '@/lib/timetable/school-scope'
+
+type AnyClient = SupabaseClient
+
+function seedWriter(): AnyClient {
+  return createServiceClient()
+}
 
 /** اگر قالب زنگ خالی باشد، پیش‌فرض را seed می‌کند و برمی‌گرداند */
 export async function ensureSchoolBellSlots(
-  supabase: SupabaseClient,
+  supabase: AnyClient,
   schoolId: string
 ): Promise<
   Array<{
@@ -38,18 +46,30 @@ export async function ensureSchoolBellSlots(
     label: s.label,
   }))
 
-  const { data: inserted, error: insertError } = await supabase
+  const writer = seedWriter()
+  const { data: inserted, error: insertError } = await writer
     .from('school_bell_slots')
     .insert(rows)
     .select('id, school_id, slot_index, kind, starts_at, ends_at, label')
 
-  if (insertError) throw new Error(insertError.message)
+  if (insertError) {
+    if (isUniqueViolation(insertError)) {
+      const { data: again, error: againErr } = await supabase
+        .from('school_bell_slots')
+        .select('id, school_id, slot_index, kind, starts_at, ends_at, label')
+        .eq('school_id', schoolId)
+        .order('slot_index', { ascending: true })
+      if (againErr) throw new Error(againErr.message)
+      if (again && again.length > 0) return again
+    }
+    throw new Error(insertError.message)
+  }
   return (inserted || []).sort((a, b) => a.slot_index - b.slot_index)
 }
 
 /** اگر فهرست درس خالی باشد seed می‌کند */
 export async function ensureSchoolSubjects(
-  supabase: SupabaseClient,
+  supabase: AnyClient,
   schoolId: string
 ): Promise<Array<{ id: string; school_id: string; name: string; is_active: boolean }>> {
   const { data: existing, error } = await supabase
@@ -67,18 +87,30 @@ export async function ensureSchoolSubjects(
     is_active: true,
   }))
 
-  const { data: inserted, error: insertError } = await supabase
+  const writer = seedWriter()
+  const { data: inserted, error: insertError } = await writer
     .from('school_subjects')
     .insert(rows)
     .select('id, school_id, name, is_active')
 
-  if (insertError) throw new Error(insertError.message)
+  if (insertError) {
+    if (isUniqueViolation(insertError)) {
+      const { data: again, error: againErr } = await supabase
+        .from('school_subjects')
+        .select('id, school_id, name, is_active')
+        .eq('school_id', schoolId)
+        .order('name', { ascending: true })
+      if (againErr) throw new Error(againErr.message)
+      if (again && again.length > 0) return again
+    }
+    throw new Error(insertError.message)
+  }
   return inserted || []
 }
 
 /** seed تعطیلات رسمی ملی (school_id null) اگر خالی باشد */
 export async function ensureNationalHolidays(
-  supabase: SupabaseClient
+  supabase: AnyClient
 ): Promise<void> {
   const { count, error } = await supabase
     .from('academic_calendar_days')
@@ -96,9 +128,11 @@ export async function ensureNationalHolidays(
     title: h.title,
   }))
 
-  const { error: insertError } = await supabase
+  const { error: insertError } = await seedWriter()
     .from('academic_calendar_days')
     .insert(rows)
 
-  if (insertError) throw new Error(insertError.message)
+  if (insertError && !isUniqueViolation(insertError)) {
+    throw new Error(insertError.message)
+  }
 }

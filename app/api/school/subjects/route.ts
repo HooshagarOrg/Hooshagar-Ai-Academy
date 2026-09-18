@@ -6,22 +6,14 @@ import {
   TIMETABLE_BELL_EDIT_ROLES,
 } from '@/lib/timetable/permissions'
 import { ensureSchoolSubjects } from '@/lib/timetable/seed'
-
-function resolveSchoolId(
-  ctxSchoolId: string | null,
-  role: string,
-  querySchoolId: string | null
-): string | null {
-  if (role === 'platform_admin' && querySchoolId) return querySchoolId
-  return ctxSchoolId
-}
+import { resolveTimetableSchoolId } from '@/lib/timetable/school-scope'
 
 export async function GET(request: NextRequest) {
   return withAuth(
     request,
     async (ctx) => {
       const { searchParams } = new URL(request.url)
-      const schoolId = resolveSchoolId(
+      const schoolId = resolveTimetableSchoolId(
         ctx.schoolId,
         ctx.role,
         searchParams.get('school_id')
@@ -68,7 +60,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      const schoolId = resolveSchoolId(
+      const schoolId = resolveTimetableSchoolId(
         ctx.schoolId,
         ctx.role,
         parsed.data.school_id ?? null

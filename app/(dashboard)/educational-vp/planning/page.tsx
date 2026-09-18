@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { PersianDateTimePicker } from '@/components/ui/persian-datetime-picker'
 import {
   WeekGrid,
   type WeekGridBell,
@@ -77,8 +78,8 @@ export default function EducationalVpPlanningPage() {
     setLoading(true)
     try {
       const res = await fetch(`/api/classes/${id}/timetable`)
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'خطا')
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'بارگذاری برنامه ناموفق بود')
       setBells(
         (data.bells || []).map(
           (b: {
@@ -374,12 +375,11 @@ export default function EducationalVpPlanningPage() {
             <CardTitle className="text-base">تعطیلی مدرسه</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Label>تاریخ (میلادی YYYY-MM-DD)</Label>
-            <Input
-              dir="ltr"
+            <Label>تاریخ تعطیلی</Label>
+            <PersianDateTimePicker
+              dateOnly
               value={closureDate}
-              onChange={(e) => setClosureDate(e.target.value)}
-              placeholder="2026-03-21"
+              onChange={setClosureDate}
             />
             <Input
               value={closureTitle}
@@ -394,11 +394,10 @@ export default function EducationalVpPlanningPage() {
             <CardTitle className="text-base">نسخه از تاریخ</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Input
-              dir="ltr"
+            <PersianDateTimePicker
+              dateOnly
               value={newVersionFrom}
-              onChange={(e) => setNewVersionFrom(e.target.value)}
-              placeholder="2026-01-01"
+              onChange={setNewVersionFrom}
             />
             <Button variant="outline" onClick={() => void newVersion()}>
               ساخت نسخهٔ جدید

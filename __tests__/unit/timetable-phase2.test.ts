@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { canEditTimetableDraft, canLockTimetable } from '@/lib/timetable/permissions'
 import { findTeacherConflicts } from '@/lib/timetable/conflicts'
+import {
+  isUniqueViolation,
+  resolveTimetableSchoolId,
+} from '@/lib/timetable/school-scope'
 
 describe('phase2 scope intent', () => {
   it('subject teachers cannot lock or edit timetable grid', () => {
@@ -34,6 +38,27 @@ describe('phase2 scope intent', () => {
       },
     ])
     expect(conflicts).toHaveLength(1)
+  })
+})
+
+describe('resolveTimetableSchoolId', () => {
+  it('requires explicit school for platform admin without profile school', () => {
+    expect(resolveTimetableSchoolId(null, 'platform_admin', null)).toBeNull()
+    expect(
+      resolveTimetableSchoolId(null, 'platform_admin', 'school-1')
+    ).toBe('school-1')
+  })
+
+  it('keeps school staff on their own school', () => {
+    expect(
+      resolveTimetableSchoolId('school-a', 'educational_vp', 'school-b')
+    ).toBe('school-a')
+  })
+
+  it('detects unique violations for concurrent seed', () => {
+    expect(isUniqueViolation({ code: '23505' })).toBe(true)
+    expect(isUniqueViolation({ message: 'duplicate key value' })).toBe(true)
+    expect(isUniqueViolation({ message: 'rls' })).toBe(false)
   })
 })
 

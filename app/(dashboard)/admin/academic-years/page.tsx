@@ -14,6 +14,7 @@ import { Calendar, CheckCircle, Plus, Rocket, BarChart3, Edit, Eye } from 'lucid
 import { toast } from 'sonner'
 import { PageLoading } from '@/components/ui/page-states'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
+import { PersianDateTimePicker } from '@/components/ui/persian-datetime-picker'
 import type { AcademicYear, PromotionResult } from '@/lib/types/academic.types'
 
 export default function AcademicYearsPage() {
@@ -56,6 +57,10 @@ export default function AcademicYearsPage() {
 
   const handleCreateYear = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.year_name.trim() || !formData.start_date || !formData.end_date) {
+      toast.error('نام سال و تاریخ شروع و پایان را وارد کنید')
+      return
+    }
 
     try {
       const response = await fetch('/api/academic-years', {
@@ -163,23 +168,21 @@ export default function AcademicYearsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="start_date">تاریخ شروع</Label>
-                    <Input
+                    <PersianDateTimePicker
                       id="start_date"
-                      type="date"
+                      dateOnly
                       value={formData.start_date}
-                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                      required
+                      onChange={(v) => setFormData({ ...formData, start_date: v })}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="end_date">تاریخ پایان</Label>
-                    <Input
+                    <PersianDateTimePicker
                       id="end_date"
-                      type="date"
+                      dateOnly
                       value={formData.end_date}
-                      onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                      required
+                      onChange={(v) => setFormData({ ...formData, end_date: v })}
                     />
                   </div>
                 </div>
@@ -200,11 +203,13 @@ export default function AcademicYearsPage() {
                 {formData.auto_promotion_enabled && (
                   <div className="space-y-2">
                     <Label htmlFor="auto_promotion_date">تاریخ ارتقای خودکار</Label>
-                    <Input
+                    <PersianDateTimePicker
                       id="auto_promotion_date"
-                      type="date"
+                      dateOnly
                       value={formData.auto_promotion_date}
-                      onChange={(e) => setFormData({ ...formData, auto_promotion_date: e.target.value })}
+                      onChange={(v) =>
+                        setFormData({ ...formData, auto_promotion_date: v })
+                      }
                     />
                   </div>
                 )}

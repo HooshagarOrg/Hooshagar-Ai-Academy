@@ -33,6 +33,8 @@ interface PersianDateTimePickerProps {
   disabled?: boolean
   className?: string
   min?: string
+  /** فقط تاریخ شمسی؛ مقدار ذخیره‌شده YYYY-MM-DD میلادی محلی است */
+  dateOnly?: boolean
 }
 
 const MONTHS = [
@@ -48,14 +50,23 @@ export function toDatetimeLocalValue(date: Date): string {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`
 }
 
-function parseStoredValue(value: string): Date | null {
+function parseStoredValue(value: string, dateOnly = false): Date | null {
   if (!value?.trim()) return null
+  if (dateOnly && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+    const [y, m, d] = value.trim().split('-').map(Number)
+    if (!y || !m || !d) return null
+    return new Date(y, m - 1, d, 12, 0, 0, 0)
+  }
   const raw =
     value.includes('T') && !value.endsWith('Z') && value.length <= 16
       ? `${value}:00`
       : value
   const d = new Date(raw)
   return Number.isNaN(d.getTime()) ? null : d
+}
+
+function toLocalIsoDate(date: Date): string {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
 }
 
 function buildDate(parts: {
@@ -83,11 +94,12 @@ export function PersianDateTimePicker({
   disabled,
   className,
   min,
+  dateOnly = false,
 }: PersianDateTimePickerProps) {
   const now = useMemo(() => new Date(), [])
   const currentYear = getYear(now)
-  const parsed = useMemo(() => parseStoredValue(value), [value])
-  const minDate = useMemo(() => parseStoredValue(min || ''), [min])
+  const parsed = useMemo(() => parseStoredValue(value, dateOnly), [value, dateOnly])
+  const minDate = useMemo(() => parseStoredValue(min || '', dateOnly), [min, dateOnly])
 
   const draft = useMemo(() => {
     const base = parsed ?? now
@@ -128,7 +140,7 @@ export function PersianDateTimePicker({
   }) => {
     let d = buildDate(next)
     if (minDate && d.getTime() < minDate.getTime()) d = new Date(minDate.getTime())
-    onChange(toDatetimeLocalValue(d))
+    onChange(dateOnly ? toLocalIsoDate(d) : toDatetimeLocalValue(d))
   }
 
   const selectClass = 'h-9'
@@ -213,6 +225,7 @@ export function PersianDateTimePicker({
         </div>
       </div>
 
+      {!dateOnly && (
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <Label className="text-[11px] text-muted-foreground">ساعت</Label>
@@ -265,6 +278,7 @@ export function PersianDateTimePicker({
           </Select>
         </div>
       </div>
+      )}
     </div>
   )
 }

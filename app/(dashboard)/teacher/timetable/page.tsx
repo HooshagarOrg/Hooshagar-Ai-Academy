@@ -77,8 +77,8 @@ export default function TeacherTimetablePage() {
     setLoading(true)
     try {
       const res = await fetch(`/api/classes/${id}/timetable`)
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'خطا')
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'بارگذاری برنامه ناموفق بود')
 
       setBells(
         (data.bells || []).map(

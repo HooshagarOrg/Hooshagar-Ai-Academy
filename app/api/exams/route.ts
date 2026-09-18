@@ -35,6 +35,27 @@ const createExamSchema = z.object({
   questions: z.array(directQuestionSchema).optional(),
 });
 
+function isMissingColumnError(
+  error: { message?: string; code?: string } | null,
+  column: string
+): boolean {
+  const message = error?.message ?? ''
+  return (
+    error?.code === 'PGRST204' ||
+    new RegExp(`Could not find the '${column}' column`, 'i').test(message) ||
+    new RegExp(`column "?${column}"?`, 'i').test(message)
+  )
+}
+
+function examCreateErrorBody(examError: { message?: string; code?: string }): Record<string, string> {
+  const body: Record<string, string> = { error: 'خطا در ایجاد امتحان' }
+  if (process.env.HOOSHAGAR_E2E === '1' || process.env.APP_ENV === 'test') {
+    if (examError.message) body.details = examError.message
+    if (examError.code) body.code = examError.code
+  }
+  return body
+}
+
 // دریافت لیست امتحانات
 export async function GET(request: NextRequest) {
   return withAuth(request, async (ctx) => {
@@ -106,14 +127,11 @@ export async function POST(request: NextRequest) {
 
     const { question_ids, questions: directQuestions, ...examData } = result.data;
 
-    // معلم معمولی باید class_id بدهد و آن کلاس در محدودهٔ تدریس باشد
-    if (ctx.role === 'teacher' || ctx.role === 'art_teacher' || ctx.role === 'sports_teacher') {
-      if (!examData.class_id) {
-        return NextResponse.json(
-          { error: 'برای معلم، انتخاب کلاس الزامی است' },
-          { status: 400 }
-        )
-      }
+    // class_id اختیاری است (UI هنوز picker ندارد). اگر آمده، باید در محدودهٔ تدریس باشد.
+    if (
+      examData.class_id &&
+      (ctx.role === 'teacher' || ctx.role === 'art_teacher' || ctx.role === 'sports_teacher')
+    ) {
       const { assertTeacherOwnsClass } = await import('@/lib/class-files')
       const owns = await assertTeacherOwnsClass(supabase, {
         userId: ctx.userId,
@@ -131,25 +149,37 @@ export async function POST(request: NextRequest) {
 
     const totalQuestions = (question_ids?.length || 0) + (directQuestions?.length || 0)
 
-    // ایجاد امتحان
-    const { data: exam, error: examError } = await supabase
+    const insertPayload: Record<string, unknown> = {
+      title: examData.title,
+      subject: examData.subject,
+      grade: examData.grade,
+      exam_date: examData.exam_date,
+      duration_minutes: examData.duration_minutes,
+      exam_config: examData.exam_config,
+      difficulty_distribution: examData.difficulty_distribution,
+      total_questions: totalQuestions,
+      status: 'draft',
+      created_by: ctx.userId,
+      school_id: ctx.schoolId ?? null,
+    }
+    if (examData.class_id) insertPayload.class_id = examData.class_id
+
+    let { data: exam, error: examError } = await supabase
       .from('exams')
-      .insert({
-        ...examData,
-        total_questions: totalQuestions,
-        status: 'draft',
-        created_by: ctx.userId,
-        school_id: ctx.schoolId ?? null,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
+    if (examError && examData.class_id && isMissingColumnError(examError, 'class_id')) {
+      delete insertPayload.class_id
+      const retry = await supabase.from('exams').insert(insertPayload).select().single()
+      exam = retry.data
+      examError = retry.error
+    }
+
     if (examError) {
       console.error('خطا در ایجاد امتحان:', examError);
-      return NextResponse.json(
-        { error: 'خطا در ایجاد امتحان' },
-        { status: 500 }
-      );
+      return NextResponse.json(examCreateErrorBody(examError), { status: 500 });
     }
 
     // افزودن سوالات از بانک

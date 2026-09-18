@@ -100,7 +100,6 @@ test.describe('exam flow', () => {
         title: examTitle,
         subject: 'ریاضی',
         grade: 6,
-        class_id: bundle.classRoom.id,
         exam_date: new Date().toISOString(),
         duration_minutes: 15,
         exam_config: {

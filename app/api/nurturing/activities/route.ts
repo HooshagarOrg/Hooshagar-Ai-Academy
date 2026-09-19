@@ -25,6 +25,14 @@ const createSchema = z.object({
   notes: z.string().trim().max(2000).optional().nullable(),
 })
 
+const updateSchema = createSchema.partial().extend({
+  id: z.string().uuid('شناسه نامعتبر است'),
+})
+
+const deleteSchema = z.object({
+  id: z.string().uuid('شناسه نامعتبر است'),
+})
+
 export async function GET(request: NextRequest) {
   return withAuth(
     request,
@@ -91,6 +99,90 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 })
       }
       return NextResponse.json({ activity: data }, { status: 201 })
+    },
+    { roles: NURTURING_WRITE_ROLES, rateLimit: 'api_default' }
+  )
+}
+
+export async function PATCH(request: NextRequest) {
+  return withAuth(
+    request,
+    async (ctx) => {
+      const parsed = updateSchema.safeParse(await request.json())
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: parsed.error.issues[0]?.message || 'داده‌های نامعتبر' },
+          { status: 400 }
+        )
+      }
+
+      const { id, ...fields } = parsed.data
+      if (Object.keys(fields).length === 0) {
+        return NextResponse.json({ error: 'هیچ فیلدی برای بروزرسانی نیست' }, { status: 400 })
+      }
+
+      let query = ctx.supabase
+        .from('nurturing_activities')
+        .update({
+          ...(fields.title !== undefined ? { title: fields.title } : {}),
+          ...(fields.activity_date !== undefined
+            ? { activity_date: fields.activity_date }
+            : {}),
+          ...(fields.location !== undefined ? { location: fields.location || null } : {}),
+          ...(fields.notes !== undefined ? { notes: fields.notes || null } : {}),
+        })
+        .eq('id', id)
+
+      if (ctx.schoolId) {
+        query = query.eq('school_id', ctx.schoolId)
+      }
+
+      const { data, error } = await query
+        .select('id, title, activity_date, location, notes, created_at')
+        .maybeSingle()
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+      if (!data) {
+        return NextResponse.json({ error: 'فعالیت یافت نشد' }, { status: 404 })
+      }
+      return NextResponse.json({ activity: data })
+    },
+    { roles: NURTURING_WRITE_ROLES, rateLimit: 'api_default' }
+  )
+}
+
+export async function DELETE(request: NextRequest) {
+  return withAuth(
+    request,
+    async (ctx) => {
+      const body = await request.json().catch(() => ({}))
+      const parsed = deleteSchema.safeParse(body)
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: parsed.error.issues[0]?.message || 'شناسه نامعتبر است' },
+          { status: 400 }
+        )
+      }
+
+      let query = ctx.supabase
+        .from('nurturing_activities')
+        .delete()
+        .eq('id', parsed.data.id)
+
+      if (ctx.schoolId) {
+        query = query.eq('school_id', ctx.schoolId)
+      }
+
+      const { data, error } = await query.select('id').maybeSingle()
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+      if (!data) {
+        return NextResponse.json({ error: 'فعالیت یافت نشد' }, { status: 404 })
+      }
+      return NextResponse.json({ success: true, id: data.id })
     },
     { roles: NURTURING_WRITE_ROLES, rateLimit: 'api_default' }
   )

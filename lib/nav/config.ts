@@ -9,6 +9,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
 import { getRoleLabel as getCanonicalRoleLabel } from '@/lib/auth/roles'
+import { studentRouteAllowedForGrade } from '@/lib/education/cycle'
 
 export type NavItem = {
   title: string
@@ -364,12 +365,32 @@ export function getRoleLabel(role: string): string {
   return getCanonicalRoleLabel(role)
 }
 
-export function resolveNavGroups(role: string): NavGroup[] {
+export function resolveNavGroups(
+  role: string,
+  options?: { grade?: number | null }
+): NavGroup[] {
   const navRole = role === 'platform_admin' ? 'admin' : role
-  if (navConfig[navRole]) return navConfig[navRole]
-  const simple = simpleNavs[role]
-  if (simple) return [{ items: simple }]
-  return [{ items: [{ title: 'داشبورد', href: '/dashboard', icon: Home }] }]
+  let groups: NavGroup[]
+  if (navConfig[navRole]) groups = navConfig[navRole]
+  else {
+    const simple = simpleNavs[role]
+    groups = simple
+      ? [{ items: simple }]
+      : [{ items: [{ title: 'داشبورد', href: '/dashboard', icon: Home }] }]
+  }
+
+  if (role === 'student' && options?.grade != null) {
+    groups = groups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          studentRouteAllowedForGrade(item.href, options.grade ?? null)
+        ),
+      }))
+      .filter((group) => group.items.length > 0)
+  }
+
+  return groups
 }
 
 export function isNavActive(pathname: string, href: string): boolean {

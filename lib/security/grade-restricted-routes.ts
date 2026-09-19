@@ -1,3 +1,5 @@
+import { educationCycleFromGrade } from '@/lib/education/cycle'
+
 export type EducationStage =
   | 'preschool'
   | 'elementary'
@@ -36,10 +38,22 @@ export function checkGradeRestriction(
   education_stage: EducationStage | null
 ): boolean {
   for (const [route, restriction] of Object.entries(GRADE_RESTRICTED_ROUTES)) {
-    if (pathname.startsWith(route)) {
-      if (!grade_level || !education_stage) return false
-      if (grade_level < restriction.min_grade) return false
-      if (!restriction.stages.includes(education_stage)) return false
+    if (!pathname.startsWith(route)) continue
+    if (!grade_level) return false
+    if (grade_level < restriction.min_grade) return false
+
+    const cycle = educationCycleFromGrade(grade_level)
+    if (route.includes('konkur') && cycle !== 'high') return false
+    if (route.includes('ai-guidance') && cycle !== 'middle' && cycle !== 'high') return false
+    if (route.includes('future-compass') && cycle !== 'middle' && cycle !== 'high') return false
+    if (route.includes('field-selection') && cycle !== 'middle' && cycle !== 'high') {
+      return false
+    }
+
+    if (education_stage && !restriction.stages.includes(education_stage)) {
+      // پایه ۱–۶ در DB = elementary؛ مسدود بودن از چرخه کافی است
+      if (education_stage === 'elementary') return false
+      return false
     }
   }
   return true

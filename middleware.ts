@@ -324,23 +324,33 @@ export async function middleware(request: NextRequest) {
   }
 
   // 12. بررسی محدودیت مقطع تحصیلی برای دانش‌آموزان
-  if (userRole === 'student' && Object.keys(GRADE_RESTRICTED_ROUTES).some(r => pathname.startsWith(r))) {
+  if (userRole === 'student') {
     const { data: studentData } = await supabase
       .from('students')
       .select('grade, education_stage')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    const gradeAllowed = checkGradeRestriction(
-      pathname,
-      studentData?.grade ?? null,
-      (studentData?.education_stage ?? null) as EducationStage | null
-    )
+    if (studentData?.grade != null) {
+      requestHeaders.set('x-student-grade', String(studentData.grade))
+    }
 
-    if (!gradeAllowed) {
-      const redirectUrl = new URL('/student', request.url)
-      redirectUrl.searchParams.set('error', 'grade_not_allowed')
-      return NextResponse.redirect(redirectUrl)
+    if (Object.keys(GRADE_RESTRICTED_ROUTES).some((r) => pathname.startsWith(r))) {
+      const gradeAllowed = checkGradeRestriction(
+        pathname,
+        studentData?.grade ?? null,
+        (studentData?.education_stage ?? null) as EducationStage | null
+      )
+
+      if (!gradeAllowed) {
+        const redirectUrl = new URL('/student', request.url)
+        redirectUrl.searchParams.set('error', 'grade_not_allowed')
+        redirectUrl.searchParams.set(
+          'message',
+          'این بخش برای مقطع تحصیلی شما فعال نیست'
+        )
+        return NextResponse.redirect(redirectUrl)
+      }
     }
   }
 

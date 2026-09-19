@@ -142,7 +142,13 @@ export async function withAuth(
 export const ADMIN_ROLES: AllowedRole[] = ['admin', 'platform_admin']
 export const STAFF_ROLES: AllowedRole[] = [...STAFF_APP_ROLES]
 export const TEACHER_AND_ABOVE: AllowedRole[] = [
-  'teacher', 'principal', 'admin', 'platform_admin',
+  'teacher',
+  'principal',
+  'admin',
+  'platform_admin',
+  'disciplinary_vp',
+  'educational_vp',
+  'counselor',
 ]
 
 // ============================================

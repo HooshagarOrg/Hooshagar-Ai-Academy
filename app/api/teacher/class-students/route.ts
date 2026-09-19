@@ -9,6 +9,11 @@ const TEACHER_ROLES: AllowedRole[] = [
   'principal',
   'admin',
   'platform_admin',
+  'disciplinary_vp',
+  'counselor',
+  'health_vp',
+  'educational_vp',
+  'nurturing_vp',
 ]
 
 /**

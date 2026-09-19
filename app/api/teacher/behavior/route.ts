@@ -11,6 +11,7 @@ const TEACHER_ROLES: AllowedRole[] = [
   'principal',
   'admin',
   'platform_admin',
+  'disciplinary_vp',
 ]
 
 const BEHAVIOR_READ_ROLES: AllowedRole[] = [

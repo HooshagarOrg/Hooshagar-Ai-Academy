@@ -154,12 +154,15 @@ export async function POST(request: NextRequest) {
           absence_reason?: string
           notes?: string
           notify_parent?: boolean
+          class_id?: string
         }) => ({
           student_id: r.student_id,
           date: r.date,
           status: r.status,
           notes: r.notes || null,
           recorded_by: ctx.userId,
+          school_id: schoolId || null,
+          class_id: r.class_id || null,
         })
       )
 

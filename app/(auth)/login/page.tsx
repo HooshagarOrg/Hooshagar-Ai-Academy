@@ -24,13 +24,43 @@ type LoginTab = 'staff' | 'parent' | 'student' | 'sms'
 const LOGIN_TABS: Array<{
   id: LoginTab
   label: string
+  hint: string
+  panelTitle: string
   testId: string
   Icon: typeof User
 }> = [
-  { id: 'staff', label: 'کارکنان', testId: 'login-tab-staff', Icon: User },
-  { id: 'parent', label: 'والدین', testId: 'login-tab-parent', Icon: Users },
-  { id: 'student', label: 'دانش‌آموز', testId: 'login-tab-student', Icon: GraduationCap },
-  { id: 'sms', label: 'پیامک', testId: 'login-tab-sms', Icon: Smartphone },
+  {
+    id: 'staff',
+    label: 'کارکنان',
+    hint: 'معلم، مدیر، معاون',
+    panelTitle: 'ورود کارکنان',
+    testId: 'login-tab-staff',
+    Icon: User,
+  },
+  {
+    id: 'parent',
+    label: 'والدین',
+    hint: 'کد ملی یا موبایل',
+    panelTitle: 'ورود والدین',
+    testId: 'login-tab-parent',
+    Icon: Users,
+  },
+  {
+    id: 'student',
+    label: 'دانش‌آموز',
+    hint: 'کد دانش‌آموزی + PIN',
+    panelTitle: 'ورود دانش‌آموز',
+    testId: 'login-tab-student',
+    Icon: GraduationCap,
+  },
+  {
+    id: 'sms',
+    label: 'پیامک',
+    hint: 'کد ۶ رقمی موبایل',
+    panelTitle: 'ورود با پیامک',
+    testId: 'login-tab-sms',
+    Icon: Smartphone,
+  },
 ]
 
 export default function LoginPage() {
@@ -335,16 +365,31 @@ export default function LoginPage() {
     setShowPassword(false)
   }
 
+  const activeRole = LOGIN_TABS.find((tab) => tab.id === activeTab) ?? LOGIN_TABS[0]
+  const ActiveIcon = activeRole.Icon
+
   return (
     <div className="w-full" dir="rtl" data-testid="login-page">
       <div className="w-full">
+        <div className="mb-5 text-center sm:text-right">
+          <p className="text-[11px] font-extrabold tracking-[0.16em] text-[var(--lux-gold)]">
+            مرحله ۱ از ۲
+          </p>
+          <h1 className="lux-h2 mt-1.5 text-xl leading-snug sm:text-2xl">
+            اول نقش خود را انتخاب کنید
+          </h1>
+          <p className="mt-1.5 text-xs leading-7 text-[var(--lux-text-muted)] sm:text-sm">
+            کارکنان، والدین و دانش‌آموز مسیر ورود جدا دارند — اشتباه نگیرید.
+          </p>
+        </div>
+
         <div
           className="lp-auth-tabs mb-5"
           role="tablist"
           aria-label="روش ورود"
           data-testid="login-tabs"
         >
-          {LOGIN_TABS.map(({ id, label, testId, Icon }) => {
+          {LOGIN_TABS.map(({ id, label, hint, testId, Icon }) => {
             const selected = activeTab === id
             return (
               <button
@@ -360,11 +405,28 @@ export default function LoginPage() {
                 data-testid={testId}
                 onClick={() => switchTab(id)}
               >
-                <Icon className="lp-auth-tab-icon" aria-hidden="true" />
-                <span>{label}</span>
+                <span className="lp-auth-tab-icon-wrap" aria-hidden="true">
+                  <Icon className="lp-auth-tab-icon" />
+                </span>
+                <span className="lp-auth-tab-copy">
+                  <span className="lp-auth-tab-label">{label}</span>
+                  <span className="lp-auth-tab-hint">{hint}</span>
+                </span>
               </button>
             )
           })}
+        </div>
+
+        <div className="lp-auth-role-banner" data-tab={activeTab}>
+          <span className="lp-auth-role-banner-icon" aria-hidden="true">
+            <ActiveIcon className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold text-[var(--lux-text-muted)]">مرحله ۲ — اطلاعات ورود</p>
+            <p className="truncate text-sm font-extrabold text-[var(--lux-text)]">
+              {activeRole.panelTitle}
+            </p>
+          </div>
         </div>
 
         {requireCaptcha && TURNSTILE_SITE_KEY ? (

@@ -1,13 +1,6 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { KeyRound, Shield, Users } from 'lucide-react'
-
-const LOGIN_TRUST_POINTS = [
-  { icon: Users, text: 'ورود جدا برای کارکنان، والدین و دانش‌آموز' },
-  { icon: KeyRound, text: 'رمز عبور، کد ورود یا پیامک' },
-  { icon: Shield, text: 'محافظت در برابر تلاش‌های مشکوک' },
-] as const
 
 const PAGE_COPY: Record<string, {
   title: string
@@ -17,33 +10,41 @@ const PAGE_COPY: Record<string, {
   formSubtitle?: string
 }> = {
   '/login': {
-    title: 'ورود به هوشاگر',
-    subtitle: 'سیستم‌عامل هوشمند مدیریت مدارس — امن و یکپارچه',
-    accent: 'ورود امن با رمز یا پیامک',
-    formTitle: 'خوش آمدید',
-    formSubtitle: 'روش ورود خود را انتخاب کنید',
+    title: 'مدرسه، یکجا و امن',
+    subtitle: 'هر نقش مسیر ورود خودش را دارد تا اشتباه در ورود کمتر شود.',
+    accent: 'هوشاگر',
   },
   '/register': {
     title: 'ثبت‌نام در هوشاگر',
     subtitle: 'سه مرحله تا شروع تجربهٔ یادگیری هوشمند',
     accent: 'برای مدارس و خانواده‌ها',
+    formTitle: 'ثبت‌نام',
+    formSubtitle: 'نقش و اطلاعات خود را وارد کنید',
   },
   '/change-password': {
     title: 'تغییر رمز عبور',
     subtitle: 'رمز جدید امن برای حساب کاربری شما',
+    formTitle: 'رمز جدید',
+    formSubtitle: 'رمز قوی انتخاب کنید',
   },
   '/forgot-password': {
     title: 'بازیابی رمز عبور',
     subtitle: 'کد تأیید به موبایل ثبت‌شده ارسال می‌شود',
     accent: 'بازیابی امن با پیامک',
+    formTitle: 'بازیابی رمز',
+    formSubtitle: 'شماره موبایل ثبت‌شده را وارد کنید',
   },
   '/reset-password': {
     title: 'رمز عبور جدید',
     subtitle: 'رمز قوی و منحصربه‌فرد انتخاب کنید',
+    formTitle: 'تنظیم رمز',
+    formSubtitle: 'رمز جدید را وارد کنید',
   },
   '/activate': {
     title: 'فعال‌سازی حساب',
     subtitle: 'کد فعال‌سازی را از مدرسه دریافت کنید',
+    formTitle: 'فعال‌سازی',
+    formSubtitle: 'کد فعال‌سازی مدرسه را وارد کنید',
   },
 }
 
@@ -65,36 +66,18 @@ export function PortalCopy({
   const pageAccent = accentLabel ?? copy.accent
 
   return (
-    <div className="flex flex-col items-center text-center">
-      <p className="lp-kicker-gold text-[11px] font-extrabold tracking-[0.18em]">
-        هوشاگر
-      </p>
-      <h2 className="lux-h2 mt-4 max-w-sm text-balance text-3xl leading-snug xl:text-4xl">
+    <div className="flex max-w-md flex-col items-center text-center">
+      {pageAccent ? (
+        <p className="lp-kicker-gold text-[11px] font-extrabold tracking-[0.2em]">
+          {pageAccent}
+        </p>
+      ) : null}
+      <h2 className="lux-h2 mt-3 max-w-sm text-balance text-3xl leading-snug xl:text-[2.6rem]">
         {pageTitle}
       </h2>
       <p className="mt-4 max-w-sm text-sm leading-8 text-[var(--lux-text-muted)]">
         {pageSubtitle}
       </p>
-      {pageAccent ? (
-        <span className="mt-6 rounded-full border border-[rgba(201,169,98,0.35)] bg-[rgba(201,169,98,0.1)] px-4 py-1.5 text-xs font-extrabold text-[var(--lux-gold)]">
-          {pageAccent}
-        </span>
-      ) : null}
-      {pathname === '/login' ? (
-        <ul className="mt-9 w-full max-w-sm space-y-2.5 text-right">
-          {LOGIN_TRUST_POINTS.map(({ icon: Icon, text }) => (
-            <li
-              key={text}
-              className="flex items-start gap-3 rounded-xl border border-[rgba(232,236,244,0.08)] bg-[rgba(15,17,23,0.38)] px-3.5 py-2.5"
-            >
-              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[rgba(139,124,255,0.14)] text-[var(--lux-primary)]">
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-              </span>
-              <span className="text-xs leading-7 text-[var(--lux-text-muted)]">{text}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
     </div>
   )
 }
@@ -105,8 +88,11 @@ export function PortalFormHeading({
 }: {
   title?: string
   subtitle?: string
-}): JSX.Element {
+}): JSX.Element | null {
   const pathname = usePathname()
+  // صفحه ورود heading خودش را داخل فرم دارد تا نقش فعال روشن باشد
+  if (pathname === '/login') return null
+
   const copy = PAGE_COPY[pathname ?? ''] ?? PAGE_COPY['/login']
   const heading = copy.formTitle ?? title ?? copy.title
   const description = copy.formSubtitle ?? subtitle ?? copy.subtitle
@@ -127,8 +113,10 @@ export function PortalMobileHeading({
 }: {
   title?: string
   subtitle?: string
-}): JSX.Element {
+}): JSX.Element | null {
   const pathname = usePathname()
+  if (pathname === '/login') return null
+
   const copy = PAGE_COPY[pathname ?? ''] ?? PAGE_COPY['/login']
   return (
     <>

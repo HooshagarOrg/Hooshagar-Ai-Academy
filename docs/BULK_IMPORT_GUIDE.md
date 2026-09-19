@@ -57,8 +57,9 @@
 | librarian | کتابدار |
 | health_vp | معاون بهداشت |
 | educational_vp | معاون آموزشی |
+| nurturing_vp | معاون پرورشی |
 | financial_vp | معاون مالی |
-| disciplinary_vp | معاون انضباطی / پرورشی |
+| disciplinary_vp | معاون انضباطی |
 | evaluation_vp | معاون ارزشیابی |
 | security | نگهبان |
 | maintenance | خدمات |

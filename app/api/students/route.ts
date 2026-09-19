@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { secureErrorResponse } from '@/lib/security/error-handler'
 import { withAuth } from '@/lib/security/api-guard'
-import { STUDENT_DATA_ROLES } from '@/lib/security/sensitive-api-roles'
+import { STUDENT_DATA_ROLES, STUDENT_LIST_ROLES } from '@/lib/security/sensitive-api-roles'
 import {
   canViewSchoolWideStudents,
   listStudentsForTeacher,
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
         return secureErrorResponse(error, { context: 'GET /api/students' })
       }
     },
-    { roles: STUDENT_DATA_ROLES }
+    { roles: STUDENT_LIST_ROLES }
   )
 }
 

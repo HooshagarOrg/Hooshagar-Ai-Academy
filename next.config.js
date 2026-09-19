@@ -75,10 +75,10 @@ const nextConfig = {
     ],
   },
 
-  // Compiler optimizations
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
+  // Compiler optimizations — فقط پروداکشن؛ کلید removeConsole در dev توربوپک را می‌بندد
+  ...(process.env.NODE_ENV === 'production'
+    ? { compiler: { removeConsole: true } }
+    : {}),
 
   // Experimental features
   experimental: {

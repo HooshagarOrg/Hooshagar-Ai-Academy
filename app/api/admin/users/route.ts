@@ -11,6 +11,7 @@ import { resolveParentDisplayName } from '@/lib/bulk-import/parent-name'
 import { validatePassword } from '@/lib/security/sanitize'
 import { PASSWORD_GUIDE_FA } from '@/lib/security/password-policy'
 import { parseListPage, POSTGREST_PAGE_SIZE } from '@/lib/supabase/paginate'
+import { isStaffAppRole } from '@/lib/auth/roles'
 import {
   assignHomeroomClass,
   assignHomeroomClasses,
@@ -300,10 +301,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 2. ساخت پروفایل
-      const isStaff = ['admin', 'platform_admin', 'principal', 'teacher', 'counselor',
-                       'health_vp', 'educational_vp', 'financial_vp', 'disciplinary_vp',
-                       'evaluation_vp', 'art_teacher', 'sports_teacher', 'secretary',
-                       'librarian', 'security', 'maintenance'].includes(role)
+      const isStaff = isStaffAppRole(role)
 
       const { error: profileError } = await admin
         .from('profiles')
@@ -495,13 +493,7 @@ export async function PATCH(request: NextRequest) {
       const updates: Record<string, unknown> = { ...rawUpdates }
 
       if (typeof updates.role === 'string') {
-        const staffRoles = [
-          'admin', 'platform_admin', 'principal', 'teacher', 'counselor',
-          'health_vp', 'educational_vp', 'financial_vp', 'disciplinary_vp',
-          'evaluation_vp', 'art_teacher', 'sports_teacher', 'secretary',
-          'librarian', 'security', 'maintenance',
-        ]
-        updates.is_staff = staffRoles.includes(updates.role)
+        updates.is_staff = isStaffAppRole(updates.role)
       }
 
       const admin = createServiceClient()
@@ -517,13 +509,7 @@ export async function PATCH(request: NextRequest) {
       }
 
       const effectiveRole = (typeof updates.role === 'string' ? updates.role : existing.role) as string
-      const staffRoles = [
-        'admin', 'platform_admin', 'principal', 'teacher', 'counselor',
-        'health_vp', 'educational_vp', 'financial_vp', 'disciplinary_vp',
-        'evaluation_vp', 'art_teacher', 'sports_teacher', 'secretary',
-        'librarian', 'security', 'maintenance',
-      ]
-      const isStaffRole = Boolean(existing.is_staff) || staffRoles.includes(effectiveRole)
+      const isStaffRole = Boolean(existing.is_staff) || isStaffAppRole(effectiveRole)
 
       if (new_password) {
         if (effectiveRole === 'student') {

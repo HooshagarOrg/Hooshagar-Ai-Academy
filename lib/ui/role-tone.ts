@@ -13,6 +13,7 @@ const CALM_ROLES = new Set([
   'evaluation_vp',
   'health_vp',
   'educational_vp',
+  'nurturing_vp',
   'security',
   'maintenance',
   'secretary',
@@ -34,6 +35,10 @@ export function getRoleExperienceLabel(role: string): string {
     admin: 'مرکز فرمان',
     platform_admin: 'ادمین کل',
     principal: 'مدیریت مدرسه',
+    educational_vp: 'آموزش',
+    nurturing_vp: 'پرورش',
+    disciplinary_vp: 'انضباط',
+    health_vp: 'بهداشت',
     financial_vp: 'امور مالی',
   }
   return labels[role] || 'هوشاگر'

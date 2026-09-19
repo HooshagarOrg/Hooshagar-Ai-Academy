@@ -12,11 +12,11 @@ import { COUNSELING_API_ROLES } from '@/lib/security/sensitive-api-roles'
 // GET - Dashboard Statistics
 // ==========================================
 export async function GET(req: NextRequest) {
-  return withAuth(req, async () => {
+  return withAuth(req, async (ctx) => {
     try {
       const supabase = await createClient()
       const { searchParams } = new URL(req.url)
-      const school_id = searchParams.get('school_id')
+      const school_id = searchParams.get('school_id') || ctx.schoolId
       const counselor_id = searchParams.get('counselor_id')
 
       const today = new Date().toISOString().split('T')[0]

@@ -1,5 +1,10 @@
-import { RoleInactivePage } from '@/components/ui/role-inactive-page'
+import { redirect } from 'next/navigation'
 
-export default function Page() {
-  return <RoleInactivePage title="ویرایش پرونده" backHref="/counselor/records" />
+export default async function CounselorRecordEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  redirect(`/counselor/records/${id}`)
 }

@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import {
-  User, Smartphone, GraduationCap, Shield,
-  Loader2, Eye, EyeOff, KeyRound,
+  User, Users, Smartphone, GraduationCap, Shield,
+  Loader2, Eye, EyeOff, KeyRound, Lock, Hash,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { TermsAcceptanceNotice } from '@/components/auth/terms-acceptance-notice'
+import { getRoleHomePath } from '@/lib/auth/roles'
 import dynamic from 'next/dynamic'
 
 const TurnstileWidget = dynamic(
@@ -27,7 +28,7 @@ const LOGIN_TABS: Array<{
   Icon: typeof User
 }> = [
   { id: 'staff', label: 'کارکنان', testId: 'login-tab-staff', Icon: User },
-  { id: 'parent', label: 'والدین', testId: 'login-tab-parent', Icon: User },
+  { id: 'parent', label: 'والدین', testId: 'login-tab-parent', Icon: Users },
   { id: 'student', label: 'دانش‌آموز', testId: 'login-tab-student', Icon: GraduationCap },
   { id: 'sms', label: 'پیامک', testId: 'login-tab-sms', Icon: Smartphone },
 ]
@@ -43,28 +44,13 @@ export default function LoginPage() {
   const [requireCaptcha, setRequireCaptcha] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
 
-  const roleRoutes: Record<string, string> = {
-    parent: '/parent',
-    teacher: '/teacher',
-    principal: '/principal',
-    student: '/student',
-    admin: '/admin',
-    platform_admin: '/admin',
-    counselor: '/counselor',
-    health_vp: '/health-vp',
-    educational_vp: '/educational-vp',
-    financial_vp: '/financial-vp',
-    disciplinary_vp: '/discipline-vp',
-    evaluation_vp: '/evaluation-vp',
-  }
-
   const redirectByRole = (role?: string, mustChange?: boolean) => {
     if (mustChange) {
       window.location.replace('/change-password')
       return
     }
     const redirect = new URLSearchParams(window.location.search).get('redirect')
-    window.location.replace(redirect || roleRoutes[role || ''] || '/dashboard')
+    window.location.replace(redirect || getRoleHomePath(role || '') || '/dashboard')
   }
 
   const handleLoginApiError = (data: {
@@ -97,9 +83,6 @@ export default function LoginPage() {
     })
   }, [])
 
-  // ==========================================
-  // ورود با کد ۱۰ رقمی (کد ملی / موبایل) + رمز — از API سرور
-  // ==========================================
   const handleCodeLogin = async (
     loginCode: string,
     password: string,
@@ -145,9 +128,6 @@ export default function LoginPage() {
     return true
   }
 
-  // ==========================================
-  // ورود با OTP پیامکی (مشترک برای همه نقش‌ها)
-  // ==========================================
   const handleSendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
@@ -234,9 +214,6 @@ export default function LoginPage() {
     }
   }
 
-  // ==========================================
-  // روش 1: ورود کارکنان (username یا کد ۱۰ رقمی + رمز)
-  // ==========================================
   const handleStaffLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
@@ -267,7 +244,7 @@ export default function LoginPage() {
         }),
       })
       const data = await response.json()
-      
+
       if (response.ok && data.success) {
         toast.success('ورود موفق')
         redirectByRole(data.role, data.must_change_password)
@@ -281,9 +258,6 @@ export default function LoginPage() {
     }
   }
 
-  // ==========================================
-  // ورود والدین: کد ۱۰ رقمی + رمز
-  // ==========================================
   const handleParentLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
@@ -302,9 +276,6 @@ export default function LoginPage() {
     }
   }
 
-  // ==========================================
-  // ورود دانش‌آموز — از API سرور (بدون RPC مستقیم مرورگر به Supabase)
-  // ==========================================
   const handleStudentLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
@@ -359,320 +330,401 @@ export default function LoginPage() {
     }
   }
 
+  const switchTab = (id: LoginTab) => {
+    setActiveTab(id)
+    setShowPassword(false)
+  }
+
   return (
     <div className="w-full" dir="rtl" data-testid="login-page">
       <div className="w-full">
-              <div
-                className="lp-auth-tabs mb-6 flex h-auto w-full gap-1 bg-transparent p-1"
-                role="tablist"
-                aria-label="روش ورود"
-                data-testid="login-tabs"
+        <div
+          className="lp-auth-tabs mb-5"
+          role="tablist"
+          aria-label="روش ورود"
+          data-testid="login-tabs"
+        >
+          {LOGIN_TABS.map(({ id, label, testId, Icon }) => {
+            const selected = activeTab === id
+            return (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                id={`login-tab-${id}`}
+                aria-controls={`login-panel-${id}`}
+                aria-selected={selected}
+                data-state={selected ? 'active' : 'inactive'}
+                data-tab={id}
+                className="lp-auth-tab"
+                data-testid={testId}
+                onClick={() => switchTab(id)}
               >
-                {LOGIN_TABS.map(({ id, label, testId, Icon }) => {
-                  const selected = activeTab === id
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      role="tab"
-                      aria-selected={selected}
-                      data-state={selected ? 'active' : 'inactive'}
-                      className="lp-auth-tab"
-                      data-testid={testId}
-                      onClick={() => setActiveTab(id)}
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                      {label}
-                    </button>
-                  )
-                })}
+                <Icon className="lp-auth-tab-icon" aria-hidden="true" />
+                <span>{label}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {requireCaptcha && TURNSTILE_SITE_KEY ? (
+          <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+            <p className="mb-2 text-center text-xs leading-7 text-[var(--lux-text-muted)]">
+              به‌خاطر تلاش‌های ناموفق، تأیید امنیتی لازم است
+            </p>
+            <TurnstileWidget
+              siteKey={TURNSTILE_SITE_KEY}
+              onToken={setCaptchaToken}
+            />
+          </div>
+        ) : null}
+
+        <div key={activeTab} className="lp-auth-panel">
+          {/* ===== تب کارکنان ===== */}
+          <div
+            role="tabpanel"
+            id="login-panel-staff"
+            aria-labelledby="login-tab-staff"
+            hidden={activeTab !== 'staff'}
+            className="space-y-1"
+          >
+            <p className="lp-auth-hint">
+              نام کاربری لاتین یا کد ۱۰ رقمی و رمز عبور
+            </p>
+            <form onSubmit={handleStaffLogin} className="space-y-4">
+              <div className="lp-auth-field">
+                <label className="lp-auth-label" htmlFor="username">
+                  <User className="h-3.5 w-3.5" aria-hidden="true" />
+                  نام کاربری / کد ورود
+                </label>
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  placeholder="username یا 1234567890"
+                  required
+                  disabled={isLoading}
+                  autoComplete="username"
+                  className="lp-input-dark text-left"
+                  dir="ltr"
+                  data-testid="login-username"
+                />
               </div>
 
-              {requireCaptcha && TURNSTILE_SITE_KEY ? (
-                <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
-                  <p className="mb-2 text-center text-xs text-[var(--lux-text-muted)]">
-                    به‌خاطر تلاش‌های ناموفق، تأیید امنیتی لازم است
-                  </p>
-                  <TurnstileWidget
-                    siteKey={TURNSTILE_SITE_KEY}
-                    onToken={setCaptchaToken}
+              <div className="lp-auth-field">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="lp-auth-label" htmlFor="password">
+                    <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                    رمز عبور
+                  </label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs text-[var(--lux-text-muted)] transition-colors hover:text-[var(--lux-secondary)]"
+                  >
+                    فراموشی رمز؟
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    required
+                    disabled={isLoading}
+                    autoComplete="current-password"
+                    className="lp-input-dark text-left pl-10"
+                    dir="ltr"
+                    data-testid="login-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--lux-text-muted)] transition-colors hover:text-[var(--lux-text)]"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'مخفی کردن رمز' : 'نمایش رمز'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" className="lux-btn-accent w-full" disabled={isLoading} data-testid="login-submit">
+                {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
+              </button>
+              <button
+                type="button"
+                className="lp-auth-alt"
+                onClick={() => switchTab('sms')}
+              >
+                <Smartphone className="h-3.5 w-3.5" aria-hidden="true" />
+                ورود با پیامک
+              </button>
+            </form>
+          </div>
+
+          {/* ===== تب والدین ===== */}
+          <div
+            role="tabpanel"
+            id="login-panel-parent"
+            aria-labelledby="login-tab-parent"
+            hidden={activeTab !== 'parent'}
+            className="space-y-1"
+          >
+            <p className="lp-auth-hint">
+              کد ملی یا موبایل بدون صفر، به‌همراه رمز عبور
+            </p>
+            <form onSubmit={handleParentLogin} className="space-y-4">
+              <div className="lp-auth-field">
+                <label className="lp-auth-label" htmlFor="login_code">
+                  <Hash className="h-3.5 w-3.5" aria-hidden="true" />
+                  کد ورود
+                </label>
+                <Input
+                  id="login_code"
+                  name="login_code"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="2112112111 یا 9399654875"
+                  required
+                  disabled={isLoading}
+                  className="lp-input-dark text-left font-mono tracking-widest"
+                  dir="ltr"
+                  maxLength={11}
+                  data-testid="login-parent-code"
+                />
+              </div>
+              <div className="lp-auth-field">
+                <label className="lp-auth-label" htmlFor="parent_password">
+                  <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                  رمز عبور
+                </label>
+                <div className="relative">
+                  <Input
+                    id="parent_password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••"
+                    required
+                    disabled={isLoading}
+                    className="lp-input-dark text-left pl-10"
+                    dir="ltr"
+                  />
+                  <button
+                    type="button"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--lux-text-muted)] transition-colors hover:text-[var(--lux-text)]"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'مخفی کردن رمز' : 'نمایش رمز'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
+                {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
+              </button>
+              <button
+                type="button"
+                className="lp-auth-alt"
+                onClick={() => switchTab('sms')}
+              >
+                <Smartphone className="h-3.5 w-3.5" aria-hidden="true" />
+                ورود با پیامک
+              </button>
+            </form>
+          </div>
+
+          {/* ===== تب دانش‌آموز ===== */}
+          <div
+            role="tabpanel"
+            id="login-panel-student"
+            aria-labelledby="login-tab-student"
+            hidden={activeTab !== 'student'}
+            className="space-y-1"
+          >
+            <p className="lp-auth-hint">
+              کد دانش‌آموزی یا کد ملی، به‌همراه PIN
+            </p>
+            <form onSubmit={handleStudentLogin} className="space-y-4">
+              <div className="lp-auth-field">
+                <label className="lp-auth-label" htmlFor="student_number">
+                  <GraduationCap className="h-3.5 w-3.5" aria-hidden="true" />
+                  کد دانش‌آموزی / کد ملی
+                </label>
+                <Input
+                  id="student_number"
+                  name="student_number"
+                  type="text"
+                  placeholder="1234567890"
+                  required
+                  disabled={isLoading}
+                  className="lp-input-dark text-left font-mono"
+                  dir="ltr"
+                  data-testid="login-student-number"
+                />
+                <p className="text-xs leading-7 text-[var(--lux-text-muted)]">
+                  کد دانش‌آموزی را از کارت فعال‌سازی مدرسه پیدا کنید
+                </p>
+              </div>
+
+              <div className="lp-auth-field">
+                <label className="lp-auth-label" htmlFor="pin">
+                  <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
+                  رمز (PIN)
+                </label>
+                <Input
+                  id="pin"
+                  name="pin"
+                  type="password"
+                  inputMode="numeric"
+                  placeholder="••••"
+                  required
+                  disabled={isLoading}
+                  className="lp-input-dark text-center text-3xl tracking-[0.5em]"
+                  dir="ltr"
+                  maxLength={6}
+                  pattern="[0-9]{4,6}"
+                  data-testid="login-student-pin"
+                />
+              </div>
+
+              <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
+                {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
+              </button>
+              <button
+                type="button"
+                className="lp-auth-alt"
+                onClick={() => switchTab('sms')}
+              >
+                <Smartphone className="h-3.5 w-3.5" aria-hidden="true" />
+                ورود با پیامک (اگر موبایل اختصاصی دارید)
+              </button>
+            </form>
+          </div>
+
+          {/* ===== تب ورود با پیامک ===== */}
+          <div
+            role="tabpanel"
+            id="login-panel-sms"
+            aria-labelledby="login-tab-sms"
+            hidden={activeTab !== 'sms'}
+            className="space-y-1"
+          >
+            <p className="lp-auth-hint">
+              شماره ثبت‌شده در مدرسه. دانش‌آموز فقط با موبایل اختصاصی.
+            </p>
+            {!otpSent ? (
+              <form key="sms-phone-form" onSubmit={handleSendOtp} className="space-y-4" autoComplete="on">
+                <div className="lp-auth-field">
+                  <label className="lp-auth-label" htmlFor="login-phone">
+                    <Smartphone className="h-3.5 w-3.5" aria-hidden="true" />
+                    شماره موبایل
+                  </label>
+                  <Input
+                    id="login-phone"
+                    data-testid="login-phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="09123456789"
+                    required
+                    disabled={isLoading}
+                    className="lp-input-dark text-left text-lg tracking-widest"
+                    dir="ltr"
+                    pattern="09[0-9]{9}"
+                    maxLength={11}
+                    autoComplete="tel"
+                    inputMode="tel"
                   />
                 </div>
-              ) : null}
-
-              {/* ===== تب کارکنان ===== */}
-              <div role="tabpanel" hidden={activeTab !== 'staff'} className="space-y-1">
-                <p className="lp-auth-hint">
-                  نام کاربری لاتین یا کد ۱۰ رقمی (کد ملی / موبایل بدون صفر) + رمز عبور
-                </p>
-                <form onSubmit={handleStaffLogin} className="space-y-4">
-          <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none" htmlFor="username">نام کاربری / کد ورود</label>
-            <Input
-                      id="username"
-                      name="username"
-                      type="text"
-                      placeholder="username یا 1234567890"
-              required
-              disabled={isLoading}
-                      autoComplete="username"
-                      className="lp-input-dark text-left"
-                      dir="ltr"
-                      data-testid="login-username"
-            />
-          </div>
-
-          <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-            <label className="text-sm font-medium leading-none" htmlFor="password">رمز عبور</label>
-                      <Link href="/forgot-password" className="text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-primary)]">
-                        فراموشی رمز؟
-                      </Link>
-                    </div>
-                    <div className="relative">
-            <Input
-              id="password"
-              name="password"
-                        type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              required
-              disabled={isLoading}
-                        autoComplete="current-password"
-                        className="lp-input-dark text-left pl-10"
-                      dir="ltr"
-                      data-testid="login-password"
-            />
-                      <button
-                        type="button"
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        onClick={() => setShowPassword(!showPassword)}
-                        tabIndex={-1}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-          </div>
-
-                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading} data-testid="login-submit">
-                    {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full text-xs text-[#3B82F6] hover:underline"
-                    onClick={() => setActiveTab('sms')}
-                  >
-                    ورود با پیامک
-                  </button>
-                </form>
-              </div>
-
-              {/* ===== تب والدین ===== */}
-              <div role="tabpanel" hidden={activeTab !== 'parent'} className="space-y-1">
-                <p className="lp-auth-hint">
-                  کد ۱۰ رقمی (کد ملی یا موبایل بدون صفر اول) + رمز عبور
-                </p>
-                <form onSubmit={handleParentLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none" htmlFor="login_code">کد ورود</label>
-                    <Input
-                      id="login_code"
-                      name="login_code"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="2112112111 یا 9399654875"
-                      required
-                      disabled={isLoading}
-                      className="text-left font-mono tracking-widest"
-                      dir="ltr"
-                      maxLength={11}
-                      data-testid="login-parent-code"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none" htmlFor="parent_password">رمز عبور</label>
-                    <Input
-                      id="parent_password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••"
-                      required
-                      disabled={isLoading}
-                      className="lp-input-dark text-left"
-                      dir="ltr"
-                    />
-                  </div>
-                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
-                    {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full text-xs text-[#10B981] hover:underline"
-                    onClick={() => setActiveTab('sms')}
-                  >
-                    ورود با پیامک
-                  </button>
-                </form>
-              </div>
-
-              {/* ===== تب دانش‌آموز ===== */}
-              <div role="tabpanel" hidden={activeTab !== 'student'} className="space-y-1">
-                <p className="lp-auth-hint">
-                  کد دانش‌آموزی یا کد ملی ۱۰ رقمی + PIN
-                </p>
-                <form onSubmit={handleStudentLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none" htmlFor="student_number">کد دانش‌آموزی / کد ملی</label>
-                    <Input
-                      id="student_number"
-                      name="student_number"
-                      type="text"
-                      placeholder="1234567890"
-                      required
-                      disabled={isLoading}
-                      className="text-left font-mono"
-                      dir="ltr"
-                      data-testid="login-student-number"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      کد دانش‌آموزی را از کارت فعال‌سازی مدرسه پیدا کنید
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <KeyRound className="w-4 h-4 text-muted-foreground" />
-                      <label className="text-sm font-medium leading-none" htmlFor="pin">رمز (PIN)</label>
-                    </div>
-                    <Input
-                      id="pin"
-                      name="pin"
-                      type="password"
-                      inputMode="numeric"
-                      placeholder="••••"
-                      required
-                      disabled={isLoading}
-                      className="text-center text-3xl tracking-[0.5em]"
-                      dir="ltr"
-                      maxLength={6}
-                      pattern="[0-9]{4,6}"
-                      data-testid="login-student-pin"
-                    />
-                  </div>
-
-                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
-                    {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
-          </button>
-                  <button
-                    type="button"
-                    className="w-full text-xs text-[#F59E0B] hover:underline"
-                    onClick={() => setActiveTab('sms')}
-                  >
-                    ورود با پیامک (اگر موبایل اختصاصی دارید)
-                  </button>
-                </form>
-              </div>
-
-              {/* ===== تب ورود با پیامک (مشترک) ===== */}
-              <div role="tabpanel" hidden={activeTab !== 'sms'} className="space-y-1">
-                <p className="lp-auth-hint">
-                  والدین و کارکنان: شماره ثبت‌شده در مدرسه. دانش‌آموز: فقط اگر موبایل اختصاصی در سیستم ثبت شده باشد.
-                </p>
-                {!otpSent ? (
-                  <form key="sms-phone-form" onSubmit={handleSendOtp} className="space-y-4" autoComplete="on">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium leading-none" htmlFor="login-phone">شماره موبایل</label>
-                      <Input
-                        id="login-phone"
-                        data-testid="login-phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="09123456789"
-                        required
-                        disabled={isLoading}
-                        className="text-left text-lg tracking-widest"
-                        dir="ltr"
-                        pattern="09[0-9]{9}"
-                        maxLength={11}
-                        autoComplete="tel"
-                        inputMode="tel"
-                      />
-                    </div>
-                    <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
-                      {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />ارسال کد...</> : 'دریافت کد تأیید'}
-                    </button>
-                  </form>
-                ) : (
-                  <form key="sms-otp-form" onSubmit={handleVerifyOtp} className="space-y-4" autoComplete="off">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium leading-none" htmlFor="login-otp">کد تأیید ۶ رقمی</label>
-                        {otpTimer > 0 && (
-                          <span className="text-xs text-muted-foreground">{otpTimer} ثانیه</span>
-                        )}
-                      </div>
-                      <Input
-                        id="login-otp"
-                        data-testid="login-otp"
-                        name="otp"
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="------"
-                        required
-                        disabled={isLoading}
-                        className="text-center text-3xl tracking-[0.5em] font-mono"
-                        dir="ltr"
-                        maxLength={6}
-                        pattern="[0-9]{6}"
-                        autoComplete="one-time-code"
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck={false}
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        autoFocus
-                      />
-                      <p className="text-xs text-muted-foreground text-center">
-                        ارسال شده به {otpPhone}
-                      </p>
-                    </div>
-                    <button
-                      type="submit"
-                      data-testid="login-otp-submit"
-                      className="lux-btn-accent w-full"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال تأیید...</> : 'تأیید و ورود'}
-                    </button>
-                    {otpTimer === 0 && (
-                      <button
-                        type="button"
-                        className="lux-btn-ghost w-full"
-                        onClick={() => { setOtpCode(''); setOtpSent(false) }}
-                      >
-                        ارسال مجدد کد
-                      </button>
+                <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
+                  {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />ارسال کد...</> : 'دریافت کد تأیید'}
+                </button>
+              </form>
+            ) : (
+              <form key="sms-otp-form" onSubmit={handleVerifyOtp} className="space-y-4" autoComplete="off">
+                <div className="lp-auth-field">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="lp-auth-label" htmlFor="login-otp">
+                      <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
+                      کد تأیید ۶ رقمی
+                    </label>
+                    {otpTimer > 0 && (
+                      <span className="rounded-full bg-[rgba(84,210,255,0.1)] px-2.5 py-0.5 text-xs font-bold text-[var(--lux-secondary)]">
+                        {otpTimer} ثانیه
+                      </span>
                     )}
-                    <button
-                      type="button"
-                      className="w-full text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-text)]"
-                      onClick={() => { setOtpSent(false); setOtpPhone(''); setOtpCode('') }}
-                      disabled={isLoading}
-                    >
-                      تغییر شماره موبایل
-                    </button>
-                  </form>
+                  </div>
+                  <Input
+                    id="login-otp"
+                    data-testid="login-otp"
+                    name="otp"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="------"
+                    required
+                    disabled={isLoading}
+                    className="lp-input-dark text-center font-mono text-3xl tracking-[0.5em]"
+                    dir="ltr"
+                    maxLength={6}
+                    pattern="[0-9]{6}"
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    autoFocus
+                  />
+                  <p className="text-center text-xs leading-7 text-[var(--lux-text-muted)]">
+                    ارسال شده به{' '}
+                    <span className="font-mono text-[var(--lux-text)]" dir="ltr">
+                      {otpPhone}
+                    </span>
+                  </p>
+                </div>
+                <button
+                  type="submit"
+                  data-testid="login-otp-submit"
+                  className="lux-btn-accent w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال تأیید...</> : 'تأیید و ورود'}
+                </button>
+                {otpTimer === 0 && (
+                  <button
+                    type="button"
+                    className="lux-btn-ghost w-full"
+                    onClick={() => { setOtpCode(''); setOtpSent(false) }}
+                  >
+                    ارسال مجدد کد
+                  </button>
                 )}
-              </div>
-            </div>
+                <button
+                  type="button"
+                  className="lp-auth-alt"
+                  onClick={() => { setOtpSent(false); setOtpPhone(''); setOtpCode('') }}
+                  disabled={isLoading}
+                >
+                  تغییر شماره موبایل
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
 
-      <div className="mt-6 flex flex-col gap-3 border-t border-[rgba(232,236,244,0.1)] pt-5">
+      <div className="mt-6 flex flex-col gap-2.5 border-t border-[rgba(232,236,244,0.1)] pt-4">
         <TermsAcceptanceNotice />
-        <div className="flex items-center justify-center gap-2 text-xs text-[var(--lux-text-muted)]">
-          <Shield className="w-3 h-3 text-[var(--lux-success)]" />
+        <div className="flex items-center justify-center gap-2 text-xs leading-7 text-[var(--lux-text-muted)]">
+          <Shield className="h-3.5 w-3.5 text-[var(--lux-success)]" aria-hidden="true" />
           <span>ورود شما با امنیت بالا محافظت می‌شود</span>
         </div>
         <div className="text-center">
-          <Link href="/help" className="text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-primary)] transition-colors">
+          <Link
+            href="/help"
+            className="text-xs text-[var(--lux-text-muted)] transition-colors hover:text-[var(--lux-secondary)]"
+          >
             راهنما و پشتیبانی
           </Link>
         </div>

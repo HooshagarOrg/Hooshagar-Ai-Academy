@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
+import { getRoleLabel as getCanonicalRoleLabel } from '@/lib/auth/roles'
 
 export type NavItem = {
   title: string
@@ -197,13 +198,13 @@ export const navConfig: Record<string, NavGroup[]> = {
     },
   ],
   counselor: [
-    { items: [{ title: 'داشبورد', href: '/counselor', icon: Home, badge: COMING_SOON_BADGE }] },
+    { items: [{ title: 'داشبورد', href: '/counselor', icon: Home }] },
     {
       title: 'مشاوره',
       items: [
-        { title: 'دانش‌آموزان', href: '/counselor/records', icon: Users, badge: COMING_SOON_BADGE },
-        { title: 'پرونده جدید', href: '/counselor/records/new', icon: FileText, badge: COMING_SOON_BADGE },
-        { title: 'گزارش‌ها', href: '/counselor/reports', icon: BarChart3, badge: COMING_SOON_BADGE },
+        { title: 'پرونده‌ها', href: '/counselor/records', icon: Users },
+        { title: 'پرونده جدید', href: '/counselor/records/new', icon: FileText },
+        { title: 'گزارش‌ها', href: '/counselor/reports', icon: BarChart3 },
         { title: 'بینش خانواده', href: '/counselor/family-insight', icon: Heart, badge: COMING_SOON_BADGE },
       ],
     },
@@ -212,18 +213,21 @@ export const navConfig: Record<string, NavGroup[]> = {
 
 export const simpleNavs: Record<string, NavItem[]> = {
   principal: [
-    { title: 'داشبورد', href: '/principal', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'مدیریت مدرسه', href: '/principal/overview', icon: Building, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/principal', icon: Home },
+    { title: 'نمای مدرسه', href: '/principal/overview', icon: Building },
   ],
   educational_vp: [
-    { title: 'داشبورد', href: '/educational-vp', icon: Home, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/educational-vp', icon: Home },
     { title: 'برنامه‌ریزی', href: '/educational-vp/planning', icon: Calendar },
-    { title: 'فعالیت‌ها', href: '/educational-vp/activities', icon: Activity, badge: COMING_SOON_BADGE },
+  ],
+  nurturing_vp: [
+    { title: 'داشبورد', href: '/nurturing-vp', icon: Home },
+    { title: 'فعالیت‌ها', href: '/nurturing-vp/activities', icon: Activity },
   ],
   disciplinary_vp: [
-    { title: 'داشبورد', href: '/discipline-vp', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'حضور و غیاب', href: '/discipline-vp/attendance', icon: ClipboardCheck, badge: COMING_SOON_BADGE },
-    { title: 'گزارش‌های انضباطی', href: '/discipline-vp/reports', icon: Shield, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/discipline-vp', icon: Home },
+    { title: 'حضور و غیاب', href: '/discipline-vp/attendance', icon: ClipboardCheck },
+    { title: 'گزارش‌های انضباطی', href: '/discipline-vp/reports', icon: Shield },
   ],
   evaluation_vp: [
     { title: 'داشبورد', href: '/evaluation-vp', icon: Home, badge: COMING_SOON_BADGE },
@@ -231,9 +235,9 @@ export const simpleNavs: Record<string, NavItem[]> = {
     { title: 'آمار', href: '/evaluation-vp/stats', icon: BarChart3, badge: COMING_SOON_BADGE },
   ],
   health_vp: [
-    { title: 'داشبورد', href: '/health-vp', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'پرونده‌ها', href: '/health-vp/students', icon: Users, badge: COMING_SOON_BADGE },
-    { title: 'گزارش‌ها', href: '/health-vp/reports', icon: FileText, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/health-vp', icon: Home },
+    { title: 'پرونده‌ها', href: '/health-vp/students', icon: Users },
+    { title: 'گزارش‌ها', href: '/health-vp/reports', icon: FileText },
   ],
   financial_vp: [
     { title: 'داشبورد', href: '/financial-vp', icon: Home, badge: COMING_SOON_BADGE },
@@ -312,6 +316,36 @@ export const mobileTabItems: Record<string, NavItem[]> = {
     { title: 'گزارش', href: '/counselor/reports', icon: BarChart3 },
     { title: 'اعلان', href: '/notifications', icon: Bell },
   ],
+  principal: [
+    { title: 'خانه', href: '/principal', icon: Home },
+    { title: 'مدرسه', href: '/principal/overview', icon: Building },
+    { title: 'پیام', href: '/messages', icon: MessageSquare },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  educational_vp: [
+    { title: 'خانه', href: '/educational-vp', icon: Home },
+    { title: 'برنامه', href: '/educational-vp/planning', icon: Calendar },
+    { title: 'پیام', href: '/messages', icon: MessageSquare },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  nurturing_vp: [
+    { title: 'خانه', href: '/nurturing-vp', icon: Home },
+    { title: 'فعالیت', href: '/nurturing-vp/activities', icon: Activity },
+    { title: 'پیام', href: '/messages', icon: MessageSquare },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  disciplinary_vp: [
+    { title: 'خانه', href: '/discipline-vp', icon: Home },
+    { title: 'حضور', href: '/discipline-vp/attendance', icon: ClipboardCheck },
+    { title: 'گزارش', href: '/discipline-vp/reports', icon: Shield },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  health_vp: [
+    { title: 'خانه', href: '/health-vp', icon: Home },
+    { title: 'پرونده', href: '/health-vp/students', icon: Users },
+    { title: 'گزارش', href: '/health-vp/reports', icon: FileText },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
 }
 
 export function getArcColor(role: string): string {
@@ -327,27 +361,7 @@ export function getArcColor(role: string): string {
 }
 
 export function getRoleLabel(role: string): string {
-  const labels: Record<string, string> = {
-    admin: 'مدیر پلتفرم',
-    platform_admin: 'ادمین کل',
-    principal: 'مدیر مدرسه',
-    teacher: 'معلم',
-    parent: 'والد',
-    student: 'دانش‌آموز',
-    counselor: 'مشاور',
-    health_vp: 'معاون بهداشت',
-    educational_vp: 'معاون پرورشی',
-    financial_vp: 'معاون مالی',
-    disciplinary_vp: 'معاون انضباطی',
-    evaluation_vp: 'معاون ارزیابی',
-    art_teacher: 'معلم هنر',
-    sports_teacher: 'معلم ورزش',
-    secretary: 'منشی',
-    librarian: 'کتابدار',
-    security: 'نگهبان',
-    maintenance: 'تأسیسات',
-  }
-  return labels[role] ?? 'کاربر'
+  return getCanonicalRoleLabel(role)
 }
 
 export function resolveNavGroups(role: string): NavGroup[] {

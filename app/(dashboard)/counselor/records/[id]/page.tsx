@@ -50,9 +50,16 @@ export default function CounselorRecordDetailPage() {
       kicker="مشاور"
       title={record?.student?.full_name || 'پرونده مشاوره'}
       actions={
-        <Button asChild variant="outline">
-          <Link href="/counselor/records">بازگشت</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/counselor/records">بازگشت</Link>
+          </Button>
+          {record ? (
+            <Button asChild>
+              <Link href={`/counselor/records/${record.id}/edit`}>ویرایش</Link>
+            </Button>
+          ) : null}
+        </div>
       }
     >
       {loading ? (

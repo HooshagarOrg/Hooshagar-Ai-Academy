@@ -1,5 +1,5 @@
-import { RoleInactivePage } from '@/components/ui/role-inactive-page'
+import { redirect } from 'next/navigation'
 
-export default function Page() {
-  return <RoleInactivePage title="درخواست‌های تعمیر" backHref="/maintenance" />
+export default function MaintenanceRequestsPage() {
+  redirect('/maintenance')
 }

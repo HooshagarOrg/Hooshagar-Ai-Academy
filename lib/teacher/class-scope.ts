@@ -32,10 +32,11 @@ export interface TeacherStudentRow {
   school_id: string | null
   student_number: string | null
   status: string | null
+  user_id: string | null
 }
 
 const STUDENT_LIST_COLUMNS =
-  'id, full_name, grade, class_id, parent_id, school_id, student_number, status'
+  'id, full_name, grade, class_id, parent_id, school_id, student_number, status, user_id'
 
 export function isSpecialtyTeacherRole(role: AllowedRole): boolean {
   return SPECIALTY_ROLES.includes(role)
@@ -235,6 +236,7 @@ function mapStudentRows(
     school_id: string | null
     student_number: string | null
     status: string | null
+    user_id: string | null
   }>
 ): TeacherStudentRow[] {
   return rows.map((row) => ({
@@ -246,6 +248,7 @@ function mapStudentRows(
     school_id: row.school_id ?? null,
     student_number: row.student_number ?? null,
     status: row.status ?? null,
+    user_id: row.user_id ?? null,
   }))
 }
 

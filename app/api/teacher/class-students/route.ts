@@ -84,6 +84,8 @@ export async function GET(request: NextRequest) {
           className: s.class_id ? classNameById.get(s.class_id) || '' : '',
           parentId: s.parent_id,
           parentName: s.parent_id ? parentNames.get(s.parent_id) || '' : '',
+          userId: s.user_id,
+          user_id: s.user_id,
         })),
       })
     },

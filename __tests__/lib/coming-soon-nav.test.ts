@@ -2,11 +2,11 @@ import { COMING_SOON_BADGE, COMING_SOON_ROLE_INACTIVE } from '@/lib/copy/coming-
 import { navConfig, simpleNavs } from '@/lib/nav/config'
 
 describe('pilot coming-soon contract in nav', () => {
-  it('keeps parent financials visible with به‌زودی', () => {
+  it('activates parent financials without به‌زودی', () => {
     const items = (navConfig.parent ?? []).flatMap((group) => group.items)
     const financials = items.find((item) => item.href === '/parent/financials')
     expect(financials).toBeDefined()
-    expect(financials?.badge).toBe(COMING_SOON_BADGE)
+    expect(financials?.badge).toBeUndefined()
   })
 
   it('does not hide counselor routes', () => {
@@ -26,13 +26,35 @@ describe('pilot coming-soon contract in nav', () => {
     expect(simpleNavs.health_vp.every((item) => item.badge !== COMING_SOON_BADGE)).toBe(true)
   })
 
-  it('marks inactive staff roles as به‌زودی', () => {
-    expect(simpleNavs.financial_vp.every((item) => item.badge === COMING_SOON_BADGE)).toBe(
-      true
-    )
-    expect(simpleNavs.secretary.every((item) => item.badge === COMING_SOON_BADGE)).toBe(
-      true
-    )
+  it('activates remaining staff role MVPs; keeps SMS and maintenance schedule as به‌زودی', () => {
+    expect(simpleNavs.secretary.every((item) => item.badge !== COMING_SOON_BADGE)).toBe(true)
+    expect(simpleNavs.evaluation_vp.every((item) => item.badge !== COMING_SOON_BADGE)).toBe(true)
+    expect(simpleNavs.librarian.every((item) => item.badge !== COMING_SOON_BADGE)).toBe(true)
+    expect(simpleNavs.art_teacher.every((item) => item.badge !== COMING_SOON_BADGE)).toBe(true)
+    expect(simpleNavs.sports_teacher.every((item) => item.badge !== COMING_SOON_BADGE)).toBe(true)
+    expect(simpleNavs.security.every((item) => item.badge !== COMING_SOON_BADGE)).toBe(true)
+
+    const sms = simpleNavs.financial_vp.find((item) => item.href === '/financial-vp/sms')
+    expect(sms?.badge).toBe(COMING_SOON_BADGE)
+    expect(
+      simpleNavs.financial_vp
+        .filter((item) => item.href !== '/financial-vp/sms')
+        .every((item) => item.badge !== COMING_SOON_BADGE)
+    ).toBe(true)
+
+    const schedule = simpleNavs.maintenance.find((item) => item.href === '/maintenance/schedule')
+    expect(schedule?.badge).toBe(COMING_SOON_BADGE)
+    expect(
+      simpleNavs.maintenance
+        .filter((item) => item.href !== '/maintenance/schedule')
+        .every((item) => item.badge !== COMING_SOON_BADGE)
+    ).toBe(true)
+  })
+
+  it('activates teacher foundation and award-badges without به‌زودی', () => {
+    const items = (navConfig.teacher ?? []).flatMap((group) => group.items)
+    expect(items.find((item) => item.href === '/teacher/academic-foundation')?.badge).toBeUndefined()
+    expect(items.find((item) => item.href === '/teacher/award-badges')?.badge).toBeUndefined()
   })
 
   it('keeps student sample tools in the menu with به‌زودی', () => {

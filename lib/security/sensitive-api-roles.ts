@@ -38,6 +38,16 @@ export const STUDENT_DATA_ROLES: AllowedRole[] = [
   'secretary',
 ]
 
+/** فهرست دانش‌آموز برای نقش‌های مهر (بدون ساخت دانش‌آموز) */
+export const STUDENT_LIST_ROLES: AllowedRole[] = [
+  ...STUDENT_DATA_ROLES,
+  'counselor',
+  'health_vp',
+  'educational_vp',
+  'nurturing_vp',
+  'disciplinary_vp',
+]
+
 export const STUDENT_DELETE_ROLES: AllowedRole[] = ['admin', 'platform_admin', 'principal']
 
 /** مدیریت پلتفرم (کلاس مجازی، quota، ...) */
@@ -68,6 +78,10 @@ export const UPLOAD_ROLES: AllowedRole[] = [
   'admin',
   'platform_admin',
   'counselor',
+  'health_vp',
+  'educational_vp',
+  'nurturing_vp',
+  'disciplinary_vp',
   'secretary',
 ]
 
@@ -99,6 +113,7 @@ export const AI_USER_ROLES: AllowedRole[] = [
   'counselor',
   'health_vp',
   'educational_vp',
+  'nurturing_vp',
   'financial_vp',
   'disciplinary_vp',
   'evaluation_vp',

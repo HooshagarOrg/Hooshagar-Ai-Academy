@@ -12,13 +12,21 @@ describe('pilot coming-soon contract in nav', () => {
   it('does not hide counselor routes', () => {
     const items = (navConfig.counselor ?? []).flatMap((group) => group.items)
     expect(items.length).toBeGreaterThan(0)
-    expect(items.every((item) => item.badge === COMING_SOON_BADGE)).toBe(true)
+    expect(items.some((item) => item.href === '/counselor/records')).toBe(true)
+    const familyInsight = items.find((item) => item.href === '/counselor/family-insight')
+    expect(familyInsight?.badge).toBe(COMING_SOON_BADGE)
+  })
+
+  it('activates Mehr staff dashboards without به‌زودی on core items', () => {
+    expect(simpleNavs.principal.every((item) => item.badge !== COMING_SOON_BADGE)).toBe(true)
+    expect(simpleNavs.educational_vp.find((item) => item.href === '/educational-vp/planning')).toBeDefined()
+    expect(simpleNavs.educational_vp.some((item) => item.href?.includes('activities'))).toBe(false)
+    expect(simpleNavs.nurturing_vp.some((item) => item.href === '/nurturing-vp/activities')).toBe(true)
+    expect(simpleNavs.disciplinary_vp.every((item) => item.badge !== COMING_SOON_BADGE)).toBe(true)
+    expect(simpleNavs.health_vp.every((item) => item.badge !== COMING_SOON_BADGE)).toBe(true)
   })
 
   it('marks inactive staff roles as به‌زودی', () => {
-    expect(simpleNavs.principal.every((item) => item.badge === COMING_SOON_BADGE)).toBe(
-      true
-    )
     expect(simpleNavs.financial_vp.every((item) => item.badge === COMING_SOON_BADGE)).toBe(
       true
     )

@@ -268,9 +268,12 @@ const simpleNavs: Record<string, NavItem[]> = {
     { title: 'مدیریت مدرسه', href: '/principal/overview', icon: Building, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
   educational_vp: [
-    { title: 'داشبورد', href: '/educational-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/educational-vp', icon: Home },
     { title: 'برنامه‌ریزی', href: '/educational-vp/planning', icon: Calendar },
-    { title: 'فعالیت‌ها', href: '/educational-vp/activities', icon: Activity, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+  ],
+  nurturing_vp: [
+    { title: 'داشبورد', href: '/nurturing-vp', icon: Home },
+    { title: 'فعالیت‌ها', href: '/nurturing-vp/activities', icon: Activity },
   ],
   disciplinary_vp: [
     { title: 'داشبورد', href: '/discipline-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
@@ -617,7 +620,8 @@ function getRoleLabel(role: string): string {
     student: 'دانش‌آموز',
     counselor: 'مشاور',
     health_vp: 'معاون بهداشت',
-    educational_vp: 'معاون پرورشی',
+    educational_vp: 'معاون آموزشی',
+    nurturing_vp: 'معاون پرورشی',
     financial_vp: 'معاون مالی',
     disciplinary_vp: 'معاون انضباطی',
     evaluation_vp: 'معاون ارزیابی',

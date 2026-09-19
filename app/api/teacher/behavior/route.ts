@@ -13,6 +13,18 @@ const TEACHER_ROLES: AllowedRole[] = [
   'platform_admin',
 ]
 
+const BEHAVIOR_READ_ROLES: AllowedRole[] = [
+  ...TEACHER_ROLES,
+  'disciplinary_vp',
+]
+
+const SCHOOL_WIDE_BEHAVIOR_ROLES: AllowedRole[] = [
+  'principal',
+  'admin',
+  'platform_admin',
+  'disciplinary_vp',
+]
+
 const postSchema = z.object({
   student_id: z.string().uuid(),
   report_date: z.string().min(8).max(12).optional(),
@@ -26,12 +38,19 @@ export async function GET(request: NextRequest) {
     request,
     async (ctx) => {
       const supabase = await createClient()
-      const { data, error } = await supabase
+      let query = supabase
         .from('behavior_reports')
         .select('id, student_id, report_date, positive_behaviors, negative_behaviors, notes, created_at')
-        .eq('teacher_id', ctx.userId)
         .order('report_date', { ascending: false })
         .limit(50)
+
+      if (SCHOOL_WIDE_BEHAVIOR_ROLES.includes(ctx.role)) {
+        if (ctx.schoolId) query = query.eq('school_id', ctx.schoolId)
+      } else {
+        query = query.eq('teacher_id', ctx.userId)
+      }
+
+      const { data, error } = await query
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })
@@ -59,7 +78,7 @@ export async function GET(request: NextRequest) {
         })),
       })
     },
-    { roles: TEACHER_ROLES, rateLimit: 'api_default' }
+    { roles: BEHAVIOR_READ_ROLES, rateLimit: 'api_default' }
   )
 }
 

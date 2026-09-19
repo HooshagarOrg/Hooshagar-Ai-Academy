@@ -1,5 +1,5 @@
-import { RoleInactivePage } from '@/components/ui/role-inactive-page'
+import { redirect } from 'next/navigation'
 
-export default function Page() {
-  return <RoleInactivePage title="داشبورد مشاور" backHref="/counselor" />
+export default function CounselorDashboardAliasPage() {
+  redirect('/counselor')
 }

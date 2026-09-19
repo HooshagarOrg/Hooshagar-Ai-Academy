@@ -15,6 +15,7 @@ const ROLE_PREFIX: Record<string, string> = {
   counselor: 'counselor',
   health_vp: 'health',
   educational_vp: 'edu',
+  nurturing_vp: 'nurture',
   financial_vp: 'finance',
   disciplinary_vp: 'disc',
   evaluation_vp: 'eval',

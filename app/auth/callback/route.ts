@@ -1,39 +1,10 @@
+import { getRoleHomePath } from '@/lib/auth/roles'
 import { createClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-type UserRole = 
-  | 'admin'
-  | 'platform_admin'
-  | 'principal'
-  | 'teacher'
-  | 'parent'
-  | 'student'
-  | 'counselor'
-  | 'health_vp'
-  | 'educational_vp'
-  | 'financial_vp'
-  | 'disciplinary_vp'
-  | 'art_teacher'
-  | 'sports_teacher'
-
-function getDefaultRouteForRole(role: UserRole): string {
-  const roleRoutes: Record<UserRole, string> = {
-    admin: '/admin',
-    platform_admin: '/admin',
-    principal: '/principal',
-    teacher: '/teacher',
-    parent: '/parent',
-    student: '/student',
-    counselor: '/counselor',
-    health_vp: '/health-vp',
-    educational_vp: '/educational-vp',
-    financial_vp: '/financial-vp',
-    disciplinary_vp: '/disciplinary-vp',
-    art_teacher: '/art-teacher',
-    sports_teacher: '/sports-teacher',
-  }
-  return roleRoutes[role] || '/dashboard'
+function getDefaultRouteForRole(role: string): string {
+  return getRoleHomePath(role)
 }
 
 export async function GET(request: NextRequest) {
@@ -55,7 +26,7 @@ export async function GET(request: NextRequest) {
         .single()
       
       if (profile?.role) {
-        const defaultRoute = getDefaultRouteForRole(profile.role as UserRole)
+        const defaultRoute = getDefaultRouteForRole(profile.role)
         return NextResponse.redirect(new URL(defaultRoute, request.url))
       }
     }

@@ -11,6 +11,10 @@ const SCHOOL_WIDE_ROLES: AllowedRole[] = [
   'admin',
   'platform_admin',
   'counselor',
+  'health_vp',
+  'educational_vp',
+  'nurturing_vp',
+  'disciplinary_vp',
 ]
 
 export interface TeacherClassRow {

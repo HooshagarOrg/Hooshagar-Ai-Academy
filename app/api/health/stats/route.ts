@@ -5,12 +5,12 @@ import { HEALTH_API_ROLES } from '@/lib/security/sensitive-api-roles'
 
 // GET: دریافت آمار سلامت
 export async function GET(request: NextRequest) {
-  return withAuth(request, async () => {
+  return withAuth(request, async (ctx) => {
     try {
       const supabase = await createClient()
       const { searchParams } = new URL(request.url)
 
-      const schoolId = searchParams.get('schoolId')
+      const schoolId = searchParams.get('schoolId') || ctx.schoolId
       const type = searchParams.get('type') // overview, bmi, vision, vaccination, dental
 
       if (!schoolId) {

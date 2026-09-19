@@ -1,3 +1,5 @@
+import { ROLE_LABELS, STAFF_APP_ROLES, type AppRole } from '@/lib/auth/roles'
+
 const GRADE_MAP: Record<string, number> = {
   'اول': 1, 'دوم': 2, 'سوم': 3, 'چهارم': 4, 'پنجم': 5, 'ششم': 6,
   'هفتم': 7, 'هشتم': 8, 'نهم': 9, 'دهم': 10, 'یازدهم': 11, 'دوازدهم': 12,
@@ -28,7 +30,8 @@ export const STAFF_ROLE_MAP: Record<string, string> = {
   'معاون مالی': 'financial_vp',
   disciplinary_vp: 'disciplinary_vp',
   'معاون انضباطی': 'disciplinary_vp',
-  'معاون پرورشی': 'disciplinary_vp',
+  nurturing_vp: 'nurturing_vp',
+  'معاون پرورشی': 'nurturing_vp',
   evaluation_vp: 'evaluation_vp',
   'معاون ارزشیابی': 'evaluation_vp',
   art_teacher: 'art_teacher',
@@ -51,23 +54,12 @@ export const STAFF_ROLE_MAP: Record<string, string> = {
 }
 
 /** نقش‌های مجاز برای راهنمای UI / پیام خطا (لاتین = فارسی) */
-export const STAFF_ROLE_LABELS: Array<{ value: string; fa: string }> = [
-  { value: 'teacher', fa: 'معلم' },
-  { value: 'counselor', fa: 'مشاور' },
-  { value: 'principal', fa: 'مدیر' },
-  { value: 'secretary', fa: 'منشی' },
-  { value: 'librarian', fa: 'کتابدار' },
-  { value: 'health_vp', fa: 'معاون بهداشت' },
-  { value: 'educational_vp', fa: 'معاون آموزشی' },
-  { value: 'financial_vp', fa: 'معاون مالی' },
-  { value: 'disciplinary_vp', fa: 'معاون انضباطی' },
-  { value: 'evaluation_vp', fa: 'معاون ارزشیابی' },
-  { value: 'art_teacher', fa: 'معلم هنر' },
-  { value: 'sports_teacher', fa: 'معلم ورزش' },
-  { value: 'security', fa: 'نگهبان' },
-  { value: 'maintenance', fa: 'خدمات' },
-  { value: 'admin', fa: 'ادمین' },
-]
+export const STAFF_ROLE_LABELS: Array<{ value: string; fa: string }> = STAFF_APP_ROLES.filter(
+  (role) => role !== 'platform_admin'
+).map((value) => ({
+  value,
+  fa: ROLE_LABELS[value as AppRole],
+}))
 
 function norm(s: string): string {
   return s

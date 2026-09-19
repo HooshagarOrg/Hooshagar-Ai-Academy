@@ -270,7 +270,7 @@ export default function BulkImportPage() {
                     <p className="text-xs text-purple-600 mt-2 leading-relaxed">
                       نقش را با نام لاتین وارد کنید (یا فارسی معادل):
                       {' '}teacher (معلم)، counselor (مشاور)، principal (مدیر)،
-                      educational_vp (معاون آموزشی)، financial_vp (معاون مالی)،
+                      educational_vp (معاون آموزشی)، nurturing_vp (معاون پرورشی)، financial_vp (معاون مالی)،
                       disciplinary_vp (معاون انضباطی)، health_vp (معاون بهداشت)،
                       evaluation_vp (معاون ارزشیابی)، secretary، librarian،
                       art_teacher (معلم هنر)، sports_teacher (معلم ورزش)،

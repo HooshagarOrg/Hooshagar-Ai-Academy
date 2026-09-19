@@ -61,6 +61,7 @@ const ROLES = [
   { value: 'student', label: 'دانش‌آموز', color: 'bg-brand-yellow/15 text-brand-yellow', icon: GraduationCap },
   { value: 'health_vp', label: 'معاون بهداشت', color: 'bg-brand-pink/15 text-brand-pink', icon: Heart },
   { value: 'educational_vp', label: 'معاون آموزشی', color: 'bg-indigo-500/15 text-indigo-300', icon: Briefcase },
+  { value: 'nurturing_vp', label: 'معاون پرورشی', color: 'bg-fuchsia-500/15 text-fuchsia-300', icon: Heart },
   { value: 'financial_vp', label: 'معاون مالی', color: 'bg-emerald-500/15 text-emerald-300', icon: Briefcase },
   { value: 'disciplinary_vp', label: 'معاون انضباطی', color: 'bg-red-500/15 text-red-300', icon: Shield },
   { value: 'evaluation_vp', label: 'معاون ارزیابی', color: 'bg-cyan-500/15 text-cyan-300', icon: Briefcase },

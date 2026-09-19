@@ -11,6 +11,7 @@ const STAFF_REALTIME_ROLES = new Set([
   'counselor',
   'health_vp',
   'educational_vp',
+  'nurturing_vp',
   'financial_vp',
   'disciplinary_vp',
   'evaluation_vp',

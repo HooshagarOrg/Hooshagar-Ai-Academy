@@ -11,6 +11,10 @@ const SCHOOL_WIDE_ROLES: AllowedRole[] = [
   'admin',
   'platform_admin',
   'counselor',
+  'health_vp',
+  'educational_vp',
+  'nurturing_vp',
+  'disciplinary_vp',
 ]
 
 export interface TeacherClassRow {
@@ -28,10 +32,11 @@ export interface TeacherStudentRow {
   school_id: string | null
   student_number: string | null
   status: string | null
+  user_id: string | null
 }
 
 const STUDENT_LIST_COLUMNS =
-  'id, full_name, grade, class_id, parent_id, school_id, student_number, status'
+  'id, full_name, grade, class_id, parent_id, school_id, student_number, status, user_id'
 
 export function isSpecialtyTeacherRole(role: AllowedRole): boolean {
   return SPECIALTY_ROLES.includes(role)
@@ -231,6 +236,7 @@ function mapStudentRows(
     school_id: string | null
     student_number: string | null
     status: string | null
+    user_id: string | null
   }>
 ): TeacherStudentRow[] {
   return rows.map((row) => ({
@@ -242,6 +248,7 @@ function mapStudentRows(
     school_id: row.school_id ?? null,
     student_number: row.student_number ?? null,
     status: row.status ?? null,
+    user_id: row.user_id ?? null,
   }))
 }
 
@@ -256,11 +263,52 @@ export async function listStudentsForTeacher(
     purpose?: 'attendance' | 'teaching'
   }
 ): Promise<{ classes: TeacherClassRow[]; students: TeacherStudentRow[] }> {
+  const offset = params.offset ?? 0
+
+  // مدیر / معاونت‌ها / مشاور: همهٔ کلاس‌ها و دانش‌آموزان همان مدرسه
+  if (canViewSchoolWideStudents(params.role) && params.role !== 'secretary') {
+    if (!params.schoolId && params.role !== 'platform_admin') {
+      return { classes: [], students: [] }
+    }
+
+    let classesQuery = supabase
+      .from('classes')
+      .select('id, name, grade')
+      .order('grade', { ascending: true })
+      .limit(200)
+    if (params.schoolId) {
+      classesQuery = classesQuery.eq('school_id', params.schoolId)
+    }
+    const { data: schoolClasses, error: classesError } = await classesQuery
+    if (classesError) {
+      throw new Error(classesError.message)
+    }
+    const classes: TeacherClassRow[] = (schoolClasses || []).map((row) => ({
+      id: row.id,
+      name: row.name ?? null,
+      grade: typeof row.grade === 'number' ? row.grade : null,
+    }))
+
+    const limit = params.limit ?? SPECIALTY_LIST_LIMIT
+    let studentsQuery = supabase
+      .from('students')
+      .select(STUDENT_LIST_COLUMNS)
+      .order('full_name', { ascending: true })
+      .range(offset, offset + limit - 1)
+    if (params.schoolId) {
+      studentsQuery = studentsQuery.eq('school_id', params.schoolId)
+    }
+    const { data, error } = await studentsQuery
+    if (error) {
+      throw new Error(error.message)
+    }
+    return { classes, students: mapStudentRows(data || []) }
+  }
+
   const includeTaught = params.purpose !== 'attendance'
   const classes = await getTeacherClasses(supabase, params.teacherId, {
     includeTaught,
   })
-  const offset = params.offset ?? 0
 
   let query = supabase
     .from('students')

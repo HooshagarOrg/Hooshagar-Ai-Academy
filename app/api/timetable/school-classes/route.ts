@@ -12,6 +12,10 @@ export async function GET(request: NextRequest) {
         'admin',
         'platform_admin',
         'teacher',
+        'disciplinary_vp',
+        'nurturing_vp',
+        'counselor',
+        'health_vp',
       ]
       if (!allowed.includes(ctx.role)) {
         return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 403 })

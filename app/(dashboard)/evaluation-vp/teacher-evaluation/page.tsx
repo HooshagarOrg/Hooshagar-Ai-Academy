@@ -1,5 +1,5 @@
-import { RoleInactivePage } from '@/components/ui/role-inactive-page'
+import { redirect } from 'next/navigation'
 
-export default function Page() {
-  return <RoleInactivePage title="ارزیابی معلمان" backHref="/evaluation-vp" />
+export default function EvaluationTeacherPage() {
+  redirect('/evaluation-vp')
 }

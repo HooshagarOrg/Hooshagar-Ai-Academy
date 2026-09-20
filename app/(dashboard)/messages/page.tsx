@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { DashboardPage } from '@/components/layout/dashboard-page'
+import { getRoleLabel } from '@/lib/auth/roles'
 
 type ProfileBrief = { id: string; full_name: string | null; role: string }
 
@@ -57,23 +58,7 @@ function asOne<T>(value: T | T[] | null | undefined): T | null {
 }
 
 function roleLabel(role: string): string {
-  const map: Record<string, string> = {
-    teacher: 'معلم',
-    art_teacher: 'معلم هنر',
-    sports_teacher: 'معلم ورزش',
-    parent: 'والد',
-    admin: 'ادمین',
-    principal: 'مدیر',
-    counselor: 'مشاور',
-    student: 'دانش‌آموز',
-    educational_vp: 'معاون آموزشی',
-    disciplinary_vp: 'معاون انضباطی',
-    health_vp: 'معاون بهداشت',
-    financial_vp: 'معاون مالی',
-    evaluation_vp: 'معاون ارزشیابی',
-    secretary: 'منشی',
-  }
-  return map[role] || role
+  return getRoleLabel(role)
 }
 
 function formatTime(iso: string): string {

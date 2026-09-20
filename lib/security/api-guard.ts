@@ -9,15 +9,12 @@ import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/types/database.types'
 import { applyRateLimitAsync, RATE_LIMIT_CONFIGS } from './rate-limiter'
 import { getProfileCached, type CachedProfile } from '@/lib/cache/profile-cache'
+import { STAFF_APP_ROLES, type AppRole } from '@/lib/auth/roles'
 
 // ============================================
 // تایپ‌ها
 // ============================================
-export type AllowedRole =
-  | 'platform_admin' | 'admin' | 'principal' | 'teacher' | 'parent' | 'student'
-  | 'counselor' | 'health_vp' | 'educational_vp' | 'financial_vp' | 'disciplinary_vp'
-  | 'evaluation_vp' | 'art_teacher' | 'sports_teacher' | 'secretary' | 'librarian'
-  | 'security' | 'maintenance'
+export type AllowedRole = AppRole
 
 export interface AuthContext {
   userId: string
@@ -143,14 +140,15 @@ export async function withAuth(
 // هلپرهای از پیش تعریف‌شده برای نقش‌های رایج
 // ============================================
 export const ADMIN_ROLES: AllowedRole[] = ['admin', 'platform_admin']
-export const STAFF_ROLES: AllowedRole[] = [
-  'admin', 'platform_admin', 'principal', 'teacher',
-  'counselor', 'health_vp', 'educational_vp', 'financial_vp',
-  'disciplinary_vp', 'evaluation_vp', 'art_teacher', 'sports_teacher',
-  'secretary', 'librarian', 'security', 'maintenance',
-]
+export const STAFF_ROLES: AllowedRole[] = [...STAFF_APP_ROLES]
 export const TEACHER_AND_ABOVE: AllowedRole[] = [
-  'teacher', 'principal', 'admin', 'platform_admin',
+  'teacher',
+  'principal',
+  'admin',
+  'platform_admin',
+  'disciplinary_vp',
+  'educational_vp',
+  'counselor',
 ]
 
 // ============================================

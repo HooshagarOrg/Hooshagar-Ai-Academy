@@ -25,6 +25,7 @@ import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
 import { supabaseGlobalOptions } from '@/lib/supabase/fetch'
 import { nodeRealtimeOptions } from '@/lib/supabase/node-websocket'
 import { applyE2eTestEnv } from '@/lib/supabase/e2e-env'
+import { getRoleHomePath } from '@/lib/auth/roles'
 import { verifyPin, isScryptPinHash } from '@/lib/security/pin-hash'
 import {
   buildAuthPassword,
@@ -789,7 +790,9 @@ export async function POST(request: NextRequest) {
             success: true,
             must_change_password: loginResult.must_change_password,
             role: loginResult.role,
-            redirect: loginResult.must_change_password ? '/change-password' : '/dashboard',
+            redirect: loginResult.must_change_password
+              ? '/change-password'
+              : getRoleHomePath(loginResult.role as string),
           },
           200,
           sessionCookies
@@ -877,17 +880,9 @@ export async function POST(request: NextRequest) {
         })
 
         const role = codeResult.role as string
-        const roleRoutes: Record<string, string> = {
-          parent: '/parent',
-          teacher: '/teacher',
-          principal: '/principal',
-          student: '/student',
-          admin: '/admin',
-          platform_admin: '/admin',
-        }
         const redirect = codeResult.must_change_password
           ? '/change-password'
-          : roleRoutes[role] || '/dashboard'
+          : getRoleHomePath(role)
 
         return jsonWithSessionCookies(
           {
@@ -959,17 +954,9 @@ export async function POST(request: NextRequest) {
         })
 
         const role = otpResult.role as string
-        const roleRoutes: Record<string, string> = {
-          parent: '/parent',
-          teacher: '/teacher',
-          principal: '/principal',
-          student: '/student',
-          admin: '/admin',
-          platform_admin: '/admin',
-        }
         const redirect = otpResult.must_change_password
           ? '/change-password'
-          : roleRoutes[role] || '/dashboard'
+          : getRoleHomePath(role)
 
         return jsonWithSessionCookies(
           {

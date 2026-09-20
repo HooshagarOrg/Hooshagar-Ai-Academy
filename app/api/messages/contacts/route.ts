@@ -13,6 +13,7 @@ const CONTACT_ROLES = [
   'educational_vp',
   'disciplinary_vp',
   'health_vp',
+  'nurturing_vp',
   'financial_vp',
   'evaluation_vp',
   'secretary',

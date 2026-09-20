@@ -30,6 +30,7 @@ export interface LuxNavProps {
   userName: string
   schoolName?: string
   avatarUrl?: string
+  studentGrade?: number | null
   collapsed?: boolean
   onCollapse?: (v: boolean) => void
   className?: string
@@ -40,6 +41,7 @@ export function LuxNav({
   userName,
   schoolName,
   avatarUrl,
+  studentGrade = null,
   collapsed = false,
   onCollapse,
   className,
@@ -48,7 +50,7 @@ export function LuxNav({
   const router = useRouter()
   const [logoutOpen, setLogoutOpen] = useState(false)
 
-  const groups = resolveNavGroups(role)
+  const groups = resolveNavGroups(role, { grade: studentGrade })
   const arc = getArcColor(role)
   const closeMobileNav = () => onCollapse?.(false)
 
@@ -288,7 +290,13 @@ export function LuxNav({
   )
 }
 
-export function LuxMobileNav({ role }: { role: string }) {
+export function LuxMobileNav({
+  role,
+  studentGrade: _studentGrade = null,
+}: {
+  role: string
+  studentGrade?: number | null
+}) {
   const pathname = usePathname()
   const arc = getArcColor(role)
   const navRole = role === 'platform_admin' ? 'admin' : role

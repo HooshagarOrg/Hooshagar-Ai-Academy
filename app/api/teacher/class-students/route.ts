@@ -9,6 +9,11 @@ const TEACHER_ROLES: AllowedRole[] = [
   'principal',
   'admin',
   'platform_admin',
+  'disciplinary_vp',
+  'counselor',
+  'health_vp',
+  'educational_vp',
+  'nurturing_vp',
 ]
 
 /**
@@ -79,6 +84,8 @@ export async function GET(request: NextRequest) {
           className: s.class_id ? classNameById.get(s.class_id) || '' : '',
           parentId: s.parent_id,
           parentName: s.parent_id ? parentNames.get(s.parent_id) || '' : '',
+          userId: s.user_id,
+          user_id: s.user_id,
         })),
       })
     },

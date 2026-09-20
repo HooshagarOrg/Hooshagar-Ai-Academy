@@ -11,6 +11,7 @@ import {
 } from './login-code'
 import { resolveParentDisplayName } from './parent-name'
 import { CLASS_TEACHER_ROLES, ClassResolver } from './resolve-class'
+import { STAFF_APP_ROLES } from '@/lib/auth/roles'
 import type {
   ImportOptions,
   ImportRowResult,
@@ -19,12 +20,7 @@ import type {
   StudentImportRow,
 } from './types'
 
-const STAFF_ROLES = new Set([
-  'admin', 'platform_admin', 'principal', 'teacher', 'counselor',
-  'health_vp', 'educational_vp', 'financial_vp', 'disciplinary_vp',
-  'evaluation_vp', 'art_teacher', 'sports_teacher', 'secretary',
-  'librarian', 'security', 'maintenance',
-])
+const STAFF_ROLES = new Set<string>(STAFF_APP_ROLES)
 
 function getAdmin(): SupabaseClient {
   return createServiceClient()

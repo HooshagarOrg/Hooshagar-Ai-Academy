@@ -28,7 +28,12 @@ export function LuxRoleHeader({ userName, role, contextLabel, onMenuToggle }: Lu
     pathname === '/teacher' ||
     pathname === '/parent' ||
     pathname === '/student' ||
-    pathname === '/counselor'
+    pathname === '/counselor' ||
+    pathname === '/principal' ||
+    pathname === '/health-vp' ||
+    pathname === '/educational-vp' ||
+    pathname === '/nurturing-vp' ||
+    pathname === '/discipline-vp'
 
   const primaryTitle = pageTitle && !isHome ? pageTitle : experienceLabel
   const secondaryLine = pageTitle && !isHome ? experienceLabel : null

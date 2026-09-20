@@ -106,6 +106,20 @@ export default async function DashboardLayout({
     }
   }
 
+  let studentGrade: number | null = null
+  const gradeHeader = headerStore.get('x-student-grade')
+  if (gradeHeader) {
+    const parsed = Number.parseInt(gradeHeader, 10)
+    if (Number.isFinite(parsed)) studentGrade = parsed
+  } else if (role === 'student') {
+    const { data: studentRow } = await supabase
+      .from('students')
+      .select('grade')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (typeof studentRow?.grade === 'number') studentGrade = studentRow.grade
+  }
+
   return (
     <DashboardThemeProvider initialTheme={initialTheme}>
       <DashboardShell
@@ -113,6 +127,7 @@ export default async function DashboardLayout({
         userName={userName}
         schoolName={schoolName}
         contextLabel={contextLabel}
+        studentGrade={studentGrade}
       >
         {children}
       </DashboardShell>

@@ -16,6 +16,7 @@ import {
 } from '@/lib/security/grade-restricted-routes'
 import { SUPABASE_AUTH_COOKIE_NAME } from '@/lib/supabase/auth-cookie'
 import { getProfileCached } from '@/lib/cache/profile-cache'
+import { getRoleHomePath, type AppRole } from '@/lib/auth/roles'
 
 function hasSupabaseAuthCookie(request: NextRequest): boolean {
   const cookies = request.cookies.getAll()
@@ -29,25 +30,7 @@ function hasSupabaseAuthCookie(request: NextRequest): boolean {
 // ============================================
 // تایپ‌ها
 // ============================================
-type UserRole =
-  | 'admin'
-  | 'platform_admin'
-  | 'principal'
-  | 'teacher'
-  | 'parent'
-  | 'student'
-  | 'counselor'
-  | 'health_vp'
-  | 'educational_vp'
-  | 'financial_vp'
-  | 'disciplinary_vp'
-  | 'evaluation_vp'
-  | 'art_teacher'
-  | 'sports_teacher'
-  | 'secretary'
-  | 'librarian'
-  | 'security'
-  | 'maintenance'
+type UserRole = AppRole
 
 // ============================================
 // مسیرهای عمومی (بدون نیاز به احراز هویت)
@@ -98,6 +81,7 @@ const ROUTE_PERMISSIONS: Record<string, UserRole[]> = {
   '/counselor':       ['counselor', 'principal', 'admin', 'platform_admin'],
   '/health-vp':       ['health_vp', 'principal', 'admin', 'platform_admin'],
   '/educational-vp':  ['educational_vp', 'principal', 'admin', 'platform_admin'],
+  '/nurturing-vp':    ['nurturing_vp', 'principal', 'admin', 'platform_admin'],
   '/financial-vp':    ['financial_vp', 'principal', 'admin', 'platform_admin'],
   '/discipline-vp':   ['disciplinary_vp', 'principal', 'admin', 'platform_admin'],
   '/evaluation-vp':   ['evaluation_vp', 'principal', 'admin', 'platform_admin'],
@@ -109,9 +93,9 @@ const ROUTE_PERMISSIONS: Record<string, UserRole[]> = {
   '/maintenance':     ['maintenance', 'principal', 'admin', 'platform_admin'],
   '/dashboard': [
     'admin', 'platform_admin', 'principal', 'teacher', 'parent', 'student',
-    'counselor', 'health_vp', 'educational_vp', 'financial_vp', 'disciplinary_vp',
-    'evaluation_vp', 'art_teacher', 'sports_teacher', 'secretary', 'librarian',
-    'security', 'maintenance',
+    'counselor', 'health_vp', 'educational_vp', 'nurturing_vp', 'financial_vp',
+    'disciplinary_vp', 'evaluation_vp', 'art_teacher', 'sports_teacher', 'secretary',
+    'librarian', 'security', 'maintenance',
   ],
 }
 
@@ -159,27 +143,7 @@ function getAllowedRoles(pathname: string): UserRole[] | null {
 // هلپر: دریافت URL پیش‌فرض بر اساس نقش
 // ============================================
 function getDefaultRouteForRole(role: UserRole): string {
-  const roleRoutes: Record<UserRole, string> = {
-    admin: '/admin',
-    platform_admin: '/admin',
-    principal: '/principal',
-    teacher: '/teacher',
-    parent: '/parent',
-    student: '/student',
-    counselor: '/counselor',
-    health_vp: '/health-vp',
-    educational_vp: '/educational-vp',
-    financial_vp: '/financial-vp',
-    disciplinary_vp: '/discipline-vp',
-    evaluation_vp: '/evaluation-vp',
-    art_teacher: '/art-teacher',
-    sports_teacher: '/sports-teacher',
-    secretary: '/secretary',
-    librarian: '/librarian',
-    security: '/security',
-    maintenance: '/maintenance',
-  }
-  return roleRoutes[role] || '/dashboard'
+  return getRoleHomePath(role)
 }
 
 // ============================================
@@ -360,23 +324,33 @@ export async function middleware(request: NextRequest) {
   }
 
   // 12. بررسی محدودیت مقطع تحصیلی برای دانش‌آموزان
-  if (userRole === 'student' && Object.keys(GRADE_RESTRICTED_ROUTES).some(r => pathname.startsWith(r))) {
+  if (userRole === 'student') {
     const { data: studentData } = await supabase
       .from('students')
       .select('grade, education_stage')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    const gradeAllowed = checkGradeRestriction(
-      pathname,
-      studentData?.grade ?? null,
-      (studentData?.education_stage ?? null) as EducationStage | null
-    )
+    if (studentData?.grade != null) {
+      requestHeaders.set('x-student-grade', String(studentData.grade))
+    }
 
-    if (!gradeAllowed) {
-      const redirectUrl = new URL('/student', request.url)
-      redirectUrl.searchParams.set('error', 'grade_not_allowed')
-      return NextResponse.redirect(redirectUrl)
+    if (Object.keys(GRADE_RESTRICTED_ROUTES).some((r) => pathname.startsWith(r))) {
+      const gradeAllowed = checkGradeRestriction(
+        pathname,
+        studentData?.grade ?? null,
+        (studentData?.education_stage ?? null) as EducationStage | null
+      )
+
+      if (!gradeAllowed) {
+        const redirectUrl = new URL('/student', request.url)
+        redirectUrl.searchParams.set('error', 'grade_not_allowed')
+        redirectUrl.searchParams.set(
+          'message',
+          'این بخش برای مقطع تحصیلی شما فعال نیست'
+        )
+        return NextResponse.redirect(redirectUrl)
+      }
     }
   }
 

@@ -109,11 +109,31 @@ export async function POST(request: NextRequest) {
         insuranceNumber,
       } = body
 
+      if (!studentId || typeof studentId !== 'string') {
+        return NextResponse.json({ success: false, error: 'دانش‌آموز الزامی است' }, { status: 400 })
+      }
+
+      let resolvedSchoolId =
+        typeof schoolId === 'string' && schoolId.length > 0 ? schoolId : ctx.schoolId
+
+      if (!resolvedSchoolId) {
+        const { data: student } = await supabase
+          .from('students')
+          .select('school_id')
+          .eq('id', studentId)
+          .maybeSingle()
+        resolvedSchoolId = student?.school_id || null
+      }
+
+      if (!resolvedSchoolId) {
+        return NextResponse.json({ success: false, error: 'مدرسه مشخص نیست' }, { status: 400 })
+      }
+
       const { data, error } = await supabase
         .from('student_health_records')
         .insert({
           student_id: studentId,
-          school_id: schoolId,
+          school_id: resolvedSchoolId,
           blood_type: bloodType,
           chronic_diseases: chronicDiseases || [],
           allergies: allergies || {},

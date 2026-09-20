@@ -118,7 +118,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'ظرفیت و سهمیه', href: '/admin/quota-settings', icon: Sliders },
         { title: 'برندینگ مدرسه', href: '/admin/school-settings', icon: Palette },
         { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-        { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign },
         { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
       ]
     },
@@ -149,8 +149,8 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'بانک سوال', href: '/teacher/question-bank-v2', icon: BookOpen },
         { title: 'تولید محتوا (AI)', href: '/teacher/content-creator', icon: Sparkles },
         { title: 'سوالات شفاهی', href: '/teacher/oral-questions', icon: MessageSquare },
-        { title: 'ارزیابی مهارت پایه', href: '/teacher/academic-foundation', icon: Target, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-        { title: 'اعطای نشان', href: '/teacher/award-badges', icon: Award, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'ارزیابی مهارت پایه', href: '/teacher/academic-foundation', icon: Target },
+        { title: 'اعطای نشان', href: '/teacher/award-badges', icon: Award },
       ]
     },
     {
@@ -174,7 +174,7 @@ const navConfig: Record<string, NavGroup[]> = {
         { title: 'حضور و غیاب', href: '/parent/attendance', icon: ClipboardCheck },
         { title: 'بهداشت', href: '/parent/health', icon: Heart },
         { title: 'گزارش تخصصی', href: '/parent/specialty-reports', icon: Palette },
-        { title: 'امور مالی', href: '/parent/financials', icon: DollarSign, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'امور مالی', href: '/parent/financials', icon: DollarSign },
       ]
     },
     {
@@ -247,15 +247,15 @@ const navConfig: Record<string, NavGroup[]> = {
   ],
   financial_vp: [
     {
-      items: [{ title: 'داشبورد', href: '/financial-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' }]
+      items: [{ title: 'داشبورد', href: '/financial-vp', icon: Home }]
     },
     {
       title: 'مالی',
       items: [
-        { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: DollarSign, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: DollarSign },
         { title: 'پیامک', href: '/financial-vp/sms', icon: MessageSquare, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-        { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: AlertCircle, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-        { title: 'گزارش درآمد', href: '/financial-vp/reports/income', icon: TrendingUp, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+        { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: AlertCircle },
+        { title: 'گزارش درآمد', href: '/financial-vp/reports/income', icon: TrendingUp },
       ]
     },
   ],
@@ -264,57 +264,60 @@ const navConfig: Record<string, NavGroup[]> = {
 // نقش‌هایی که navConfig خاص ندارند
 const simpleNavs: Record<string, NavItem[]> = {
   principal: [
-    { title: 'داشبورد', href: '/principal', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'مدیریت مدرسه', href: '/principal/overview', icon: Building, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/principal', icon: Home },
+    { title: 'مدیریت مدرسه', href: '/principal/overview', icon: Building },
   ],
   educational_vp: [
-    { title: 'داشبورد', href: '/educational-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/educational-vp', icon: Home },
     { title: 'برنامه‌ریزی', href: '/educational-vp/planning', icon: Calendar },
-    { title: 'فعالیت‌ها', href: '/educational-vp/activities', icon: Activity, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+  ],
+  nurturing_vp: [
+    { title: 'داشبورد', href: '/nurturing-vp', icon: Home },
+    { title: 'فعالیت‌ها', href: '/nurturing-vp/activities', icon: Activity },
   ],
   disciplinary_vp: [
-    { title: 'داشبورد', href: '/discipline-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'حضور و غیاب', href: '/discipline-vp/attendance', icon: ClipboardCheck, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'گزارش‌های انضباطی', href: '/discipline-vp/reports', icon: Shield, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/discipline-vp', icon: Home },
+    { title: 'حضور و غیاب', href: '/discipline-vp/attendance', icon: ClipboardCheck },
+    { title: 'گزارش‌های انضباطی', href: '/discipline-vp/reports', icon: Shield },
   ],
   evaluation_vp: [
-    { title: 'داشبورد', href: '/evaluation-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'ارزیابی معلمان', href: '/evaluation-vp/teacher-evaluation', icon: Award, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'آمار', href: '/evaluation-vp/stats', icon: BarChart3, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/evaluation-vp', icon: Home },
+    { title: 'ارزیابی معلمان', href: '/evaluation-vp/teacher-evaluation', icon: Award },
+    { title: 'آمار', href: '/evaluation-vp/stats', icon: BarChart3 },
   ],
   health_vp: [
-    { title: 'داشبورد', href: '/health-vp', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'پرونده‌ها', href: '/health-vp/students', icon: Users, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'گزارش‌ها', href: '/health-vp/reports', icon: FileText, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/health-vp', icon: Home },
+    { title: 'پرونده‌ها', href: '/health-vp/students', icon: Users },
+    { title: 'گزارش‌ها', href: '/health-vp/reports', icon: FileText },
   ],
   art_teacher: [
-    { title: 'داشبورد', href: '/art-teacher', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/art-teacher', icon: Home },
     { title: 'برنامهٔ من', href: '/art-teacher/timetable', icon: Calendar },
-    { title: 'گزارشات هنری', href: '/art-teacher/art-reports', icon: FileText, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'گزارشات هنری', href: '/art-teacher/art-reports', icon: FileText },
   ],
   sports_teacher: [
-    { title: 'داشبورد', href: '/sports-teacher', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/sports-teacher', icon: Home },
     { title: 'برنامهٔ من', href: '/sports-teacher/timetable', icon: Calendar },
-    { title: 'گزارشات ورزشی', href: '/sports-teacher/sports-reports', icon: FileText, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'گزارشات ورزشی', href: '/sports-teacher/sports-reports', icon: FileText },
   ],
   secretary: [
-    { title: 'داشبورد', href: '/secretary', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'مکاتبات', href: '/secretary/correspondence', icon: Mail, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'جلسات', href: '/secretary/meetings', icon: Calendar, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/secretary', icon: Home },
+    { title: 'مکاتبات', href: '/secretary/correspondence', icon: Mail },
+    { title: 'جلسات', href: '/secretary/meetings', icon: Calendar },
   ],
   librarian: [
-    { title: 'داشبورد', href: '/librarian', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'امانت کتاب', href: '/librarian/lending', icon: BookOpen, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'جستجو', href: '/librarian/search', icon: Search, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/librarian', icon: Home },
+    { title: 'امانت کتاب', href: '/librarian/lending', icon: BookOpen },
+    { title: 'جستجو', href: '/librarian/search', icon: Search },
   ],
   security: [
-    { title: 'داشبورد', href: '/security', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'ورود و خروج', href: '/security/entry-exit', icon: Users, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'رخدادها', href: '/security/incidents', icon: AlertCircle, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/security', icon: Home },
+    { title: 'ورود و خروج', href: '/security/entry-exit', icon: Users },
+    { title: 'رخدادها', href: '/security/incidents', icon: AlertCircle },
   ],
   maintenance: [
-    { title: 'داشبورد', href: '/maintenance', icon: Home, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
-    { title: 'درخواست تعمیر', href: '/maintenance/requests', icon: Wrench, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
+    { title: 'داشبورد', href: '/maintenance', icon: Home },
+    { title: 'درخواست تعمیر', href: '/maintenance/requests', icon: Wrench },
     { title: 'برنامه', href: '/maintenance/schedule', icon: Calendar, badge: COMING_SOON_BADGE, badgeColor: 'bg-amber-500/90 text-white' },
   ],
 }
@@ -617,7 +620,8 @@ function getRoleLabel(role: string): string {
     student: 'دانش‌آموز',
     counselor: 'مشاور',
     health_vp: 'معاون بهداشت',
-    educational_vp: 'معاون پرورشی',
+    educational_vp: 'معاون آموزشی',
+    nurturing_vp: 'معاون پرورشی',
     financial_vp: 'معاون مالی',
     disciplinary_vp: 'معاون انضباطی',
     evaluation_vp: 'معاون ارزیابی',

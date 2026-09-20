@@ -33,7 +33,7 @@ const createRecordSchema = z.object({
 // GET - List/Filter Records
 // ==========================================
 export async function GET(req: NextRequest) {
-  return withAuth(req, async () => {
+  return withAuth(req, async (ctx) => {
     try {
       const supabase = await createClient()
       const { searchParams } = new URL(req.url)
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       const priority = searchParams.get('priority')
       const category = searchParams.get('category')
       const search = searchParams.get('search')
-      const school_id = searchParams.get('school_id')
+      const school_id = searchParams.get('school_id') || ctx.schoolId
       const limit = parseInt(searchParams.get('limit') || '50')
       const offset = parseInt(searchParams.get('offset') || '0')
 
@@ -119,7 +119,7 @@ export async function GET(req: NextRequest) {
 // POST - Create New Record
 // ==========================================
 export async function POST(req: NextRequest) {
-  return withAuth(req, async () => {
+  return withAuth(req, async (ctx) => {
     try {
       const supabase = await createClient()
       const body = await req.json()
@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
         .insert({
           student_id,
           school_id: student.school_id,
-          counselor_id: body.counselor_id,
+          counselor_id: ctx.userId,
           issue_categories,
           priority_level,
           summary,

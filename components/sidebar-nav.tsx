@@ -192,7 +192,11 @@ const counselorNavItems = [
 const educationalVpNavItems = [
   { title: 'داشبورد', href: '/educational-vp', icon: Home },
   { title: 'برنامه‌ریزی آموزشی', href: '/educational-vp/planning', icon: Calendar },
-  { title: 'فعالیت‌ها', href: '/educational-vp/activities', icon: Activity },
+]
+
+const nurturingVpNavItems = [
+  { title: 'داشبورد', href: '/nurturing-vp', icon: Home },
+  { title: 'فعالیت‌ها', href: '/nurturing-vp/activities', icon: Activity },
 ]
 
 const disciplinaryVpNavItems = [
@@ -245,7 +249,7 @@ const maintenanceNavItems = [
 
 interface SidebarNavProps {
   role: 'admin' | 'teacher' | 'parent' | 'student' | 'principal' | 'counselor' | 
-        'educational_vp' | 'disciplinary_vp' | 'evaluation_vp' | 'financial_vp' | 
+        'educational_vp' | 'nurturing_vp' | 'disciplinary_vp' | 'evaluation_vp' | 'financial_vp' | 
         'healthcare' | 'secretary' | 'librarian' | 'security' | 'maintenance'
 }
 
@@ -260,6 +264,7 @@ export function SidebarNav({ role }: SidebarNavProps) {
     principal: principalNavItems,
     counselor: counselorNavItems,
     educational_vp: educationalVpNavItems,
+    nurturing_vp: nurturingVpNavItems,
     disciplinary_vp: disciplinaryVpNavItems,
     evaluation_vp: evaluationVpNavItems,
     financial_vp: financialVpNavItems,

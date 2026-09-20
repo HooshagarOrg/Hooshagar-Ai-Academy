@@ -15,10 +15,18 @@ interface DashboardShellProps {
   userName: string
   schoolName?: string
   contextLabel?: string
+  studentGrade?: number | null
   children: React.ReactNode
 }
 
-export function DashboardShell({ role, userName, schoolName, contextLabel, children }: DashboardShellProps) {
+export function DashboardShell({
+  role,
+  userName,
+  schoolName,
+  contextLabel,
+  studentGrade = null,
+  children,
+}: DashboardShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const isStudent = role === 'student'
@@ -70,6 +78,7 @@ export function DashboardShell({ role, userName, schoolName, contextLabel, child
           role={role}
           userName={userName}
           schoolName={schoolName}
+          studentGrade={studentGrade}
           collapsed={sidebarCollapsed}
           onCollapse={setSidebarCollapsed}
         />
@@ -86,6 +95,7 @@ export function DashboardShell({ role, userName, schoolName, contextLabel, child
           role={role}
           userName={userName}
           schoolName={schoolName}
+          studentGrade={studentGrade}
           collapsed={false}
           onCollapse={() => setMobileSidebarOpen(false)}
           className="w-full max-w-full"
@@ -132,7 +142,7 @@ export function DashboardShell({ role, userName, schoolName, contextLabel, child
           </div>
         </main>
 
-        <LuxMobileNav role={role} />
+        <LuxMobileNav role={role} studentGrade={studentGrade} />
         <AvatarFab defaultCorner="bl" />
       </div>
     </div>

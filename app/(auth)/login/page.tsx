@@ -4,11 +4,27 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import {
-  User, Smartphone, GraduationCap, Shield,
-  Loader2, Eye, EyeOff, KeyRound,
+  User,
+  Users,
+  Smartphone,
+  GraduationCap,
+  Shield,
+  Loader2,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Lock,
+  Hash,
+  AlertTriangle,
+  Sparkles,
+  UserCheck,
+  Check,
+  ArrowRight,
+  Info,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { TermsAcceptanceNotice } from '@/components/auth/terms-acceptance-notice'
+import { getRoleHomePath } from '@/lib/auth/roles'
 import dynamic from 'next/dynamic'
 
 const TurnstileWidget = dynamic(
@@ -18,18 +34,100 @@ const TurnstileWidget = dynamic(
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''
 
-type LoginTab = 'staff' | 'parent' | 'student' | 'sms'
+type LoginTab = 'parent' | 'staff' | 'student' | 'sms'
 
-const LOGIN_TABS: Array<{
+interface TabConfig {
   id: LoginTab
   label: string
+  subtitle: string
+  badge: string
+  panelTitle: string
+  panelDescription: string
   testId: string
   Icon: typeof User
-}> = [
-  { id: 'staff', label: 'کارکنان', testId: 'login-tab-staff', Icon: User },
-  { id: 'parent', label: 'والدین', testId: 'login-tab-parent', Icon: User },
-  { id: 'student', label: 'دانش‌آموز', testId: 'login-tab-student', Icon: GraduationCap },
-  { id: 'sms', label: 'پیامک', testId: 'login-tab-sms', Icon: Smartphone },
+  colorClass: {
+    activeBorder: string
+    activeBg: string
+    activeGlow: string
+    iconBg: string
+    iconColor: string
+    badgeClass: string
+  }
+}
+
+const LOGIN_TABS: TabConfig[] = [
+  {
+    id: 'parent',
+    label: 'والدین و اولیا',
+    subtitle: 'کد ملی یا شماره همراه',
+    badge: 'پرتال خانواده',
+    panelTitle: 'ورود اولیای گرامی',
+    panelDescription: 'مشاهده کارنامه، نمرات، حضور و غیاب، تکالیف و ارتباط با مدرسه',
+    testId: 'login-tab-parent',
+    Icon: Users,
+    colorClass: {
+      activeBorder: 'border-amber-500/70',
+      activeBg: 'bg-amber-500/15',
+      activeGlow: 'shadow-[0_8px_24px_rgba(245,158,11,0.22)]',
+      iconBg: 'bg-amber-500/25',
+      iconColor: 'text-amber-300',
+      badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    },
+  },
+  {
+    id: 'staff',
+    label: 'کادر مدرسه و معلمان',
+    subtitle: 'نام کاربری سازمانی',
+    badge: 'مدیران و دبیران',
+    panelTitle: 'ورود کادر آموزشی و اداری',
+    panelDescription: 'مخصوص مدیر، معاونان و معلمان با دسترسی کامل به میز کار مدرسه',
+    testId: 'login-tab-staff',
+    Icon: UserCheck,
+    colorClass: {
+      activeBorder: 'border-indigo-500/70',
+      activeBg: 'bg-indigo-500/15',
+      activeGlow: 'shadow-[0_8px_24px_rgba(139,124,255,0.25)]',
+      iconBg: 'bg-indigo-500/25',
+      iconColor: 'text-indigo-200',
+      badgeClass: 'bg-indigo-500/20 text-indigo-200 border-indigo-500/30',
+    },
+  },
+  {
+    id: 'student',
+    label: 'دانش‌آموزان',
+    subtitle: 'کد دانش‌آموزی + PIN',
+    badge: 'پرتال یادگیری',
+    panelTitle: 'ورود دانش‌آموزان عزیز',
+    panelDescription: 'دسترسی به باغ استعداد، آزمون‌ها، تکالیف و ارتقای سطح XP',
+    testId: 'login-tab-student',
+    Icon: GraduationCap,
+    colorClass: {
+      activeBorder: 'border-cyan-500/70',
+      activeBg: 'bg-cyan-500/15',
+      activeGlow: 'shadow-[0_8px_24px_rgba(84,210,255,0.22)]',
+      iconBg: 'bg-cyan-500/25',
+      iconColor: 'text-cyan-200',
+      badgeClass: 'bg-cyan-500/20 text-cyan-200 border-cyan-500/30',
+    },
+  },
+  {
+    id: 'sms',
+    label: 'ورود با پیامک (OTP)',
+    subtitle: 'کد تأیید ۶ رقمی',
+    badge: 'بدون نیاز به رمز',
+    panelTitle: 'ورود سریع با پیامک',
+    panelDescription: 'ارسال کد یکبارمصرف به شماره همراه ثبت‌شده در پرونده مدرسه',
+    testId: 'login-tab-sms',
+    Icon: Smartphone,
+    colorClass: {
+      activeBorder: 'border-emerald-500/70',
+      activeBg: 'bg-emerald-500/15',
+      activeGlow: 'shadow-[0_8px_24px_rgba(16,185,129,0.22)]',
+      iconBg: 'bg-emerald-500/25',
+      iconColor: 'text-emerald-300',
+      badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    },
+  },
 ]
 
 export default function LoginPage() {
@@ -39,24 +137,13 @@ export default function LoginPage() {
   const [otpPhone, setOtpPhone] = useState('')
   const [otpCode, setOtpCode] = useState('')
   const [otpTimer, setOtpTimer] = useState(0)
-  const [activeTab, setActiveTab] = useState<LoginTab>('staff')
+  const [activeTab, setActiveTab] = useState<LoginTab>('parent')
   const [requireCaptcha, setRequireCaptcha] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
 
-  const roleRoutes: Record<string, string> = {
-    parent: '/parent',
-    teacher: '/teacher',
-    principal: '/principal',
-    student: '/student',
-    admin: '/admin',
-    platform_admin: '/admin',
-    counselor: '/counselor',
-    health_vp: '/health-vp',
-    educational_vp: '/educational-vp',
-    financial_vp: '/financial-vp',
-    disciplinary_vp: '/discipline-vp',
-    evaluation_vp: '/evaluation-vp',
-  }
+  // متغیرهای فرم جهت تشخیص هوشمند اشتباه نقش
+  const [staffUsername, setStaffUsername] = useState('')
+  const [parentCode, setParentCode] = useState('')
 
   const redirectByRole = (role?: string, mustChange?: boolean) => {
     if (mustChange) {
@@ -64,7 +151,7 @@ export default function LoginPage() {
       return
     }
     const redirect = new URLSearchParams(window.location.search).get('redirect')
-    window.location.replace(redirect || roleRoutes[role || ''] || '/dashboard')
+    window.location.replace(redirect || getRoleHomePath(role || '') || '/dashboard')
   }
 
   const handleLoginApiError = (data: {
@@ -97,9 +184,6 @@ export default function LoginPage() {
     })
   }, [])
 
-  // ==========================================
-  // ورود با کد ۱۰ رقمی (کد ملی / موبایل) + رمز — از API سرور
-  // ==========================================
   const handleCodeLogin = async (
     loginCode: string,
     password: string,
@@ -145,9 +229,6 @@ export default function LoginPage() {
     return true
   }
 
-  // ==========================================
-  // ورود با OTP پیامکی (مشترک برای همه نقش‌ها)
-  // ==========================================
   const handleSendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
@@ -234,14 +315,11 @@ export default function LoginPage() {
     }
   }
 
-  // ==========================================
-  // روش 1: ورود کارکنان (username یا کد ۱۰ رقمی + رمز)
-  // ==========================================
   const handleStaffLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     const formData = new FormData(e.currentTarget)
-    const username = (formData.get('username') as string)?.trim()
+    const username = ((formData.get('username') as string) || staffUsername).trim()
     const password = formData.get('password') as string
 
     try {
@@ -267,7 +345,7 @@ export default function LoginPage() {
         }),
       })
       const data = await response.json()
-      
+
       if (response.ok && data.success) {
         toast.success('ورود موفق')
         redirectByRole(data.role, data.must_change_password)
@@ -281,14 +359,11 @@ export default function LoginPage() {
     }
   }
 
-  // ==========================================
-  // ورود والدین: کد ۱۰ رقمی + رمز
-  // ==========================================
   const handleParentLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     const formData = new FormData(e.currentTarget)
-    const code = (formData.get('login_code') as string)?.replace(/\D/g, '')
+    const code = ((formData.get('login_code') as string) || parentCode).replace(/\D/g, '')
     const password = formData.get('password') as string
 
     try {
@@ -302,9 +377,6 @@ export default function LoginPage() {
     }
   }
 
-  // ==========================================
-  // ورود دانش‌آموز — از API سرور (بدون RPC مستقیم مرورگر به Supabase)
-  // ==========================================
   const handleStudentLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
@@ -359,321 +431,684 @@ export default function LoginPage() {
     }
   }
 
+  const switchTab = (id: LoginTab) => {
+    setActiveTab(id)
+    setShowPassword(false)
+  }
+
+  const currentTab = LOGIN_TABS.find((t) => t.id === activeTab) ?? LOGIN_TABS[0]
+  const CurrentIcon = currentTab.Icon
+
+  // تشخیص هوشمند اشتباه در وارد کردن شماره/کد ملی در تب کارکنان
+  const isNumericPhoneOrCodeInStaff =
+    activeTab === 'staff' &&
+    (staffUsername.startsWith('09') || /^\d{10,11}$/.test(staffUsername.trim()))
+
+  // تشخیص هوشمند ورود نام کاربری حروفی در تب والدین
+  const isAlphaInParent =
+    activeTab === 'parent' &&
+    /[a-zA-Z]/.test(parentCode) &&
+    parentCode.trim().length >= 3
+
   return (
     <div className="w-full" dir="rtl" data-testid="login-page">
-      <div className="w-full">
-              <div
-                className="lp-auth-tabs mb-6 flex h-auto w-full gap-1 bg-transparent p-1"
-                role="tablist"
-                aria-label="روش ورود"
-                data-testid="login-tabs"
+      <div className="w-full space-y-6">
+        
+        {/* ── عنوان بالای فرم و انتخاب نقش ── */}
+        <div className="text-right">
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 text-xs font-black text-[var(--lux-gold)]">
+              <Sparkles className="h-3.5 w-3.5" />
+              مرحله اول: انتخاب نقش در مدرسه
+            </span>
+            <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-[11px] font-bold text-[var(--lux-text-muted)]">
+              ۴ روش ورود
+            </span>
+          </div>
+          <h1 className="lux-h2 mt-2 text-xl font-black text-white sm:text-2xl">
+            شما با چه نقشی وارد می‌شوید؟
+          </h1>
+          <p className="mt-1 text-xs leading-6 text-[var(--lux-text-muted)]">
+            برای پیشگیری از خطای ورود، لطفاً کارت متناسب با جایگاه خود را انتخاب کنید:
+          </p>
+        </div>
+
+        {/* ── ۴ کارت بزرگ و متمایز انتخاب نقش (شبکه ۲ در ۲) ── */}
+        <div
+          className="grid grid-cols-2 gap-3"
+          role="tablist"
+          aria-label="روش ورود به سامانه"
+          data-testid="login-tabs"
+        >
+          {LOGIN_TABS.map(({ id, label, subtitle, badge, testId, Icon, colorClass }) => {
+            const isSelected = activeTab === id
+            return (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                id={`login-tab-${id}`}
+                aria-controls={`login-panel-${id}`}
+                aria-selected={isSelected}
+                data-state={isSelected ? 'active' : 'inactive'}
+                data-tab={id}
+                data-testid={testId}
+                onClick={() => switchTab(id)}
+                className={`group relative flex flex-col justify-between rounded-2xl border p-3.5 text-right transition-all duration-200 ${
+                  isSelected
+                    ? `${colorClass.activeBorder} ${colorClass.activeBg} ${colorClass.activeGlow} scale-[1.02]`
+                    : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]'
+                }`}
               >
-                {LOGIN_TABS.map(({ id, label, testId, Icon }) => {
-                  const selected = activeTab === id
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      role="tab"
-                      aria-selected={selected}
-                      data-state={selected ? 'active' : 'inactive'}
-                      className="lp-auth-tab"
-                      data-testid={testId}
-                      onClick={() => setActiveTab(id)}
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                      {label}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {requireCaptcha && TURNSTILE_SITE_KEY ? (
-                <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
-                  <p className="mb-2 text-center text-xs text-[var(--lux-text-muted)]">
-                    به‌خاطر تلاش‌های ناموفق، تأیید امنیتی لازم است
-                  </p>
-                  <TurnstileWidget
-                    siteKey={TURNSTILE_SITE_KEY}
-                    onToken={setCaptchaToken}
-                  />
+                {/* نشانگر رادیویی گوشه بالا */}
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
+                      isSelected
+                        ? `${colorClass.iconBg} ${colorClass.iconColor}`
+                        : 'bg-white/5 text-[var(--lux-text-muted)] group-hover:text-white'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold border ${
+                      isSelected
+                        ? colorClass.badgeClass
+                        : 'border-white/5 bg-white/5 text-[var(--lux-text-muted)]'
+                    }`}
+                  >
+                    {badge}
+                  </span>
                 </div>
-              ) : null}
 
-              {/* ===== تب کارکنان ===== */}
-              <div role="tabpanel" hidden={activeTab !== 'staff'} className="space-y-1">
-                <p className="lp-auth-hint">
-                  نام کاربری لاتین یا کد ۱۰ رقمی (کد ملی / موبایل بدون صفر) + رمز عبور
-                </p>
-                <form onSubmit={handleStaffLogin} className="space-y-4">
-          <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none" htmlFor="username">نام کاربری / کد ورود</label>
-            <Input
-                      id="username"
-                      name="username"
-                      type="text"
-                      placeholder="username یا 1234567890"
-              required
-              disabled={isLoading}
-                      autoComplete="username"
-                      className="lp-input-dark text-left"
-                      dir="ltr"
-                      data-testid="login-username"
-            />
-          </div>
-
-          <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-            <label className="text-sm font-medium leading-none" htmlFor="password">رمز عبور</label>
-                      <Link href="/forgot-password" className="text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-primary)]">
-                        فراموشی رمز؟
-                      </Link>
-                    </div>
-                    <div className="relative">
-            <Input
-              id="password"
-              name="password"
-                        type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              required
-              disabled={isLoading}
-                        autoComplete="current-password"
-                        className="lp-input-dark text-left pl-10"
-                      dir="ltr"
-                      data-testid="login-password"
-            />
-                      <button
-                        type="button"
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        onClick={() => setShowPassword(!showPassword)}
-                        tabIndex={-1}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-          </div>
-
-                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading} data-testid="login-submit">
-                    {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full text-xs text-[#3B82F6] hover:underline"
-                    onClick={() => setActiveTab('sms')}
-                  >
-                    ورود با پیامک
-                  </button>
-                </form>
-              </div>
-
-              {/* ===== تب والدین ===== */}
-              <div role="tabpanel" hidden={activeTab !== 'parent'} className="space-y-1">
-                <p className="lp-auth-hint">
-                  کد ۱۰ رقمی (کد ملی یا موبایل بدون صفر اول) + رمز عبور
-                </p>
-                <form onSubmit={handleParentLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none" htmlFor="login_code">کد ورود</label>
-                    <Input
-                      id="login_code"
-                      name="login_code"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="2112112111 یا 9399654875"
-                      required
-                      disabled={isLoading}
-                      className="text-left font-mono tracking-widest"
-                      dir="ltr"
-                      maxLength={11}
-                      data-testid="login-parent-code"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none" htmlFor="parent_password">رمز عبور</label>
-                    <Input
-                      id="parent_password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••"
-                      required
-                      disabled={isLoading}
-                      className="lp-input-dark text-left"
-                      dir="ltr"
-                    />
-                  </div>
-                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
-                    {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full text-xs text-[#10B981] hover:underline"
-                    onClick={() => setActiveTab('sms')}
-                  >
-                    ورود با پیامک
-                  </button>
-                </form>
-              </div>
-
-              {/* ===== تب دانش‌آموز ===== */}
-              <div role="tabpanel" hidden={activeTab !== 'student'} className="space-y-1">
-                <p className="lp-auth-hint">
-                  کد دانش‌آموزی یا کد ملی ۱۰ رقمی + PIN
-                </p>
-                <form onSubmit={handleStudentLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none" htmlFor="student_number">کد دانش‌آموزی / کد ملی</label>
-                    <Input
-                      id="student_number"
-                      name="student_number"
-                      type="text"
-                      placeholder="1234567890"
-                      required
-                      disabled={isLoading}
-                      className="text-left font-mono"
-                      dir="ltr"
-                      data-testid="login-student-number"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      کد دانش‌آموزی را از کارت فعال‌سازی مدرسه پیدا کنید
+                {/* متون کارت */}
+                <div className="mt-3">
+                  <div className="flex items-center gap-1.5">
+                    <p className={`text-sm font-black ${isSelected ? 'text-white' : 'text-white/90'}`}>
+                      {label}
                     </p>
+                    {isSelected && (
+                      <Check className="h-4 w-4 shrink-0 text-emerald-400" />
+                    )}
                   </div>
+                  <p className="mt-0.5 text-[11px] leading-5 text-[var(--lux-text-muted)]">
+                    {subtitle}
+                  </p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <KeyRound className="w-4 h-4 text-muted-foreground" />
-                      <label className="text-sm font-medium leading-none" htmlFor="pin">رمز (PIN)</label>
-                    </div>
-                    <Input
-                      id="pin"
-                      name="pin"
-                      type="password"
-                      inputMode="numeric"
-                      placeholder="••••"
-                      required
-                      disabled={isLoading}
-                      className="text-center text-3xl tracking-[0.5em]"
-                      dir="ltr"
-                      maxLength={6}
-                      pattern="[0-9]{4,6}"
-                      data-testid="login-student-pin"
-                    />
-                  </div>
+        {/* ── بنر تأیید نقش فعال ── */}
+        <div
+          className={`flex items-start gap-3 rounded-2xl border p-3.5 transition-all duration-200 ${currentTab.colorClass.activeBorder} ${currentTab.colorClass.activeBg}`}
+        >
+          <span
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${currentTab.colorClass.iconBg} ${currentTab.colorClass.iconColor}`}
+          >
+            <CurrentIcon className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 text-right">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-black uppercase text-[var(--lux-gold)]">
+                مرحله دوم
+              </span>
+              <span className="text-sm font-black text-white">
+                {currentTab.panelTitle}
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs leading-6 text-[var(--lux-text-muted)]">
+              {currentTab.panelDescription}
+            </p>
+          </div>
+        </div>
 
-                  <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
-                    {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال ورود...</> : 'ورود'}
-          </button>
-                  <button
-                    type="button"
-                    className="w-full text-xs text-[#F59E0B] hover:underline"
-                    onClick={() => setActiveTab('sms')}
-                  >
-                    ورود با پیامک (اگر موبایل اختصاصی دارید)
-                  </button>
-                </form>
-              </div>
+        {/* ── کپچا در صورت فعال بودن ── */}
+        {requireCaptcha && TURNSTILE_SITE_KEY ? (
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3.5">
+            <p className="mb-2 text-center text-xs leading-6 text-[var(--lux-text-muted)]">
+              به‌خاطر تلاش‌های ناموفق مکرر، تأیید امنیتی الزامی است
+            </p>
+            <TurnstileWidget
+              siteKey={TURNSTILE_SITE_KEY}
+              onToken={setCaptchaToken}
+            />
+          </div>
+        ) : null}
 
-              {/* ===== تب ورود با پیامک (مشترک) ===== */}
-              <div role="tabpanel" hidden={activeTab !== 'sms'} className="space-y-1">
-                <p className="lp-auth-hint">
-                  والدین و کارکنان: شماره ثبت‌شده در مدرسه. دانش‌آموز: فقط اگر موبایل اختصاصی در سیستم ثبت شده باشد.
+        {/* ── پنل‌های فرم ورود ── */}
+        <div key={activeTab} className="lp-auth-panel">
+          
+          {/* ========================================== */}
+          {/* ۱. تب والدین و اولیا (پیش‌فرض هوشمند)       */}
+          {/* ========================================== */}
+          <div
+            role="tabpanel"
+            id="login-panel-parent"
+            aria-labelledby="login-tab-parent"
+            hidden={activeTab !== 'parent'}
+            className="space-y-4"
+          >
+            <form onSubmit={handleParentLogin} className="space-y-4">
+              <div className="space-y-1.5 text-right">
+                <label className="flex items-center gap-1.5 text-xs font-black text-white" htmlFor="login_code">
+                  <Hash className="h-3.5 w-3.5 text-amber-400" />
+                  کد ملی ۱۰ رقمی یا شماره همراه ولی
+                </label>
+                <Input
+                  id="login_code"
+                  name="login_code"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="مثال: 09123456789 یا 0012345678"
+                  required
+                  disabled={isLoading}
+                  value={parentCode}
+                  onChange={(e) => setParentCode(e.target.value)}
+                  className="lp-input-dark text-left font-mono tracking-wider focus:border-amber-400 focus:ring-amber-400/20"
+                  dir="ltr"
+                  maxLength={11}
+                  data-testid="login-parent-code"
+                />
+                <p className="text-[11px] text-[var(--lux-text-muted)]">
+                  کد ملی یا شماره همراه ثبت‌شده در پرونده مدرسه هنگام ثبت‌نام دانش‌آموز
                 </p>
-                {!otpSent ? (
-                  <form key="sms-phone-form" onSubmit={handleSendOtp} className="space-y-4" autoComplete="on">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium leading-none" htmlFor="login-phone">شماره موبایل</label>
-                      <Input
-                        id="login-phone"
-                        data-testid="login-phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="09123456789"
-                        required
-                        disabled={isLoading}
-                        className="text-left text-lg tracking-widest"
-                        dir="ltr"
-                        pattern="09[0-9]{9}"
-                        maxLength={11}
-                        autoComplete="tel"
-                        inputMode="tel"
-                      />
-                    </div>
-                    <button type="submit" className="lux-btn-accent w-full" disabled={isLoading}>
-                      {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />ارسال کد...</> : 'دریافت کد تأیید'}
-                    </button>
-                  </form>
-                ) : (
-                  <form key="sms-otp-form" onSubmit={handleVerifyOtp} className="space-y-4" autoComplete="off">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium leading-none" htmlFor="login-otp">کد تأیید ۶ رقمی</label>
-                        {otpTimer > 0 && (
-                          <span className="text-xs text-muted-foreground">{otpTimer} ثانیه</span>
-                        )}
-                      </div>
-                      <Input
-                        id="login-otp"
-                        data-testid="login-otp"
-                        name="otp"
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="------"
-                        required
-                        disabled={isLoading}
-                        className="text-center text-3xl tracking-[0.5em] font-mono"
-                        dir="ltr"
-                        maxLength={6}
-                        pattern="[0-9]{6}"
-                        autoComplete="one-time-code"
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck={false}
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        autoFocus
-                      />
-                      <p className="text-xs text-muted-foreground text-center">
-                        ارسال شده به {otpPhone}
+
+                {/* هشدار هوشمند ورود حروف انگلیسی در تب والدین */}
+                {isAlphaInParent && (
+                  <div className="mt-2 flex items-start gap-2 rounded-xl border border-indigo-500/50 bg-indigo-500/15 p-2.5 text-xs text-indigo-200">
+                    <Info className="h-4 w-4 shrink-0 text-indigo-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-bold text-indigo-300">نام کاربری حروفی/انگلیسی وارد شده است</p>
+                      <p className="text-[11px] text-indigo-200/80">
+                        اگر معلم یا از کادر اداری مدرسه هستید، لطفاً به بخش کادر مدرسه بروید:
                       </p>
-                    </div>
-                    <button
-                      type="submit"
-                      data-testid="login-otp-submit"
-                      className="lux-btn-accent w-full"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />در حال تأیید...</> : 'تأیید و ورود'}
-                    </button>
-                    {otpTimer === 0 && (
                       <button
                         type="button"
-                        className="lux-btn-ghost w-full"
-                        onClick={() => { setOtpCode(''); setOtpSent(false) }}
+                        onClick={() => {
+                          setStaffUsername(parentCode)
+                          switchTab('staff')
+                        }}
+                        className="mt-1.5 inline-flex items-center gap-1 font-black text-indigo-300 underline underline-offset-4 hover:text-white"
                       >
-                        ارسال مجدد کد
+                        👈 انتقال به بخش کادر مدرسه با همین نام کاربری
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      className="w-full text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-text)]"
-                      onClick={() => { setOtpSent(false); setOtpPhone(''); setOtpCode('') }}
-                      disabled={isLoading}
-                    >
-                      تغییر شماره موبایل
-                    </button>
-                  </form>
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
 
-      <div className="mt-6 flex flex-col gap-3 border-t border-[rgba(232,236,244,0.1)] pt-5">
-        <TermsAcceptanceNotice />
-        <div className="flex items-center justify-center gap-2 text-xs text-[var(--lux-text-muted)]">
-          <Shield className="w-3 h-3 text-[var(--lux-success)]" />
-          <span>ورود شما با امنیت بالا محافظت می‌شود</span>
+              <div className="space-y-1.5 text-right">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-1.5 text-xs font-black text-white" htmlFor="parent_password">
+                    <Lock className="h-3.5 w-3.5 text-amber-400" />
+                    رمز عبور
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => switchTab('sms')}
+                    className="text-xs font-bold text-amber-400 hover:text-amber-300 hover:underline"
+                  >
+                    رمز ندارید؟ ورود با پیامک
+                  </button>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="parent_password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    required
+                    disabled={isLoading}
+                    className="lp-input-dark text-left pl-10 focus:border-amber-400 focus:ring-amber-400/20"
+                    dir="ltr"
+                  />
+                  <button
+                    type="button"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--lux-text-muted)] hover:text-white"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'مخفی کردن رمز' : 'نمایش رمز'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="lux-btn-accent w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 font-black text-black shadow-lg shadow-amber-500/25 hover:from-amber-400 hover:to-orange-400"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="ml-2 h-4 w-4 animate-spin text-black" />
+                    در حال ورود به پرتال اولیا...
+                  </>
+                ) : (
+                  'ورود به پرتال اولیا'
+                )}
+              </button>
+
+              {/* تغییر سریع نقش در پایین فرم */}
+              <div className="flex items-center justify-between border-t border-white/[0.08] pt-3 text-xs">
+                <button
+                  type="button"
+                  onClick={() => switchTab('staff')}
+                  className="text-indigo-400 hover:underline"
+                >
+                  معلم یا کادر مدرسه هستید؟ کلیک کنید
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchTab('sms')}
+                  className="text-emerald-400 hover:underline"
+                >
+                  ورود سریع بدون رمز
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* ========================================== */}
+          {/* ۲. تب کادر مدرسه و معلمان                  */}
+          {/* ========================================== */}
+          <div
+            role="tabpanel"
+            id="login-panel-staff"
+            aria-labelledby="login-tab-staff"
+            hidden={activeTab !== 'staff'}
+            className="space-y-4"
+          >
+            <form onSubmit={handleStaffLogin} className="space-y-4">
+              <div className="space-y-1.5 text-right">
+                <label className="flex items-center gap-1.5 text-xs font-black text-white" htmlFor="username">
+                  <User className="h-3.5 w-3.5 text-indigo-400" />
+                  نام کاربری سازمانی کادر مدرسه
+                </label>
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  placeholder="مثال: admin یا username دبیر"
+                  required
+                  disabled={isLoading}
+                  autoComplete="username"
+                  value={staffUsername}
+                  onChange={(e) => setStaffUsername(e.target.value)}
+                  className="lp-input-dark text-left focus:border-indigo-400 focus:ring-indigo-400/20"
+                  dir="ltr"
+                  data-testid="login-username"
+                />
+                <p className="text-[11px] text-[var(--lux-text-muted)]">
+                  نام کاربری تعریف‌شده توسط مدیر مدرسه برای دبیران و معاونین
+                </p>
+
+                {/* هشدار هوشمند ورود شماره یا کد ملی در تب کارکنان */}
+                {isNumericPhoneOrCodeInStaff && (
+                  <div className="mt-2.5 rounded-xl border border-amber-500/50 bg-amber-500/20 p-3 text-xs leading-6 text-amber-200">
+                    <div className="flex items-start gap-2.5">
+                      <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-1" />
+                      <div className="flex-1">
+                        <p className="font-extrabold text-amber-300 text-sm">
+                          آیا از اولیا و والدین دانش‌آموزان هستید؟
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-amber-200/90">
+                          شما شماره موبایل یا کد ملی وارد کرده‌اید. ورود والدین در تب اختصاصی خود انجام می‌شود تا با پیام خطا مواجه نشوید.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setParentCode(staffUsername)
+                            switchTab('parent')
+                          }}
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-black text-black hover:bg-amber-400 transition-colors shadow-md"
+                        >
+                          <span>👈 انتقال فوری به بخش والدین با همین شماره</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5 text-right">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-1.5 text-xs font-black text-white" htmlFor="password">
+                    <Lock className="h-3.5 w-3.5 text-indigo-400" />
+                    رمز عبور
+                  </label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs text-[var(--lux-text-muted)] hover:text-indigo-300 hover:underline"
+                  >
+                    فراموشی رمز عبور؟
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    required
+                    disabled={isLoading}
+                    autoComplete="current-password"
+                    className="lp-input-dark text-left pl-10 focus:border-indigo-400 focus:ring-indigo-400/20"
+                    dir="ltr"
+                    data-testid="login-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--lux-text-muted)] hover:text-white"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'مخفی کردن رمز' : 'نمایش رمز'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="lux-btn-accent w-full bg-gradient-to-r from-indigo-500 to-purple-600 font-black text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-400 hover:to-purple-500"
+                disabled={isLoading}
+                data-testid="login-submit"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="ml-2 h-4 w-4 animate-spin text-white" />
+                    در حال ورود همکاران...
+                  </>
+                ) : (
+                  'ورود به پنل کادر مدرسه'
+                )}
+              </button>
+
+              <div className="flex items-center justify-between border-t border-white/[0.08] pt-3 text-xs">
+                <button
+                  type="button"
+                  onClick={() => switchTab('parent')}
+                  className="text-amber-400 hover:underline"
+                >
+                  ولی دانش‌آموز هستید؟ کلیک کنید
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchTab('sms')}
+                  className="text-emerald-400 hover:underline"
+                >
+                  ورود با پیامک یکبارمصرف
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* ========================================== */}
+          {/* ۳. تب دانش‌آموز                            */}
+          {/* ========================================== */}
+          <div
+            role="tabpanel"
+            id="login-panel-student"
+            aria-labelledby="login-tab-student"
+            hidden={activeTab !== 'student'}
+            className="space-y-4"
+          >
+            <form onSubmit={handleStudentLogin} className="space-y-4">
+              <div className="space-y-1.5 text-right">
+                <label className="flex items-center gap-1.5 text-xs font-black text-white" htmlFor="student_number">
+                  <GraduationCap className="h-3.5 w-3.5 text-cyan-400" />
+                  کد دانش‌آموزی یا کد ملی
+                </label>
+                <Input
+                  id="student_number"
+                  name="student_number"
+                  type="text"
+                  placeholder="مثال: 1234567890"
+                  required
+                  disabled={isLoading}
+                  className="lp-input-dark text-left font-mono tracking-wider focus:border-cyan-400 focus:ring-cyan-400/20"
+                  dir="ltr"
+                  data-testid="login-student-number"
+                />
+                <p className="text-[11px] text-[var(--lux-text-muted)]">
+                  کد دانش‌آموزی را از کارت فعال‌سازی مدرسه یا ناظم دریافت کنید
+                </p>
+              </div>
+
+              <div className="space-y-1.5 text-right">
+                <label className="flex items-center gap-1.5 text-xs font-black text-white" htmlFor="pin">
+                  <KeyRound className="h-3.5 w-3.5 text-cyan-400" />
+                  رمز ورود (PIN ۴ تا ۶ رقمی)
+                </label>
+                <Input
+                  id="pin"
+                  name="pin"
+                  type="password"
+                  inputMode="numeric"
+                  placeholder="••••"
+                  required
+                  disabled={isLoading}
+                  className="lp-input-dark text-center font-mono text-3xl tracking-[0.5em] focus:border-cyan-400 focus:ring-cyan-400/20"
+                  dir="ltr"
+                  maxLength={6}
+                  pattern="[0-9]{4,6}"
+                  data-testid="login-student-pin"
+                />
+                <p className="text-[11px] text-[var(--lux-text-muted)]">
+                  رمز پیش‌فرض روی کارت فعال‌سازی درج شده است
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                className="lux-btn-accent w-full bg-gradient-to-r from-cyan-500 to-blue-600 font-black text-black shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="ml-2 h-4 w-4 animate-spin text-black" />
+                    در حال ورود دانش‌آموز...
+                  </>
+                ) : (
+                  'ورود به پرتال دانش‌آموز'
+                )}
+              </button>
+
+              <div className="flex items-center justify-between border-t border-white/[0.08] pt-3 text-xs">
+                <button
+                  type="button"
+                  onClick={() => switchTab('parent')}
+                  className="text-amber-400 hover:underline"
+                >
+                  ورود اولیای دانش‌آموز
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchTab('sms')}
+                  className="text-emerald-400 hover:underline"
+                >
+                  ورود با پیامک (موبایل اختصاصی)
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* ========================================== */}
+          {/* ۴. تب ورود سریع با پیامک (OTP)             */}
+          {/* ========================================== */}
+          <div
+            role="tabpanel"
+            id="login-panel-sms"
+            aria-labelledby="login-tab-sms"
+            hidden={activeTab !== 'sms'}
+            className="space-y-4"
+          >
+            {!otpSent ? (
+              <form key="sms-phone-form" onSubmit={handleSendOtp} className="space-y-4" autoComplete="on">
+                <div className="space-y-1.5 text-right">
+                  <label className="flex items-center gap-1.5 text-xs font-black text-white" htmlFor="login-phone">
+                    <Smartphone className="h-3.5 w-3.5 text-emerald-400" />
+                    شماره همراه ثبت‌شده در مدرسه
+                  </label>
+                  <Input
+                    id="login-phone"
+                    data-testid="login-phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="09123456789"
+                    required
+                    disabled={isLoading}
+                    className="lp-input-dark text-left font-mono text-lg tracking-widest focus:border-emerald-400 focus:ring-emerald-400/20"
+                    dir="ltr"
+                    pattern="09[0-9]{9}"
+                    maxLength={11}
+                    autoComplete="tel"
+                    inputMode="tel"
+                  />
+                  <p className="text-[11px] text-[var(--lux-text-muted)]">
+                    کد تأیید ۶ رقمی از طریق پیامک به این شماره ارسال خواهد شد
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  className="lux-btn-accent w-full bg-gradient-to-r from-emerald-500 to-teal-600 font-black text-black shadow-lg shadow-emerald-500/25 hover:from-emerald-400 hover:to-teal-500"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin text-black" />
+                      در حال ارسال کد تأیید...
+                    </>
+                  ) : (
+                    'دریافت کد تأیید پیامکی'
+                  )}
+                </button>
+              </form>
+            ) : (
+              <form key="sms-otp-form" onSubmit={handleVerifyOtp} className="space-y-4" autoComplete="off">
+                <div className="space-y-1.5 text-right">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-1.5 text-xs font-black text-white" htmlFor="login-otp">
+                      <KeyRound className="h-3.5 w-3.5 text-emerald-400" />
+                      کد تأیید ۶ رقمی پیامک‌شده
+                    </label>
+                    {otpTimer > 0 && (
+                      <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-black text-emerald-400">
+                        {otpTimer} ثانیه تا ارسال مجدد
+                      </span>
+                    )}
+                  </div>
+                  <Input
+                    id="login-otp"
+                    data-testid="login-otp"
+                    name="otp"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="------"
+                    required
+                    disabled={isLoading}
+                    className="lp-input-dark text-center font-mono text-3xl tracking-[0.5em] focus:border-emerald-400 focus:ring-emerald-400/20"
+                    dir="ltr"
+                    maxLength={6}
+                    pattern="[0-9]{6}"
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    autoFocus
+                  />
+                  <p className="text-center text-xs text-[var(--lux-text-muted)]">
+                    پیامک به شماره <span className="font-mono text-white" dir="ltr">{otpPhone}</span> ارسال شد.
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  data-testid="login-otp-submit"
+                  className="lux-btn-accent w-full bg-gradient-to-r from-emerald-500 to-teal-600 font-black text-black shadow-lg shadow-emerald-500/25 hover:from-emerald-400 hover:to-teal-500"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin text-black" />
+                      در حال بررسی کد...
+                    </>
+                  ) : (
+                    'تأیید کد و ورود به سامانه'
+                  )}
+                </button>
+
+                <div className="flex items-center justify-between pt-1">
+                  {otpTimer === 0 ? (
+                    <button
+                      type="button"
+                      className="text-xs font-bold text-emerald-400 hover:underline"
+                      onClick={() => {
+                        setOtpCode('')
+                        setOtpSent(false)
+                      }}
+                    >
+                      ارسال مجدد کد پیامکی
+                    </button>
+                  ) : <span />}
+                  <button
+                    type="button"
+                    className="text-xs text-[var(--lux-text-muted)] hover:text-white"
+                    onClick={() => {
+                      setOtpSent(false)
+                      setOtpPhone('')
+                      setOtpCode('')
+                    }}
+                    disabled={isLoading}
+                  >
+                    تغییر شماره همراه
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="flex items-center justify-between border-t border-white/[0.08] pt-3 text-xs">
+              <button
+                type="button"
+                onClick={() => switchTab('parent')}
+                className="text-amber-400 hover:underline"
+              >
+                ورود والدین با رمز عبور
+              </button>
+              <button
+                type="button"
+                onClick={() => switchTab('staff')}
+                className="text-indigo-400 hover:underline"
+              >
+                ورود کادر مدرسه با رمز
+              </button>
+            </div>
+          </div>
+
         </div>
-        <div className="text-center">
-          <Link href="/help" className="text-xs text-[var(--lux-text-muted)] hover:text-[var(--lux-primary)] transition-colors">
-            راهنما و پشتیبانی
+
+      </div>
+
+      {/* ── فوتر و امنیت ── */}
+      <div className="mt-6 flex flex-col gap-2.5 border-t border-white/[0.08] pt-4 text-center">
+        <TermsAcceptanceNotice />
+        <div className="flex items-center justify-center gap-1.5 text-xs text-[var(--lux-text-muted)]">
+          <Shield className="h-3.5 w-3.5 text-emerald-400" />
+          <span>ورود امن و رمزنگاری‌شده با گواهی SSL و محافظت ضد نفوذ</span>
+        </div>
+        <div>
+          <Link
+            href="/help"
+            className="text-xs text-[var(--lux-text-muted)] transition-colors hover:text-[var(--lux-secondary)]"
+          >
+            نیاز به راهنمایی دارید؟ مرکز پشتیبانی و سوالات متداول
           </Link>
         </div>
       </div>

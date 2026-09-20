@@ -12,6 +12,7 @@ export type UserRole =
   | 'counselor'
   | 'health_vp'
   | 'educational_vp'
+  | 'nurturing_vp'
   | 'financial_vp'
   | 'disciplinary_vp'
   | 'art_teacher'

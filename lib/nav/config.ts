@@ -8,6 +8,8 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
+import { getRoleLabel as getCanonicalRoleLabel } from '@/lib/auth/roles'
+import { studentRouteAllowedForGrade } from '@/lib/education/cycle'
 
 export type NavItem = {
   title: string
@@ -83,7 +85,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'ظرفیت و سهمیه', href: '/admin/quota-settings', icon: Sliders },
         { title: 'برندینگ مدرسه', href: '/admin/school-settings', icon: Palette },
         { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders, badge: COMING_SOON_BADGE },
-        { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign, badge: COMING_SOON_BADGE },
+        { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign },
         { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
       ],
     },
@@ -114,8 +116,8 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'بانک سوال', href: '/teacher/question-bank-v2', icon: BookOpen },
         { title: 'تولید محتوا (AI)', href: '/teacher/content-creator', icon: Sparkles },
         { title: 'سوالات شفاهی', href: '/teacher/oral-questions', icon: MessageSquare },
-        { title: 'ارزیابی مهارت پایه', href: '/teacher/academic-foundation', icon: Target, badge: COMING_SOON_BADGE },
-        { title: 'اعطای نشان', href: '/teacher/award-badges', icon: Award, badge: COMING_SOON_BADGE },
+        { title: 'ارزیابی مهارت پایه', href: '/teacher/academic-foundation', icon: Target },
+        { title: 'اعطای نشان', href: '/teacher/award-badges', icon: Award },
       ],
     },
     {
@@ -139,7 +141,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'حضور و غیاب', href: '/parent/attendance', icon: ClipboardCheck },
         { title: 'بهداشت', href: '/parent/health', icon: Heart },
         { title: 'گزارش تخصصی', href: '/parent/specialty-reports', icon: Palette },
-        { title: 'امور مالی', href: '/parent/financials', icon: DollarSign, badge: COMING_SOON_BADGE },
+        { title: 'امور مالی', href: '/parent/financials', icon: DollarSign },
       ],
     },
     {
@@ -197,13 +199,13 @@ export const navConfig: Record<string, NavGroup[]> = {
     },
   ],
   counselor: [
-    { items: [{ title: 'داشبورد', href: '/counselor', icon: Home, badge: COMING_SOON_BADGE }] },
+    { items: [{ title: 'داشبورد', href: '/counselor', icon: Home }] },
     {
       title: 'مشاوره',
       items: [
-        { title: 'دانش‌آموزان', href: '/counselor/records', icon: Users, badge: COMING_SOON_BADGE },
-        { title: 'پرونده جدید', href: '/counselor/records/new', icon: FileText, badge: COMING_SOON_BADGE },
-        { title: 'گزارش‌ها', href: '/counselor/reports', icon: BarChart3, badge: COMING_SOON_BADGE },
+        { title: 'پرونده‌ها', href: '/counselor/records', icon: Users },
+        { title: 'پرونده جدید', href: '/counselor/records/new', icon: FileText },
+        { title: 'گزارش‌ها', href: '/counselor/reports', icon: BarChart3 },
         { title: 'بینش خانواده', href: '/counselor/family-insight', icon: Heart, badge: COMING_SOON_BADGE },
       ],
     },
@@ -212,64 +214,67 @@ export const navConfig: Record<string, NavGroup[]> = {
 
 export const simpleNavs: Record<string, NavItem[]> = {
   principal: [
-    { title: 'داشبورد', href: '/principal', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'مدیریت مدرسه', href: '/principal/overview', icon: Building, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/principal', icon: Home },
+    { title: 'نمای مدرسه', href: '/principal/overview', icon: Building },
   ],
   educational_vp: [
-    { title: 'داشبورد', href: '/educational-vp', icon: Home, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/educational-vp', icon: Home },
     { title: 'برنامه‌ریزی', href: '/educational-vp/planning', icon: Calendar },
-    { title: 'فعالیت‌ها', href: '/educational-vp/activities', icon: Activity, badge: COMING_SOON_BADGE },
+  ],
+  nurturing_vp: [
+    { title: 'داشبورد', href: '/nurturing-vp', icon: Home },
+    { title: 'فعالیت‌ها', href: '/nurturing-vp/activities', icon: Activity },
   ],
   disciplinary_vp: [
-    { title: 'داشبورد', href: '/discipline-vp', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'حضور و غیاب', href: '/discipline-vp/attendance', icon: ClipboardCheck, badge: COMING_SOON_BADGE },
-    { title: 'گزارش‌های انضباطی', href: '/discipline-vp/reports', icon: Shield, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/discipline-vp', icon: Home },
+    { title: 'حضور و غیاب', href: '/discipline-vp/attendance', icon: ClipboardCheck },
+    { title: 'گزارش‌های انضباطی', href: '/discipline-vp/reports', icon: Shield },
   ],
   evaluation_vp: [
-    { title: 'داشبورد', href: '/evaluation-vp', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'ارزیابی معلمان', href: '/evaluation-vp/teacher-evaluation', icon: Award, badge: COMING_SOON_BADGE },
-    { title: 'آمار', href: '/evaluation-vp/stats', icon: BarChart3, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/evaluation-vp', icon: Home },
+    { title: 'ارزیابی معلمان', href: '/evaluation-vp/teacher-evaluation', icon: Award },
+    { title: 'آمار', href: '/evaluation-vp/stats', icon: BarChart3 },
   ],
   health_vp: [
-    { title: 'داشبورد', href: '/health-vp', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'پرونده‌ها', href: '/health-vp/students', icon: Users, badge: COMING_SOON_BADGE },
-    { title: 'گزارش‌ها', href: '/health-vp/reports', icon: FileText, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/health-vp', icon: Home },
+    { title: 'پرونده‌ها', href: '/health-vp/students', icon: Users },
+    { title: 'گزارش‌ها', href: '/health-vp/reports', icon: FileText },
   ],
   financial_vp: [
-    { title: 'داشبورد', href: '/financial-vp', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: CreditCard, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/financial-vp', icon: Home },
+    { title: 'پرداخت‌ها', href: '/financial-vp/payments', icon: CreditCard },
     { title: 'پیامک', href: '/financial-vp/sms', icon: MessageSquare, badge: COMING_SOON_BADGE },
-    { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: DollarSign, badge: COMING_SOON_BADGE },
-    { title: 'درآمد', href: '/financial-vp/reports/income', icon: TrendingUp, badge: COMING_SOON_BADGE },
+    { title: 'بدهکاران', href: '/financial-vp/reports/debtors', icon: DollarSign },
+    { title: 'درآمد', href: '/financial-vp/reports/income', icon: TrendingUp },
   ],
   art_teacher: [
-    { title: 'داشبورد', href: '/art-teacher', icon: Home, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/art-teacher', icon: Home },
     { title: 'برنامهٔ من', href: '/art-teacher/timetable', icon: Calendar },
-    { title: 'گزارشات هنری', href: '/art-teacher/art-reports', icon: FileText, badge: COMING_SOON_BADGE },
+    { title: 'گزارشات هنری', href: '/art-teacher/art-reports', icon: FileText },
   ],
   sports_teacher: [
-    { title: 'داشبورد', href: '/sports-teacher', icon: Home, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/sports-teacher', icon: Home },
     { title: 'برنامهٔ من', href: '/sports-teacher/timetable', icon: Calendar },
-    { title: 'گزارشات ورزشی', href: '/sports-teacher/sports-reports', icon: FileText, badge: COMING_SOON_BADGE },
+    { title: 'گزارشات ورزشی', href: '/sports-teacher/sports-reports', icon: FileText },
   ],
   secretary: [
-    { title: 'داشبورد', href: '/secretary', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'مکاتبات', href: '/secretary/correspondence', icon: Mail, badge: COMING_SOON_BADGE },
-    { title: 'جلسات', href: '/secretary/meetings', icon: Calendar, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/secretary', icon: Home },
+    { title: 'مکاتبات', href: '/secretary/correspondence', icon: Mail },
+    { title: 'جلسات', href: '/secretary/meetings', icon: Calendar },
   ],
   librarian: [
-    { title: 'داشبورد', href: '/librarian', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'امانت کتاب', href: '/librarian/lending', icon: BookOpen, badge: COMING_SOON_BADGE },
-    { title: 'جستجو', href: '/librarian/search', icon: Search, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/librarian', icon: Home },
+    { title: 'امانت کتاب', href: '/librarian/lending', icon: BookOpen },
+    { title: 'جستجو', href: '/librarian/search', icon: Search },
   ],
   security: [
-    { title: 'داشبورد', href: '/security', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'ورود و خروج', href: '/security/entry-exit', icon: Users, badge: COMING_SOON_BADGE },
-    { title: 'رخدادها', href: '/security/incidents', icon: AlertCircle, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/security', icon: Home },
+    { title: 'ورود و خروج', href: '/security/entry-exit', icon: Users },
+    { title: 'رخدادها', href: '/security/incidents', icon: AlertCircle },
   ],
   maintenance: [
-    { title: 'داشبورد', href: '/maintenance', icon: Home, badge: COMING_SOON_BADGE },
-    { title: 'درخواست تعمیر', href: '/maintenance/requests', icon: Wrench, badge: COMING_SOON_BADGE },
+    { title: 'داشبورد', href: '/maintenance', icon: Home },
+    { title: 'درخواست تعمیر', href: '/maintenance/requests', icon: Wrench },
     { title: 'برنامه', href: '/maintenance/schedule', icon: Calendar, badge: COMING_SOON_BADGE },
   ],
 }
@@ -312,6 +317,36 @@ export const mobileTabItems: Record<string, NavItem[]> = {
     { title: 'گزارش', href: '/counselor/reports', icon: BarChart3 },
     { title: 'اعلان', href: '/notifications', icon: Bell },
   ],
+  principal: [
+    { title: 'خانه', href: '/principal', icon: Home },
+    { title: 'مدرسه', href: '/principal/overview', icon: Building },
+    { title: 'پیام', href: '/messages', icon: MessageSquare },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  educational_vp: [
+    { title: 'خانه', href: '/educational-vp', icon: Home },
+    { title: 'برنامه', href: '/educational-vp/planning', icon: Calendar },
+    { title: 'پیام', href: '/messages', icon: MessageSquare },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  nurturing_vp: [
+    { title: 'خانه', href: '/nurturing-vp', icon: Home },
+    { title: 'فعالیت', href: '/nurturing-vp/activities', icon: Activity },
+    { title: 'پیام', href: '/messages', icon: MessageSquare },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  disciplinary_vp: [
+    { title: 'خانه', href: '/discipline-vp', icon: Home },
+    { title: 'حضور', href: '/discipline-vp/attendance', icon: ClipboardCheck },
+    { title: 'گزارش', href: '/discipline-vp/reports', icon: Shield },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  health_vp: [
+    { title: 'خانه', href: '/health-vp', icon: Home },
+    { title: 'پرونده', href: '/health-vp/students', icon: Users },
+    { title: 'گزارش', href: '/health-vp/reports', icon: FileText },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
 }
 
 export function getArcColor(role: string): string {
@@ -327,35 +362,35 @@ export function getArcColor(role: string): string {
 }
 
 export function getRoleLabel(role: string): string {
-  const labels: Record<string, string> = {
-    admin: 'مدیر پلتفرم',
-    platform_admin: 'ادمین کل',
-    principal: 'مدیر مدرسه',
-    teacher: 'معلم',
-    parent: 'والد',
-    student: 'دانش‌آموز',
-    counselor: 'مشاور',
-    health_vp: 'معاون بهداشت',
-    educational_vp: 'معاون پرورشی',
-    financial_vp: 'معاون مالی',
-    disciplinary_vp: 'معاون انضباطی',
-    evaluation_vp: 'معاون ارزیابی',
-    art_teacher: 'معلم هنر',
-    sports_teacher: 'معلم ورزش',
-    secretary: 'منشی',
-    librarian: 'کتابدار',
-    security: 'نگهبان',
-    maintenance: 'تأسیسات',
-  }
-  return labels[role] ?? 'کاربر'
+  return getCanonicalRoleLabel(role)
 }
 
-export function resolveNavGroups(role: string): NavGroup[] {
+export function resolveNavGroups(
+  role: string,
+  options?: { grade?: number | null }
+): NavGroup[] {
   const navRole = role === 'platform_admin' ? 'admin' : role
-  if (navConfig[navRole]) return navConfig[navRole]
-  const simple = simpleNavs[role]
-  if (simple) return [{ items: simple }]
-  return [{ items: [{ title: 'داشبورد', href: '/dashboard', icon: Home }] }]
+  let groups: NavGroup[]
+  if (navConfig[navRole]) groups = navConfig[navRole]
+  else {
+    const simple = simpleNavs[role]
+    groups = simple
+      ? [{ items: simple }]
+      : [{ items: [{ title: 'داشبورد', href: '/dashboard', icon: Home }] }]
+  }
+
+  if (role === 'student' && options?.grade != null) {
+    groups = groups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          studentRouteAllowedForGrade(item.href, options.grade ?? null)
+        ),
+      }))
+      .filter((group) => group.items.length > 0)
+  }
+
+  return groups
 }
 
 export function isNavActive(pathname: string, href: string): boolean {

@@ -8,6 +8,7 @@ import { DashboardPage as PremiumDashboardLayout } from '@/components/layout/das
 import { StatCard } from '@/components/ui/stat-card'
 import { GlassCard } from '@/components/ui/glass-card'
 import { getRoleExperienceLabel } from '@/lib/ui/role-tone'
+import { getRoleHomePath } from '@/lib/auth/roles'
 import { cn } from '@/lib/utils'
 import { PageLoading } from '@/components/ui/page-states'
 import {
@@ -57,6 +58,7 @@ type UserRole =
   | 'health_vp'
   | 'disciplinary_vp'
   | 'educational_vp'
+  | 'nurturing_vp'
   | 'financial_vp'
   | 'evaluation_vp'
   | 'art_teacher'
@@ -296,6 +298,24 @@ const roleConfigs: Record<UserRole, RoleConfig> = {
     ],
   },
 
+  // ==================== معاون پرورشی ====================
+  nurturing_vp: {
+    title: 'داشبورد معاون پرورشی',
+    subtitle: 'فعالیت‌های پرورشی',
+    gradient: 'from-fuchsia-600 via-fuchsia-700 to-pink-800',
+    stats: [
+      { label: 'فعالیت‌ها', value: '—', icon: <Heart className="w-6 h-6" />, color: 'bg-pink-500' },
+      { label: 'دانش‌آموزان', value: '—', icon: <Users className="w-6 h-6" />, color: 'bg-blue-500' },
+      { label: 'کلاس‌ها', value: '—', icon: <BookOpen className="w-6 h-6" />, color: 'bg-green-500' },
+      { label: 'پیام‌ها', value: '—', icon: <MessageSquare className="w-6 h-6" />, color: 'bg-purple-500' },
+    ],
+    links: [
+      { label: 'داشبورد پرورشی', href: '/nurturing-vp', icon: <Heart className="w-5 h-5" />, color: 'bg-pink-500', enabled: true },
+      { label: 'فعالیت‌ها', href: '/nurturing-vp/activities', icon: <Calendar className="w-5 h-5" />, color: 'bg-purple-500', enabled: true },
+      { label: 'پیام‌ها', href: '/messages', icon: <MessageSquare className="w-5 h-5" />, color: 'bg-blue-500', enabled: true },
+    ],
+  },
+
   // ==================== معاون مالی ====================
   financial_vp: {
     title: 'داشبورد معاون مالی',
@@ -405,6 +425,7 @@ const getRoleDisplayName = (role: UserRole): string => {
     health_vp: 'معاون بهداشت',
     disciplinary_vp: 'معاون انضباطی',
     educational_vp: 'معاون آموزشی',
+    nurturing_vp: 'معاون پرورشی',
     financial_vp: 'معاون مالی',
     evaluation_vp: 'معاون سنجش',
     art_teacher: 'معلم هنر',
@@ -505,6 +526,14 @@ export default function DashboardPage() {
   }
 
   const config = roleConfigs[userRole]
+  if (!config) {
+    window.location.replace(getRoleHomePath(userRole))
+    return (
+      <div className="flex items-center justify-center py-24" dir="rtl">
+        <PageLoading label="در حال انتقال به داشبورد نقش..." compact />
+      </div>
+    )
+  }
   const accent = getRoleAccent(userRole)
 
   return (

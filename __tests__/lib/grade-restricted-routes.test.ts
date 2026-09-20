@@ -22,9 +22,13 @@ describe('checkGradeRestriction', () => {
     )
   })
 
-  it('blocks when grade or stage is missing', () => {
+  it('blocks when grade is missing', () => {
     expect(checkGradeRestriction('/student/konkur', null, 'high_school')).toBe(false)
-    expect(checkGradeRestriction('/student/konkur', 11, null)).toBe(false)
+  })
+
+  it('allows access when stage is missing but grade matches cycle', () => {
+    expect(checkGradeRestriction('/student/konkur', 11, null)).toBe(true)
+    expect(checkGradeRestriction('/student/konkur', 8, null)).toBe(false)
   })
 
   it('covers all five gated student tools', () => {

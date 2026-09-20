@@ -19,18 +19,19 @@ describe('education cycles (S2)', () => {
     expect(EDUCATION_CYCLE_LABELS.elementary_1).toContain('ابتدایی')
   })
 
-  it('blocks konkur for elementary and allows high school', () => {
+  it('blocks konkur for elementary and allows study tools for elementary', () => {
     expect(studentRouteAllowedForGrade('/student/konkur', 5)).toBe(false)
     expect(studentRouteAllowedForGrade('/student/konkur-roadmap', 11)).toBe(true)
-    expect(studentRouteAllowedForGrade('/student/ai-guidance', 2)).toBe(false)
-    expect(studentRouteAllowedForGrade('/student/ai-guidance', 8)).toBe(true)
+    expect(studentRouteAllowedForGrade('/student/ai-guidance', 2)).toBe(true)
+    expect(studentRouteAllowedForGrade('/student/future-compass', 4)).toBe(true)
+    expect(studentRouteAllowedForGrade('/student/practice-playground', 2)).toBe(true)
     expect(studentRouteAllowedForGrade('/student/grades', 2)).toBe(true)
   })
 
-  it('keeps middleware grade restriction aligned for high-school routes', () => {
+  it('keeps middleware grade restriction aligned', () => {
     expect(checkGradeRestriction('/student/konkur', 11, 'high_school')).toBe(true)
     expect(checkGradeRestriction('/student/konkur', 5, 'elementary')).toBe(false)
-    expect(checkGradeRestriction('/student/ai-guidance', 8, 'middle_school')).toBe(true)
-    expect(checkGradeRestriction('/student/ai-guidance', 5, 'elementary')).toBe(false)
+    expect(checkGradeRestriction('/student/ai-guidance', 5, 'elementary')).toBe(true)
+    expect(checkGradeRestriction('/student/future-compass', 3, 'elementary')).toBe(true)
   })
 })

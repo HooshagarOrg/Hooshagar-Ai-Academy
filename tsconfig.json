@@ -37,23 +37,22 @@
     /* Completeness */
     "skipLibCheck": true,
     "types": ["node"],
-    /* Path Mapping */
-    "baseUrl": ".",
+    /* Path Mapping — بدون baseUrl (deprecated در TS 6+) */
     "paths": {
       "@/*": [
         "./*"
       ],
       "@/components/*": [
-        "components/*"
+        "./components/*"
       ],
       "@/lib/*": [
-        "lib/*"
+        "./lib/*"
       ],
       "@/types/*": [
-        "types/*"
+        "./types/*"
       ],
       "@/app/*": [
-        "app/*"
+        "./app/*"
       ]
     },
     /* Next.js */

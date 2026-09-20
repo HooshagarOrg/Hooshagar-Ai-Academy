@@ -48,10 +48,10 @@ export function studentRouteAllowedForGrade(
     return cycle === 'middle' || cycle === 'high'
   }
   if (path.startsWith('/student/future-compass')) {
-    return cycle === 'middle' || cycle === 'high'
+    return cycle !== 'unknown'
   }
   if (path.startsWith('/student/ai-guidance')) {
-    return cycle === 'middle' || cycle === 'high'
+    return cycle !== 'unknown'
   }
   return true
 }

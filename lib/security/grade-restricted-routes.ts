@@ -22,12 +22,12 @@ export const GRADE_RESTRICTED_ROUTES: Record<
     stages: ['middle_school', 'high_school', 'vocational', 'technical'],
   },
   '/student/future-compass': {
-    min_grade: 8,
-    stages: ['middle_school', 'high_school', 'vocational', 'technical'],
+    min_grade: 1,
+    stages: ['preschool', 'elementary', 'middle_school', 'high_school', 'vocational', 'technical'],
   },
   '/student/ai-guidance': {
-    min_grade: 7,
-    stages: ['middle_school', 'high_school', 'vocational', 'technical'],
+    min_grade: 1,
+    stages: ['preschool', 'elementary', 'middle_school', 'high_school', 'vocational', 'technical'],
   },
 }
 
@@ -44,8 +44,6 @@ export function checkGradeRestriction(
 
     const cycle = educationCycleFromGrade(grade_level)
     if (route.includes('konkur') && cycle !== 'high') return false
-    if (route.includes('ai-guidance') && cycle !== 'middle' && cycle !== 'high') return false
-    if (route.includes('future-compass') && cycle !== 'middle' && cycle !== 'high') return false
     if (route.includes('field-selection') && cycle !== 'middle' && cycle !== 'high') {
       return false
     }

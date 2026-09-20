@@ -81,6 +81,7 @@ logs
 tmp/
 temp/
 .cache/
+.tmp-lh/
 
 # AI cost tracking (sensitive data)
 cost-tracking.json

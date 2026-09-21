@@ -306,9 +306,14 @@ export default function MessagesPage() {
       animatedSections={false}
       className="max-w-6xl"
     >
-      <div className="lux-dash-card flex h-[calc(100vh-180px)] min-h-[420px] overflow-hidden border border-white/10">
-        {/* Sidebar */}
-        <aside className="flex w-full max-w-[340px] flex-col border-l border-white/10 bg-[var(--lux-card)]">
+      <div className="lux-dash-card flex h-[min(70dvh,calc(100dvh-12rem))] min-h-[360px] overflow-hidden border border-white/10">
+        {/* Sidebar — on mobile, hide when a thread is open */}
+        <aside
+          className={cn(
+            'flex w-full flex-col border-l border-white/10 bg-[var(--lux-card)] md:max-w-[340px] md:shrink-0',
+            selectedPeerId ? 'hidden md:flex' : 'flex',
+          )}
+        >
           <div className="border-b border-white/[0.06] p-3">
             <div className="relative">
               <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -362,8 +367,13 @@ export default function MessagesPage() {
           </div>
         </aside>
 
-        {/* Thread */}
-        <section className="flex min-w-0 flex-1 flex-col">
+        {/* Thread — on mobile, only show when a conversation is selected */}
+        <section
+          className={cn(
+            'flex min-w-0 flex-1 flex-col',
+            !selectedPeerId && 'hidden md:flex',
+          )}
+        >
           {!selectedPeerId ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">
               <MessageSquare className="h-12 w-12 opacity-40" />
@@ -371,18 +381,30 @@ export default function MessagesPage() {
             </div>
           ) : (
             <>
-              <header className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
-                <div>
-                  <p className="font-semibold">
-                    {selectedConversation?.peerName || 'گفتگو'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {roleLabel(selectedConversation?.peerRole || '')}
-                  </p>
+              <header className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden shrink-0"
+                    onClick={() => setSelectedPeerId(null)}
+                    aria-label="بازگشت به فهرست"
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                  <div className="min-w-0">
+                    <p className="font-semibold truncate">
+                      {selectedConversation?.peerName || 'گفتگو'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {roleLabel(selectedConversation?.peerRole || '')}
+                    </p>
+                  </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="hidden md:inline-flex"
                   onClick={() => setSelectedPeerId(null)}
                   aria-label="بستن"
                 >

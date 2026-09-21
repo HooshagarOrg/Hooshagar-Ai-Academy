@@ -875,7 +875,7 @@ export default function SchoolSettingsPage() {
           </div>
         ) : null}
         <Tabs value={activeTab} onValueChange={setActiveTab} className={isLoading ? 'hidden' : undefined}>
-          <TabsList className="grid grid-cols-3 w-[500px] mb-6 glass-panel-quiet">
+          <TabsList className="grid grid-cols-3 w-full max-w-full sm:max-w-xl mb-6 glass-panel-quiet">
             <TabsTrigger value="general" className="gap-2">
               <Building className="w-4 h-4" />
               اطلاعات عمومی

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { LuxNav, LuxMobileNav } from './lux-nav'
 import { LuxRoleHeader } from './lux-role-header'
@@ -19,6 +20,11 @@ interface DashboardShellProps {
   children: React.ReactNode
 }
 
+function isImmersiveRoute(pathname: string | null): boolean {
+  if (!pathname) return false
+  return /\/exams\/[^/]+\/take(?:\/|$)/.test(pathname)
+}
+
 export function DashboardShell({
   role,
   userName,
@@ -27,6 +33,8 @@ export function DashboardShell({
   studentGrade = null,
   children,
 }: DashboardShellProps) {
+  const pathname = usePathname()
+  const immersive = isImmersiveRoute(pathname)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const isStudent = role === 'student'
@@ -126,7 +134,10 @@ export function DashboardShell({
 
         <main
           id="main-content"
-          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y lg:pb-0 pb-[calc(4.75rem+var(--safe-bottom))]"
+          className={cn(
+            'min-h-0 flex-1 overflow-y-auto overflow-x-auto overscroll-y-contain touch-pan-y lg:pb-0',
+            immersive ? 'pb-0' : 'pb-[calc(4.75rem+var(--safe-bottom))]',
+          )}
           tabIndex={-1}
         >
           <div
@@ -142,8 +153,8 @@ export function DashboardShell({
           </div>
         </main>
 
-        <LuxMobileNav role={role} studentGrade={studentGrade} />
-        <AvatarFab defaultCorner="bl" />
+        {!immersive ? <LuxMobileNav role={role} studentGrade={studentGrade} /> : null}
+        {!immersive ? <AvatarFab defaultCorner="bl" /> : null}
       </div>
     </div>
     </DashboardRoleProvider>

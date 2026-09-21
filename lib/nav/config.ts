@@ -347,6 +347,54 @@ export const mobileTabItems: Record<string, NavItem[]> = {
     { title: 'گزارش', href: '/health-vp/reports', icon: FileText },
     { title: 'اعلان', href: '/notifications', icon: Bell },
   ],
+  evaluation_vp: [
+    { title: 'خانه', href: '/evaluation-vp', icon: Home },
+    { title: 'ارزیابی', href: '/evaluation-vp/teacher-evaluation', icon: Award },
+    { title: 'آمار', href: '/evaluation-vp/stats', icon: BarChart3 },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  financial_vp: [
+    { title: 'خانه', href: '/financial-vp', icon: Home },
+    { title: 'پرداخت', href: '/financial-vp/payments', icon: CreditCard },
+    { title: 'بدهکار', href: '/financial-vp/reports/debtors', icon: DollarSign },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  art_teacher: [
+    { title: 'خانه', href: '/art-teacher', icon: Home },
+    { title: 'برنامه', href: '/art-teacher/timetable', icon: Calendar },
+    { title: 'گزارش', href: '/art-teacher/art-reports', icon: FileText },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  sports_teacher: [
+    { title: 'خانه', href: '/sports-teacher', icon: Home },
+    { title: 'برنامه', href: '/sports-teacher/timetable', icon: Calendar },
+    { title: 'گزارش', href: '/sports-teacher/sports-reports', icon: FileText },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  secretary: [
+    { title: 'خانه', href: '/secretary', icon: Home },
+    { title: 'مکاتبه', href: '/secretary/correspondence', icon: Mail },
+    { title: 'جلسه', href: '/secretary/meetings', icon: Calendar },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  librarian: [
+    { title: 'خانه', href: '/librarian', icon: Home },
+    { title: 'امانت', href: '/librarian/lending', icon: BookOpen },
+    { title: 'جستجو', href: '/librarian/search', icon: Search },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  security: [
+    { title: 'خانه', href: '/security', icon: Home },
+    { title: 'ورود', href: '/security/entry-exit', icon: Users },
+    { title: 'رخداد', href: '/security/incidents', icon: AlertCircle },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
+  maintenance: [
+    { title: 'خانه', href: '/maintenance', icon: Home },
+    { title: 'تعمیر', href: '/maintenance/requests', icon: Wrench },
+    { title: 'برنامه', href: '/maintenance/schedule', icon: Calendar },
+    { title: 'اعلان', href: '/notifications', icon: Bell },
+  ],
 }
 
 export function getArcColor(role: string): string {

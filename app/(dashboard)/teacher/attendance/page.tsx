@@ -487,9 +487,9 @@ export default function TeacherAttendancePage() {
                         <TableHead className="w-12">#</TableHead>
                         <TableHead className="w-16">تصویر</TableHead>
                         <TableHead>نام دانش‌آموز</TableHead>
-                        <TableHead className="w-[300px]">وضعیت</TableHead>
-                        <TableHead className="w-[150px]">علت غیبت</TableHead>
-                        <TableHead className="w-[100px]">یادداشت</TableHead>
+                        <TableHead className="min-w-[8rem]">وضعیت</TableHead>
+                        <TableHead className="min-w-[7rem]">علت غیبت</TableHead>
+                        <TableHead className="min-w-[6rem]">یادداشت</TableHead>
                         <TableHead className="w-12">عملیات</TableHead>
                       </TableRow>
                     </TableHeader>

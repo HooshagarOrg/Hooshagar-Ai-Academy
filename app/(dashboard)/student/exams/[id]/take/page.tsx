@@ -517,7 +517,7 @@ export default function TakeExamPage() {
       </div>
 
       {/* محتوای سوال */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-4 py-6 pb-28">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
@@ -529,8 +529,8 @@ export default function TakeExamPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <Badge variant="outline">
                         {QUESTION_TYPE_LABELS[currentQuestion.question_type]}
                       </Badge>
@@ -538,7 +538,7 @@ export default function TakeExamPage() {
                         {currentQuestion.points} نمره
                       </Badge>
                     </div>
-                    <CardTitle className="text-lg leading-relaxed">
+                    <CardTitle className="text-base sm:text-lg leading-relaxed">
                       {currentQuestion.question_text}
                     </CardTitle>
                   </div>
@@ -559,7 +559,7 @@ export default function TakeExamPage() {
                   <img
                     src={currentQuestion.image_url}
                     alt="تصویر سوال"
-                    className="mt-4 max-h-64 object-contain rounded-lg mx-auto"
+                    className="mt-4 max-h-64 w-full object-contain rounded-lg mx-auto"
                   />
                 )}
               </CardHeader>
@@ -588,12 +588,13 @@ export default function TakeExamPage() {
         </AnimatePresence>
       </div>
 
-      {/* فوتر ناوبری */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg">
+      {/* فوتر ناوبری — بالاتر از safe-area موبایل */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background border-t shadow-lg pb-safe">
         <div className="max-w-4xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
             <Button
               variant="outline"
+              className="min-h-11"
               onClick={() => goToQuestion(currentIndex - 1)}
               disabled={currentIndex === 0}
             >
@@ -604,7 +605,7 @@ export default function TakeExamPage() {
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                size="sm"
+                className="min-h-11"
                 onClick={() => setShowMap(true)}
               >
                 <Grid3X3 className="w-4 h-4 ml-1" />
@@ -613,14 +614,14 @@ export default function TakeExamPage() {
             </div>
 
             {currentIndex < questions.length - 1 ? (
-              <Button onClick={() => goToQuestion(currentIndex + 1)}>
+              <Button className="min-h-11" onClick={() => goToQuestion(currentIndex + 1)}>
                 بعدی
                 <ChevronLeft className="w-4 h-4 mr-1" />
               </Button>
             ) : (
               <Button
                 onClick={() => setShowConfirm(true)}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-600 hover:bg-green-700 min-h-11"
               >
                 <Send className="w-4 h-4 ml-1" />
                 اتمام امتحان

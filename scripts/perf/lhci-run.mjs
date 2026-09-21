@@ -51,7 +51,6 @@ async function loginCookies(payload) {
 
 async function runLhci(label, extraHeaders) {
   const args = [
-    'lhci',
     'autorun',
     '--config=./lighthouserc.cjs',
     `--collect.url=${ORIGIN}/`,
@@ -63,15 +62,19 @@ async function runLhci(label, extraHeaders) {
     args.push(`--collect.url=${ORIGIN}/teacher`)
   }
   if (extraHeaders) {
-    args.push(`--collect.settings.extraHeaders=${JSON.stringify({ Cookie: extraHeaders })}`)
+    // Must not use shell:true with this JSON — bash mangles `{...}` braces.
+    args.push(
+      `--collect.settings.extraHeaders=${JSON.stringify({ Cookie: extraHeaders })}`,
+    )
   }
 
   await mkdir(OUT_DIR, { recursive: true })
   console.log(`\n=== Lighthouse (${label}) ===`)
+  const useShell = process.platform === 'win32'
   const child = spawn(
-    process.platform === 'win32' ? 'npx.cmd' : 'npx',
-    ['--yes', '@lhci/cli@0.15.1', ...args.slice(1)],
-    { stdio: 'inherit', shell: true, env: process.env },
+    useShell ? 'npx.cmd' : 'npx',
+    ['--yes', '@lhci/cli@0.15.1', ...args],
+    { stdio: 'inherit', shell: useShell, env: process.env },
   )
   const code = await new Promise((resolve) => child.on('exit', resolve))
   await writeFile(

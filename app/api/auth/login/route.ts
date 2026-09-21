@@ -19,6 +19,7 @@ import {
   type LoginLockStatus,
 } from '@/lib/security/login-lockout'
 import { isTurnstileConfigured, verifyTurnstileToken } from '@/lib/security/turnstile'
+import { loginCaptchaCookieName, verifyLoginCaptcha } from '@/lib/security/login-captcha'
 import { sanitizeString, normalizeIranPhone } from '@/lib/security/sanitize'
 import { getSupabaseServerUrl } from '@/lib/supabase/resolve-url'
 import { supabaseAuthCookieOptions } from '@/lib/supabase/auth-cookie'
@@ -40,6 +41,7 @@ const staffLoginSchema = z.object({
   username: z.string().min(2, 'نام کاربری الزامی است'),
   password: z.string().min(6, 'رمز عبور الزامی است'),
   captcha_token: z.string().optional(),
+  captcha_answer: z.string().max(12).optional(),
 })
 
 const otpLoginSchema = z.object({
@@ -47,6 +49,7 @@ const otpLoginSchema = z.object({
   phone: z.string().regex(/^09[0-9]{9}$/, 'شماره موبایل نامعتبر است'),
   otp: z.string().regex(/^[0-9]{6}$/, 'کد تأیید باید ۶ رقم باشد'),
   captcha_token: z.string().optional(),
+  captcha_answer: z.string().max(12).optional(),
 })
 
 const studentPinSchema = z.object({
@@ -54,6 +57,7 @@ const studentPinSchema = z.object({
   student_number: z.string().min(3, 'کد دانش‌آموزی الزامی است'),
   pin: z.string().regex(/^[0-9]{4,6}$/, 'PIN باید ۴ تا ۶ رقم باشد'),
   captcha_token: z.string().optional(),
+  captcha_answer: z.string().max(12).optional(),
 })
 
 const loginCodeSchema = z.object({
@@ -61,6 +65,7 @@ const loginCodeSchema = z.object({
   login_code: z.string().regex(/^\d{10}$/, 'کد ورود باید ۱۰ رقم باشد'),
   password: z.string().min(1, 'رمز عبور الزامی است'),
   captcha_token: z.string().optional(),
+  captcha_answer: z.string().max(12).optional(),
 })
 
 const loginSchema = z.discriminatedUnion('method', [
@@ -149,7 +154,8 @@ function lockResponse(status: LoginLockStatus): NextResponse {
 
 async function enforcePreLoginGuards(
   request: NextRequest,
-  captchaToken: string | undefined
+  captchaToken: string | undefined,
+  captchaAnswer: string | undefined
 ): Promise<{ ok: true; ip: string; ipStatus: LoginLockStatus } | { ok: false; response: NextResponse }> {
   const ip = getRequestIp(request)
   const ua = request.headers.get('user-agent')
@@ -193,15 +199,23 @@ async function enforcePreLoginGuards(
     return { ok: false, response: lockResponse(ipStatus) }
   }
 
-  if (ipStatus.requireCaptcha && isTurnstileConfigured()) {
-    const captcha = await verifyTurnstileToken(captchaToken, ip)
-    if (!captcha.ok) {
+  if (ipStatus.requireCaptcha) {
+    const localOk = verifyLoginCaptcha(
+      request.cookies.get(loginCaptchaCookieName())?.value,
+      captchaAnswer
+    )
+    let turnstileOk = false
+    if (isTurnstileConfigured() && captchaToken) {
+      const captcha = await verifyTurnstileToken(captchaToken, ip)
+      turnstileOk = captcha.ok
+    }
+    if (!localOk && !turnstileOk) {
       return {
         ok: false,
         response: NextResponse.json(
           {
             success: false,
-            error: captcha.error || 'تأیید امنیتی لازم است',
+            error: 'کد تصویر امنیتی را وارد کنید',
             error_code: 'CAPTCHA_REQUIRED',
             require_captcha: true,
           },
@@ -260,7 +274,7 @@ async function onLoginFailure(params: {
     {
       success: false,
       error: params.reason,
-      require_captcha: status.requireCaptcha && isTurnstileConfigured(),
+      require_captcha: status.requireCaptcha,
       failures: status.failures,
     },
     { status: 401 }
@@ -752,8 +766,10 @@ export async function POST(request: NextRequest) {
 
     const captchaToken =
       'captcha_token' in result.data ? result.data.captcha_token : undefined
+    const captchaAnswer =
+      'captcha_answer' in result.data ? result.data.captcha_answer : undefined
 
-    const guard = await enforcePreLoginGuards(request, captchaToken)
+    const guard = await enforcePreLoginGuards(request, captchaToken, captchaAnswer)
     if (!guard.ok) return guard.response
     const { ip } = guard
 

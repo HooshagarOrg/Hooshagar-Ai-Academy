@@ -85,6 +85,17 @@ export const AI_FEATURES: Record<string, FeatureInfo> = {
     creditCost: 5,
     isEnabled: true,
   },
+  ai_guidance: {
+    name: 'ai_guidance',
+    label: 'راهنمای مطالعه',
+    icon: '🧠',
+    description: 'راهنمای مطالعه و عادت‌های یادگیری',
+    dailyLimit: 3,
+    weeklyLimit: 12,
+    monthlyLimit: 35,
+    creditCost: 3,
+    isEnabled: true,
+  },
   student_analyzer: {
     name: 'student_analyzer',
     label: 'تحلیل دانش‌آموز',

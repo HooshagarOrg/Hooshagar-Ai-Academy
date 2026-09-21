@@ -1,14 +1,23 @@
-import { UnderConstruction } from '@/components/ui/under-construction'
-import { COMING_SOON_PILOT_NOTE } from '@/lib/copy/coming-soon'
+'use client'
 
-export default function Page() {
+import { StudentAiToolClient } from '@/components/student/student-ai-tool-client'
+import { aiGuidanceSystemPrompt } from '@/lib/ai/elementary-prompts'
+
+export default function AiGuidancePage() {
   return (
-    <UnderConstruction
-      title="راهنمای AI"
-      description="این بخش هنوز به دادهٔ واقعی وصل نیست و به‌زودی فعال می‌شود."
-      backHref="/student"
-      backLabel="بازگشت به داشبورد دانش‌آموز"
-      pilotNote={COMING_SOON_PILOT_NOTE}
+    <StudentAiToolClient
+      featureName="ai_guidance"
+      title="راهنمای مطالعه"
+      description="برای برنامهٔ مطالعه، تمرکز و عادت‌های خوب یادگیری راهنمایی بگیر"
+      placeholder="مثلاً: چطور هر روز ۲۰ دقیقه منظم مطالعه کنم؟"
+      quickPrompts={[
+        'برنامه مطالعه هفتگی',
+        'قبل امتحان چکار کنم؟',
+        'وقتی حوصله ندارم',
+      ]}
+      buildPrompt={(text, grade) =>
+        `${aiGuidanceSystemPrompt(grade)}\n\nسؤال: ${text}`
+      }
     />
   )
 }

@@ -25,6 +25,7 @@ const FEATURE_CAPABILITY_MAP: Record<string, AICapability> = {
   konkur_roadmap: 'konkur_roadmap',
   future_compass: 'field_selector',
   practice_playground: 'study_buddy',
+  ai_guidance: 'study_buddy',
   parent_message: 'content_creator',
   weekly_report: 'summarizer',
   early_warning: 'student_analyzer',

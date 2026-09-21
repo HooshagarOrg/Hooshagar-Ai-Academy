@@ -40,14 +40,14 @@ export const navConfig: Record<string, NavGroup[]> = {
     {
       title: 'هوش مصنوعی',
       items: [
-        { title: 'مصرف AI', href: '/admin/ai-usage-dashboard', icon: BarChart3, badge: COMING_SOON_BADGE },
+        { title: 'مصرف AI', href: '/admin/ai-usage-dashboard', icon: BarChart3 },
         { title: 'محدودیت‌ها', href: '/admin/ai-limits', icon: Sliders },
         { title: 'کنترل دسترسی', href: '/admin/ai-access-control', icon: Shield },
         { title: 'تست AI', href: '/admin/ai-test', icon: HelpCircle },
         { title: 'تنظیمات AI', href: '/admin/ai-settings', icon: Settings },
         { title: 'سیستم AI', href: '/admin/ai-system', icon: Activity },
-        { title: 'مدل‌های AI', href: '/admin/ai-models', icon: Brain, badge: COMING_SOON_BADGE },
-        { title: 'اعتبار AI', href: '/admin/ai-credits', icon: Zap, badge: COMING_SOON_BADGE },
+        { title: 'مدل‌های AI', href: '/admin/ai-models', icon: Brain },
+        { title: 'اعتبار AI', href: '/admin/ai-credits', icon: Zap },
       ],
     },
     {
@@ -57,7 +57,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'نظرسنجی‌ها', href: '/admin/surveys', icon: MessageSquare },
         { title: 'ارسال پیام گروهی', href: '/admin/broadcast', icon: Send },
         { title: 'صندوق پشتیبانی', href: '/admin/support', icon: Inbox },
-        { title: 'هشدار زودهنگام', href: '/admin/early-warning', icon: AlertCircle, badge: COMING_SOON_BADGE },
+        { title: 'هشدار زودهنگام', href: '/admin/early-warning', icon: AlertCircle },
       ],
     },
     {
@@ -84,7 +84,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'پلن‌های اشتراک', href: '/admin/subscriptions', icon: CreditCard },
         { title: 'ظرفیت و سهمیه', href: '/admin/quota-settings', icon: Sliders },
         { title: 'برندینگ مدرسه', href: '/admin/school-settings', icon: Palette },
-        { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders, badge: COMING_SOON_BADGE },
+        { title: 'قابلیت‌ها', href: '/admin/features-management', icon: Sliders },
         { title: 'شهریه', href: '/admin/tuition-settings', icon: DollarSign },
         { title: 'تنظیمات', href: '/admin/settings', icon: Settings },
       ],
@@ -169,7 +169,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'دستیار مطالعه', href: '/student/study-buddy', icon: BookOpen },
         { title: 'حل مسئله (OCR)', href: '/student/problem-solver', icon: Lightbulb },
         { title: 'استریک یادگیری', href: '/student/streak', icon: Flame },
-        { title: 'راهنمای AI', href: '/student/ai-guidance', icon: Brain, badge: COMING_SOON_BADGE },
+        { title: 'راهنمای مطالعه', href: '/student/ai-guidance', icon: Brain },
       ],
     },
     {
@@ -178,7 +178,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'انتخاب رشته', href: '/student/field-selection', icon: Target },
         { title: 'کنکور', href: '/student/konkur', icon: Award },
         { title: 'نقشه راه کنکور', href: '/student/konkur-roadmap', icon: Compass, badge: COMING_SOON_BADGE },
-        { title: 'قطب‌نمای آینده', href: '/student/future-compass', icon: Compass, badge: COMING_SOON_BADGE },
+        { title: 'کشف علایق', href: '/student/future-compass', icon: Compass },
       ],
     },
     {
@@ -192,7 +192,7 @@ export const navConfig: Record<string, NavGroup[]> = {
       title: 'سرگرمی',
       items: [
         { title: 'باغ استعداد', href: '/student/talent-garden', icon: Trophy },
-        { title: 'زمین بازی', href: '/student/practice-playground', icon: Gamepad2, badge: COMING_SOON_BADGE },
+        { title: 'زمین بازی', href: '/student/practice-playground', icon: Gamepad2 },
         { title: 'نشان‌هایم', href: '/student/badges', icon: Award },
         { title: 'فروشگاه', href: '/student/shop', icon: Zap },
       ],
@@ -206,7 +206,7 @@ export const navConfig: Record<string, NavGroup[]> = {
         { title: 'پرونده‌ها', href: '/counselor/records', icon: Users },
         { title: 'پرونده جدید', href: '/counselor/records/new', icon: FileText },
         { title: 'گزارش‌ها', href: '/counselor/reports', icon: BarChart3 },
-        { title: 'بینش خانواده', href: '/counselor/family-insight', icon: Heart, badge: COMING_SOON_BADGE },
+        { title: 'بینش خانواده', href: '/counselor/family-insight', icon: Heart },
       ],
     },
   ],

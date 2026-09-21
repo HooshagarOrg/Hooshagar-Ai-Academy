@@ -12,6 +12,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { randomBytes, scryptSync } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
+import ws from 'ws'
 
 const STAFF_USERNAME = (process.env.E2E_STAFF_USERNAME || 'lhci_teacher').toLowerCase()
 const STAFF_PASSWORD = process.env.E2E_STAFF_PASSWORD || 'TestPass123!hooshagar'

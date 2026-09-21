@@ -251,6 +251,7 @@ async function main() {
   )
   const admin = createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
+    realtime: { transport: ws },
   })
 
   const schoolId = await ensureSchool(admin)

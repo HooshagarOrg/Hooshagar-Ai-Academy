@@ -79,7 +79,7 @@ test.describe('RTL', () => {
   test('public pages render dir=rtl with Persian copy', async ({ page }) => {
     const pages: Array<{ path: string; marker: string | RegExp }> = [
       { path: '/', marker: /هوشاگر/ },
-      { path: '/login', marker: 'کارکنان' },
+      { path: '/login', marker: /کادر مدرسه|مدیران و دبیران/ },
       { path: '/forgot-password', marker: 'شماره موبایل' },
     ]
 

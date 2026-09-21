@@ -140,6 +140,8 @@ export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<LoginTab>('parent')
   const [requireCaptcha, setRequireCaptcha] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaAnswer, setCaptchaAnswer] = useState('')
+  const [captchaStamp, setCaptchaStamp] = useState(0)
 
   // متغیرهای فرم جهت تشخیص هوشمند اشتباه نقش
   const [staffUsername, setStaffUsername] = useState('')
@@ -159,9 +161,11 @@ export default function LoginPage() {
     error_code?: string
     require_captcha?: boolean
   }): void => {
-    if (data.require_captcha && TURNSTILE_SITE_KEY) {
+    if (data.require_captcha) {
       setRequireCaptcha(true)
       setCaptchaToken(null)
+      setCaptchaAnswer('')
+      setCaptchaStamp(Date.now())
     }
     toast.error(data.error || 'ورود ناموفق بود')
   }
@@ -188,8 +192,8 @@ export default function LoginPage() {
     loginCode: string,
     password: string,
   ) => {
-    if (requireCaptcha && TURNSTILE_SITE_KEY && !captchaToken) {
-      toast.error('لطفاً تأیید امنیتی را کامل کنید')
+    if (requireCaptcha && !captchaAnswer.trim() && !(TURNSTILE_SITE_KEY && captchaToken)) {
+      toast.error('کد تصویر امنیتی را وارد کنید')
       return false
     }
 
@@ -202,6 +206,7 @@ export default function LoginPage() {
         login_code: loginCode,
         password,
         captcha_token: captchaToken || undefined,
+        captcha_answer: captchaAnswer.trim() || undefined,
       }),
     })
     const data = await response.json() as {
@@ -269,8 +274,8 @@ export default function LoginPage() {
     phone: string,
     otp: string,
   ) => {
-    if (requireCaptcha && TURNSTILE_SITE_KEY && !captchaToken) {
-      toast.error('لطفاً تأیید امنیتی را کامل کنید')
+    if (requireCaptcha && !captchaAnswer.trim() && !(TURNSTILE_SITE_KEY && captchaToken)) {
+      toast.error('کد تصویر امنیتی را وارد کنید')
       return
     }
     const response = await fetch('/api/auth/login', {
@@ -282,6 +287,7 @@ export default function LoginPage() {
         phone,
         otp,
         captcha_token: captchaToken || undefined,
+        captcha_answer: captchaAnswer.trim() || undefined,
       }),
     })
     const data = await response.json()
@@ -328,8 +334,8 @@ export default function LoginPage() {
         return
       }
 
-      if (requireCaptcha && TURNSTILE_SITE_KEY && !captchaToken) {
-        toast.error('لطفاً تأیید امنیتی را کامل کنید')
+      if (requireCaptcha && !captchaAnswer.trim() && !(TURNSTILE_SITE_KEY && captchaToken)) {
+        toast.error('کد تصویر امنیتی را وارد کنید')
         return
       }
 
@@ -342,6 +348,7 @@ export default function LoginPage() {
           username,
           password,
           captcha_token: captchaToken || undefined,
+        captcha_answer: captchaAnswer.trim() || undefined,
         }),
       })
       const data = await response.json()
@@ -391,8 +398,8 @@ export default function LoginPage() {
     }
 
     try {
-      if (requireCaptcha && TURNSTILE_SITE_KEY && !captchaToken) {
-        toast.error('لطفاً تأیید امنیتی را کامل کنید')
+      if (requireCaptcha && !captchaAnswer.trim() && !(TURNSTILE_SITE_KEY && captchaToken)) {
+        toast.error('کد تصویر امنیتی را وارد کنید')
         return
       }
 
@@ -405,6 +412,7 @@ export default function LoginPage() {
           student_number: studentNumber,
           pin,
           captcha_token: captchaToken || undefined,
+        captcha_answer: captchaAnswer.trim() || undefined,
         }),
       })
 
@@ -566,15 +574,44 @@ export default function LoginPage() {
         </div>
 
         {/* ── کپچا در صورت فعال بودن ── */}
-        {requireCaptcha && TURNSTILE_SITE_KEY ? (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3.5">
-            <p className="mb-2 text-center text-xs leading-6 text-[var(--lux-text-muted)]">
+        {requireCaptcha ? (
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3.5 space-y-3">
+            <p className="text-center text-xs leading-6 text-[var(--lux-text-muted)]">
               به‌خاطر تلاش‌های ناموفق مکرر، تأیید امنیتی الزامی است
             </p>
-            <TurnstileWidget
-              siteKey={TURNSTILE_SITE_KEY}
-              onToken={setCaptchaToken}
-            />
+            <div className="flex flex-col items-center gap-2">
+              {/* کادر محلی — بدون وابستگی به Cloudflare که در ایران گاهی باز نمی‌شود */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/auth/login/captcha?t=${captchaStamp}`}
+                alt="کد امنیتی"
+                width={220}
+                height={72}
+                className="rounded-xl border border-white/10"
+              />
+              <button
+                type="button"
+                className="text-xs text-[var(--lux-gold)]"
+                onClick={() => {
+                  setCaptchaAnswer('')
+                  setCaptchaStamp(Date.now())
+                }}
+              >
+                کد جدید
+              </button>
+              <Input
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="کد ۵ رقمی تصویر"
+                value={captchaAnswer}
+                onChange={(e) => setCaptchaAnswer(e.target.value)}
+                className="max-w-[220px] text-center tracking-[0.3em]"
+                aria-label="کد تأیید امنیتی"
+              />
+            </div>
+            {TURNSTILE_SITE_KEY ? (
+              <TurnstileWidget siteKey={TURNSTILE_SITE_KEY} onToken={setCaptchaToken} />
+            ) : null}
           </div>
         ) : null}
 

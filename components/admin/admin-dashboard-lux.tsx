@@ -11,7 +11,6 @@ import { LuxPageHeader } from '@/components/lux/lux-page-header'
 import { LuxStatGrid } from '@/components/lux/lux-stat-grid'
 import { LuxHubGrid, type LuxHubGroup } from '@/components/lux/lux-hub-grid'
 import { LuxFadeUp, LuxStagger, LuxStaggerItem } from '@/components/lux/lux-motion'
-import { COMING_SOON_BADGE } from '@/lib/copy/coming-soon'
 
 const ADMIN_HUB: LuxHubGroup[] = [
   {
@@ -78,7 +77,6 @@ const ADMIN_HUB: LuxHubGroup[] = [
         href: '/admin/ai-models',
         color: 'text-brand-purple',
         bg: 'bg-brand-purple/15 border border-brand-purple/20',
-        badge: COMING_SOON_BADGE,
       },
       {
         title: 'محدودیت‌های AI',
@@ -103,7 +101,6 @@ const ADMIN_HUB: LuxHubGroup[] = [
         href: '/admin/ai-usage-dashboard',
         color: 'text-brand-cyan',
         bg: 'bg-brand-cyan/15 border border-brand-cyan/20',
-        badge: COMING_SOON_BADGE,
       },
       {
         title: 'اعتبار AI',
@@ -112,7 +109,6 @@ const ADMIN_HUB: LuxHubGroup[] = [
         href: '/admin/ai-credits',
         color: 'text-brand-yellow',
         bg: 'bg-brand-yellow/15 border border-brand-yellow/20',
-        badge: COMING_SOON_BADGE,
       },
       {
         title: 'تست AI',
@@ -182,7 +178,6 @@ const ADMIN_HUB: LuxHubGroup[] = [
         href: '/admin/early-warning',
         color: 'text-brand-orange',
         bg: 'bg-brand-orange/15 border border-brand-orange/20',
-        badge: COMING_SOON_BADGE,
       },
       {
         title: 'مرکز امنیت',
@@ -236,7 +231,6 @@ const ADMIN_HUB: LuxHubGroup[] = [
         href: '/admin/features-management',
         color: 'text-brand-yellow',
         bg: 'bg-brand-yellow/15 border border-brand-yellow/20',
-        badge: COMING_SOON_BADGE,
       },
       {
         title: 'سال تحصیلی',
@@ -253,7 +247,6 @@ const ADMIN_HUB: LuxHubGroup[] = [
         href: '/admin/tuition-settings',
         color: 'text-emerald-400',
         bg: 'bg-emerald-500/15 border border-emerald-500/20',
-        badge: COMING_SOON_BADGE,
       },
       {
         title: 'اشتراک‌ها',

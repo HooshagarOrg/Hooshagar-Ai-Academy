@@ -720,20 +720,19 @@ export default function QuestionBankPage() {
       <DashboardSectionBlock>
         <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--lux-text-muted)]" />
-                <Input
-                  placeholder="جستجو در سوالات..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-10"
-                />
-              </div>
+          <div className="flex flex-col gap-3">
+            <div className="relative w-full">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--lux-text-muted)]" />
+              <Input
+                placeholder="جستجو در سوالات..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-10"
+              />
             </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full min-w-0">
                 <SelectValue placeholder="درس" />
               </SelectTrigger>
               <SelectContent>
@@ -744,7 +743,7 @@ export default function QuestionBankPage() {
               </SelectContent>
             </Select>
             <Select value={gradeFilter} onValueChange={setGradeFilter}>
-              <SelectTrigger className="w-[120px]">
+              <SelectTrigger className="w-full min-w-0">
                 <SelectValue placeholder="پایه" />
               </SelectTrigger>
               <SelectContent>
@@ -755,7 +754,7 @@ export default function QuestionBankPage() {
               </SelectContent>
             </Select>
             <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-              <SelectTrigger className="w-[130px]">
+              <SelectTrigger className="w-full min-w-0">
                 <SelectValue placeholder="سطح" />
               </SelectTrigger>
               <SelectContent>
@@ -766,7 +765,7 @@ export default function QuestionBankPage() {
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full min-w-0">
                 <SelectValue placeholder="نوع" />
               </SelectTrigger>
               <SelectContent>
@@ -776,6 +775,7 @@ export default function QuestionBankPage() {
                 ))}
               </SelectContent>
             </Select>
+            </div>
           </div>
         </CardContent>
         </Card>
@@ -784,8 +784,8 @@ export default function QuestionBankPage() {
       <DashboardSectionBlock>
         <Card>
         <CardContent className="pt-6">
-          <div className="rounded-md border">
-            <Table>
+          <div className="rounded-md border overflow-x-auto">
+            <Table className="min-w-[640px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">

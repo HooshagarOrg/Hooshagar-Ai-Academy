@@ -77,7 +77,7 @@ export function NotificationBell({ role }: NotificationBellProps) {
           />
 
           {/* Notification Panel */}
-          <div className="absolute left-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[32rem] overflow-hidden flex flex-col">
+          <div className="absolute left-0 mt-2 w-[min(24rem,calc(100vw-1.5rem))] bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[32rem] overflow-hidden flex flex-col">
             {/* Header */}
             <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
               <div className="flex items-center gap-2">

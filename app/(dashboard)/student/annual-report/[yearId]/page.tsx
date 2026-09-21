@@ -235,29 +235,29 @@ export default function AnnualReportPage({ params }: { params: { yearId: string 
 
       <DashboardSectionBlock>
       <Tabs defaultValue="grades" className="space-y-4">
-        <TabsList className="grid grid-cols-6 w-full print:hidden">
-          <TabsTrigger value="grades">
-            <BookOpen className="ml-2 h-4 w-4" />
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 w-full h-auto gap-1 print:hidden">
+          <TabsTrigger value="grades" className="text-xs sm:text-sm">
+            <BookOpen className="ml-1 sm:ml-2 h-4 w-4 shrink-0" />
             نمرات
           </TabsTrigger>
-          <TabsTrigger value="attendance">
-            <Users className="ml-2 h-4 w-4" />
+          <TabsTrigger value="attendance" className="text-xs sm:text-sm">
+            <Users className="ml-1 sm:ml-2 h-4 w-4 shrink-0" />
             حضور
           </TabsTrigger>
-          <TabsTrigger value="behavior">
-            <Heart className="ml-2 h-4 w-4" />
+          <TabsTrigger value="behavior" className="text-xs sm:text-sm">
+            <Heart className="ml-1 sm:ml-2 h-4 w-4 shrink-0" />
             رفتار
           </TabsTrigger>
-          <TabsTrigger value="health">
-            <Activity className="ml-2 h-4 w-4" />
+          <TabsTrigger value="health" className="text-xs sm:text-sm">
+            <Activity className="ml-1 sm:ml-2 h-4 w-4 shrink-0" />
             بهداشت
           </TabsTrigger>
-          <TabsTrigger value="specialty">
-            <Sparkles className="ml-2 h-4 w-4" />
+          <TabsTrigger value="specialty" className="text-xs sm:text-sm">
+            <Sparkles className="ml-1 sm:ml-2 h-4 w-4 shrink-0" />
             فعالیت‌ها
           </TabsTrigger>
-          <TabsTrigger value="ai">
-            <TrendingUp className="ml-2 h-4 w-4" />
+          <TabsTrigger value="ai" className="text-xs sm:text-sm">
+            <TrendingUp className="ml-1 sm:ml-2 h-4 w-4 shrink-0" />
             تحلیل AI
           </TabsTrigger>
         </TabsList>

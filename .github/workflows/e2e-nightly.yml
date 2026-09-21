@@ -78,6 +78,10 @@ jobs:
       - name: End-to-end tests
         env:
           NODE_OPTIONS: '--max-old-space-size=4096'
+          E2E_STUDENT_NUMBER: ${{ secrets.E2E_STUDENT_NUMBER }}
+          E2E_STUDENT_PIN: ${{ secrets.E2E_STUDENT_PIN }}
+          E2E_STAFF_USERNAME: ${{ secrets.E2E_STAFF_USERNAME }}
+          E2E_STAFF_PASSWORD: ${{ secrets.E2E_STAFF_PASSWORD }}
         run: pnpm test:e2e
 
       - name: Stop server

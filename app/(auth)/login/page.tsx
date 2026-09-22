@@ -942,6 +942,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
+                data-testid="login-submit-student"
                 className="lux-btn-accent w-full bg-gradient-to-r from-cyan-500 to-blue-600 font-black text-black shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500"
                 disabled={isLoading}
               >

@@ -33,13 +33,9 @@ studentSuite('authenticated student dashboard (optional)', () => {
     await page.goto('/login?tab=student', { waitUntil: 'domcontentloaded' })
     await acceptCookiesIfPresent(page)
     await expect(page.getByTestId('login-tab-student')).toHaveAttribute('data-state', 'active')
-    await page.locator('#student_number').fill(studentCredentials.studentNumber)
-    await page.locator('#pin').fill(studentCredentials.pin)
-    await page
-      .locator('form')
-      .filter({ has: page.locator('#student_number') })
-      .getByRole('button', { name: 'ورود' })
-      .click()
+    await page.getByTestId('login-student-number').fill(studentCredentials.studentNumber)
+    await page.getByTestId('login-student-pin').fill(studentCredentials.pin)
+    await page.getByTestId('login-submit-student').click()
 
     await expect(page).toHaveURL(/\/student/, { timeout: 90_000 })
   })

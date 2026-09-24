@@ -292,7 +292,7 @@ function CTASection(): JSX.Element {
         <div>
           <p className="lux-kicker lp-kicker-gold mb-5">همین امروز</p>
           <h2 className="lux-display mx-auto max-w-3xl text-[clamp(2rem,6vw,4rem)]">
-            آیندهٔ مدرسه‌تان را{' '}
+            آیندهٔ خود را{' '}
             <span className="lp-gradient-text-animated">امروز</span> بسازید
           </h2>
           <p className="lux-body mx-auto mt-6 max-w-xl">

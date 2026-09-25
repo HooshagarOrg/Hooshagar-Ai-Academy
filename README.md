@@ -23,8 +23,10 @@
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)](https://supabase.com/)
 [![Google Gemini](https://img.shields.io/badge/Google-Gemini-orange)](https://ai.google.dev/)
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-black)](https://vercel.com/)
+[![Production](https://img.shields.io/badge/Production-hooshagar.ir-6366f1)](https://www.hooshagar.ir)
 
-**مخزن:** [HooshagarOrg/Hooshagar-Ai-Academy](https://github.com/HooshagarOrg/Hooshagar-Ai-Academy) (Private)
+**مخزن:** [HooshagarOrg/Hooshagar-Ai-Academy](https://github.com/HooshagarOrg/Hooshagar-Ai-Academy) (Private)  
+**محیط زنده:** [https://www.hooshagar.ir](https://www.hooshagar.ir)
 
 ---
 
@@ -40,6 +42,7 @@
 - [ساختار پروژه](#-ساختار-پروژه)
 - [امنیت](#-امنیت)
 - [Deploy](#-deploy)
+- [CI و تست خودکار](#-ci-و-تست-خودکار)
 - [وضعیت و نقشه راه](#-وضعیت-و-نقشه-راه)
 
 ---
@@ -180,6 +183,9 @@ pnpm dev
 | `pnpm db:migrate` | push migration به Supabase |
 | `pnpm verify-env` | بررسی env |
 | `pnpm test-google` / `test-openrouter` | تست کلید AI |
+| `pnpm test` | تست واحد (Vitest) |
+| `pnpm test:e2e` | Playwright (محلی؛ در CI با secrets) |
+| `pnpm lhci` | Lighthouse CI |
 
 ---
 
@@ -199,6 +205,8 @@ hooshagar-project/
 │   └── security/             # error handler, rate limit
 ├── supabase/migrations/      # schema + RLS
 ├── docs/
+│   ├── INDEX.md              # فهرست ~۸۶ سند Markdown
+│   ├── OPERATOR_DAILY_CHECKLIST.md
 │   └── PROPRIETARY_SECURITY.md
 ├── LICENSE
 ├── .env.example
@@ -234,6 +242,28 @@ hooshagar-project/
 
 **تست/استیجینگ (Docker):** [docs/DOCKER_VPS.md](./docs/DOCKER_VPS.md)
 
+**اپراتور روزانه:** [docs/OPERATOR_DAILY_CHECKLIST.md](./docs/OPERATOR_DAILY_CHECKLIST.md)
+
+---
+
+## 🔄 CI و تست خودکار
+
+روی هر **Pull Request** به `master`:
+
+| Job | کار |
+|-----|-----|
+| lint + type-check | ESLint و TypeScript |
+| `pnpm test` | تست واحد |
+| build | `pnpm build` با env تست |
+| Playwright smoke | مسیرهای حیاتی ورود/داشبورد |
+| audit | `pnpm audit` (critical؛ non-blocking) |
+
+**شبانه (scheduled):** E2E کامل + Lighthouse روی production (`www.hooshagar.ir`) با حساب‌های تست GitHub Secrets (`E2E_*`, `SUPABASE_TEST_*`).
+
+> حساب **`hooshagar-test`** فقط برای CI/E2E/Lighthouse در GitHub Actions است — نه برای ورود دستی کاربران در production.
+
+جزئیات env تست: [.env.example](./.env.example) و [docs/GITHUB_DEPLOY.md](./docs/GITHUB_DEPLOY.md).
+
 ---
 
 ## 📊 وضعیت و نقشه راه
@@ -247,15 +277,17 @@ hooshagar-project/
 - اشتراک + checkout Zarinpal  
 - Security audit (RLS, views, functions)  
 - لایسنس Proprietary + Org GitHub  
+- **Production پایلوت:** [www.hooshagar.ir](https://www.hooshagar.ir) (Vercel `fra1`)  
+- CI: PR smoke + شبانه E2E/Lighthouse  
 
 ### 🔴 باقی‌مانده
 
 | اولویت | کار |
 |--------|-----|
-| ۱ | Deploy production (Vercel) |
-| ۲ | SMS OTP کاوه‌نگار (نیاز به URL زنده) |
-| ۳ | Leaked Password Protection در Supabase Auth |
-| ۴ | تست E2E همه پنل‌ها و نقش‌ها |
+| ۱ | SMS OTP کاوه‌نگار (template روی دامنه زنده) |
+| ۲ | Leaked Password Protection در Supabase Auth |
+| ۳ | پوشش E2E همه نقش‌ها (در حال گسترش در nightly) |
+| ۴ | مقیاس ۱۰k / صف AI (بعد از خروج کامل از MVP پایلوت) |
 | ۵ | (اختیاری) Cloudflare Worker برای ایران |
 
 ---
@@ -264,8 +296,11 @@ hooshagar-project/
 
 | سند | موضوع |
 |-----|--------|
+| [docs/INDEX.md](./docs/INDEX.md) | فهرست مستندات (~۸۶ فایل) |
+| [docs/OPERATOR_DAILY_CHECKLIST.md](./docs/OPERATOR_DAILY_CHECKLIST.md) | چک‌لیست روزانه اپراتور |
 | [LICENSE](./LICENSE) | مجوز اختصاصی |
 | [docs/PROPRIETARY_SECURITY.md](./docs/PROPRIETARY_SECURITY.md) | محافظت repo و backend |
+| [docs/GITHUB_DEPLOY.md](./docs/GITHUB_DEPLOY.md) | GitHub Actions و secrets |
 | [.env.example](./.env.example) | قالب env |
 | `specification.md` | مشخصات فنی (داخلی) |
 

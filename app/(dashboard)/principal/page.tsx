@@ -8,6 +8,7 @@ import {
   GraduationCap,
   ClipboardCheck,
   MessageSquare,
+  BookOpen,
   Loader2,
 } from 'lucide-react'
 import { DashboardPage, DashboardSectionBlock } from '@/components/layout/dashboard-page'
@@ -107,6 +108,12 @@ export default function PrincipalDashboardPage() {
           <DashboardSectionBlock>
             <div className="grid gap-3 sm:grid-cols-2">
               <LinkCard href="/principal/overview" title="نمای مدرسه" description="کلاس‌ها و کارکنان" />
+              <LinkCard
+                href="/teacher/textbooks"
+                title="کتاب‌های درسی"
+                description="آپلود PDF برای هر پایه"
+                icon={BookOpen}
+              />
               <LinkCard href="/messages" title="پیام‌ها" description="ارتباط با معلمان و والدین" icon={MessageSquare} />
               <LinkCard href="/discipline-vp/attendance" title="حضور و غیاب" description="نمای انضباطی امروز" icon={ClipboardCheck} />
             </div>

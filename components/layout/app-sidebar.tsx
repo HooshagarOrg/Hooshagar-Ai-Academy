@@ -266,6 +266,7 @@ const simpleNavs: Record<string, NavItem[]> = {
   principal: [
     { title: 'داشبورد', href: '/principal', icon: Home },
     { title: 'مدیریت مدرسه', href: '/principal/overview', icon: Building },
+    { title: 'کتاب‌های درسی', href: '/teacher/textbooks', icon: BookOpen },
   ],
   educational_vp: [
     { title: 'داشبورد', href: '/educational-vp', icon: Home },

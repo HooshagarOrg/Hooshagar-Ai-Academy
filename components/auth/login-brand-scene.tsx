@@ -3,6 +3,7 @@
  * این کامپوننت فضای خالی سمت راست/شوکیس را به یک پیش‌نمایش زنده و جذاب از امکانات سامانه تبدیل می‌کند.
  */
 
+import { AppUrlLockup } from '@/components/brand/app-url-lockup'
 import {
   Users,
   GraduationCap,
@@ -24,14 +25,12 @@ export function LoginBrandScene(): JSX.Element {
       {/* ── کارت اصلی: پیشخوان زنده مدرسه هوشمند ── */}
       <div className="lp-showcase-mockup relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-5 shadow-2xl backdrop-blur-xl">
         {/* نوار بالای پنجره (ویندوز/مک استایل) */}
-        <div className="mb-4 flex items-center justify-between border-b border-white/[0.08] pb-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-rose-500/80" />
             <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
-            <span className="ms-2 text-[11px] font-bold text-[var(--lux-text-muted)]">
-              سامانه هوشمند هوشاگر
-            </span>
+            <AppUrlLockup className="ms-1 border-white/[0.06] bg-black/20" />
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-400">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />

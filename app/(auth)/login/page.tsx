@@ -191,6 +191,7 @@ export default function LoginPage() {
   const handleCodeLogin = async (
     loginCode: string,
     password: string,
+    portal: 'parent' | 'staff',
   ) => {
     if (requireCaptcha && !captchaAnswer.trim() && !(TURNSTILE_SITE_KEY && captchaToken)) {
       toast.error('کد تصویر امنیتی را وارد کنید')
@@ -205,6 +206,7 @@ export default function LoginPage() {
         method: 'login_code',
         login_code: loginCode,
         password,
+        portal,
         captcha_token: captchaToken || undefined,
         captcha_answer: captchaAnswer.trim() || undefined,
       }),
@@ -330,7 +332,7 @@ export default function LoginPage() {
 
     try {
       if (/^\d{10}$/.test(username)) {
-        await handleCodeLogin(username, password)
+        await handleCodeLogin(username, password, 'staff')
         return
       }
 
@@ -378,7 +380,7 @@ export default function LoginPage() {
         toast.error('کد ورود باید ۱۰ رقم باشد (کد ملی یا موبایل بدون صفر)')
         return
       }
-      await handleCodeLogin(code, password)
+      await handleCodeLogin(code, password, 'parent')
     } finally {
       setIsLoading(false)
     }

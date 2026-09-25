@@ -27,6 +27,7 @@ import { supabaseGlobalOptions } from '@/lib/supabase/fetch'
 import { nodeRealtimeOptions } from '@/lib/supabase/node-websocket'
 import { applyE2eTestEnv } from '@/lib/supabase/e2e-env'
 import { getRoleHomePath } from '@/lib/auth/roles'
+import { loginPortalRoleError, type LoginPortal } from '@/lib/auth/login-portal'
 import { verifyPin, isScryptPinHash } from '@/lib/security/pin-hash'
 import {
   buildAuthPassword,
@@ -64,6 +65,7 @@ const loginCodeSchema = z.object({
   method: z.literal('login_code'),
   login_code: z.string().regex(/^\d{10}$/, 'کد ورود باید ۱۰ رقم باشد'),
   password: z.string().min(1, 'رمز عبور الزامی است'),
+  portal: z.enum(['parent', 'staff']).default('parent'),
   captcha_token: z.string().optional(),
   captcha_answer: z.string().max(12).optional(),
 })
@@ -143,6 +145,13 @@ function getAdminClient() {
   )
 }
 
+function wrongPortalResponse(error: string): NextResponse {
+  return NextResponse.json(
+    { success: false, error, error_code: 'WRONG_PORTAL' },
+    { status: 403 }
+  )
+}
+
 function lockResponse(status: LoginLockStatus): NextResponse {
   return NextResponse.json(lockoutJsonBody(status), {
     status: 423,
@@ -215,7 +224,9 @@ async function enforcePreLoginGuards(
         response: NextResponse.json(
           {
             success: false,
-            error: 'کد تصویر امنیتی را وارد کنید',
+            error: captchaAnswer?.trim()
+              ? 'کد امنیتی اشتباه یا منقضی است. کد جدید را وارد کنید.'
+              : 'کد تصویر امنیتی را وارد کنید',
             error_code: 'CAPTCHA_REQUIRED',
             require_captcha: true,
           },
@@ -388,6 +399,17 @@ async function handleStaffLogin(
 
   await new Promise<void>((resolve) => setTimeout(resolve, 0))
 
+  const portalError = loginPortalRoleError('staff', profile.role)
+  if (portalError) {
+    await supabase.auth.signOut().catch(() => undefined)
+    return {
+      success: false as const,
+      error: portalError,
+      userId: profile.id,
+      wrongPortal: true as const,
+    }
+  }
+
   return {
     success: true as const,
     must_change_password: profile.must_change_password,
@@ -396,7 +418,7 @@ async function handleStaffLogin(
   }
 }
 
-async function handleLoginCode(loginCode: string, password: string) {
+async function handleLoginCode(loginCode: string, password: string, portal: LoginPortal) {
   const admin = getAdminClient()
   const trimmed = loginCode.trim()
 
@@ -421,27 +443,15 @@ async function handleLoginCode(loginCode: string, password: string) {
   }
 
   let pinHash = profile.pin_hash as string | null
-  let authKind: 'user' | 'student' = 'user'
 
-  // دانش‌آموزان PIN را روی students دارند، نه profiles — تب کارکنان
-  // کد ۱۰رقمی را به login_code می‌فرستد و قبلاً همه دانش‌آموزان رد می‌شدند.
+  // PIN دانش‌آموز روی students است، نه profiles
   if (!pinHash && profile.role === 'student') {
     const { data: student } = await admin
       .from('students')
-      .select('pin_hash, can_login')
+      .select('pin_hash')
       .eq('user_id', profile.id)
       .maybeSingle()
-
-    if (student && student.can_login === false) {
-      return {
-        success: false as const,
-        error: 'دسترسی ورود برای این دانش‌آموز فعال نشده است. لطفاً با مدرسه تماس بگیرید.',
-        userId: profile.id,
-      }
-    }
-
     pinHash = student?.pin_hash ?? null
-    if (pinHash) authKind = 'student'
   }
 
   if (!pinHash) {
@@ -452,11 +462,16 @@ async function handleLoginCode(loginCode: string, password: string) {
     return { success: false as const, error: 'رمز ورود اشتباه است', userId: profile.id }
   }
 
+  const portalError = loginPortalRoleError(portal, profile.role)
+  if (portalError) {
+    return { success: false as const, error: portalError, userId: profile.id, wrongPortal: true as const }
+  }
+
   if (!profile.email) {
     return { success: false as const, error: 'خطا در احراز هویت', userId: profile.id }
   }
 
-  const authPassword = buildAuthPassword(profile.id, password.trim(), authKind)
+  const authPassword = buildAuthPassword(profile.id, password.trim(), 'user')
 
   // فقط برای signIn سمت سرور — هرگز در JSON پاسخ HTTP برنگردانید
   return {
@@ -722,6 +737,16 @@ async function handleStudentPinLogin(student_number: string, pin: string) {
     }
   }
 
+  const portalError = loginPortalRoleError('student', profile.role || 'student')
+  if (portalError) {
+    return {
+      success: false as const,
+      error: portalError,
+      userId: student.user_id,
+      wrongPortal: true as const,
+    }
+  }
+
   const internalPassword = buildAuthPassword(student.user_id, pin, 'student')
 
   return {
@@ -787,6 +812,9 @@ export async function POST(request: NextRequest) {
           if (loginResult.error === 'account_locked' && loginResult.lockStatus) {
             return lockResponse(loginResult.lockStatus)
           }
+          if ('wrongPortal' in loginResult && loginResult.wrongPortal) {
+            return wrongPortalResponse(loginResult.error)
+          }
           return onLoginFailure({
             request,
             ip,
@@ -816,10 +844,17 @@ export async function POST(request: NextRequest) {
       }
 
       case 'login_code': {
-        const codeResult = await handleLoginCode(result.data.login_code, result.data.password)
+        const codeResult = await handleLoginCode(
+          result.data.login_code,
+          result.data.password,
+          result.data.portal
+        )
         if (!codeResult.success) {
           if (codeResult.error === 'account_locked' && codeResult.lockStatus) {
             return lockResponse(codeResult.lockStatus)
+          }
+          if ('wrongPortal' in codeResult && codeResult.wrongPortal) {
+            return wrongPortalResponse(codeResult.error)
           }
           return onLoginFailure({
             request,
@@ -995,6 +1030,9 @@ export async function POST(request: NextRequest) {
         if (!pinResult.success) {
           if (pinResult.error === 'account_locked' && pinResult.lockStatus) {
             return lockResponse(pinResult.lockStatus)
+          }
+          if ('wrongPortal' in pinResult && pinResult.wrongPortal) {
+            return wrongPortalResponse(pinResult.error)
           }
           return onLoginFailure({
             request,

@@ -1,5 +1,9 @@
 # چک‌لیست روزانه اپراتور — هوشاگر
 
+<p dir="rtl">
+  <img src="https://www.hooshagar.ir/brand/logo-mark.webp" width="120" height="41" alt="لوگوی هوشاگر" />
+</p>
+
 **مخاطب:** اپراتور غیرتخصصی  
 **زمان:** ۵–۱۰ دقیقه در هر روز کاری  
 **سایت:** https://www.hooshagar.ir

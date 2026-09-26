@@ -16,3 +16,12 @@ export function getAppUrl(path = ''): string {
   if (!path) return base
   return `${base}${path.startsWith('/') ? path : `/${path}`}`
 }
+
+/** hostname برای نمایش کنار لوگو (مثلاً www.hooshagar.ir) */
+export function getAppDisplayHost(): string {
+  try {
+    return new URL(getAppOrigin()).host
+  } catch {
+    return 'www.hooshagar.ir'
+  }
+}

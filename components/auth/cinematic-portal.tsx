@@ -6,6 +6,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { HooshagarLogo } from '@/components/brand/hooshagar-logo'
+import { AppUrlLockup } from '@/components/brand/app-url-lockup'
 import { StaticCinematicBackdrop } from '@/components/layout/static-cinematic-backdrop'
 import { LoginBrandScene } from '@/components/auth/login-brand-scene'
 import {
@@ -71,8 +72,9 @@ export function CinematicPortal({
           
           {/* هدر برند و لوگو */}
           <div className="relative z-10 space-y-3">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col items-start gap-3">
               <HooshagarLogo size="xl" href="/" inverted priority />
+              <AppUrlLockup size="md" />
             </div>
             <div className="pt-2">
               <span className="inline-flex items-center gap-2 rounded-full border border-[var(--lux-gold)]/30 bg-[var(--lux-gold)]/10 px-3 py-1 text-xs font-black text-[var(--lux-gold)]">
@@ -108,14 +110,17 @@ export function CinematicPortal({
         <div className="relative flex flex-col justify-center px-4 py-8 sm:px-8 sm:py-10 lg:py-12">
           
           {/* هدر موبایل */}
-          <div className="relative mb-5 flex items-center justify-between lg:hidden">
-            <HooshagarLogo size="lg" href="/" inverted priority />
-            <Link
-              href="/"
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-[var(--lux-text-muted)] transition-colors hover:border-white/25 hover:text-white"
-            >
-              صفحه اصلی
-            </Link>
+          <div className="relative mb-5 space-y-3 lg:hidden">
+            <div className="flex items-center justify-between gap-3">
+              <HooshagarLogo size="lg" href="/" inverted priority />
+              <Link
+                href="/"
+                className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-[var(--lux-text-muted)] transition-colors hover:border-white/25 hover:text-white"
+              >
+                صفحه اصلی
+              </Link>
+            </div>
+            <AppUrlLockup />
           </div>
 
           {/* کارت شیشه‌ای فرم */}

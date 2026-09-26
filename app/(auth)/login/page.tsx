@@ -569,7 +569,7 @@ export default function LoginPage() {
                 {currentTab.panelTitle}
               </span>
             </div>
-            <p className="mt-0.5 text-xs leading-6 text-[var(--lux-text-muted)]">
+            <p className="mt-0.5 hidden text-xs leading-6 text-[var(--lux-text-muted)] sm:block">
               {currentTab.panelDescription}
             </p>
           </div>
@@ -762,92 +762,91 @@ export default function LoginPage() {
             className="space-y-4"
           >
             <form onSubmit={handleStaffLogin} className="space-y-4">
-              <div className="space-y-1.5 text-right">
-                <label className="flex items-center gap-1.5 text-xs font-black text-white" htmlFor="username">
-                  <User className="h-3.5 w-3.5 text-indigo-400" />
-                  نام کاربری سازمانی کادر مدرسه
-                </label>
-                <Input
-                  id="username"
-                  name="username"
-                  type="text"
-                  placeholder="مثال: admin یا username دبیر"
-                  required
-                  disabled={isLoading}
-                  autoComplete="username"
-                  value={staffUsername}
-                  onChange={(e) => setStaffUsername(e.target.value)}
-                  className="lp-input-dark text-left focus:border-indigo-400 focus:ring-indigo-400/20"
-                  dir="ltr"
-                  data-testid="login-username"
-                />
-                <p className="text-[11px] text-[var(--lux-text-muted)]">
-                  نام کاربری تعریف‌شده توسط مدیر مدرسه برای دبیران و معاونین
+              <div className="lp-auth-credentials-box space-y-4">
+                <p className="text-xs font-bold text-indigo-200/90 leading-6">
+                  نام کاربری و رمز عبور را در کادر زیر وارد کنید.
                 </p>
-
-                {/* هشدار هوشمند ورود شماره یا کد ملی در تب کارکنان */}
-                {isNumericPhoneOrCodeInStaff && (
-                  <div className="mt-2.5 rounded-xl border border-amber-500/50 bg-amber-500/20 p-3 text-xs leading-6 text-amber-200">
-                    <div className="flex items-start gap-2.5">
-                      <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-1" />
-                      <div className="flex-1">
-                        <p className="font-extrabold text-amber-300 text-sm">
-                          آیا از اولیا و والدین دانش‌آموزان هستید؟
-                        </p>
-                        <p className="mt-0.5 text-[11px] text-amber-200/90">
-                          شما شماره موبایل یا کد ملی وارد کرده‌اید. ورود والدین در تب اختصاصی خود انجام می‌شود تا با پیام خطا مواجه نشوید.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setParentCode(staffUsername)
-                            switchTab('parent')
-                          }}
-                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-black text-black hover:bg-amber-400 transition-colors shadow-md"
-                        >
-                          <span>👈 انتقال فوری به بخش والدین با همین شماره</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-1.5 text-right">
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-1.5 text-xs font-black text-white" htmlFor="password">
-                    <Lock className="h-3.5 w-3.5 text-indigo-400" />
-                    رمز عبور
+                <div className="space-y-1.5 text-right">
+                  <label className="flex items-center gap-1.5 text-sm font-black text-white" htmlFor="username">
+                    <User className="h-4 w-4 text-indigo-300" />
+                    نام کاربری
                   </label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-[var(--lux-text-muted)] hover:text-indigo-300 hover:underline"
-                  >
-                    فراموشی رمز عبور؟
-                  </Link>
-                </div>
-                <div className="relative">
                   <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="مثال: admin یا username دبیر"
                     required
                     disabled={isLoading}
-                    autoComplete="current-password"
-                    className="lp-input-dark text-left pl-10 focus:border-indigo-400 focus:ring-indigo-400/20"
+                    autoComplete="username"
+                    value={staffUsername}
+                    onChange={(e) => setStaffUsername(e.target.value)}
+                    className="lp-input-dark lp-input-emphasis text-left text-base focus:border-indigo-400 focus:ring-indigo-400/30"
                     dir="ltr"
-                    data-testid="login-password"
+                    data-testid="login-username"
                   />
-                  <button
-                    type="button"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--lux-text-muted)] hover:text-white"
-                    onClick={() => setShowPassword(!showPassword)}
-                    tabIndex={-1}
-                    aria-label={showPassword ? 'مخفی کردن رمز' : 'نمایش رمز'}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+
+                  {/* هشدار هوشمند ورود شماره یا کد ملی در تب کارکنان */}
+                  {isNumericPhoneOrCodeInStaff && (
+                    <div className="mt-2.5 rounded-xl border border-amber-500/50 bg-amber-500/20 p-3 text-xs leading-6 text-amber-200">
+                      <div className="flex items-start gap-2.5">
+                        <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-1" />
+                        <div className="flex-1">
+                          <p className="font-extrabold text-amber-300 text-sm">
+                            آیا از اولیا و والدین دانش‌آموزان هستید؟
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setParentCode(staffUsername)
+                              switchTab('parent')
+                            }}
+                            className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-black text-black hover:bg-amber-400 transition-colors shadow-md"
+                          >
+                            انتقال به بخش والدین
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-1.5 text-right">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="flex items-center gap-1.5 text-sm font-black text-white" htmlFor="password">
+                      <Lock className="h-4 w-4 text-indigo-300" />
+                      رمز عبور
+                    </label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs font-bold text-indigo-300 hover:text-white hover:underline shrink-0"
+                    >
+                      فراموشی رمز؟
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="رمز عبور خود را وارد کنید"
+                      required
+                      disabled={isLoading}
+                      autoComplete="current-password"
+                      className="lp-input-dark lp-input-emphasis text-left text-base pl-10 focus:border-indigo-400 focus:ring-indigo-400/30"
+                      dir="ltr"
+                      data-testid="login-password"
+                    />
+                    <button
+                      type="button"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--lux-text-muted)] hover:text-white"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                      aria-label={showPassword ? 'مخفی کردن رمز' : 'نمایش رمز'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
 

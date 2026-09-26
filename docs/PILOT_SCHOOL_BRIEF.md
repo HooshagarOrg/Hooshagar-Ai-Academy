@@ -1,5 +1,9 @@
 # هوشاگر — راهنمای پایلوت برای مدیر مدرسه
 
+<p dir="rtl">
+  <img src="https://www.hooshagar.ir/brand/logo-mark.webp" width="140" height="48" alt="لوگوی هوشاگر" />
+</p>
+
 **آدرس:** https://www.hooshagar.ir  
 **نسخه:** پایلوت مدرسه‌ای — شهریور ۱۴۰۵ (پس از موج ۳)  
 **پشتیبانی:** contact@hooshagar.ir
